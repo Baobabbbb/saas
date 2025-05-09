@@ -1,0 +1,145 @@
+.hero-creator {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.hero-creator h3 {
+  font-size: 1.2rem;
+  color: var(--primary);
+  margin: 0;
+}
+
+.hero-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-group label {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.input-group input {
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: 2px solid #e0d6ff;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.2);
+}
+
+.avatar-selector {
+  margin-top: 0.5rem;
+}
+
+.avatar-selector p {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.avatar-options {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.avatar-option {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #f5f0ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.avatar-option:hover {
+  background-color: #ede5ff;
+}
+
+.avatar-option.selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.2);
+}
+
+.avatar-upload {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #f5f0ff;
+  border: 2px dashed #c4b5ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.avatar-upload:hover {
+  background-color: #ede5ff;
+}
+
+.uploaded-photo-container {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.uploaded-photo {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--primary);
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
+}
+
+.uploaded-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-photo {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ff4757;
+  font-size: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.photo-caption {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--primary);
+}

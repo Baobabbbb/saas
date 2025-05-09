@@ -1,0 +1,26 @@
+{
+  "name": "bd-enfants-ia",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "setup-db": "node src/database/setup.js"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.3.6",
+    "bcryptjs": "^2.4.3",
+    "framer-motion": "^10.16.4",
+    "jsonwebtoken": "^9.0.2",
+    "react": "^18.2.0",
+    "react-confetti": "^6.1.0",
+    "react-dom": "^18.2.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.1.0",
+    "vite": "^4.4.9"
+  }
+}
