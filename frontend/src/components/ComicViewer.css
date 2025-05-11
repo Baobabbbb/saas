@@ -36,3 +36,53 @@
   text-align: center;
   color: #333;
 }
+
+/* 🔁 Navigation fléchée */
+.comic-navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.comic-navigation button {
+  background-color: #4B3F72;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.4rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.comic-navigation button:hover:not(:disabled) {
+  background-color: #3a3160;
+}
+
+.comic-navigation button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* 📥 Téléchargement BD */
+.comic-download {
+  margin-top: 1.2rem;
+  text-align: center;
+}
+
+.comic-download a {
+  display: inline-block;
+  background-color: #fef3c7;
+  color: #92400e;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.comic-download a:hover {
+  background-color: #fde68a;
+}

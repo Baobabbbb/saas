@@ -1,20 +1,32 @@
 from PIL import Image
 import os
+import math
 
-def compose_comic_page(images, output_path):
+def compose_comic_pages(images, output_prefix="static/page"):
     padding = 20
-    vignette_height = 600
     vignette_width = 800
-    total_height = padding + (vignette_height + padding) * len(images)
-    total_width = vignette_width + 2 * padding
+    vignette_height = 600
+    cols = 2
+    rows = 2
+    per_page = cols * rows
+    pages = []
 
-    page = Image.new("RGB", (total_width, total_height), "white")
+    total_pages = math.ceil(len(images) / per_page)
 
-    y_offset = padding
-    for img_path in images:
-        img = Image.open(img_path).resize((vignette_width, vignette_height))
-        page.paste(img, (padding, y_offset))
-        y_offset += vignette_height + padding
+    for page_num in range(total_pages):
+        page_images = images[page_num * per_page : (page_num + 1) * per_page]
+        page_width = cols * vignette_width + (cols + 1) * padding
+        page_height = rows * vignette_height + (rows + 1) * padding
+        page = Image.new("RGB", (page_width, page_height), "white")
 
-    page.save(output_path)
-    return output_path
+        for i, img_path in enumerate(page_images):
+            img = Image.open(img_path).resize((vignette_width, vignette_height))
+            x = padding + (i % cols) * (vignette_width + padding)
+            y = padding + (i // cols) * (vignette_height + padding)
+            page.paste(img, (x, y))
+
+        output_path = f"{output_prefix}_{page_num + 1}.png"
+        page.save(output_path)
+        pages.append(output_path)
+
+    return pages

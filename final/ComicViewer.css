@@ -1,0 +1,38 @@
+.comic-viewer {
+  padding: 1rem;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.comic-title {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #4B3F72;
+  text-align: center;
+}
+
+.comic-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.comic-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.comic-image {
+  max-width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.comic-text {
+  margin-top: 0.75rem;
+  font-size: 1.1rem;
+  text-align: center;
+  color: #333;
+}

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import './ComicViewer.css';
 
 const ComicViewer = ({ comic }) => {
@@ -21,20 +20,9 @@ const ComicViewer = ({ comic }) => {
     <div className="comic-viewer">
       <h2 className="comic-title">{comic.title}</h2>
 
-      <div className="comic-pages">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentPageIndex}
-            className="comic-page"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <img src={page.image_url} alt={`Page ${currentPageIndex + 1}`} className="comic-image" />
-            <p className="comic-text">{page.text}</p>
-          </motion.div>
-        </AnimatePresence>
+      <div className="comic-page">
+        <img src={page.image_url} alt={`Page ${currentPageIndex + 1}`} className="comic-image" />
+        <p className="comic-text">{page.text}</p>
       </div>
 
       <div className="comic-navigation">
