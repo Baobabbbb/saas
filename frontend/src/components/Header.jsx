@@ -33,7 +33,7 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
               repeatDelay: 0.5
             }}
           />
-          <h1>BDKids</h1>
+          <h1>FRIDAY</h1>
         </motion.div>
         
         <motion.h2 
@@ -42,7 +42,7 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          Créez des bandes dessinées et des comptines magiques pour vos enfants !
+          Créez des histoires et des comptines magiques pour vos enfants !
         </motion.h2>
       </div>
       

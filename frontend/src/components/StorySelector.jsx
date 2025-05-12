@@ -30,12 +30,12 @@ const StorySelector = ({ selectedStory, setSelectedStory, customStory, setCustom
     setCustomStory(e.target.value);
   };
 
-  return (
+  /*return (
     <div className="story-selector">
       <h3>4. Choisissez un type d'histoire</h3>
       
       <div className="story-grid">
-        {/* Custom story option first */}
+        {/* Custom story option first *RAJOUTER UN SLASH APRES L'ETOILE}
         <motion.div
           className={`story-card custom-story ${selectedStory === 'custom' ? 'selected' : ''}`}
           onClick={handleCustomSelect}
@@ -47,7 +47,7 @@ const StorySelector = ({ selectedStory, setSelectedStory, customStory, setCustom
           <p>Créez votre propre type d'histoire unique</p>
         </motion.div>
         
-        {/* Predefined stories */}
+        {/* Predefined stories *RAJOUTER UN SLASH APRES L'ETOILE}
         {stories.map((story) => (
           <motion.div
             key={story.id}
@@ -82,7 +82,7 @@ const StorySelector = ({ selectedStory, setSelectedStory, customStory, setCustom
         </motion.div>
       )}
     </div>
-  );
+  );*/
 };
 
 export default StorySelector;

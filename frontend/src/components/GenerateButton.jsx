@@ -13,7 +13,7 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) =
     }
     
     return contentType === 'story' 
-      ? 'Créer ma bande dessinée' 
+      ? 'Créer...' 
       : contentType === 'rhyme'
       ? 'Créer ma comptine'
       : 'Créer mon conte audio';
@@ -50,7 +50,7 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) =
       {isDisabled && !isGenerating && (
         <p className="generate-button-hint">
           {contentType === 'story' 
-            ? 'Veuillez remplir tous les champs requis pour créer votre BD' 
+            ? '' /*Veuillez remplir tous les champs requis pour créer votre BD*/
             : contentType === 'rhyme'
             ? 'Veuillez sélectionner un type de comptine pour continuer'
             : 'Veuillez sélectionner un type de conte et une voix pour continuer'}

@@ -10,7 +10,7 @@ const styles = [
 ];
 
 const StyleSelector = ({ selectedStyle, setSelectedStyle }) => {
-  return (
+  /*return (
     <div className="style-selector">
       <h3>2. Choisissez un style visuel</h3>
       
@@ -30,7 +30,7 @@ const StyleSelector = ({ selectedStyle, setSelectedStyle }) => {
         ))}
       </div>
     </div>
-  );
+  );*/
 };
 
 export default StyleSelector;

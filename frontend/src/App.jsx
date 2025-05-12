@@ -409,7 +409,7 @@ function App() {
                       />
                       <p>
                         {contentType === 'story'
-                          ? 'Votre bande dessinée apparaîtra ici'
+                          ? '' /*Votre bande dessinée apparaîtra ici*/
                           : contentType === 'rhyme'
                           ? 'Votre comptine apparaîtra ici'
                           : 'Votre conte audio apparaîtra ici'}
