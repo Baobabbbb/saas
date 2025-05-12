@@ -40,6 +40,7 @@ Dans le même terminal, exécutez :
 
 ```bash
 npm run dev
+uvicorn main:app --reload
 ```
 
 Cette commande démarre le serveur de développement Vite.
