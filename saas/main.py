@@ -1,6 +1,13 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+from typing import Optional
+import traceback
+import os
+
+from dotenv import load_dotenv
+import openai
 
 from models import ComicRequest
 from services.scenario import generate_scenario
@@ -8,8 +15,11 @@ from services.image_gen import generate_images
 from services.composer import compose_pages
 from services.tts import generate_speech
 from services.stt import transcribe_audio
-import traceback
-import os
+
+# --- Chargement .env ---
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -38,7 +48,7 @@ def validate_scenario(scenario):
     if not scenes:
         raise ValueError("❌ Le scénario ne contient aucune scène.")
     
-    for i, scene in enumerate(scenes):
+    for i, scene in enumerate(scenario["scenes"]):
         dialogues = scene.get("dialogues")
         if dialogues is None:
             raise ValueError(f"❌ La scène {i + 1} n'a pas de clé 'dialogues'")
@@ -46,7 +56,7 @@ def validate_scenario(scenario):
             if not isinstance(dialog, dict):
                 raise ValueError(f"❌ Le dialogue {j + 1} de la scène {i + 1} est invalide")
             if "character" not in dialog or "text" not in dialog:
-                raise ValueError(f"❌ Le dialogue {j + 1} de la scène {i + 1} est mal formé : {dialog}")
+                raise ValueError(f"❌ Le dialogue {j + 1} est mal formé : {dialog}")
 
 @app.post("/generate_comic/")
 async def generate_comic(data: ComicRequest):
@@ -69,7 +79,6 @@ async def generate_comic(data: ComicRequest):
 
         final_pages = await compose_pages(scenario)
 
-        # Nettoyage du double "/static/static/"
         for page in final_pages:
             if page["image_url"].startswith("/static/static/"):
                 page["image_url"] = page["image_url"].replace("/static/static/", "/static/")
@@ -101,5 +110,67 @@ async def stt_endpoint(file: UploadFile = File(...)):
             f.write(await file.read())
         transcription = transcribe_audio(temp_path)
         return {"transcription": transcription}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- Comptine ---
+class RhymeRequest(BaseModel):
+    rhyme_type: str
+    custom_request: Optional[str] = None
+
+@app.post("/generate_rhyme/")
+def generate_rhyme(request: RhymeRequest):
+    try:
+        prompt = f"Écris une comptine courte, joyeuse et rythmée pour enfants sur le thème : {request.rhyme_type}.\n"
+        if request.custom_request:
+            prompt += f"Détails supplémentaires : {request.custom_request}"
+
+        response = openai.ChatCompletion.create(
+            model=TEXT_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.8
+        )
+        content = response.choices[0].message["content"].strip()
+
+        audio_path = generate_speech(content)
+
+        return {
+            "title": f"La comptine de {request.rhyme_type.capitalize()}",
+            "content": content,
+            "audio_path": audio_path
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- Histoire / Conte ---
+class AudioStoryRequest(BaseModel):
+    story_type: str
+    voice: str
+    custom_request: Optional[str] = None
+
+@app.post("/generate_audio_story/")
+def generate_audio_story(request: AudioStoryRequest):
+    try:
+        prompt = f"Raconte un conte original pour enfant sur le thème : {request.story_type}. "
+        prompt += "Utilise un ton bienveillant, imagé et adapté à un enfant de 4 à 8 ans. "
+        if request.custom_request:
+            prompt += f"Détails supplémentaires : {request.custom_request}"
+
+        response = openai.ChatCompletion.create(
+            model=TEXT_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.8
+        )
+        content = response.choices[0].message["content"].strip()
+
+        audio_path = generate_speech(content)
+
+        return {
+            "title": f"L’histoire de {request.story_type.capitalize()}",
+            "content": content,
+            "audio_path": audio_path
+        }
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
