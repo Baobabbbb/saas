@@ -15,7 +15,7 @@ import History from './components/History';
 import ComicViewer from './components/ComicViewer';
 
 function App() {
-  const [contentType, setContentType] = useState('story'); // 'story', 'rhyme', or 'audio'
+  const [contentType, setContentType] = useState('rhyme'); // 'story', 'rhyme', or 'audio'
   const [selectedStyle, setSelectedStyle] = useState(null);
   const [heroName, setHeroName] = useState('');
   const [selectedStory, setSelectedStory] = useState(null);
@@ -409,7 +409,7 @@ function App() {
                       />
                       <p>
                         {contentType === 'story'
-                          ? '' /*Votre bande dessinée apparaîtra ici*/
+                          ? 'Votre bande dessinée apparaîtra ici' 
                           : contentType === 'rhyme'
                           ? 'Votre comptine apparaîtra ici'
                           : 'Votre conte audio apparaîtra ici'}

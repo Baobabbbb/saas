@@ -33,7 +33,7 @@ const HeroCreator = ({ heroName, setHeroName }) => {
     fileInputRef.current.value = '';
   };
 
-  /*return (
+  return (
     <div className="hero-creator">
       <h3>2. Créez votre héros</h3>
       
@@ -103,7 +103,7 @@ const HeroCreator = ({ heroName, setHeroName }) => {
         </div>
       </div>
     </div>
-  );*/
+  );
 };
 
 export default HeroCreator;
