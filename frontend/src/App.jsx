@@ -29,6 +29,7 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [comicResult, setComicResult] = useState(null);
+  const [generatedResult, setGeneratedResult] = useState(null);
 
   // User account state
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -136,38 +137,61 @@ function App() {
         custom_request: customRequest
       };
 
-      console.log('📤 Payload envoyé au backend :', payload);
-
       const response = await fetch('http://127.0.0.1:8000/generate_comic/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          style: selectedStyle,
-          hero_name: heroName,
-          story_type: selectedStory === 'custom' ? customStory : selectedStory,
-          custom_request: customRequest
-        })
+        body: JSON.stringify(payload)
       });
 
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP : ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('📥 Réponse du backend :', data);
-
-      generatedContent = data;
-      setComicResult(data);
-      console.log('✅ Mise à jour de comicResult :', data);
+      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+      generatedContent = await response.json();
+      setComicResult(generatedContent); // pour l’affichage BD
     }
 
+    if (contentType === 'rhyme') {
+      const payload = {
+        rhyme_type: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
+        custom_request: customRequest
+      };
+
+      const response = await fetch('http://127.0.0.1:8000/generate_rhyme/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+      generatedContent = await response.json();
+    }
+
+    if (contentType === 'audio') {
+      const payload = {
+        story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
+        voice: selectedVoice,
+        custom_request: customRequest
+      };
+
+      const response = await fetch('http://127.0.0.1:8000/generate_audio_story/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+      generatedContent = await response.json();
+    }
+
+    // 🔁 Enregistre le résultat généré pour affichage audio/texte
+    setGeneratedResult(generatedContent);
+
+    // Déterminer le titre
     let title;
     if (contentType === 'story') {
       title = generatedContent.title || `L'histoire de ${heroName}`;
     } else if (contentType === 'rhyme') {
-      title = `Comptine ${selectedRhyme === 'custom' ? 'personnalisée' : selectedRhyme}`;
+      title = generatedContent.title || `Comptine générée`;
     } else if (contentType === 'audio') {
-      title = `Conte audio ${selectedAudioStory === 'custom' ? 'personnalisé' : selectedAudioStory}`;
+      title = generatedContent.title || `Conte généré`;
     }
 
     const newCreation = {
@@ -182,7 +206,6 @@ function App() {
       const updatedCreations = [...creations, newCreation];
       setCreations(updatedCreations);
       localStorage.setItem('userCreations', JSON.stringify(updatedCreations));
-      console.log('📝 Création ajoutée à l’historique utilisateur');
     }
 
     setTimeout(() => setShowConfetti(false), 3000);
@@ -371,52 +394,83 @@ function App() {
             <div className="preview-container">
               <div className="comic-preview">
                 <AnimatePresence mode="wait">
-                  {isGenerating ? (
-                    <motion.div
-                      className="generating-animation"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      key="generating"
-                    >
-                      <div className="loading-dots">
-                        <div className="dot"></div>
-                        <div className="dot"></div>
-                        <div className="dot"></div>
-                      </div>
-                      <p>
-                        {contentType === 'story'
-                          ? 'Création de la BD en cours...'
-                          : contentType === 'rhyme'
-                          ? 'Création de la comptine en cours...'
-                          : 'Création du conte audio en cours...'}
-                      </p>
-                    </motion.div>
-                  ) : comicResult ? (
-                    <ComicViewer comic={comicResult} />
-                  ) : (
-                    <motion.div
-                      className="preview-placeholder"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      key="placeholder"
-                    >
-                      <img
-                        src="/cloud-logo.svg"
-                        alt="BDKids logo"
-                        className="preview-logo"
-                      />
-                      <p>
-                        {contentType === 'story'
-                          ? 'Votre bande dessinée apparaîtra ici' 
-                          : contentType === 'rhyme'
-                          ? 'Votre comptine apparaîtra ici'
-                          : 'Votre conte audio apparaîtra ici'}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+  {isGenerating ? (
+    <motion.div
+      className="generating-animation"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      key="generating"
+    >
+      <div className="loading-dots">
+        <div className="dot"></div>
+        <div className="dot"></div>
+        <div className="dot"></div>
+      </div>
+      <p>
+        {contentType === 'story'
+          ? 'Création de la BD en cours...'
+          : contentType === 'rhyme'
+          ? 'Création de la comptine en cours...'
+          : 'Création du conte audio en cours...'}
+      </p>
+    </motion.div>
+  ) : comicResult && contentType === 'story' ? (
+    <ComicViewer comic={comicResult} />
+  ) : (
+    <motion.div
+      className="preview-placeholder"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      key="placeholder"
+    >
+      <img
+        src="/cloud-logo.svg"
+        alt="BDKids logo"
+        className="preview-logo"
+      />
+
+      {!generatedResult?.content && (
+        <p>
+          {contentType === 'story'
+            ? 'Votre bande dessinée apparaîtra ici'
+            : contentType === 'rhyme'
+            ? 'Votre comptine apparaîtra ici'
+            : 'Votre conte audio apparaîtra ici'}
+        </p>
+      )}
+
+      {/* Affichage du texte généré */}
+      {generatedResult?.content && (
+        <div
+          style={{
+            whiteSpace: 'pre-wrap',
+            textAlign: 'left',
+            marginTop: '1rem',
+            padding: '1rem',
+            background: '#f9f9f9',
+            borderRadius: '0.5rem',
+            maxHeight: '300px',
+            overflowY: 'auto',
+          }}
+        >
+          {generatedResult.content}
+        </div>
+      )}
+
+      {/* Lecteur audio si dispo */}
+      {generatedResult?.audio_path && (
+        <audio
+          controls
+          style={{ marginTop: '1rem', width: '100%' }}
+          src={`http://localhost:8000/${generatedResult.audio_path}`}
+        />
+      )}
+    </motion.div>
+  )}
+</AnimatePresence>
+
               </div>
             </div>
           </motion.div>
