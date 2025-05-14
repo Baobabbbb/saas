@@ -8,6 +8,7 @@ import os
 
 from dotenv import load_dotenv
 import openai
+from openai import AsyncOpenAI
 
 from models import ComicRequest
 from services.scenario import generate_scenario
@@ -119,18 +120,20 @@ class RhymeRequest(BaseModel):
     custom_request: Optional[str] = None
 
 @app.post("/generate_rhyme/")
-def generate_rhyme(request: RhymeRequest):
+async def generate_rhyme(request: RhymeRequest):
     try:
         prompt = f"Écris une comptine courte, joyeuse et rythmée pour enfants sur le thème : {request.rhyme_type}.\n"
         if request.custom_request:
             prompt += f"Détails supplémentaires : {request.custom_request}"
 
-        response = openai.ChatCompletion.create(
+        client = AsyncOpenAI()
+
+        response = await client.chat.completions.create(
             model=TEXT_MODEL,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.8
         )
-        content = response.choices[0].message["content"].strip()
+        content = response.choices[0].message.content.strip()
 
         audio_path = generate_speech(content)
 
@@ -141,6 +144,8 @@ def generate_rhyme(request: RhymeRequest):
         }
 
     except Exception as e:
+        import traceback
+        print("❌ Erreur dans /generate_rhyme/ :", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- Histoire / Conte ---
@@ -150,19 +155,21 @@ class AudioStoryRequest(BaseModel):
     custom_request: Optional[str] = None
 
 @app.post("/generate_audio_story/")
-def generate_audio_story(request: AudioStoryRequest):
+async def generate_audio_story(request: AudioStoryRequest):
     try:
         prompt = f"Raconte un conte original pour enfant sur le thème : {request.story_type}. "
         prompt += "Utilise un ton bienveillant, imagé et adapté à un enfant de 4 à 8 ans. "
         if request.custom_request:
             prompt += f"Détails supplémentaires : {request.custom_request}"
 
-        response = openai.ChatCompletion.create(
+        client = AsyncOpenAI()
+
+        response = await client.chat.completions.create(
             model=TEXT_MODEL,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.8
         )
-        content = response.choices[0].message["content"].strip()
+        content = response.choices[0].message.content.strip()
 
         audio_path = generate_speech(content)
 
