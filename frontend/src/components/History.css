@@ -1,124 +1,108 @@
-.history-container {
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  width: 90%;
-  max-width: 800px;
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 24px;
-  position: relative;
-}
-
-.history-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.history-header h2 {
-  margin: 0;
-  color: var(--primary);
-  font-size: 1.8rem;
-}
-
-.close-button {
-  background: none;
-  border: none;
-  font-size: 1.8rem;
-  cursor: pointer;
-  color: #666;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-}
-
-.close-button:hover {
-  background-color: #f0f0f0;
-}
-
-.empty-history {
+.creations-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 0;
-  text-align: center;
-}
-
-.history-logo {
-  width: 64px;
-  height: 64px;
-  margin-bottom: 16px;
-  opacity: 0.7;
-}
-
-.empty-history p {
-  color: #666;
-  font-size: 1.1rem;
-}
-
-.history-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
 
-.history-item {
+.creation-item {
+  display: flex;
   background-color: #f9f9f9;
   border-radius: 8px;
-  overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s ease;
+  padding: 12px;
+  border: 1px solid #eee;
 }
 
-.history-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+.creation-item:hover {
+  transform: scale(1.01);
+  background-color: #fff;
 }
 
-.history-item-content {
-  padding: 16px;
+.creation-icon {
+  font-size: 2rem;
+  margin-right: 16px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
-.history-item-type {
-  margin-bottom: 12px;
+.creation-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-.type-badge {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
+.creation-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #777;
+  margin-bottom: 8px;
 }
 
-.type-badge.story {
-  background-color: var(--primary-light);
-  color: var(--primary);
-}
-
-.type-badge.rhyme {
-  background-color: var(--secondary-light);
-  color: var(--secondary);
-}
-
-.history-item-details h3 {
-  margin: 0 0 8px 0;
-  font-size: 1.2rem;
+.creation-text {
+  white-space: pre-wrap;
+  background-color: #fff;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-top: 8px;
+  border: 1px solid #ddd;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 0.95rem;
   color: #333;
 }
 
-.history-date {
-  margin: 0;
+.creation-audio {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.creation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.creation-actions button,
+.creation-actions a {
+  padding: 6px 12px;
   font-size: 0.9rem;
-  color: #666;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.btn-pdf {
+  background-color: #6B4EFF;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-pdf:hover {
+  background-color: #5840d4;
+}
+
+.btn-audio {
+  background-color: #e0e0ff;
+  color: #333;
+  border: none;
+}
+
+.btn-audio:hover {
+  background-color: #d0d0ff;
+}
+
+.btn-delete {
+  background-color: #FF6B6B;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-delete:hover {
+  background-color: #e05252;
 }

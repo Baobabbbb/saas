@@ -2,7 +2,7 @@ import os
 import requests
 from config import OPENAI_API_KEY, TTS_MODEL
 
-def generate_speech(text, output_path="static/output_audio.mp3"):
+def generate_speech(text, output_path="static/audio.mp3"):
     url = "https://api.openai.com/v1/audio/speech"
     headers = {
         "Authorization": f"Bearer {OPENAI_API_KEY}",

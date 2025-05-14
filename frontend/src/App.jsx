@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
 import './App.css';
@@ -13,6 +13,28 @@ import CustomRequest from './components/CustomRequest';
 import GenerateButton from './components/GenerateButton';
 import History from './components/History';
 import ComicViewer from './components/ComicViewer';
+import jsPDF from 'jspdf';
+
+function splitTextIntoPages(text, maxChars = 600) {
+  const sentences = text.split(/(?<=[.?!])\s+/);
+  const pages = [];
+  let currentPage = '';
+
+  for (const sentence of sentences) {
+    if ((currentPage + sentence).length > maxChars) {
+      pages.push(currentPage.trim());
+      currentPage = sentence + ' ';
+    } else {
+      currentPage += sentence + ' ';
+    }
+  }
+
+  if (currentPage.trim()) {
+    pages.push(currentPage.trim());
+  }
+
+  return pages;
+}
 
 function App() {
   const [contentType, setContentType] = useState('rhyme'); // 'story', 'rhyme', or 'audio'
@@ -35,6 +57,16 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [creations, setCreations] = useState([]);
+
+  // 📖 Pagination : découpe le texte en pages
+  const storyPages = useMemo(() => {
+    if (contentType === 'audio' && generatedResult?.content) {
+      return splitTextIntoPages(generatedResult.content);
+    }
+    return [];
+  }, [generatedResult, contentType]);
+
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
   // Check if user is logged in on component mount
   useEffect(() => {
@@ -199,7 +231,8 @@ function App() {
       type: contentType,
       title: title,
       createdAt: new Date().toISOString(),
-      content: generatedContent || 'Contenu généré...'
+      content: generatedContent?.content || generatedContent || 'Contenu généré...',
+      audio_path: generatedContent?.audio_path || null
     };
 
     if (isLoggedIn) {
@@ -226,6 +259,12 @@ function App() {
     window.location.hash = '';
   };
 
+  const handleDeleteCreation = (idToDelete) => {
+    const updated = creations.filter(c => c.id !== idToDelete);
+    setCreations(updated);
+    localStorage.setItem('userCreations', JSON.stringify(updated));
+  };
+
   const isFormValid = () => {
     if (contentType === 'story') {
       if (!selectedStyle) return false;
@@ -249,6 +288,21 @@ function App() {
     visible: { opacity: 1, height: 'auto', marginBottom: '1rem' },
     exit: { opacity: 0, height: 0, marginBottom: 0 }
   };
+
+  const downloadPDF = () => {
+  if (!generatedResult?.content) return;
+
+  const doc = new jsPDF();
+  const lines = doc.splitTextToSize(generatedResult.content, 180);
+  doc.setFontSize(12);
+  doc.text(lines, 15, 20);
+
+  // 🔠 Nettoyage du titre pour un nom de fichier propre
+  const rawTitle = generatedResult.title || 'histoire_audio';
+  const safeTitle = rawTitle.toLowerCase().replace(/\s+/g, '_').replace(/[^\w\-]/g, '');
+
+  doc.save(`${safeTitle}.pdf`);
+};
 
  return (
   <div className="app-container">
@@ -418,56 +472,100 @@ function App() {
   ) : comicResult && contentType === 'story' ? (
     <ComicViewer comic={comicResult} />
   ) : (
+    
     <motion.div
-      className="preview-placeholder"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      key="placeholder"
-    >
-      <img
-        src="/cloud-logo.svg"
-        alt="BDKids logo"
-        className="preview-logo"
-      />
+  className="preview-placeholder"
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  exit={{ opacity: 0 }}
+  key="placeholder"
+>
+  {/*<img
+    src="/cloud-logo.svg"
+    alt="BDKids logo"
+    className="preview-logo"
+  />*/}
 
-      {!generatedResult?.content && (
-        <p>
-          {contentType === 'story'
-            ? 'Votre bande dessinée apparaîtra ici'
-            : contentType === 'rhyme'
-            ? 'Votre comptine apparaîtra ici'
-            : 'Votre conte audio apparaîtra ici'}
-        </p>
-      )}
+  {!generatedResult?.content && (
+    <p>
+      {contentType === 'story'
+        ? 'Votre bande dessinée apparaîtra ici'
+        : contentType === 'rhyme'
+        ? 'Votre comptine apparaîtra ici'
+        : 'Votre conte audio apparaîtra ici'}
+    </p>
+  )}
 
-      {/* Affichage du texte généré */}
-      {generatedResult?.content && (
-        <div
-          style={{
-            whiteSpace: 'pre-wrap',
-            textAlign: 'left',
-            marginTop: '1rem',
-            padding: '1rem',
-            background: '#f9f9f9',
-            borderRadius: '0.5rem',
-            maxHeight: '300px',
-            overflowY: 'auto',
-          }}
+  {/* 📖 Histoire paginée */}
+  {contentType === 'audio' && storyPages.length > 0 && (
+    <div className="book-page">
+      <div className="page-text">
+        {storyPages[currentPageIndex]}
+      </div>
+      <div className="page-navigation">
+        <button
+          onClick={() => setCurrentPageIndex((prev) => Math.max(prev - 1, 0))}
+          disabled={currentPageIndex === 0}
         >
-          {generatedResult.content}
-        </div>
-      )}
+          ◀
+        </button>
+        <span>Page {currentPageIndex + 1} / {storyPages.length}</span>
+        <button
+          onClick={() => setCurrentPageIndex((prev) => Math.min(prev + 1, storyPages.length - 1))}
+          disabled={currentPageIndex === storyPages.length - 1}
+        >
+          ▶
+        </button>
+      </div>
+    </div>
+  )}
 
-      {/* Lecteur audio si dispo */}
-      {generatedResult?.audio_path && (
-        <audio
-          controls
-          style={{ marginTop: '1rem', width: '100%' }}
-          src={`http://localhost:8000/${generatedResult.audio_path}`}
-        />
-      )}
-    </motion.div>
+  {/* 📄 Texte plein (non paginé) si besoin (ex: debug autre type) */}
+  {generatedResult?.content && contentType !== 'rhyme' && contentType !== 'audio' && (
+    <div
+      style={{
+        whiteSpace: 'pre-wrap',
+        textAlign: 'left',
+        marginTop: '1rem',
+        padding: '1rem',
+        background: '#f9f9f9',
+        borderRadius: '0.5rem',
+        maxHeight: '300px',
+        overflowY: 'auto',
+      }}
+    >
+      {generatedResult.content}
+    </div>
+  )}
+
+  {/* 🎵 Audio présent */}
+  {generatedResult?.audio_path && (
+    <audio
+      controls
+      style={{ marginTop: '1rem', width: '100%' }}
+      src={`http://localhost:8000/${generatedResult.audio_path}`}
+    />
+  )}
+
+  {/* 📄 Bouton PDF pour histoires audio */}
+  {contentType === 'audio' && generatedResult?.content && (
+    <button
+      onClick={downloadPDF}
+      style={{
+        marginTop: '1rem',
+        padding: '0.5rem 1rem',
+        backgroundColor: '#6B4EFF',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '0.5rem',
+        cursor: 'pointer'
+      }}
+    >
+      📄 Télécharger en PDF
+    </button>
+  )}
+</motion.div>
+
   )}
 </AnimatePresence>
 
@@ -491,6 +589,7 @@ function App() {
             creations={creations}
             onClose={handleCloseHistory}
             onSelect={handleSelectCreation}
+            onDelete={handleDeleteCreation}
           />
         </motion.div>
       )}

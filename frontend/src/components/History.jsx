@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import './History.css';
+import jsPDF from 'jspdf';
 
-const History = ({ creations, onClose, onSelect }) => {
-  // Function to format date
+const History = ({ creations, onClose, onSelect, onDelete }) => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('fr-FR', {
@@ -15,7 +15,6 @@ const History = ({ creations, onClose, onSelect }) => {
     }).format(date);
   };
 
-  // Function to get icon based on content type
   const getContentTypeIcon = (type) => {
     switch (type) {
       case 'story':
@@ -29,7 +28,6 @@ const History = ({ creations, onClose, onSelect }) => {
     }
   };
 
-  // Function to get content type label
   const getContentTypeLabel = (type) => {
     switch (type) {
       case 'story':
@@ -41,6 +39,19 @@ const History = ({ creations, onClose, onSelect }) => {
       default:
         return 'Création';
     }
+  };
+
+  const handleDownloadPDF = (creation) => {
+    if (!creation?.content) return;
+
+    const doc = new jsPDF();
+    const lines = doc.splitTextToSize(creation.content, 180);
+    doc.setFontSize(12);
+    doc.text(lines, 15, 20);
+
+    const rawTitle = creation.title || creation.type;
+    const safeTitle = rawTitle.toLowerCase().replace(/\s+/g, '_').replace(/[^\w\-]/g, '');
+    doc.save(`${safeTitle}.pdf`);
   };
 
   return (
@@ -81,6 +92,58 @@ const History = ({ creations, onClose, onSelect }) => {
                   <div className="creation-meta">
                     <span className="creation-type">{getContentTypeLabel(creation.type)}</span>
                     <span className="creation-date">{formatDate(creation.createdAt)}</span>
+                  </div>
+
+                  {creation.content && creation.type !== 'rhyme' && (
+                    <div className="creation-text">
+                      {creation.content}
+                    </div>
+                  )}
+
+                  {creation.audio_path && (
+                    <audio
+                      controls
+                      className="creation-audio"
+                      src={`http://localhost:8000/${creation.audio_path}`}
+                    />
+                  )}
+
+                  <div className="creation-actions">
+                    {(creation.type === 'audio' || creation.type === 'rhyme') && creation.content && (
+                      <button
+                        className="btn-pdf"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownloadPDF(creation);
+                        }}
+                      >
+                        📄 Télécharger le PDF
+                      </button>
+                    )}
+
+                    {creation.audio_path && (
+                      <a
+                        className="btn-audio"
+                        href={`http://localhost:8000/${creation.audio_path}`}
+                        download
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        🔊 Télécharger l'audio
+                      </a>
+                    )}
+
+                    <button
+                      className="btn-delete"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const confirmDelete = window.confirm(`Supprimer « ${creation.title} » ?`);
+                        if (confirmDelete) {
+                          onDelete(creation.id);
+                        }
+                      }}
+                    >
+                      🗑️ Supprimer
+                    </button>
                   </div>
                 </div>
               </motion.div>

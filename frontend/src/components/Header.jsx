@@ -18,7 +18,7 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
             delay: 0.1
           }}
         >
-          <motion.img 
+          {/*<motion.img 
             src="/cloud-logo.svg" 
             alt="BDKids logo" 
             animate={{ 
@@ -32,7 +32,7 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
               repeat: Infinity,
               repeatDelay: 0.5
             }}
-          />
+          />*/}
           <h1>FRIDAY</h1>
         </motion.div>
         
