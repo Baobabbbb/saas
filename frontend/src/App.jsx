@@ -36,6 +36,43 @@ function splitTextIntoPages(text, maxChars = 600) {
   return pages;
 }
 
+const downloadPDF = (title, text) => {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  // Image de fond étoilée
+  const img = new Image();
+  const bgStars = '/assets/bg-stars.png';
+
+  img.onload = () => {
+    doc.addImage(bgStars, 'PNG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight()); // plein format A4
+    doc.setFont('Helvetica', 'normal');
+    doc.setTextColor(40, 40, 40);
+    doc.setFontSize(14);
+
+    const marginLeft = 20;
+    const marginTop = 30;
+    const pageHeight = 297;
+    let cursorY = marginTop;
+
+    const lines = doc.splitTextToSize(text, 170); // wrap 170mm
+    for (let i = 0; i < lines.length; i++) {
+      if (cursorY > pageHeight - 20) {
+        doc.addPage();
+        doc.addImage(img, 'PNG', 0, 0, 210, 297);
+        cursorY = marginTop;
+      }
+      doc.text(lines[i], marginLeft, cursorY);
+      cursorY += 8;
+    }
+
+    doc.save(`${title.toLowerCase().replace(/\s+/g, '_')}.pdf`);
+  };
+};
+
 function App() {
   const [contentType, setContentType] = useState('rhyme'); // 'story', 'rhyme', or 'audio'
   const [selectedStyle, setSelectedStyle] = useState(null);
@@ -487,6 +524,7 @@ function App() {
   />*/}
 
   {!generatedResult?.content && (
+    <div className="empty-preview">
     <p>
       {contentType === 'story'
         ? 'Votre bande dessinée apparaîtra ici'
@@ -494,6 +532,7 @@ function App() {
         ? 'Votre comptine apparaîtra ici'
         : 'Votre conte audio apparaîtra ici'}
     </p>
+    </div>
   )}
 
   {/* 📖 Histoire paginée */}
@@ -504,10 +543,19 @@ function App() {
       </div>
       <div className="page-navigation">
         <button
-          onClick={() => setCurrentPageIndex((prev) => Math.max(prev - 1, 0))}
-          disabled={currentPageIndex === 0}
+          onClick={() => downloadPDF(generatedResult.title || 'Histoire', generatedResult.content)}
+          style={{
+            marginTop: '1rem',
+            background: '#6B4EFF',
+            color: 'white',
+            border: 'none',
+            padding: '0.6rem 1.2rem',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: '600'
+          }}
         >
-          ◀
+          📄 Télécharger en PDF
         </button>
         <span>Page {currentPageIndex + 1} / {storyPages.length}</span>
         <button

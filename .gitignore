@@ -5,6 +5,7 @@ saas/env/
 
 # Node.js
 frontend/node_modules/
+node_modules/
 
 # Variables d’environnement
 .env
