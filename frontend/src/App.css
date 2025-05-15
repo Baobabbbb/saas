@@ -76,9 +76,8 @@ body {
 }
 
 .comic-preview {
-  position: relative; /* nécessaire pour que .empty-placeholder se positionne correctement */
+  position: relative;
   width: 100%;
-  min-height: 250px;
   padding: 1rem;
   border: 2px dashed #ddd;
   border-radius: 1rem;
@@ -86,8 +85,16 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start; /* important pour éviter que le contenu soit centré verticalement */
+  overflow: visible; /* permet à l'intérieur de dépasser si nécessaire */
+  min-height: 250px;
+}
+
+.comic-preview.empty {
+  display: flex;
+  align-items: center;
   justify-content: center;
-  overflow: hidden;
+  min-height: 300px;
 }
 
 .empty-preview {
@@ -104,11 +111,9 @@ body {
 
 .preview-placeholder {
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
 }
 
 .preview-logo {
@@ -128,7 +133,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: center; /* Centrage vertical */
+  height: 100%; /* Prend toute la hauteur disponible */
+  text-align: center;
 }
 
 .loading-dots {

@@ -151,16 +151,21 @@ async def generate_rhyme(request: RhymeRequest):
 # --- Histoire / Conte ---
 class AudioStoryRequest(BaseModel):
     story_type: str
-    voice: str
+    voice: Optional[str] = None
     custom_request: Optional[str] = None
 
 @app.post("/generate_audio_story/")
 async def generate_audio_story(request: AudioStoryRequest):
     try:
+        print("📥 Requête reçue sur /generate_audio_story/")
+        print("🧾 Données reçues :", request)
+
         prompt = f"Raconte un conte original pour enfant sur le thème : {request.story_type}. "
         prompt += "Utilise un ton bienveillant, imagé et adapté à un enfant de 4 à 8 ans. "
         if request.custom_request:
             prompt += f"Détails supplémentaires : {request.custom_request}"
+
+        print("💡 Prompt généré :", prompt)
 
         client = AsyncOpenAI()
 
@@ -169,9 +174,17 @@ async def generate_audio_story(request: AudioStoryRequest):
             messages=[{"role": "user", "content": prompt}],
             temperature=0.8
         )
-        content = response.choices[0].message.content.strip()
 
-        audio_path = generate_speech(content)
+        content = response.choices[0].message.content.strip()
+        print("📝 Conte généré :", content[:200], "...")  # Affiche un extrait
+
+        audio_path = None
+        if request.voice:
+            print("🔊 Génération audio activée avec la voix :", request.voice)
+            audio_path = generate_speech(content, voice=request.voice)
+            print("✅ Audio généré :", audio_path)
+        else:
+            print("ℹ️ Aucune voix spécifiée, audio non généré.")
 
         return {
             "title": f"L’histoire de {request.story_type.capitalize()}",
@@ -180,4 +193,6 @@ async def generate_audio_story(request: AudioStoryRequest):
         }
 
     except Exception as e:
+        print("❌ Erreur lors de la génération du conte audio :")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

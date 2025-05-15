@@ -2,22 +2,31 @@ import os
 import requests
 from config import OPENAI_API_KEY, TTS_MODEL
 
-def generate_speech(text, output_path="static/audio.mp3"):
-    url = "https://api.openai.com/v1/audio/speech"
-    headers = {
-        "Authorization": f"Bearer {OPENAI_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "model": TTS_MODEL,
-        "input": text,
-        "voice": "nova",
-        "response_format": "mp3"
-    }
-    response = requests.post(url, headers=headers, json=data)
-    response.raise_for_status()
+VOICE_MAP = {
+    "grandpa": "onyx",
+    "grandma": "fable",
+    "child": "nova",
+    "woman": "shimmer",
+    "man": "echo"
+}
 
-    with open(output_path, "wb") as f:
+def generate_speech(text, voice=None):
+    from datetime import datetime
+    import openai
+
+    filename = f"output_audio_{datetime.now().strftime('%Y%m%d%H%M%S')}.mp3"
+    path = f"static/{filename}"
+
+    input_text = text[:4096]  # limite imposée par OpenAI TTS
+    voice_id = VOICE_MAP.get(voice, "nova")
+
+    response = openai.audio.speech.create(
+        model="tts-1",
+        voice=voice_id,
+        input=input_text
+    )
+
+    with open(path, "wb") as f:
         f.write(response.content)
 
-    return output_path
+    return path
