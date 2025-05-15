@@ -16,7 +16,7 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) =
       ? 'Créer ma bande dessinée' 
       : contentType === 'rhyme'
       ? 'Créer ma comptine'
-      : 'Créer mon conte audio';
+      : 'Créer mon histoire';
   };
 
   return (

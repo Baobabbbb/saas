@@ -51,7 +51,7 @@ const AudioStorySelector = ({
 
   return (
     <div className="audio-story-selector">
-      <h3>2. Choisissez un type de conte audio</h3>
+      <h3>2. Choisissez un type d'histoire</h3>
       
       <div className="audio-story-grid">
         {/* Custom audio story option first */}
@@ -62,8 +62,8 @@ const AudioStorySelector = ({
           whileTap={{ scale: 0.98 }}
         >
           <div className="audio-story-emoji">✏️</div>
-          <h4>Conte personnalisé</h4>
-          <p>Créez votre propre type de conte audio unique</p>
+          <h4>Histoire personnalisée</h4>
+          <p>Créez votre propre type d'histoire unique</p>
         </motion.div>
         
         {/* Predefined audio stories */}
@@ -89,7 +89,7 @@ const AudioStorySelector = ({
           animate={{ opacity: 1, height: 'auto' }}
           transition={{ duration: 0.3 }}
         >
-          <label htmlFor="customAudioStory">Décrivez votre type de conte audio</label>
+          <label htmlFor="customAudioStory">Décrivez votre type d'histoire</label>
           <motion.textarea
             id="customAudioStory"
             value={customAudioStory}
@@ -102,7 +102,7 @@ const AudioStorySelector = ({
       )}
 
       <div className="voice-selector-section">
-        <h3>2.1 Choisissez une voix pour la narration</h3>
+        <h3>2.1. Choisissez une voix pour la narration (optionnel)</h3>
         
         <div className="voice-options">
           {voices.map((voice) => (
