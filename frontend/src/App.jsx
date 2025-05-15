@@ -289,60 +289,72 @@ function App() {
     exit: { opacity: 0, height: 0, marginBottom: 0 }
   };
 
-const downloadPDF = async (title, content) => {
-  const backgroundImageUrl = '/assets/bg-stars.png'; // Stockée dans public/assets
+// Base64 Fredoka One – tronquée pour lisibilité, à remplacer par la vraie si besoin
+const fredokaFont = `
+AAEAAAAPAIAAAwBwRkZUTVJNzvsAAAD4AAAAYGNtYXAVP88fAAABHAAAAExnYXNwAAAAEAAAAXgAAABUZ2x5Zp0qb7cAAAGQAAABsGhlYWQG1QYgAAACbAAAADZoaGVhA5wCtAAAAoQAAAAkaG10eAYAAAAAAAKwAAAALGxvY2EDpAAQAAAC0AAAAAxtYXhwAAkAHAAAtgAAAAgbmFtZVeY8OoAAALQAAABinBvc3QAAwAAAADEAAAACnByZXB5cmB4AAAEZAAAACAAAwAAAAAAAAABAAAAAQAAAAAAAAABAAAACwBiAAMAAQAAABwBiAAAAAEAAgAAAAEAAQAAAEAAOAAEAAAAAAAEAAQAAAEAAAAABAACAAAAAAAgAAAAAAAAAAQAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+`.replace(/\s+/g, '');
 
+// Fonction d'export PDF avec style enfantin et fond étoilé
+const downloadPDF = (title, text) => {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'pt',
     format: 'a4'
   });
 
-  // Charger l’image de fond
-  const background = new Image();
-  background.crossOrigin = 'anonymous';
-  background.src = backgroundImageUrl;
+  // Charger et définir Fredoka
+  doc.addFileToVFS('Fredoka.ttf', fredokaFont);
+  doc.addFont('Fredoka.ttf', 'Fredoka', 'normal');
+  doc.setFont('Fredoka');
+  doc.setFontSize(18);
+  doc.setTextColor(80, 60, 140);
 
-  background.onload = () => {
+  // Image de fond (accessible depuis le dossier public)
+  const backgroundImageUrl = '/assets/bg-stars.png';
+
+  // Charger l’image de fond de façon asynchrone
+  const img = new Image();
+  img.crossOrigin = 'Anonymous';
+  img.src = backgroundImageUrl;
+
+  img.onload = () => {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
-    // Ajout du fond sur la 1ère page
-    doc.addImage(background, 'PNG', 0, 0, pageWidth, pageHeight);
+    const lines = doc.splitTextToSize(text, pageWidth - 80);
+    const linesPerPage = 40;
+    let currentY = 100;
 
-    // Titre enfantin
-    doc.setTextColor('#6B4EFF');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(22);
-    doc.text(title, pageWidth / 2, 70, { align: 'center' });
+    let currentPage = 1;
 
-    // Texte principal
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(14);
-    doc.setTextColor('#222');
-
-    const margin = 40;
-    const maxWidth = pageWidth - margin * 2;
-    const lineSpacing = 22;
-    const lines = doc.splitTextToSize(content, maxWidth);
-
-    let y = 110;
-
-    for (let i = 0; i < lines.length; i++) {
-      if (y > pageHeight - 60) {
+    for (let i = 0; i < lines.length; i += linesPerPage) {
+      if (i !== 0) {
         doc.addPage();
-        doc.addImage(background, 'PNG', 0, 0, pageWidth, pageHeight);
-        y = 60;
+        currentY = 100;
       }
-      doc.text(lines[i], margin, y);
-      y += lineSpacing;
+
+      // Dessiner le fond étoilé
+      doc.addImage(img, 'PNG', 0, 0, pageWidth, pageHeight);
+
+      // Titre uniquement sur la première page
+      if (currentPage === 1) {
+        doc.setFontSize(22);
+        doc.text(`L’histoire de ${title}`, pageWidth / 2, 60, { align: 'center' });
+        doc.setFontSize(14);
+      }
+
+      const pageLines = lines.slice(i, i + linesPerPage);
+      doc.text(pageLines, 40, currentY, { maxWidth: pageWidth - 80, lineHeightFactor: 1.5 });
+
+      currentPage++;
     }
 
-    doc.save(`${title.replace(/\s+/g, '_').toLowerCase()}.pdf`);
+    const filename = `histoire_${title.toLowerCase().replace(/\s+/g, '_')}.pdf`;
+    doc.save(filename);
   };
 
-  background.onerror = () => {
-    alert("Erreur lors du chargement de l'image de fond pour le PDF.");
+  img.onerror = () => {
+    console.error("❌ Impossible de charger l’image de fond du PDF.");
   };
 };
 
@@ -558,20 +570,6 @@ const downloadPDF = async (title, content) => {
   {/* Pagination + bouton PDF */}
   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
     <span>Page {currentPageIndex + 1} / {storyPages.length}</span>
-    {/*<button
-      onClick={() => downloadPDF(generatedResult.title || 'Histoire', generatedResult.content)}
-      style={{
-        background: '#6B4EFF',
-        color: 'white',
-        border: 'none',
-        padding: '0.6rem 1.2rem',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        fontWeight: '600'
-      }}
-    >
-      📄 Télécharger en PDF
-    </button>*/}
   </div>
 
   {/* Flèche droite */}
@@ -589,15 +587,18 @@ const downloadPDF = async (title, content) => {
   {generatedResult?.content && contentType !== 'rhyme' && contentType !== 'audio' && (
     <div
       style={{
-        whiteSpace: 'pre-wrap',
-        textAlign: 'left',
-        marginTop: '1rem',
-        padding: '1rem',
-        background: '#f9f9f9',
-        borderRadius: '0.5rem',
-        maxHeight: '300px',
-        overflowY: 'auto',
-      }}
+      whiteSpace: 'pre-wrap',
+      textAlign: 'left',
+      marginTop: '1rem',
+      padding: '1.5rem',
+      background: '#fff',
+      borderRadius: '1rem',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+      fontSize: '1rem',
+      lineHeight: '1.6',
+      width: '100%',
+      maxWidth: '640px',
+  }}
     >
       {generatedResult.content}
     </div>
@@ -615,7 +616,7 @@ const downloadPDF = async (title, content) => {
   {/* 📄 Bouton PDF pour histoires */}
   {contentType === 'audio' && generatedResult?.content && (
     <button
-      onClick={() => downloadPDF(generatedResult.title || 'Histoire', generatedResult.content)}
+      onClick={() => downloadPDF(selectedAudioStory, generatedResult.content)}
       style={{
         marginTop: '1rem',
         padding: '0.5rem 1rem',
