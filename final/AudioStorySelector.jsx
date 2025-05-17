@@ -46,7 +46,7 @@ const AudioStorySelector = ({
   };
 
   const handleVoiceSelect = (voiceId) => {
-    setSelectedVoice(selectedVoice === voiceId ? null : voiceId);
+    setSelectedVoice(voiceId);
   };
 
   return (
@@ -54,6 +54,7 @@ const AudioStorySelector = ({
       <h3>2. Choisissez un type d'histoire</h3>
       
       <div className="audio-story-grid">
+        {/* Custom audio story option first */}
         <motion.div
           className={`audio-story-card custom-audio-story ${selectedAudioStory === 'custom' ? 'selected' : ''}`}
           onClick={handleCustomSelect}
@@ -65,6 +66,7 @@ const AudioStorySelector = ({
           <p>Créez votre propre type d'histoire unique</p>
         </motion.div>
         
+        {/* Predefined audio stories */}
         {audioStories.map((story) => (
           <motion.div
             key={story.id}

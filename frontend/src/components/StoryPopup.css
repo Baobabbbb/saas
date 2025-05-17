@@ -1,0 +1,123 @@
+.story-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.story-popup-content {
+  position: relative;
+  width: 90%;
+  max-width: 850px;
+  height: 90vh;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.story-close-btn {
+  position: absolute;
+  top: 1.2rem;
+  left: 1.2rem;
+  font-size: 2rem;
+  font-weight: bold;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+  color: #444;
+}
+
+.story-fullscreen-btn {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.2rem;
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+  color: #444;
+}
+
+.story-background {
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/bg-stars.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: repeat;
+  opacity: 0.9;
+  z-index: 0;
+}
+
+.story-scroll {
+  position: relative;
+  z-index: 1;
+  overflow-y: auto;
+  height: 100%;
+  padding: 3rem 3rem;
+  text-align: center;
+}
+
+.story-title {
+  text-align: center;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: rgb(110, 50, 230); /* Violet */
+  margin-bottom: 2rem;
+}
+
+.story-text {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1rem;
+  font-weight: bold;
+  color: rgb(25, 25, 112); /* Bleu nuit */
+  line-height: 2;
+  white-space: pre-wrap;
+  text-align: center;
+}
+
+.story-popup-content.fullscreen {
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  max-width: 100vw;
+}
+
+.story-fullscreen-btn {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.2rem;
+  font-size: 0.72rem;
+  padding: 0.3rem 0.7rem;
+  background-color: #6B4EFF;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  z-index: 10;
+}
+
+.story-fullscreen-btn:hover {
+  background-color: #5a3fe0;
+}
+
+
+@media (max-width: 768px) {
+  .story-fullscreen-btn {
+    display: none;
+  }
+}

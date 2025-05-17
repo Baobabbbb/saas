@@ -8,7 +8,7 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
       <h3>1. Choisissez le type de contenu</h3>
       
       <div className="content-type-options">
-        {/*<motion.div
+        <motion.div
           className={`content-type-option ${contentType === 'story' ? 'selected' : ''}`}
           onClick={() => setContentType('story')}
           whileHover={{ y: -5 }}
@@ -19,9 +19,9 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
             <h4>Bande dessinée</h4>
             <p>Créez une bande dessinée avec des personnages et une aventure</p>
           </div>
-        </motion.div>*/}
+        </motion.div>
         
-        <motion.div
+        {/*<motion.div
           className={`content-type-option ${contentType === 'rhyme' ? 'selected' : ''}`}
           onClick={() => setContentType('rhyme')}
           whileHover={{ y: -5 }}
@@ -32,7 +32,7 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
             <h4>Comptine</h4>
             <p>Créez une comptine ou berceuse personnalisée pour votre enfant</p>
           </div>
-        </motion.div>
+        </motion.div>*/}
 
         <motion.div
           className={`content-type-option ${contentType === 'audio' ? 'selected' : ''}`}

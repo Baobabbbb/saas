@@ -3,17 +3,56 @@ import { motion } from 'framer-motion';
 import './StyleSelector.css';
 
 const styles = [
-  { id: 'cartoon', name: 'Dessin animé', description: 'Style coloré et amusant', emoji: '🎨' },
-  { id: 'manga', name: 'Manga', description: 'Style inspiré des mangas japonais', emoji: '🇯🇵' },
-  { id: 'watercolor', name: 'Aquarelle', description: 'Style doux et artistique', emoji: '🖌️' },
-  { id: 'pixel', name: 'Pixel Art', description: 'Style rétro inspiré des jeux vidéo', emoji: '👾' }
+  {
+    id: 'cartoon',
+    name: 'Dessin animé',
+    description: 'Style coloré et amusant',
+    emoji: (
+      <span className="w-6 h-6 flex items-center justify-center text-xl">
+        🎨
+      </span>
+    )
+  },
+  {
+    id: 'manga',
+    name: 'Manga',
+    description: 'Style inspiré des mangas japonais',
+    emoji: (
+      <img
+        src="/assets/japan-flag.png"
+        alt="Japon"
+        className="w-6 h-6 object-contain inline-block align-middle relative top-[2px]"
+        style={{ maxWidth: '20px', maxHeight: '20px' }}
+      />
+    )
+  },
+  {
+    id: 'watercolor',
+    name: 'Aquarelle',
+    description: 'Style doux et artistique',
+    emoji: (
+      <span className="w-6 h-6 flex items-center justify-center text-xl">
+        🖌️
+      </span>
+    )
+  },
+  {
+    id: 'pixel',
+    name: 'Pixel Art',
+    description: 'Style rétro inspiré des jeux vidéo',
+    emoji: (
+      <span className="w-6 h-6 flex items-center justify-center text-xl">
+        👾
+      </span>
+    )
+  }
 ];
 
 const StyleSelector = ({ selectedStyle, setSelectedStyle }) => {
   return (
     <div className="style-selector">
       <h3>2. Choisissez un style visuel</h3>
-      
+
       <div className="style-options">
         {styles.map((style) => (
           <motion.div

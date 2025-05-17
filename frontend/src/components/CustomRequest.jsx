@@ -14,7 +14,7 @@ const CustomRequest = ({ customRequest, setCustomRequest, stepNumber = 4 }) => {
             id="customRequest"
             value={customRequest}
             onChange={(e) => setCustomRequest(e.target.value)}
-            placeholder="Ex: Histoire en anglais, avec un chien bleu, incluez un message sur l'amitié..."
+            placeholder="Ex: En anglais, avec un chien bleu, inclure un message sur l'amitié..."
             rows={3}
             whileFocus={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 300, damping: 10 }}
