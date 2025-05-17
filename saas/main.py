@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
+from unidecode import unidecode
 import traceback
 import os
 
@@ -135,10 +136,18 @@ async def generate_rhyme(request: RhymeRequest):
         )
         content = response.choices[0].message.content.strip()
 
-        audio_path = generate_speech(content)
+        # Extraire un titre nettoyé depuis le contenu si possible
+        final_title = "audio_story"
+        if content.startswith("**") and "**" in content[2:]:
+            final_title = content.split("**")[1].strip()
+
+        # Nettoyer pour un nom de fichier
+        safe_filename = unidecode(final_title.lower().replace(" ", "_"))
+
+        audio_path = generate_speech(content, voice=request.voice, filename=safe_filename)
 
         return {
-            "title": f"La comptine de {request.rhyme_type.capitalize()}",
+            "title": final_title,
             "content": content,
             "audio_path": audio_path
         }

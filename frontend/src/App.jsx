@@ -14,6 +14,7 @@ import GenerateButton from './components/GenerateButton';
 import History from './components/History';
 import ComicViewer from './components/ComicViewer';
 import jsPDF from 'jspdf';
+import StoryPopup from './components/StoryPopup';
 
 function splitTextIntoPages(text, maxChars = 600) {
   const sentences = text.split(/(?<=[.?!])\s+/);
@@ -36,8 +37,15 @@ function splitTextIntoPages(text, maxChars = 600) {
   return pages;
 }
 
+const getSafeFilename = (title) => {
+  return title
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // supprime accents
+    .toLowerCase().replace(/\s+/g, "_") // espaces → _
+    .replace(/[^a-z0-9_]/g, ""); // caractères spéciaux supprimés
+};
+
 function App() {
-  const [contentType, setContentType] = useState('rhyme'); // 'story', 'rhyme', or 'audio'
+  const [contentType, setContentType] = useState('story'); // 'story', 'rhyme', or 'audio'
   const [selectedStyle, setSelectedStyle] = useState(null);
   const [heroName, setHeroName] = useState('');
   const [selectedStory, setSelectedStory] = useState(null);
@@ -52,6 +60,8 @@ function App() {
   {/*const [showConfetti, setShowConfetti] = useState(false);*/}
   const [comicResult, setComicResult] = useState(null);
   const [generatedResult, setGeneratedResult] = useState(null);
+  const [showFullStory, setShowFullStory] = useState(false);
+  const [showStoryPopup, setShowStoryPopup] = useState(false);
 
   // User account state
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -65,7 +75,7 @@ function App() {
     }
     return [];
   }, [generatedResult, contentType]);
-
+  
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
   // Check if user is logged in on component mount
@@ -215,6 +225,8 @@ function App() {
 
     // 🔁 Enregistre le résultat généré pour affichage audio/texte
     setGeneratedResult(generatedContent);
+    setStoryPages(splitTextIntoPages(generatedContent.content)); // Ajoute la pagination
+    setCurrentPageIndex(0); // Reviens à la première page
 
     // Déterminer le titre
     let title;
@@ -289,73 +301,83 @@ function App() {
     exit: { opacity: 0, height: 0, marginBottom: 0 }
   };
 
-// Base64 Fredoka One – tronquée pour lisibilité, à remplacer par la vraie si besoin
-const fredokaFont = `
-AAEAAAAPAIAAAwBwRkZUTVJNzvsAAAD4AAAAYGNtYXAVP88fAAABHAAAAExnYXNwAAAAEAAAAXgAAABUZ2x5Zp0qb7cAAAGQAAABsGhlYWQG1QYgAAACbAAAADZoaGVhA5wCtAAAAoQAAAAkaG10eAYAAAAAAAKwAAAALGxvY2EDpAAQAAAC0AAAAAxtYXhwAAkAHAAAtgAAAAgbmFtZVeY8OoAAALQAAABinBvc3QAAwAAAADEAAAACnByZXB5cmB4AAAEZAAAACAAAwAAAAAAAAABAAAAAQAAAAAAAAABAAAACwBiAAMAAQAAABwBiAAAAAEAAgAAAAEAAQAAAEAAOAAEAAAAAAAEAAQAAAEAAAAABAACAAAAAAAgAAAAAAAAAAQAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-`.replace(/\s+/g, '');
+const downloadPDF = async (title, content) => {
+  if (!content || typeof content !== "string") {
+    console.error("❌ Contenu invalide ou manquant pour le PDF.");
+    return;
+  }
 
-// Fonction d'export PDF avec style enfantin et fond étoilé
-const downloadPDF = (title, text) => {
   const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'pt',
-    format: 'a4'
+    orientation: "p",
+    unit: "mm",
+    format: "a4"
   });
 
-  // Charger et définir Fredoka
-  doc.addFileToVFS('Fredoka.ttf', fredokaFont);
-  doc.addFont('Fredoka.ttf', 'Fredoka', 'normal');
-  doc.setFont('Fredoka');
-  doc.setFontSize(18);
-  doc.setTextColor(80, 60, 140);
+  const marginTop = 40;
+  const pageWidth = 210;
+  const pageHeight = 297;
+  const lineHeight = 12;
+  const maxLinesPerPage = Math.floor((pageHeight - marginTop * 2) / lineHeight);
+  const fontSize = 13;
 
-  // Image de fond (accessible depuis le dossier public)
-  const backgroundImageUrl = '/assets/bg-stars.png';
+  // 🏷️ Titre réel (extrait du markdown **titre**)
+  let finalTitle = title;
+  if (content.startsWith("**") && content.includes("**", 2)) {
+    finalTitle = content.split("**")[1].trim();
+    content = content.replace(`**${finalTitle}**`, "").trim();
+  }
 
-  // Charger l’image de fond de façon asynchrone
-  const img = new Image();
-  img.crossOrigin = 'Anonymous';
-  img.src = backgroundImageUrl;
+  // 🌠 Chargement de l’image de fond
+  const loadImage = (url) =>
+    new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = url;
+      img.onload = () => resolve(img);
+    });
 
-  img.onload = () => {
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
+  const backgroundImageUrl = "/assets/bg-stars.png";
+  const backgroundImage = await loadImage(backgroundImageUrl);
 
-    const lines = doc.splitTextToSize(text, pageWidth - 80);
-    const linesPerPage = 40;
-    let currentY = 100;
+  // ✂️ Texte découpé
+  const lines = doc.splitTextToSize(content, 150); // max 150mm
+  let currentLine = 0;
 
-    let currentPage = 1;
+  for (let page = 0; currentLine < lines.length; page++) {
+    if (page > 0) doc.addPage();
 
-    for (let i = 0; i < lines.length; i += linesPerPage) {
-      if (i !== 0) {
-        doc.addPage();
-        currentY = 100;
-      }
+    doc.addImage(backgroundImage, "PNG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
 
-      // Dessiner le fond étoilé
-      doc.addImage(img, 'PNG', 0, 0, pageWidth, pageHeight);
-
-      // Titre uniquement sur la première page
-      if (currentPage === 1) {
-        doc.setFontSize(22);
-        doc.text(`L’histoire de ${title}`, pageWidth / 2, 60, { align: 'center' });
-        doc.setFontSize(14);
-      }
-
-      const pageLines = lines.slice(i, i + linesPerPage);
-      doc.text(pageLines, 40, currentY, { maxWidth: pageWidth - 80, lineHeightFactor: 1.5 });
-
-      currentPage++;
+    // 🎨 Titre (uniquement page 1)
+    if (page === 0) {
+      doc.setFont("courier", "bold");
+      doc.setFontSize(22);
+      doc.setTextColor(110, 50, 230); // Violet
+      doc.text(finalTitle, pageWidth / 2, marginTop - 20, { align: "center" });
     }
 
-    const filename = `histoire_${title.toLowerCase().replace(/\s+/g, '_')}.pdf`;
-    doc.save(filename);
-  };
+    // ✍️ Texte principal (gras et bleu nuit)
+    doc.setFont("courier", "bold");
+    doc.setFontSize(fontSize);
+    doc.setTextColor(25, 25, 112); // Bleu nuit
 
-  img.onerror = () => {
-    console.error("❌ Impossible de charger l’image de fond du PDF.");
-  };
+    for (let i = 0; i < maxLinesPerPage && currentLine < lines.length; i++, currentLine++) {
+      const y = marginTop + i * lineHeight;
+      doc.text(lines[currentLine], pageWidth / 2, y, { align: "center" });
+    }
+
+    // 📄 Pagination
+    doc.setFontSize(11);
+    doc.setTextColor(106, 90, 205); // Violet doux
+    doc.text(`Page ${page + 1}`, pageWidth - 15, 290, { align: "right" });
+  }
+
+  // 📁 Nom de fichier propre
+  const safeTitle = finalTitle
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+
+  doc.save(`${safeTitle}.pdf`);
 };
 
  return (
@@ -552,37 +574,6 @@ const downloadPDF = (title, text) => {
     </div>
   )}
 
-  {/* 📖 Histoire paginée */}
-  {contentType === 'audio' && storyPages.length > 0 && (
-    <div className="book-page">
-      <div className="page-text">
-        {storyPages[currentPageIndex]}
-      </div>
-      <div className="page-navigation">
-  {/* Flèche gauche */}
-  <button
-    onClick={() => setCurrentPageIndex((prev) => Math.max(prev - 1, 0))}
-    disabled={currentPageIndex === 0}
-  >
-    ◀
-  </button>
-
-  {/* Pagination + bouton PDF */}
-  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-    <span>Page {currentPageIndex + 1} / {storyPages.length}</span>
-  </div>
-
-  {/* Flèche droite */}
-  <button
-    onClick={() => setCurrentPageIndex((prev) => Math.min(prev + 1, storyPages.length - 1))}
-    disabled={currentPageIndex === storyPages.length - 1}
-  >
-    ▶
-  </button>
-</div>
-    </div>
-  )}
-
   {/* 📄 Texte plein (non paginé) si besoin (ex: debug autre type) */}
   {generatedResult?.content && contentType !== 'rhyme' && contentType !== 'audio' && (
     <div
@@ -605,31 +596,56 @@ const downloadPDF = (title, text) => {
   )}
 
   {/* 🎵 Audio présent */}
-  {generatedResult?.audio_path && (
-    <audio
-      controls
-      style={{ marginTop: '1rem', width: '100%' }}
-      src={`http://localhost:8000/${generatedResult.audio_path}`}
-    />
-  )}
+{generatedResult?.audio_path && (
+  <audio
+    controls
+    style={{ width: '100%', marginBottom: '0.25rem' }} // 🔧 Réduit l’espace sous l’audio
+    src={`http://localhost:8000/${generatedResult.audio_path}`}
+    download={generatedResult.audio_path.split('/').pop()}
+  />
+)}
 
-  {/* 📄 Bouton PDF pour histoires */}
-  {contentType === 'audio' && generatedResult?.content && (
+{contentType === 'audio' && generatedResult?.content && (
+  <div
+    style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '0.5rem' // 🔧 Légèrement réduit l’espacement entre les deux boutons
+    }}
+  >
     <button
-      onClick={() => downloadPDF(selectedAudioStory, generatedResult.content)}
+      onClick={() => setShowStoryPopup(true)}
       style={{
-        marginTop: '1rem',
-        padding: '0.5rem 1rem',
+        padding: '0.6rem 1.4rem',
         backgroundColor: '#6B4EFF',
         color: '#fff',
         border: 'none',
         borderRadius: '0.5rem',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        fontWeight: '600'
+      }}
+    >
+      📖 Ouvrir l’histoire
+    </button>
+
+    <button
+      onClick={() => downloadPDF(generatedResult.title, generatedResult.content)}
+      style={{
+        padding: '0.6rem 1.4rem',
+        backgroundColor: '#6B4EFF',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '0.5rem',
+        cursor: 'pointer',
+        fontWeight: '600'
       }}
     >
       📄 Télécharger en PDF
     </button>
-  )}
+  </div>
+)}
 </motion.div>
 
   )}
@@ -660,6 +676,14 @@ const downloadPDF = (title, text) => {
         </motion.div>
       )}
     </AnimatePresence>
+    
+    {showStoryPopup && (
+  <StoryPopup
+    title={generatedResult.title}
+    content={generatedResult.content}
+    onClose={() => setShowStoryPopup(false)}
+  />
+)}
   </div>
 );
 }
