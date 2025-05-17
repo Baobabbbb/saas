@@ -106,3 +106,46 @@
 .btn-delete:hover {
   background-color: #e05252;
 }
+
+.history-panel {
+  background-color: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  width: 40%;
+  max-width: 800px;
+  max-height: 90vh;
+  min-height: 40vh;
+  overflow-y: auto;
+  position: relative;
+  margin: 0 auto; /* centré horizontalement */
+}
+
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.empty-history {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 20px;
+  color: #555;
+}

@@ -70,7 +70,6 @@ const History = ({ creations, onClose, onSelect, onDelete }) => {
       <div className="history-content">
         {creations.length === 0 ? (
           <div className="empty-history">
-            <div className="empty-icon">📭</div>
             <p>Vous n'avez pas encore de créations</p>
             <p className="empty-subtext">Vos créations apparaîtront ici une fois générées</p>
           </div>
