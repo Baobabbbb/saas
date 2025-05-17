@@ -597,22 +597,34 @@ const downloadPDF = async (title, content) => {
 
   {/* 🎵 Audio présent */}
 {generatedResult?.audio_path && (
-  <audio
-    controls
-    style={{ width: '100%', marginBottom: '0.25rem' }} // 🔧 Réduit l’espace sous l’audio
-    src={`http://localhost:8000/${generatedResult.audio_path}`}
-    download={generatedResult.audio_path.split('/').pop()}
-  />
+  <div
+    style={{
+      height: '300px', // 👈 même hauteur que le bloc boutons
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center', // 👈 centre l’audio verticalement aussi
+      alignItems: 'center'
+    }}
+  >
+    <audio
+      controls
+      style={{ width: '100%', maxWidth: '360px' }} // 👈 limite la largeur pour l’esthétique
+      src={`http://localhost:8000/${generatedResult.audio_path}`}
+      download={generatedResult.audio_path.split('/').pop()}
+    />
+  </div>
 )}
 
 {contentType === 'audio' && generatedResult?.content && (
   <div
     style={{
+      height: '300px', // 👈 même hauteur
+      width: '100%',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: '0.5rem' // 🔧 Légèrement réduit l’espacement entre les deux boutons
+      gap: '1rem'
     }}
   >
     <button
