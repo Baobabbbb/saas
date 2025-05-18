@@ -79,7 +79,7 @@ body {
   position: relative;
   width: 100%;
   padding: 1rem;
-  border: 2px dashed #ddd;
+  /*border: 2px dashed #ddd;*/
   border-radius: 1rem;
   background: #fff;
   display: flex;
