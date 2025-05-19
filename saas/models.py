@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 class Dialogue(BaseModel):
     character: str
@@ -12,6 +12,7 @@ class Scene(BaseModel):
 class ComicScenario(BaseModel):
     title: str
     scenes: List[Scene]
+    seed: Optional[int] = None  # ← Nouveau champ pour la cohérence des images
 
 class ComicRequest(BaseModel):
     style: str

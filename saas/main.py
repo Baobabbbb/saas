@@ -70,17 +70,22 @@ async def generate_comic(data: ComicRequest):
         )
         print("📜 Prompt de génération :", prompt)
 
+        # Génère le scénario avec une seed (dans scenario.py)
         scenario = await generate_scenario(prompt)
         print("🧠 Scénario généré :", scenario)
 
+        # Valide la structure du scénario
         validate_scenario(scenario)
 
+        # Génère les images avec seed
         images = await generate_images(scenario)
         for i, scene in enumerate(scenario["scenes"]):
             scene["image"] = images[i]
 
+        # Compose les pages avec bulles
         final_pages = await compose_pages(scenario)
 
+        # Corrige les URLs redondantes
         for page in final_pages:
             if page["image_url"].startswith("/static/static/"):
                 page["image_url"] = page["image_url"].replace("/static/static/", "/static/")
@@ -92,6 +97,7 @@ async def generate_comic(data: ComicRequest):
             "title": f"Aventure de {data.hero_name}",
             "pages": final_pages
         }
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

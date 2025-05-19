@@ -82,7 +82,7 @@ async def compose_pages(layout_data):
     scene_images = []
 
     for idx, scene in enumerate(layout_data["scenes"]):
-        print("🧩 SCENE :", scene)
+        print("🧩 SCÈNE :", scene)
 
         image = scene.get("image")
         if not image:
@@ -103,7 +103,7 @@ async def compose_pages(layout_data):
 
         scene_images.append(f"static/scene_{idx + 1}.png")
 
-    # 🔍 Log de debug avant génération de la BD finale
+    # Génération de la page finale
     try:
         print("🛠️ Lancement de compose_comic_pages avec :", scene_images)
         final_image_path = compose_comic_pages(scene_images)
@@ -112,7 +112,7 @@ async def compose_pages(layout_data):
         print("❌ Erreur dans compose_comic_pages :", e)
         raise
 
-    # Préparation des pages scène par scène
+    # Préparation des pages individuelles
     pages = []
     for i, filename in enumerate(scene_images):
         pages.append({
