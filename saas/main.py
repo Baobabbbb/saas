@@ -74,10 +74,13 @@ async def generate_comic(data: ComicRequest):
         scenario = await generate_scenario(prompt)
         print("🧠 Scénario généré :", scenario)
 
+        # Injecte le type d'histoire pour la génération d'images (utile pour choisir le style)
+        scenario["story_type"] = data.story_type
+
         # Valide la structure du scénario
         validate_scenario(scenario)
 
-        # Génère les images avec seed
+        # Génère les images avec style automatique selon story_type
         images = await generate_images(scenario)
         for i, scene in enumerate(scenario["scenes"]):
             scene["image"] = images[i]
@@ -99,6 +102,8 @@ async def generate_comic(data: ComicRequest):
         }
 
     except Exception as e:
+        import traceback
+        print("❌ Erreur dans /generate_comic/ :", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/tts")
