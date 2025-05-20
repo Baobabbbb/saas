@@ -6,10 +6,10 @@ from config import OPENAI_API_KEY, TEXT_MODEL
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-async def generate_scenario(prompt: str):
+async def generate_scenario(prompt: str, style: str = None):
     """
     Génère un scénario structuré pour une bande dessinée à partir d'un prompt.
-    Une seed est ajoutée s'il n'y en a pas.
+    Ajoute une seed et le style utilisé dans la structure retournée.
     """
     response = client.chat.completions.create(
         model=TEXT_MODEL,
@@ -45,5 +45,10 @@ async def generate_scenario(prompt: str):
         print(f"🔢 Seed générée automatiquement : {scenario['seed']}")
     else:
         print(f"🎯 Seed déjà présente dans la réponse : {scenario['seed']}")
+
+    # Ajout du style si transmis
+    if style:
+        scenario["style"] = style
+        print(f"🎨 Style injecté dans le scénario : {style}")
 
     return scenario

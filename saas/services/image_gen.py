@@ -1,64 +1,67 @@
 import os
 import requests
-import base64
+import random
 from config import STABILITY_API_KEY
+from utils.translate import translate_to_english
 
-ENDPOINT = "https://api.stability.ai/v2beta/stable-image/generate/core"
+# Dossier où les images générées seront sauvegardées
+STATIC_DIR = "static/comics"
+os.makedirs(STATIC_DIR, exist_ok=True)
 
+# Endpoint de l’API Stability AI (v2beta)
+STABILITY_ENDPOINT = "https://api.stability.ai/v2beta/stable-image/generate/core"
+
+# Entêtes avec la clé API Stability
 HEADERS = {
     "Authorization": f"Bearer {STABILITY_API_KEY}",
-    "Accept": "application/json"
+    "Accept": "image/png"
 }
 
-STYLE_MAP = {
-    "space": "futuristic",
-    "ocean": "digital-art",
-    "dinosaur": "cinematic",
-    "fairy": "fantasy-art",
-    "superhero": "comic-book",
-    "jungle": "analog-film"
+# Mapping des styles frontend → style_preset Stability AI
+STYLE_PRESETS = {
+    "cartoon": "comic-book",
+    "manga": "anime",
+    "watercolor": "digital-art",
+    "pixel": "pixel-art"
 }
 
 async def generate_images(scenario):
     scenes = scenario["scenes"]
-    base_seed = scenario.get("seed")
-    story_type = scenario.get("story_type")  # ← tu peux passer ça depuis main.py
-    style = STYLE_MAP.get(story_type)
+    seed = scenario.get("seed", random.randint(0, 2_147_483_647))
+    style_id = scenario.get("style", "cartoon")
+    style_preset = STYLE_PRESETS.get(style_id, "comic-book")
 
+    print(f"🎨 Style injecté dans Stability : {style_id} → {style_preset}")
     images = []
 
-    for index, scene in enumerate(scenes):
-        prompt = scene["description"]
-        scene_seed = base_seed + index if base_seed is not None else None
+    for idx, scene in enumerate(scenes):
+        original_prompt = scene["description"]
+        prompt = translate_to_english(original_prompt)
+        scene_seed = seed + idx
 
-        form_data = {
-            "prompt": str(prompt),
-            "output_format": "png",
-            "seed": str(scene_seed) if scene_seed is not None else "0",
-            "steps": "30",
-            "cfg_scale": "7",
-            "aspect_ratio": "1:1"
+        print(f"📤 Génération image scène {idx + 1} avec seed {scene_seed}, style {style_preset}")
+        print(f"🔤 Prompt traduit : {prompt}")
+
+        files = {
+            "prompt": (None, prompt),
+            "output_format": (None, "png"),
+            "aspect_ratio": (None, "1:1"),
+            "style_preset": (None, style_preset),
+            "seed": (None, str(scene_seed))
         }
 
-        if style:
-            form_data["style_preset"] = style
+        response = requests.post(STABILITY_ENDPOINT, headers=HEADERS, files=files)
 
-        print(f"📤 Génération image scène {index + 1} avec seed {scene_seed}, style {style}")
-        response = requests.post(ENDPOINT, headers=HEADERS, files=form_data)
-
-        try:
+        if response.status_code != 200:
+            print(f"❌ Erreur Stability AI scène {idx + 1} : {response.text}")
             response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            print(f"❌ Erreur Stability AI scène {index + 1} :", response.text)
-            raise
 
-        result = response.json()
-        b64_image = result["image"]
+        filename = f"scene_{scene_seed}.png"
+        filepath = os.path.join(STATIC_DIR, filename)
 
-        image_path = f"static/scene_{index + 1}.png"
-        with open(image_path, "wb") as f:
-            f.write(base64.b64decode(b64_image))
+        with open(filepath, "wb") as f:
+            f.write(response.content)
 
-        images.append(image_path)
+        images.append(f"/static/comics/{filename}")
 
     return images
