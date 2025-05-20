@@ -70,25 +70,25 @@ async def generate_comic(data: ComicRequest):
         )
         print("📜 Prompt de génération :", prompt)
 
-        # Génère le scénario avec une seed (dans scenario.py)
-        scenario = await generate_scenario(prompt)
+        # Génère le scénario avec seed et style
+        scenario = await generate_scenario(prompt, style=data.style)
         print("🧠 Scénario généré :", scenario)
 
-        # Injecte le type d'histoire pour la génération d'images (utile pour choisir le style)
+        # Injecte le type d'histoire pour le style_preset automatique (si utilisé dans image_gen)
         scenario["story_type"] = data.story_type
 
         # Valide la structure du scénario
         validate_scenario(scenario)
 
-        # Génère les images avec style automatique selon story_type
+        # Génère les images avec style + seed
         images = await generate_images(scenario)
         for i, scene in enumerate(scenario["scenes"]):
             scene["image"] = images[i]
 
-        # Compose les pages avec bulles
+        # Compose les pages avec bulles de dialogue
         final_pages = await compose_pages(scenario)
 
-        # Corrige les URLs redondantes
+        # Corrige les URLs redondantes (FastAPI static path fix)
         for page in final_pages:
             if page["image_url"].startswith("/static/static/"):
                 page["image_url"] = page["image_url"].replace("/static/static/", "/static/")
