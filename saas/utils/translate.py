@@ -3,7 +3,7 @@ from config import OPENAI_API_KEY
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-def translate_to_english(text: str) -> str:
+def translate_text(text: str) -> str:
     """
     Traduit du texte en anglais via OpenAI (GPT-4o-mini).
     """
