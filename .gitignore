@@ -1,32 +1,44 @@
-# Environnements virtuels Python
+# --- Environnements virtuels Python ---
 env/
 venv/
+venv-stability/
 saas/env/
+backend/venv/
 
-# Node.js
+# --- Node.js ---
 frontend/node_modules/
 node_modules/
 
-# Variables d’environnement
+# --- Variables d’environnement ---
 .env
 saas/.env
+backend/.env
 
-# Cache Python
+# --- Cache Python ---
 __pycache__/
-saas/__pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
+.tox/
+.coverage
+htmlcov/
 
-# Logs
+# --- Logs et fichiers temporaires ---
 *.log
+*.tmp
+*.swp
+*.bak
 
-# Fichiers générés
+# --- Fichiers générés ---
 saas/static/
+dist/
+build/
 
-# Fichiers système
+# --- Système et IDE ---
 .DS_Store
 Thumbs.db
-
-# IDE
 .vscode/
 .idea/
+
+# --- Jupyter Notebook ---
+.ipynb_checkpoints/
