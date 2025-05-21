@@ -61,6 +61,6 @@ async def generate_images(scenario):
         with open(filepath, "wb") as f:
             f.write(response.content)
 
-        images.append(f"/static/comics/{filename}")
+        images.append(f"comics/{filename}")
 
     return images

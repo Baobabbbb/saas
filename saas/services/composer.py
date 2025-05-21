@@ -4,7 +4,7 @@ import requests
 import os
 from services.layout import compose_comic_pages
 
-FONT_PATH = "C:/Windows/Fonts/arial.ttf"
+FONT_PATH = "C:/Windows/Fonts/arial.ttf"  # à adapter sur d'autres OS
 
 def get_text_size(draw, text, font):
     try:
@@ -30,7 +30,7 @@ def draw_speech_bubble(draw, text, x, y, max_width, font):
     if line:
         text_lines.append(line)
 
-    bubble_width = max([get_text_size(draw, line, font)[0] for line in text_lines]) + 20
+    bubble_width = max(get_text_size(draw, line, font)[0] for line in text_lines) + 20
     bubble_height = len(text_lines) * (font.size + 4) + 20
 
     draw.rounded_rectangle(
@@ -53,8 +53,10 @@ def compose_image_with_bubbles(image_url, dialogues, output_path):
             response.raise_for_status()
             img = Image.open(BytesIO(response.content)).convert("RGB")
         else:
-            print(f"📁 Chargement image locale : {image_url}")
-            img = Image.open(image_url).convert("RGB")
+            # Corriger les doublons /static/ et garantir un chemin local valide
+            local_path = os.path.normpath(image_url.replace("/static/", "static/"))
+            print(f"📁 Chargement image locale : {local_path}")
+            img = Image.open(local_path).convert("RGB")
 
         draw = ImageDraw.Draw(img)
 
@@ -88,12 +90,9 @@ async def compose_pages(layout_data):
         if not image:
             raise ValueError(f"❌ La scène {idx + 1} n'a pas d'image")
 
-        if image.startswith("http://") or image.startswith("https://"):
-            image_url = image
-        else:
-            image_url = f"/static/{image}"
-
-        output = f"static/scene_{idx + 1}.png"
+        # Assure une référence propre à une image locale
+        image_url = os.path.join("static", image.replace("/static/", "").replace("\\", "/"))
+        output = os.path.join("static", f"scene_{idx + 1}.png")
 
         compose_image_with_bubbles(
             image_url=image_url,
@@ -101,9 +100,8 @@ async def compose_pages(layout_data):
             output_path=output
         )
 
-        scene_images.append(f"static/scene_{idx + 1}.png")
+        scene_images.append(output)
 
-    # Génération de la page finale
     try:
         print("🛠️ Lancement de compose_comic_pages avec :", scene_images)
         final_image_path = compose_comic_pages(scene_images)
@@ -112,14 +110,13 @@ async def compose_pages(layout_data):
         print("❌ Erreur dans compose_comic_pages :", e)
         raise
 
-    # Préparation des pages individuelles
     pages = []
     for i, filename in enumerate(scene_images):
         pages.append({
             "text": "\n".join(
                 f'{d["character"]}: {d["text"]}' for d in layout_data["scenes"][i]["dialogues"]
             ),
-            "image_url": f"static/{filename}"
+            "image_url": f"/{filename.replace(os.sep, '/')}"  # rendu web friendly
         })
 
     return pages
