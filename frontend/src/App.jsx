@@ -63,6 +63,7 @@ function App() {
   const [comicPages, setComicPages] = useState([]);
   const [showFullStory, setShowFullStory] = useState(false);
   const [showStoryPopup, setShowStoryPopup] = useState(false);
+  const [showComicPopup, setShowComicPopup] = useState(false);
 
   // User account state
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -546,8 +547,21 @@ const downloadPDF = async (title, content) => {
           : 'Création de l\'histoire en cours...'}
       </p>
     </motion.div>
+
   ) : comicResult && contentType === 'story' ? (
-    <ComicViewer comic={comicResult} />
+  <div className="comic-actions">
+    <button className="comic-button" onClick={() => setShowComicPopup(true)}>
+      📖 Lire la BD
+    </button>
+
+    <a
+      href="http://127.0.0.1:8000/static/final_page.png"
+      download
+      className="comic-download"
+    >
+      📥 Télécharger la BD complète
+    </a>
+  </div>
   ) : (
     
     <motion.div
@@ -697,6 +711,12 @@ const downloadPDF = async (title, content) => {
     onClose={() => setShowStoryPopup(false)}
   />
 )}
+
+    {showComicPopup && (
+      <StoryPopup onClose={() => setShowComicPopup(false)}>
+        <ComicViewer comic={comicResult} />
+      </StoryPopup>
+    )}
   </div>
 );
 }
