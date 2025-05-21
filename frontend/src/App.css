@@ -244,3 +244,35 @@ body {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.comic-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.comic-button,
+.comic-download {
+  background-color: #f9f4ff;
+  color: #4a3b8c;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  border: 2px solid #d8c9f8;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  text-align: center;
+  width: fit-content;
+  min-width: 220px;
+}
+
+.comic-button:hover,
+.comic-download:hover {
+  background-color: #e8defc;
+  border-color: #bba7f3;
+  transform: scale(1.03);
+}

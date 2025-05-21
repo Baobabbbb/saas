@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import './StoryPopup.css';
 
-const StoryPopup = ({ title, content, onClose }) => {
+const StoryPopup = ({ title, content, onClose, children }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const popupRef = useRef(null);
 
@@ -14,12 +14,6 @@ const StoryPopup = ({ title, content, onClose }) => {
       setIsFullscreen(false);
     }
   };
-
-  // Extraire le vrai titre depuis le markdown **titre**
-  let displayedTitle = title;
-  if (content?.startsWith("**") && content.includes("**", 2)) {
-    displayedTitle = content.split("**")[1].trim();
-  }
 
   const handleOverlayClick = (e) => {
     if (e.target.classList.contains('story-popup-overlay')) {
@@ -39,8 +33,13 @@ const StoryPopup = ({ title, content, onClose }) => {
         </button>
 
         <div className="story-scroll">
-          <h2 className="story-title">{displayedTitle}</h2>
-          <div className="story-text">{content.replace(`**${displayedTitle}**`, '').trim()}</div>
+          {title && <h2 className="story-title">{title}</h2>}
+
+          {content && typeof content === 'string' ? (
+            <div className="story-text">{content}</div>
+          ) : (
+            children
+          )}
         </div>
       </div>
     </div>
