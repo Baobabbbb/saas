@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './ComicViewer.css';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
+
 const ComicViewer = ({ comic }) => {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
@@ -31,7 +33,11 @@ const ComicViewer = ({ comic }) => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <img src={page.image_url} alt={`Page ${currentPageIndex + 1}`} className="comic-image" />
+            <img
+              src={`${BACKEND_URL}${page.image_url}`}
+              alt={`Page ${currentPageIndex + 1}`}
+              className="comic-image"
+            />
             <p className="comic-text">{page.text}</p>
           </motion.div>
         </AnimatePresence>
@@ -44,7 +50,7 @@ const ComicViewer = ({ comic }) => {
       </div>
 
       <div className="comic-download">
-        <a href="/static/final_page.png" download>
+        <a href={`${BACKEND_URL}/static/final_page.png`} download>
           📥 Télécharger la BD complète
         </a>
       </div>

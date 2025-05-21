@@ -60,6 +60,7 @@ function App() {
   {/*const [showConfetti, setShowConfetti] = useState(false);*/}
   const [comicResult, setComicResult] = useState(null);
   const [generatedResult, setGeneratedResult] = useState(null);
+  const [comicPages, setComicPages] = useState([]);
   const [showFullStory, setShowFullStory] = useState(false);
   const [showStoryPopup, setShowStoryPopup] = useState(false);
 
