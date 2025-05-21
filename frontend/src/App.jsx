@@ -549,17 +549,48 @@ const downloadPDF = async (title, content) => {
     </motion.div>
 
   ) : comicResult && contentType === 'story' ? (
-  <div className="comic-actions">
-    <button className="comic-button" onClick={() => setShowComicPopup(true)}>
+  <div
+    style={{
+      height: '300px',
+      width: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '1rem'
+    }}
+  >
+    <button
+      onClick={() => setShowComicPopup(true)}
+      style={{
+        padding: '0.6rem 1.4rem',
+        backgroundColor: '#6B4EFF',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '0.5rem',
+        cursor: 'pointer',
+        fontWeight: '600'
+      }}
+    >
       📖 Lire la BD
     </button>
 
     <a
       href="http://127.0.0.1:8000/static/final_page.png"
       download
-      className="comic-download"
+      style={{
+        padding: '0.6rem 1.4rem',
+        backgroundColor: '#6B4EFF',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '0.5rem',
+        cursor: 'pointer',
+        fontWeight: '600',
+        textAlign: 'center',
+        textDecoration: 'none'
+      }}
     >
-      📥 Télécharger la BD complète
+      📄 Télécharger la BD
     </a>
   </div>
   ) : (

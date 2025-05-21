@@ -4,7 +4,7 @@ import requests
 import os
 from services.layout import compose_comic_pages
 
-FONT_PATH = "C:/Windows/Fonts/arial.ttf"  # à adapter sur d'autres OS
+FONT_PATH = "C:/Windows/Fonts/arial.ttf"  # adapte si besoin
 
 def get_text_size(draw, text, font):
     try:
@@ -53,7 +53,6 @@ def compose_image_with_bubbles(image_url, dialogues, output_path):
             response.raise_for_status()
             img = Image.open(BytesIO(response.content)).convert("RGB")
         else:
-            # Corriger les doublons /static/ et garantir un chemin local valide
             local_path = os.path.normpath(image_url.replace("/static/", "static/"))
             print(f"📁 Chargement image locale : {local_path}")
             img = Image.open(local_path).convert("RGB")
@@ -90,7 +89,6 @@ async def compose_pages(layout_data):
         if not image:
             raise ValueError(f"❌ La scène {idx + 1} n'a pas d'image")
 
-        # Assure une référence propre à une image locale
         image_url = os.path.join("static", image.replace("/static/", "").replace("\\", "/"))
         output = os.path.join("static", f"scene_{idx + 1}.png")
 
@@ -102,21 +100,26 @@ async def compose_pages(layout_data):
 
         scene_images.append(output)
 
+    # Génération des pages finales
     try:
         print("🛠️ Lancement de compose_comic_pages avec :", scene_images)
-        final_image_path = compose_comic_pages(scene_images)
-        print(f"🖼️ Final page générée dans : {final_image_path}")
+        final_image_paths = compose_comic_pages(scene_images)
+        print(f"🖼️ Pages finales générées :", final_image_paths)
     except Exception as e:
         print("❌ Erreur dans compose_comic_pages :", e)
         raise
 
-    pages = []
-    for i, filename in enumerate(scene_images):
-        pages.append({
-            "text": "\n".join(
-                f'{d["character"]}: {d["text"]}' for d in layout_data["scenes"][i]["dialogues"]
-            ),
-            "image_url": f"/{filename.replace(os.sep, '/')}"  # rendu web friendly
-        })
+    # Nettoyage des images intermédiaires (scene_*.png)
+    for path in scene_images:
+        try:
+            os.remove(path)
+        except Exception as e:
+            print(f"⚠️ Impossible de supprimer {path} :", e)
 
-    return pages
+    # Formatage pour le frontend
+    return {
+        "final_pages": [
+            f"/{p.replace(os.sep, '/')}" for p in final_image_paths
+        ],
+        "title": layout_data.get("title", "Bande dessinée")
+    }
