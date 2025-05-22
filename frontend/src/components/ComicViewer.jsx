@@ -34,11 +34,10 @@ const ComicViewer = ({ comic }) => {
             transition={{ duration: 0.4 }}
           >
             <img
-              src={`${BACKEND_URL}${page.image_url}`}
+              src={`${BACKEND_URL}${page}`}  // page est maintenant un chemin image, plus un objet
               alt={`Page ${currentPageIndex + 1}`}
               className="comic-image"
             />
-            <p className="comic-text">{page.text}</p>
           </motion.div>
         </AnimatePresence>
       </div>

@@ -85,19 +85,20 @@ async def generate_comic(data: ComicRequest):
         for i, scene in enumerate(scenario["scenes"]):
             scene["image"] = images[i]
 
-        # Compose les pages avec bulles
-        final_pages = await compose_pages(scenario)
+        # Compose les pages avec bulles et retourne les pages finales
+        result = await compose_pages(scenario)
 
-        # Corrige les URLs redondantes (sécurité)
-        for page in final_pages:
-            if page["image_url"].startswith("/static/static/"):
-                page["image_url"] = page["image_url"].replace("/static/static/", "/static/")
+        # Corrige les URLs redondantes au cas où (sécurité)
+        final_pages = result["final_pages"]
+        for i, page in enumerate(final_pages):
+            if page.startswith("/static/static/"):
+                final_pages[i] = page.replace("/static/static/", "/static/")
 
-        print("✅ Images finales :", final_pages)
+        print("✅ Pages finales :", final_pages)
         print("🎯 Données reçues :", data)
 
         return {
-            "title": f"Aventure de {data.hero_name}",
+            "title": result["title"],
             "pages": final_pages
         }
 

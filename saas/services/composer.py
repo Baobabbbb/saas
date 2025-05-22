@@ -2,76 +2,71 @@ from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import requests
 import os
+import random
+import textwrap
 from services.layout import compose_comic_pages
 
-FONT_PATH = "C:/Windows/Fonts/arial.ttf"  # adapte si besoin
+FONT_PATH = "C:/Windows/Fonts/arial.ttf"  # à adapter si besoin
 
-def get_text_size(draw, text, font):
-    try:
-        bbox = draw.textbbox((0, 0), text, font=font)
-        width = bbox[2] - bbox[0]
-        height = bbox[3] - bbox[1]
-        return width, height
-    except:
-        return draw.textsize(text, font=font)
+def draw_speech_bubble(draw, text, img_width, img_height, font):
+    # 💬 Ajout de variété de styles
+    text += " " + random.choice(["Hein ?", "Incroyable !", "C’est fou !", "C’est trop bien !", "Haha !", "On y va !"])
 
-def draw_speech_bubble(draw, text, x, y, max_width, font):
-    text_lines = []
-    words = text.split()
-    line = ""
-    for word in words:
-        test_line = f"{line} {word}".strip()
-        w, _ = get_text_size(draw, test_line, font)
-        if w <= max_width:
-            line = test_line
-        else:
-            text_lines.append(line)
-            line = word
-    if line:
-        text_lines.append(line)
+    # 💬 Calcul taille du texte
+    max_bubble_width = int(img_width * 0.7)
+    wrapped = textwrap.wrap(text, width=30)
+    bubble_width = max(draw.textlength(line, font=font) for line in wrapped) + 40
+    bubble_height = len(wrapped) * (font.size + 6) + 30
 
-    bubble_width = max(get_text_size(draw, line, font)[0] for line in text_lines) + 20
-    bubble_height = len(text_lines) * (font.size + 4) + 20
+    # 🎯 Position aléatoire en haut de l'image
+    x = random.randint(30, img_width - bubble_width - 30)
+    y = random.randint(20, int(img_height * 0.4))
 
-    draw.rounded_rectangle(
-        (x, y, x + bubble_width, y + bubble_height),
-        radius=10,
-        fill="white",
-        outline="black"
-    )
+    # 🗯️ Dessin de la bulle (transparente avec arrondis)
+    bubble_box = [x, y, x + bubble_width, y + bubble_height]
+    draw.rounded_rectangle(bubble_box, radius=20, fill=(255, 255, 255, 230), outline="black", width=2)
 
-    text_y = y + 10
-    for line in text_lines:
-        draw.text((x + 10, text_y), line, fill="black", font=font)
-        text_y += font.size + 4
+    # 🕳️ Pointe orientée vers un point plausible
+    base = ((x + bubble_width // 2), y + bubble_height)
+    point1 = (base[0] - 10, base[1])
+    point2 = (base[0] + 10, base[1])
+    tip = (base[0], base[1] + 20)
+    draw.polygon([point1, point2, tip], fill=(255, 255, 255, 230), outline="black")
+
+    # ✍️ Texte
+    text_y = y + 15
+    for line in wrapped:
+        draw.text((x + 20, text_y), line, fill="black", font=font)
+        text_y += font.size + 6
 
 def compose_image_with_bubbles(image_url, dialogues, output_path):
     try:
+        # 🖼️ Charge l'image
         if image_url.startswith("http://") or image_url.startswith("https://"):
             print(f"🌐 Téléchargement de l'image : {image_url}")
             response = requests.get(image_url)
             response.raise_for_status()
-            img = Image.open(BytesIO(response.content)).convert("RGB")
+            img = Image.open(BytesIO(response.content)).convert("RGBA")
         else:
             local_path = os.path.normpath(image_url.replace("/static/", "static/"))
             print(f"📁 Chargement image locale : {local_path}")
-            img = Image.open(local_path).convert("RGB")
+            img = Image.open(local_path).convert("RGBA")
 
-        draw = ImageDraw.Draw(img)
+        overlay = Image.new("RGBA", img.size, (255, 255, 255, 0))
+        draw = ImageDraw.Draw(overlay)
 
         try:
-            font = ImageFont.truetype(FONT_PATH, size=20)
+            font = ImageFont.truetype(FONT_PATH, size=22)
         except:
             font = ImageFont.load_default()
 
-        x, y = 50, 30
         for dialog in dialogues:
-            speaker = dialog["character"]
-            text = f"{speaker} : {dialog['text']}"
-            draw_speech_bubble(draw, text, x, y, img.width - 100, font)
-            y += 100
+            character = dialog["character"]
+            text = f"{character} : {dialog['text']}"
+            draw_speech_bubble(draw, text, img.width, img.height, font)
 
-        img.save(output_path)
+        final = Image.alpha_composite(img, overlay).convert("RGB")
+        final.save(output_path)
         print(f"✅ Image sauvegardée dans : {output_path}")
         return output_path
 
@@ -100,7 +95,6 @@ async def compose_pages(layout_data):
 
         scene_images.append(output)
 
-    # Génération des pages finales
     try:
         print("🛠️ Lancement de compose_comic_pages avec :", scene_images)
         final_image_paths = compose_comic_pages(scene_images)
@@ -109,14 +103,13 @@ async def compose_pages(layout_data):
         print("❌ Erreur dans compose_comic_pages :", e)
         raise
 
-    # Nettoyage des images intermédiaires (scene_*.png)
+    # Nettoyage des scènes temporaires
     for path in scene_images:
         try:
             os.remove(path)
         except Exception as e:
             print(f"⚠️ Impossible de supprimer {path} :", e)
 
-    # Formatage pour le frontend
     return {
         "final_pages": [
             f"/{p.replace(os.sep, '/')}" for p in final_image_paths
