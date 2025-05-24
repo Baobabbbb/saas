@@ -35,7 +35,7 @@ const HeroCreator = ({ heroName, setHeroName }) => {
 
   return (
     <div className="hero-creator">
-      <h3>2. Créez votre héros</h3>
+      <h3>3. Créez votre héros</h3>
       
       <div className="hero-form">
         <div className="input-group">

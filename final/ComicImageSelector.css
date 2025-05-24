@@ -1,0 +1,72 @@
+.image-selector {
+  background-color: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem
+}
+
+.label {
+  color: var(--primary);
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.slider-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  padding: 30px 10px 10px;
+  margin: 0 auto;
+  max-width: 450px;
+}
+
+.progress-line-background {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: #e5e7eb;
+  z-index: 0;
+  border-radius: 2px;
+}
+
+.progress-line-fill {
+  height: 4px;
+  background-color: #7c3aed;
+  transition: width 0.4s ease-in-out;
+  border-radius: 2px;
+}
+
+.slider-step {
+  position: relative;
+  cursor: pointer;
+  flex: 1;
+  text-align: center;
+  z-index: 1;
+}
+
+.slider-step .dot {
+  width: 20px;
+  height: 20px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background-color: #ccc;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.slider-step.active .dot {
+  background-color: #7c3aed;
+  transform: scale(1.2);
+}
+
+.step-label {
+  margin-top: 8px;
+  display: block;
+  font-size: 0.9rem;
+  color: #333;
+}

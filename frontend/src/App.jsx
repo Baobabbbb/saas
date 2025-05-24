@@ -15,6 +15,7 @@ import History from './components/History';
 import ComicViewer from './components/ComicViewer';
 import jsPDF from 'jspdf';
 import StoryPopup from './components/StoryPopup';
+import ComicImageSelector from './components/ComicImageSelector';
 
 function splitTextIntoPages(text, maxChars = 600) {
   const sentences = text.split(/(?<=[.?!])\s+/);
@@ -64,6 +65,7 @@ function App() {
   const [showFullStory, setShowFullStory] = useState(false);
   const [showStoryPopup, setShowStoryPopup] = useState(false);
   const [showComicPopup, setShowComicPopup] = useState(false);
+  const [numImages, setNumImages] = useState(4);
 
   // User account state
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -178,7 +180,8 @@ function App() {
         style: selectedStyle,
         hero_name: heroName,
         story_type: selectedStory === 'custom' ? customStory : selectedStory,
-        custom_request: customRequest
+        custom_request: customRequest,
+        num_images: numImages
       };
 
       const response = await fetch('http://127.0.0.1:8000/generate_comic/', {
@@ -227,7 +230,7 @@ function App() {
 
     // 🔁 Enregistre le résultat généré pour affichage audio/texte
     setGeneratedResult(generatedContent);
-    setStoryPages(splitTextIntoPages(generatedContent.content)); // Ajoute la pagination
+    // setStoryPages(splitTextIntoPages(generatedContent.content)); // Ajoute la pagination
     setCurrentPageIndex(0); // Reviens à la première page
 
     // Déterminer le titre
@@ -502,6 +505,13 @@ const downloadPDF = async (title, content) => {
             )}
           </AnimatePresence>
 
+          {contentType === 'story' && (
+            <ComicImageSelector
+              numImages={numImages}
+              setNumImages={setNumImages}
+            />
+          )}
+
           <CustomRequest
             customRequest={customRequest}
             setCustomRequest={setCustomRequest}
@@ -551,7 +561,7 @@ const downloadPDF = async (title, content) => {
   ) : comicResult && contentType === 'story' ? (
   <div
     style={{
-      height: '300px',
+      //height: '300px',
       width: '100%',
       display: 'flex',
       flexDirection: 'column',

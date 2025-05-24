@@ -2,10 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import './CustomRequest.css';
 
-const CustomRequest = ({ customRequest, setCustomRequest, stepNumber = 4 }) => {
+const CustomRequest = ({ customRequest, setCustomRequest }) => {
   return (
     <div className="custom-request">
-      <h3>{stepNumber}. Demandes spécifiques (optionnel)</h3>
+      <h3>Demandes spécifiques (optionnel)</h3>
       
       <div className="request-form">
         <div className="input-group">

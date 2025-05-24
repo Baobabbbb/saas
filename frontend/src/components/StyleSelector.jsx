@@ -63,8 +63,8 @@ const StyleSelector = ({ selectedStyle, setSelectedStyle }) => {
             whileTap={{ scale: 0.98 }}
           >
             <div className="style-emoji">{style.emoji}</div>
-            <h4>{style.name}</h4>
-            <p>{style.description}</p>
+            <h4 className="style-name">{style.name}</h4>
+            <p className="style-description">{style.description}</p>
           </motion.div>
         ))}
       </div>

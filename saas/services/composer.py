@@ -8,40 +8,49 @@ from services.layout import compose_comic_pages
 
 FONT_PATH = "C:/Windows/Fonts/arial.ttf"  # à adapter si besoin
 
-def draw_speech_bubble(draw, text, img_width, img_height, font):
-    # 💬 Ajout de variété de styles
+def estimate_character_position(description: str, character: str, img_width: int, img_height: int):
+    desc = description.lower()
+    character = character.lower()
+
+    if character in desc:
+        if "gauche" in desc:
+            x = int(img_width * 0.2)
+        elif "droite" in desc:
+            x = int(img_width * 0.7)
+        else:
+            x = int(img_width * 0.45)
+    else:
+        x = int(img_width * 0.5)
+
+    y = int(img_height * 0.55)
+    return x, y
+
+def draw_speech_bubble(draw, text, font, img_width, img_height, target_x, target_y):
     text += " " + random.choice(["Hein ?", "Incroyable !", "C’est fou !", "C’est trop bien !", "Haha !", "On y va !"])
 
-    # 💬 Calcul taille du texte
-    max_bubble_width = int(img_width * 0.7)
-    wrapped = textwrap.wrap(text, width=30)
+    wrapped = textwrap.wrap(text, width=32)
     bubble_width = max(draw.textlength(line, font=font) for line in wrapped) + 40
     bubble_height = len(wrapped) * (font.size + 6) + 30
 
-    # 🎯 Position aléatoire en haut de l'image
-    x = random.randint(30, img_width - bubble_width - 30)
-    y = random.randint(20, int(img_height * 0.4))
+    x = max(20, min(target_x - bubble_width // 2, img_width - bubble_width - 20))
+    y = max(20, target_y - bubble_height - 40)
 
-    # 🗯️ Dessin de la bulle (transparente avec arrondis)
     bubble_box = [x, y, x + bubble_width, y + bubble_height]
-    draw.rounded_rectangle(bubble_box, radius=20, fill=(255, 255, 255, 230), outline="black", width=2)
+    draw.rounded_rectangle(bubble_box, radius=20, fill=(255, 255, 255, 180), outline="black", width=2)
 
-    # 🕳️ Pointe orientée vers un point plausible
     base = ((x + bubble_width // 2), y + bubble_height)
     point1 = (base[0] - 10, base[1])
     point2 = (base[0] + 10, base[1])
     tip = (base[0], base[1] + 20)
-    draw.polygon([point1, point2, tip], fill=(255, 255, 255, 230), outline="black")
+    draw.polygon([point1, point2, tip], fill=(255, 255, 255, 180), outline="black")
 
-    # ✍️ Texte
     text_y = y + 15
     for line in wrapped:
         draw.text((x + 20, text_y), line, fill="black", font=font)
         text_y += font.size + 6
 
-def compose_image_with_bubbles(image_url, dialogues, output_path):
+def compose_image_with_bubbles(image_url, dialogues, description, output_path):
     try:
-        # 🖼️ Charge l'image
         if image_url.startswith("http://") or image_url.startswith("https://"):
             print(f"🌐 Téléchargement de l'image : {image_url}")
             response = requests.get(image_url)
@@ -63,7 +72,8 @@ def compose_image_with_bubbles(image_url, dialogues, output_path):
         for dialog in dialogues:
             character = dialog["character"]
             text = f"{character} : {dialog['text']}"
-            draw_speech_bubble(draw, text, img.width, img.height, font)
+            target_x, target_y = estimate_character_position(description, character, img.width, img.height)
+            draw_speech_bubble(draw, text, font, img.width, img.height, target_x, target_y)
 
         final = Image.alpha_composite(img, overlay).convert("RGB")
         final.save(output_path)
@@ -87,9 +97,12 @@ async def compose_pages(layout_data):
         image_url = os.path.join("static", image.replace("/static/", "").replace("\\", "/"))
         output = os.path.join("static", f"scene_{idx + 1}.png")
 
+        dialogues = scene.get("dialogues", [])[:random.randint(1, 4)]
+
         compose_image_with_bubbles(
             image_url=image_url,
-            dialogues=scene["dialogues"],
+            dialogues=dialogues,
+            description=scene.get("description", ""),
             output_path=output
         )
 
@@ -103,7 +116,6 @@ async def compose_pages(layout_data):
         print("❌ Erreur dans compose_comic_pages :", e)
         raise
 
-    # Nettoyage des scènes temporaires
     for path in scene_images:
         try:
             os.remove(path)

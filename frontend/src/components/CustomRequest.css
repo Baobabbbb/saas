@@ -3,12 +3,8 @@
   border-radius: 16px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-}
-
-.custom-request:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .custom-request h3 {
