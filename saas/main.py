@@ -63,11 +63,30 @@ def validate_scenario(scenario):
 @app.post("/generate_comic/")
 async def generate_comic(data: ComicRequest):
     try:
-        prompt = (
-            f"Créer une bande dessinée pour enfant avec un style {data.style}, "
-            f"un héros nommé {data.hero_name}, sur le thème '{data.story_type}'. "
-            f"{data.custom_request}"
-        )
+        prompt = f"""
+Tu es un scénariste de bande dessinée pour enfants de 6 à 9 ans.
+
+Crée une BD avec un héros nommé {data.hero_name}, sur le thème "{data.story_type}", 
+dans un style {data.style}. Suis cette structure :
+
+1. La BD doit comporter **6 à 8 scènes maximum**.
+2. Chaque scène contient :
+   - Une description visuelle claire pour l'image
+   - **Entre 1 et 4 dialogues maximum**, sous forme de petites bulles de BD.
+
+3. Les dialogues doivent être :
+   - Courts (1 à 2 phrases maximum par bulle)
+   - Réalistes, drôles, mignons ou émouvants
+   - Adaptés à des enfants
+   - Sans redondance avec ce qu’on voit dans l’image
+
+Utilise une structure narrative : début (mise en place), problème, aventure, résolution.
+
+Langue : français
+
+{data.custom_request}
+""".strip()
+
         print("📜 Prompt de génération :", prompt)
 
         # Génère le scénario avec une seed
