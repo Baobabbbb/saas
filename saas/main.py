@@ -45,11 +45,14 @@ async def log_exceptions(request: Request, call_next):
         traceback.print_exc()
         raise
 
-def validate_scenario(scenario):
+def validate_scenario(scenario, expected_num_images: int):
     scenes = scenario.get("scenes", [])
     if not scenes:
         raise ValueError("❌ Le scénario ne contient aucune scène.")
     
+    if len(scenes) != expected_num_images:
+        raise ValueError(f"❌ Le scénario contient {len(scenes)} scènes au lieu de {expected_num_images}")
+
     for i, scene in enumerate(scenario["scenes"]):
         dialogues = scene.get("dialogues")
         if dialogues is None:
@@ -69,7 +72,7 @@ Tu es un scénariste de bande dessinée pour enfants de 6 à 9 ans.
 Crée une BD avec un héros nommé {data.hero_name}, sur le thème "{data.story_type}", 
 dans un style {data.style}. Suis cette structure :
 
-1. La BD doit comporter **6 à 8 scènes maximum**.
+1. La BD doit comporter exactement **{data.num_images} scènes**, une par image.
 2. Chaque scène contient :
    - Une description visuelle claire pour l'image
    - **Entre 1 et 4 dialogues maximum**, sous forme de petites bulles de BD.

@@ -19,3 +19,4 @@ class ComicRequest(BaseModel):
     hero_name: str
     story_type: str
     custom_request: str
+    num_images: int
