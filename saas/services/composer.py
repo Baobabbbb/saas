@@ -28,12 +28,24 @@ def estimate_character_position(description: str, character: str, img_width: int
 def draw_speech_bubble(draw, text, font, img_width, img_height, target_x, target_y):
     text += " " + random.choice(["Hein ?", "Incroyable !", "C’est fou !", "C’est trop bien !", "Haha !", "On y va !"])
 
+    max_bubble_width = img_width - 40
+
+    # Largeur initiale
     wrapped = textwrap.wrap(text, width=32)
     bubble_width = max(draw.textlength(line, font=font) for line in wrapped) + 40
+
+    # Si trop large, on adapte dynamiquement
+    while bubble_width > max_bubble_width and len(wrapped) < 50:
+        wrapped = textwrap.wrap(text, width=len(wrapped[0]) - 2)
+        bubble_width = max(draw.textlength(line, font=font) for line in wrapped) + 40
+
     bubble_height = len(wrapped) * (font.size + 6) + 30
 
+    # Position X : centrée sur le personnage, sans dépasser
     x = max(20, min(target_x - bubble_width // 2, img_width - bubble_width - 20))
-    y = max(20, target_y - bubble_height - 40)
+    max_y = int(img_height * 0.6)
+    y = target_y - bubble_height - 40
+    y = max(20, min(y, max_y))
 
     bubble_box = [x, y, x + bubble_width, y + bubble_height]
     draw.rounded_rectangle(bubble_box, radius=20, fill=(255, 255, 255, 180), outline="black", width=2)

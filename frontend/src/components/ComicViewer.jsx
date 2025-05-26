@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './ComicViewer.css';
+import { downloadComicAsPDF } from '../utils/pdfUtils';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
+
+// 🔤 Nettoie le titre pour créer un nom de fichier propre
+const getSafeFilename = (title) => {
+  return title
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_]/g, "");
+};
 
 const ComicViewer = ({ comic }) => {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
@@ -34,7 +43,7 @@ const ComicViewer = ({ comic }) => {
             transition={{ duration: 0.4 }}
           >
             <img
-              src={`${BACKEND_URL}${page}`}  // page est maintenant un chemin image, plus un objet
+              src={`${BACKEND_URL}${page}`}
               alt={`Page ${currentPageIndex + 1}`}
               className="comic-image"
             />
@@ -49,9 +58,9 @@ const ComicViewer = ({ comic }) => {
       </div>
 
       <div className="comic-download">
-        <a href={`${BACKEND_URL}/static/final_page.png`} download>
-          📥 Télécharger la BD complète
-        </a>
+        <button onClick={() => downloadComicAsPDF(comic.pages, getSafeFilename(comic.title))}>
+          📥 Télécharger en PDF
+        </button>
       </div>
     </div>
   );

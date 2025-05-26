@@ -16,6 +16,7 @@ import ComicViewer from './components/ComicViewer';
 import jsPDF from 'jspdf';
 import StoryPopup from './components/StoryPopup';
 import ComicImageSelector from './components/ComicImageSelector';
+import { downloadComicAsPDF } from './utils/pdfUtils';
 
 function splitTextIntoPages(text, maxChars = 600) {
   const sentences = text.split(/(?<=[.?!])\s+/);
@@ -170,6 +171,8 @@ function App() {
 
   const handleGenerate = async () => {
   setIsGenerating(true);
+  setGeneratedResult(null);
+  setComicResult(null);
   // setShowConfetti(true);
 
   try {
@@ -585,9 +588,8 @@ const downloadPDF = async (title, content) => {
       📖 Lire la BD
     </button>
 
-    <a
-      href="http://127.0.0.1:8000/static/final_page.png"
-      download
+    <button
+      onClick={() => downloadComicAsPDF(comic.pages, getSafeFilename(comic.title))}
       style={{
         padding: '0.6rem 1.4rem',
         backgroundColor: '#6B4EFF',
@@ -601,7 +603,7 @@ const downloadPDF = async (title, content) => {
       }}
     >
       📄 Télécharger la BD
-    </a>
+    </button>
   </div>
   ) : (
     
@@ -631,7 +633,7 @@ const downloadPDF = async (title, content) => {
   )}
 
   {/* 📄 Texte plein (non paginé) si besoin (ex: debug autre type) */}
-  {generatedResult?.content && contentType !== 'rhyme' && contentType !== 'audio' && (
+  {contentType === 'story' && generatedResult?.content && (
     <div
       style={{
       whiteSpace: 'pre-wrap',
