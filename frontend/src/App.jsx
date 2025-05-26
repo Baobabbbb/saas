@@ -712,7 +712,7 @@ const downloadPDF = async (title, content) => {
         fontWeight: '600'
       }}
     >
-      📄 Télécharger en PDF
+      📄 Télécharger l'histoire
     </button>
   </div>
 )}

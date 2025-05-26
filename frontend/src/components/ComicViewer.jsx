@@ -52,14 +52,30 @@ const ComicViewer = ({ comic }) => {
       </div>
 
       <div className="comic-navigation">
-        <button onClick={goToPrevious} disabled={currentPageIndex === 0}>⬅️</button>
+        <button
+          onClick={goToPrevious}
+          disabled={currentPageIndex === 0}
+          aria-label="Page précédente"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M12 5L7 10L12 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
         <span>Page {currentPageIndex + 1} / {comic.pages.length}</span>
-        <button onClick={goToNext} disabled={currentPageIndex === comic.pages.length - 1}>➡️</button>
+        <button
+          onClick={goToNext}
+          disabled={currentPageIndex === comic.pages.length - 1}
+          aria-label="Page suivante"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M8 5L13 10L8 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
       </div>
 
       <div className="comic-download">
         <button onClick={() => downloadComicAsPDF(comic.pages, getSafeFilename(comic.title))}>
-          📥 Télécharger en PDF
+          📄 Télécharger la BD
         </button>
       </div>
     </div>
