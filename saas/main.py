@@ -78,10 +78,11 @@ dans un style {data.style}. Suis cette structure :
    - **Entre 1 et 4 dialogues maximum**, sous forme de petites bulles de BD.
 
 3. Les dialogues doivent être :
-   - Courts (1 à 2 phrases maximum par bulle)
-   - Réalistes, drôles, mignons ou émouvants
+   - Fluides et naturels
    - Adaptés à des enfants
-   - Sans redondance avec ce qu’on voit dans l’image
+   - Entre 1 et 3 phrases maximum par bulle
+   - Possiblement avec une exclamation suivie d'une phrase (ex: "Wow ! C'est incroyable !")
+   - Parfois un brin bavards mais jamais trop longs ni redondants avec l’image
 
 Utilise une structure narrative : début (mise en place), problème, aventure, résolution.
 
@@ -100,7 +101,7 @@ Langue : français
         print("🎨 Style injecté dans le scénario :", data.style)
 
         print("🧠 Scénario généré :", scenario)
-        validate_scenario(scenario)
+        validate_scenario(scenario, expected_num_images=data.num_images)
 
         # Génère les images avec seed et style
         images = await generate_images(scenario)

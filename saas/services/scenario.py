@@ -34,10 +34,12 @@ async def generate_scenario(prompt: str, style: str = None):
     raw_text = response.choices[0].message.content
 
     try:
+        print("🧪 Texte brut reçu :")
+        print(raw_text)
         scenario = json.loads(raw_text)
     except json.JSONDecodeError:
-        print("❌ Erreur de parsing JSON dans la réponse OpenAI")
-        raise
+        print(raw_text)
+        raise ValueError("La réponse du modèle n'est pas un JSON valide") from e
 
     # Ajout d'une seed si absente
     if "seed" not in scenario or not isinstance(scenario["seed"], int):
