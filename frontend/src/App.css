@@ -86,7 +86,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* important pour éviter que le contenu soit centré verticalement */
+  justify-content: center;
   overflow: visible; /* permet à l'intérieur de dépasser si nécessaire */
   min-height: 250px;
 }

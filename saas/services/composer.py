@@ -25,7 +25,7 @@ def estimate_character_position(description: str, character: str, img_width: int
     y = int(img_height * 0.55)
     return x, y
 
-def draw_speech_bubble(draw, text, font, img_width, img_height, target_x, target_y):
+def draw_speech_bubble(draw, text, font, img_width, img_height, target_x, target_y, bubble_index=0):
     text += " " + random.choice(["Hein ?", "Incroyable !", "C’est fou !", "C’est trop bien !", "Haha !", "On y va !"])
 
     max_bubble_width = img_width - 40
@@ -43,9 +43,9 @@ def draw_speech_bubble(draw, text, font, img_width, img_height, target_x, target
 
     # Position X : centrée sur le personnage, sans dépasser
     x = max(20, min(target_x - bubble_width // 2, img_width - bubble_width - 20))
-    max_y = int(img_height * 0.6)
-    y = target_y - bubble_height - 40
-    y = max(20, min(y, max_y))
+
+    # Position Y : empile les bulles dans le haut de l'image sans superposition
+    y = int(img_height * 0.08) + bubble_index * (bubble_height + 20)
 
     bubble_box = [x, y, x + bubble_width, y + bubble_height]
     draw.rounded_rectangle(bubble_box, radius=20, fill=(255, 255, 255, 180), outline="black", width=2)
