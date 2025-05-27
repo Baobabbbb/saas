@@ -88,6 +88,10 @@
   margin-left: 0.5rem;
 }
 
+.comic-download:hover {
+  background: none;
+}
+
 .comic-download a {
   display: inline-block;
   padding: 0.5rem 1rem;
