@@ -261,26 +261,53 @@ body {
   margin-top: 1.5rem;
 }
 
-.comic-button,
+/*.comic-button,
 .comic-download {
-  background-color: #f9f4ff;
+  /*background-color: rgb(107, 78, 255);
   color: #4a3b8c;
-  padding: 12px 20px;
+  padding: 8px 16px;
   border-radius: 10px;
   font-size: 1rem;
   font-weight: 500;
   text-decoration: none;
-  border: 2px solid #d8c9f8;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
   text-align: center;
   width: fit-content;
   min-width: 220px;
+  border: none;
+  outline: none;
+
+  /*padding: 0.5rem 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  
+  background-color: rgb(107, 78, 255);
+  color: rgb(255, 255, 255);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}*/
+
+.download-pdf-button-a {
+  background-color: rgb(107, 78, 255);
+  color: rgb(255, 255, 255);;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  text-align: center;
+  width: fit-content;
+  min-width: 220px;
+  border: none;
+  outline: none;
 }
 
 .comic-button:hover,
 .comic-download:hover {
-  background-color: #e8defc;
-  border-color: #bba7f3;
-  transform: scale(1.03);
+  background-color: rgb(107, 78, 255);
+  /*transform: scale(1.03);*/
 }

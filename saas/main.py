@@ -80,7 +80,7 @@ dans un style {data.style}. Suis cette structure :
 3. Les dialogues doivent être :
    - Fluides et naturels
    - Adaptés à des enfants
-   - Entre 1 et 3 phrases maximum par bulle
+   - Entre 1 et 4 phrases maximum par bulle
    - Possiblement avec une exclamation suivie d'une phrase (ex: "Wow ! C'est incroyable !")
    - Parfois un brin bavards mais jamais trop longs ni redondants avec l’image
 

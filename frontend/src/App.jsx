@@ -588,19 +588,8 @@ const downloadPDF = async (title, content) => {
       📖 Lire la BD
     </button>
 
-    <button
-      onClick={() => downloadComicAsPDF(comic.pages, getSafeFilename(comic.title))}
-      style={{
-        padding: '0.6rem 1.4rem',
-        backgroundColor: '#6B4EFF',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '0.5rem',
-        cursor: 'pointer',
-        fontWeight: '600',
-        textAlign: 'center',
-        textDecoration: 'none'
-      }}
+    <button className='download-pdf-button-a'
+      onClick={() => downloadComicAsPDF(comicResult.pages, getSafeFilename(comicResult.title))}
     >
       📄 Télécharger la BD
     </button>
