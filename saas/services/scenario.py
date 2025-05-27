@@ -37,7 +37,7 @@ async def generate_scenario(prompt: str, style: str = None):
         print("🧪 Texte brut reçu :")
         print(raw_text)
         scenario = json.loads(raw_text)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
         print(raw_text)
         raise ValueError("La réponse du modèle n'est pas un JSON valide") from e
 

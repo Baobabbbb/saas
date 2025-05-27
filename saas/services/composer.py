@@ -26,40 +26,64 @@ def estimate_character_position(description: str, character: str, img_width: int
     return x, y
 
 def draw_speech_bubble(draw, text, font, img_width, img_height, target_x, target_y, bubble_index=0):
-    text += " " + random.choice(["Hein ?", "Incroyable !", "C’est fou !", "C’est trop bien !", "Haha !", "On y va !"])
-
     max_bubble_width = img_width - 40
 
-    # Largeur initiale
+    # Découpage du texte
     wrapped = textwrap.wrap(text, width=32)
-    bubble_width = max(draw.textlength(line, font=font) for line in wrapped) + 40
+    content_width = max(draw.textlength(line, font=font) for line in wrapped)
+    bubble_width = content_width + 40
 
-    # Si trop large, on adapte dynamiquement
-    while bubble_width > max_bubble_width and len(wrapped) < 50:
-        wrapped = textwrap.wrap(text, width=len(wrapped[0]) - 2)
-        bubble_width = max(draw.textlength(line, font=font) for line in wrapped) + 40
+    # Largeur limitée pour cohérence
+    bubble_width = max(180, min(bubble_width, int(img_width * 0.75)))
 
-    bubble_height = len(wrapped) * (font.size + 6) + 30
+    # Hauteur en fonction du nombre de lignes
+    line_count = len(wrapped)
+    line_height = font.size + 6
+    bubble_height = line_count * line_height + 30
+    bubble_height = max(60, min(bubble_height, 160))  # hauteur cohérente
 
-    # Position X : centrée sur le personnage, sans dépasser
-    x = max(20, min(target_x - bubble_width // 2, img_width - bubble_width - 20))
+    # Décalage horizontal pour éviter chevauchement latéral
+    horizontal_shift = (bubble_index % 2) * 40 * (-1 if bubble_index % 4 == 1 else 1)
+    x = target_x - bubble_width // 2 + horizontal_shift
+    x = max(20, min(x, img_width - bubble_width - 20))  # contrainte de bord
 
-    # Position Y : empile les bulles dans le haut de l'image sans superposition
-    y = int(img_height * 0.08) + bubble_index * (bubble_height + 20)
+    # Position Y : bulle empilée proprement en haut
+    base_y = int(img_height * 0.05)
+    spacing = bubble_height + 30
+    y = base_y + bubble_index * spacing
+    if y + bubble_height > img_height * 0.95:
+        y = int(img_height * 0.95) - bubble_height
 
+    # Dessin de la bulle
     bubble_box = [x, y, x + bubble_width, y + bubble_height]
     draw.rounded_rectangle(bubble_box, radius=20, fill=(255, 255, 255, 180), outline="black", width=2)
 
-    base = ((x + bubble_width // 2), y + bubble_height)
-    point1 = (base[0] - 10, base[1])
-    point2 = (base[0] + 10, base[1])
-    tip = (base[0], base[1] + 20)
+    # Pointe directionnelle en bas
+    if horizontal_shift > 0:
+        direction = "right"
+    elif horizontal_shift < 0:
+        direction = "left"
+    else:
+        direction = "center"
+
+    if direction == "left":
+        base_x = x + 20
+    elif direction == "right":
+        base_x = x + bubble_width - 20
+    else:
+        base_x = x + bubble_width // 2
+
+    base_y = y + bubble_height
+    point1 = (base_x - 10, base_y)
+    point2 = (base_x + 10, base_y)
+    tip = (base_x, base_y + 20)
     draw.polygon([point1, point2, tip], fill=(255, 255, 255, 180), outline="black")
 
+    # Texte dans la bulle
     text_y = y + 15
     for line in wrapped:
         draw.text((x + 20, text_y), line, fill="black", font=font)
-        text_y += font.size + 6
+        text_y += line_height
 
 def compose_image_with_bubbles(image_url, dialogues, description, output_path):
     try:
@@ -81,11 +105,12 @@ def compose_image_with_bubbles(image_url, dialogues, description, output_path):
         except:
             font = ImageFont.load_default()
 
-        for dialog in dialogues:
+        for i, dialog in enumerate(dialogues):
             character = dialog["character"]
             text = f"{character} : {dialog['text']}"
             target_x, target_y = estimate_character_position(description, character, img.width, img.height)
-            draw_speech_bubble(draw, text, font, img.width, img.height, target_x, target_y)
+            draw_speech_bubble(draw, text, font, img.width, img.height, target_x, target_y, bubble_index=i)
+
 
         final = Image.alpha_composite(img, overlay).convert("RGB")
         final.save(output_path)
