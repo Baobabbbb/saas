@@ -67,6 +67,7 @@ function App() {
   const [showStoryPopup, setShowStoryPopup] = useState(false);
   const [showComicPopup, setShowComicPopup] = useState(false);
   const [numImages, setNumImages] = useState(4);
+  const [uploadedImage, setUploadedImage] = useState(null);
 
   // User account state
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -179,26 +180,27 @@ function App() {
     let generatedContent = null;
 
     if (contentType === 'story') {
-      const payload = {
-        style: selectedStyle,
-        hero_name: heroName,
-        story_type: selectedStory === 'custom' ? customStory : selectedStory,
-        custom_request: customRequest,
-        num_images: numImages
-      };
+      const formData = new FormData();
+      formData.append('style', selectedStyle);
+      formData.append('hero_name', heroName);
+      formData.append('story_type', selectedStory === 'custom' ? customStory : selectedStory);
+      formData.append('custom_request', customRequest);
+      formData.append('num_images', numImages);
+      if (uploadedImage) {
+        formData.append('custom_image', uploadedImage); // 👈 ajoute le fichier
+      }
 
       const response = await fetch('http://127.0.0.1:8000/generate_comic/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: formData,
       });
 
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
-      setComicResult(generatedContent); // pour l’affichage BD
+      setComicResult(generatedContent);
     }
 
-    if (contentType === 'rhyme') {
+       else if (contentType === 'rhyme') {
       const payload = {
         rhyme_type: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
         custom_request: customRequest
@@ -449,6 +451,8 @@ const downloadPDF = async (title, content) => {
                 <HeroCreator
                   heroName={heroName}
                   setHeroName={setHeroName}
+                  setUploadedImage={setUploadedImage}
+                  uploadedImage={uploadedImage}
                 />
               </motion.div>
             )}

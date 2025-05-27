@@ -1,14 +1,12 @@
 import jsPDF from 'jspdf';
 
 export async function downloadComicAsPDF(pages, title = 'bande-dessinee') {
-  // Dimensions originales des images
-  const imageWidth = 1660;
-  const imageHeight = 1260;
-  const imageRatio = imageWidth / imageHeight;
+  const dpi = 96;
+  const pxToMm = (px) => (px / dpi) * 25.4;
 
-  // PDF adapté à la largeur standard (210mm) et au bon ratio
-  const pdfWidth = 210; // mm
-  const pdfHeight = pdfWidth / imageRatio; // ≈ 159.6 mm
+  const first = await fetchImageInfo(pages[0]);
+  const pdfWidth = pxToMm(first.width);
+  const pdfHeight = pxToMm(first.height);
 
   const pdf = new jsPDF({
     orientation: 'portrait',
@@ -17,22 +15,41 @@ export async function downloadComicAsPDF(pages, title = 'bande-dessinee') {
   });
 
   for (let i = 0; i < pages.length; i++) {
-    const pageUrl = `http://127.0.0.1:8000${pages[i]}`;
-    const img = await loadImage(pageUrl);
-
-    if (i > 0) pdf.addPage();
-    pdf.addImage(img, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    const { dataUrl, width, height } = await fetchImageInfo(pages[i]);
+    if (i > 0) pdf.addPage([pxToMm(width), pxToMm(height)]);
+    pdf.addImage(dataUrl, 'PNG', 0, 0, pxToMm(width), pxToMm(height));
   }
 
   pdf.save(`${getSafeFilename(title)}.pdf`);
 }
 
-function loadImage(url) {
+async function fetchImageInfo(relativePath) {
+  const url = `http://127.0.0.1:8000${relativePath}`;
+  const res = await fetch(url);
+  const blob = await res.blob();
+
+  const img = await createImageFromBlob(blob);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+
+  const dataUrl = canvas.toDataURL('image/png');
+  return {
+    width: img.naturalWidth,
+    height: img.naturalHeight,
+    dataUrl,
+  };
+}
+
+function createImageFromBlob(blob) {
   return new Promise((resolve) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
-    img.src = url;
+    img.src = URL.createObjectURL(blob);
   });
 }
 

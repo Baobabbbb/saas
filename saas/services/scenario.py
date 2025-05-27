@@ -33,11 +33,16 @@ async def generate_scenario(prompt: str, style: str = None):
 
     raw_text = response.choices[0].message.content
 
+    print("🧪 Texte brut reçu :")
+    print(repr(raw_text))  # montre aussi les caractères invisibles
+
+    if not raw_text or not raw_text.strip():
+        raise ValueError("❌ Le modèle n'a rien renvoyé (réponse vide)")
+
     try:
-        print("🧪 Texte brut reçu :")
-        print(raw_text)
         scenario = json.loads(raw_text)
     except json.JSONDecodeError as e:
+        print("❌ Erreur JSON : contenu reçu non valide")
         print(raw_text)
         raise ValueError("La réponse du modèle n'est pas un JSON valide") from e
 
