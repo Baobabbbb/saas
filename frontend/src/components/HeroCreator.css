@@ -45,6 +45,7 @@
 
 .avatar-selector {
   margin-top: 0.5rem;
+  margin-bottom: 0.6rem;
 }
 
 .avatar-selector p {
@@ -92,6 +93,7 @@
   font-size: 1.5rem;
   color: var(--primary);
   cursor: pointer;
+  position: relative;
 }
 
 .avatar-upload:hover {
@@ -103,13 +105,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-bottom: -1.7rem;
+  position: relative;
 }
 
 .uploaded-photo {
   position: relative;
   width: 100px;
   height: 100px;
-  border-radius: 50%;
+  border-radius: 16px; /* ✅ carré avec coins arrondis */
   overflow: hidden;
   border: 3px solid var(--primary);
   box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
@@ -124,23 +128,54 @@
 .remove-photo {
   position: absolute;
   top: 0;
-  right: 0;
-  background-color: rgba(255, 255, 255, 0.9);
+  right: calc(50% - 60px);
+  background-color: rgba(255, 255, 255, 0.95);
   border: none;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: #ff4757;
-  font-size: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.remove-photo:hover {
+  background-color: rgba(255, 71, 87, 0.15);
+  transform: translateX(50%) translateY(-50%) scale(1.1);
+  color: #ff1e40;
 }
 
 .photo-caption {
   margin-top: 0.5rem;
   font-size: 0.8rem;
   color: var(--primary);
+}
+
+.avatar-upload .tooltip {
+  position: absolute;
+  top: 49px; /* ✅ juste sous le bouton, mais pas trop bas */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #f5f0ff; /* ✅ violet très léger */
+  color: var(--primary);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 2;
+  margin-left: 2.1rem;
+}
+
+.avatar-upload:hover .tooltip {
+  opacity: 1;
 }

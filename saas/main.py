@@ -6,6 +6,7 @@ from typing import Optional
 from unidecode import unidecode
 import traceback
 import os
+from fastapi import Form
 
 from dotenv import load_dotenv
 import openai
@@ -64,15 +65,22 @@ def validate_scenario(scenario, expected_num_images: int):
                 raise ValueError(f"❌ Le dialogue {j + 1} est mal formé : {dialog}")
 
 @app.post("/generate_comic/")
-async def generate_comic(data: ComicRequest):
+async def generate_comic(
+    style: str = Form(...),
+    hero_name: str = Form(...),
+    story_type: str = Form(...),
+    custom_request: str = Form(...),
+    num_images: int = Form(...),
+    custom_image: Optional[UploadFile] = File(None)
+):
     try:
         prompt = f"""
 Tu es un scénariste de bande dessinée pour enfants de 6 à 9 ans.
 
-Crée une BD avec un héros nommé {data.hero_name}, sur le thème "{data.story_type}", 
-dans un style {data.style}. Suis cette structure :
+Crée une BD avec un héros nommé {hero_name}, sur le thème "{story_type}", 
+dans un style {style}. Suis cette structure :
 
-1. La BD doit comporter exactement **{data.num_images} scènes**, une par image.
+1. La BD doit comporter exactement **{num_images} scènes**, une par image.
 2. Chaque scène contient :
    - Une description visuelle claire pour l'image
    - **Entre 1 et 4 dialogues maximum**, sous forme de petites bulles de BD.
@@ -88,38 +96,41 @@ Utilise une structure narrative : début (mise en place), problème, aventure, r
 
 Langue : français
 
-{data.custom_request}
+{custom_request}
 """.strip()
 
         print("📜 Prompt de génération :", prompt)
 
-        # Génère le scénario avec une seed
+        # Sauvegarde de l'image personnalisée si elle existe
+        image_path = None
+        if custom_image:
+            image_bytes = await custom_image.read()
+            os.makedirs("static/uploads", exist_ok=True)
+            image_path = f"static/uploads/{custom_image.filename}"
+            with open(image_path, "wb") as f:
+                f.write(image_bytes)
+            print(f"📸 Image personnalisée enregistrée : {image_path}")
+
+        # Génère le scénario
         scenario = await generate_scenario(prompt)
-
-        # Injecte le style dans le scénario (utilisé par image_gen)
-        scenario["style"] = data.style
-        print("🎨 Style injecté dans le scénario :", data.style)
-
+        scenario["style"] = style
         print("🧠 Scénario généré :", scenario)
-        validate_scenario(scenario, expected_num_images=data.num_images)
+        validate_scenario(scenario, expected_num_images=num_images)
 
-        # Génère les images avec seed et style
-        images = await generate_images(scenario)
+        # Génère les images avec ou sans image de base
+        images = await generate_images(scenario, init_image_path=image_path)
         for i, scene in enumerate(scenario["scenes"]):
             scene["image"] = images[i]
 
-        # Compose les pages avec bulles et retourne les pages finales
+        # Compose les pages finales
         result = await compose_pages(scenario)
 
-        # Corrige les URLs redondantes au cas où (sécurité)
         final_pages = result["final_pages"]
         for i, page in enumerate(final_pages):
             if page.startswith("/static/static/"):
                 final_pages[i] = page.replace("/static/static/", "/static/")
 
         print("✅ Pages finales :", final_pages)
-        print("🎯 Données reçues :", data)
-
         return {
             "title": result["title"],
             "pages": final_pages
@@ -129,7 +140,6 @@ Langue : français
         import traceback
         print("❌ Erreur dans /generate_comic/ :", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.post("/tts")
 async def tts_endpoint(data: dict):
