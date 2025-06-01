@@ -2,14 +2,15 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import './HeroCreator.css';
 
-const HeroCreator = ({ heroName, setHeroName }) => {
+const HeroCreator = ({ heroName, setHeroName, uploadedImage, setUploadedImage }) => {
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [uploadedPhoto, setUploadedPhoto] = useState(null);
   const fileInputRef = useRef(null);
 
   const handleAvatarSelect = (avatar) => {
     setSelectedAvatar(avatar);
-    setUploadedPhoto(null); // Clear uploaded photo when selecting an avatar
+    setUploadedPhoto(null);
+    setUploadedImage(null); // 🔄 réinitialise l'image réelle
   };
 
   const handlePhotoUpload = (e) => {
@@ -17,8 +18,9 @@ const HeroCreator = ({ heroName, setHeroName }) => {
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setUploadedPhoto(event.target.result);
-        setSelectedAvatar(null); // Clear selected avatar when uploading a photo
+        setUploadedPhoto(event.target.result); // preview
+        setUploadedImage(file);                // 🧠 envoi au backend
+        setSelectedAvatar(null);               // désélectionne l’avatar
       };
       reader.readAsDataURL(file);
     }
@@ -30,13 +32,14 @@ const HeroCreator = ({ heroName, setHeroName }) => {
 
   const removePhoto = () => {
     setUploadedPhoto(null);
+    setUploadedImage(null);
     fileInputRef.current.value = '';
   };
 
   return (
     <div className="hero-creator">
       <h3>3. Créez votre héros</h3>
-      
+
       <div className="hero-form">
         <div className="input-group">
           <label htmlFor="heroName">Nom de l'enfant</label>
@@ -50,11 +53,28 @@ const HeroCreator = ({ heroName, setHeroName }) => {
             transition={{ type: "spring", stiffness: 300, damping: 10 }}
           />
         </div>
-        
+
         <div className="avatar-selector">
           <p>Choisissez un avatar ou ajoutez une photo</p>
-          
+
           <div className="avatar-options">
+            <motion.div
+              className="avatar-upload"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={triggerFileInput}
+            >
+              <span>+</span>
+              <span className="tooltip">Crée un héros à ton image !</span>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handlePhotoUpload}
+                accept="image/*"
+                style={{ display: 'none' }}
+              />
+            </motion.div>
+
             {['👦', '👧', '👶'].map((avatar, index) => (
               <motion.div
                 key={index}
@@ -66,29 +86,14 @@ const HeroCreator = ({ heroName, setHeroName }) => {
                 {avatar}
               </motion.div>
             ))}
-            
-            <motion.div 
-              className="avatar-upload"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={triggerFileInput}
-            >
-              <span>+</span>
-              <input 
-                type="file" 
-                ref={fileInputRef}
-                onChange={handlePhotoUpload}
-                accept="image/*"
-                style={{ display: 'none' }}
-              />
-            </motion.div>
           </div>
-          
+
           {uploadedPhoto && (
             <div className="uploaded-photo-container">
               <div className="uploaded-photo">
                 <img src={uploadedPhoto} alt="Photo de l'enfant" />
-                <motion.button 
+              </div>
+                <motion.button
                   className="remove-photo"
                   onClick={removePhoto}
                   whileHover={{ scale: 1.1 }}
@@ -96,7 +101,6 @@ const HeroCreator = ({ heroName, setHeroName }) => {
                 >
                   ✕
                 </motion.button>
-              </div>
               <p className="photo-caption">Photo téléchargée</p>
             </div>
           )}
