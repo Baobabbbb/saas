@@ -3,36 +3,17 @@ import requests
 import random
 from config import STABILITY_API_KEY
 from utils.translate import translate_text
-from PIL import Image
+from utils.image_resize import resize_image_if_needed
 
-# Dossier où les images générées seront sauvegardées
 STATIC_DIR = "static/comics"
 os.makedirs(STATIC_DIR, exist_ok=True)
 
-# Mapping des styles frontend → style_preset Stability AI
 STYLE_PRESETS = {
     "cartoon": "comic-book",
     "manga": "anime",
     "watercolor": "digital-art",
     "pixel": "pixel-art"
 }
-
-# Redimensionne l'image si nécessaire (512x512 min requis par l'API image-to-image)
-def resize_image_if_needed(path):
-    with Image.open(path) as img:
-        width, height = img.size
-        if width * height >= 262_144:
-            return path  # pas besoin de redimensionner
-
-        scale = (262_144 / (width * height)) ** 0.5
-        new_width = int(width * scale) + 1
-        new_height = int(height * scale) + 1
-        resized_img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-
-        new_path = path.replace(".png", "_resized.png")
-        resized_img.save(new_path)
-        print(f"🖼 Image redimensionnée à {new_width}x{new_height} → {new_path}")
-        return new_path
 
 async def generate_images(scenario, init_image_path=None):
     scenes = scenario["scenes"]
@@ -41,13 +22,10 @@ async def generate_images(scenario, init_image_path=None):
     style_preset = STYLE_PRESETS.get(style_id, "comic-book")
 
     use_image_to_image = init_image_path and os.path.exists(init_image_path)
-    if use_image_to_image:
-        init_image_path = resize_image_if_needed(init_image_path)
-
     endpoint = (
         "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024x1024/image-to-image"
         if use_image_to_image else
-        "https://api.stability.ai/v2beta/stable-image/generate/core"
+        "https://api.stability.ai/v2beta/stable-image/generate/sd3"
     )
 
     print(f"🎨 Style injecté dans Stability : {style_id} → {style_preset}")
@@ -55,13 +33,14 @@ async def generate_images(scenario, init_image_path=None):
     images = []
 
     if use_image_to_image:
-        image_data = open(init_image_path, "rb").read()
+        resized_path = resize_image_if_needed(init_image_path)
+        image_data = open(resized_path, "rb").read()
 
     for idx, scene in enumerate(scenes):
         original_prompt = scene["description"]
         translated_prompt = translate_text(original_prompt)
 
-        print(f"📤 Génération image scène {idx + 1} avec seed {seed + idx}, style {style_preset}")
+        print(f"📄 Génération image scène {idx + 1} avec seed {seed + idx}, style {style_preset}")
         print(f"🔤 Prompt traduit : {translated_prompt}")
 
         if use_image_to_image:
@@ -69,15 +48,13 @@ async def generate_images(scenario, init_image_path=None):
                 endpoint,
                 headers={
                     "Authorization": f"Bearer {STABILITY_API_KEY}",
-                    "Accept": "image/png"
+                    "Accept": "image/*"
                 },
                 files={
-                    "init_image": ("image.png", image_data, "image/png")
-                },
-                data={
-                    "text_prompts[0][text]": translated_prompt,
-                    "seed": str(seed + idx),
-                    "style_preset": style_preset
+                    "init_image": ("image.png", image_data, "image/png"),
+                    "prompt": (None, translated_prompt),
+                    "style_preset": (None, style_preset),
+                    "seed": (None, str(seed + idx))
                 }
             )
         else:
@@ -111,8 +88,8 @@ async def generate_images(scenario, init_image_path=None):
 
     if use_image_to_image:
         try:
-            os.remove(init_image_path)
-            print(f"🧽 Image personnalisée supprimée : {init_image_path}")
+            os.remove(resized_path)
+            print(f"🧽 Image personnalisée temporaire supprimée : {resized_path}")
         except Exception as e:
             print(f"⚠️ Impossible de supprimer l'image : {e}")
 
