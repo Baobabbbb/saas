@@ -3,6 +3,7 @@ import requests
 import random
 from config import STABILITY_API_KEY
 from utils.translate import translate_text
+from PIL import Image
 
 # Dossier où les images générées seront sauvegardées
 STATIC_DIR = "static/comics"
@@ -16,6 +17,23 @@ STYLE_PRESETS = {
     "pixel": "pixel-art"
 }
 
+# Redimensionne l'image si nécessaire (512x512 min requis par l'API image-to-image)
+def resize_image_if_needed(path):
+    with Image.open(path) as img:
+        width, height = img.size
+        if width * height >= 262_144:
+            return path  # pas besoin de redimensionner
+
+        scale = (262_144 / (width * height)) ** 0.5
+        new_width = int(width * scale) + 1
+        new_height = int(height * scale) + 1
+        resized_img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+        new_path = path.replace(".png", "_resized.png")
+        resized_img.save(new_path)
+        print(f"🖼 Image redimensionnée à {new_width}x{new_height} → {new_path}")
+        return new_path
+
 async def generate_images(scenario, init_image_path=None):
     scenes = scenario["scenes"]
     seed = scenario.get("seed", random.randint(0, 2_147_483_647))
@@ -23,10 +41,13 @@ async def generate_images(scenario, init_image_path=None):
     style_preset = STYLE_PRESETS.get(style_id, "comic-book")
 
     use_image_to_image = init_image_path and os.path.exists(init_image_path)
+    if use_image_to_image:
+        init_image_path = resize_image_if_needed(init_image_path)
+
     endpoint = (
         "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024x1024/image-to-image"
         if use_image_to_image else
-        "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024x1024/text-to-image"
+        "https://api.stability.ai/v2beta/stable-image/generate/core"
     )
 
     print(f"🎨 Style injecté dans Stability : {style_id} → {style_preset}")
@@ -34,8 +55,7 @@ async def generate_images(scenario, init_image_path=None):
     images = []
 
     if use_image_to_image:
-        with open(init_image_path, "rb") as img_file:
-            image_data = img_file.read()
+        image_data = open(init_image_path, "rb").read()
 
     for idx, scene in enumerate(scenes):
         original_prompt = scene["description"]
@@ -44,28 +64,37 @@ async def generate_images(scenario, init_image_path=None):
         print(f"📤 Génération image scène {idx + 1} avec seed {seed + idx}, style {style_preset}")
         print(f"🔤 Prompt traduit : {translated_prompt}")
 
-        headers = {
-            "Authorization": f"Bearer {STABILITY_API_KEY}",
-            "Accept": "image/png"
-        }
-
         if use_image_to_image:
-            files = {
-                "init_image": ("image.png", image_data, "image/png"),
-                "text_prompts[0][text]": (None, translated_prompt),
-                "text_prompts[0][weight]": (None, "1"),
-                "style_preset": (None, style_preset),
-                "image_strength": (None, "0.25"),
-                "seed": (None, str(seed + idx))
-            }
-            response = requests.post(endpoint, headers=headers, files=files)
+            response = requests.post(
+                endpoint,
+                headers={
+                    "Authorization": f"Bearer {STABILITY_API_KEY}",
+                    "Accept": "image/png"
+                },
+                files={
+                    "init_image": ("image.png", image_data, "image/png")
+                },
+                data={
+                    "text_prompts[0][text]": translated_prompt,
+                    "seed": str(seed + idx),
+                    "style_preset": style_preset
+                }
+            )
         else:
-            payload = {
-                "text_prompts": [{"text": translated_prompt, "weight": 1}],
-                "style_preset": style_preset,
-                "seed": seed + idx
-            }
-            response = requests.post(endpoint, headers=headers, json=payload)
+            response = requests.post(
+                endpoint,
+                headers={
+                    "Authorization": f"Bearer {STABILITY_API_KEY}",
+                    "Accept": "image/*"
+                },
+                files={
+                    "prompt": (None, translated_prompt),
+                    "output_format": (None, "png"),
+                    "aspect_ratio": (None, "1:1"),
+                    "style_preset": (None, style_preset),
+                    "seed": (None, str(seed + idx))
+                }
+            )
 
         if response.status_code != 200:
             print(f"❌ Erreur Stability AI scène {idx + 1} : {response.text}")
