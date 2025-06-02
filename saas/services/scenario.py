@@ -1,10 +1,25 @@
 import os
 import json
 import random
+import re
 from openai import OpenAI
 from config import OPENAI_API_KEY, TEXT_MODEL
 
 client = OpenAI(api_key=OPENAI_API_KEY)
+
+def extract_json_from_response(text: str) -> str:
+    """
+    Extrait un bloc JSON valide à partir d'un texte qui peut contenir du Markdown ou d'autres éléments parasites.
+    """
+    try:
+        # Recherche de bloc ```json ... ```
+        match = re.search(r"```(?:json)?\s*({.*?})\s*```", text, re.DOTALL)
+        if match:
+            return match.group(1)
+        # Sinon on tente un fallback brut
+        return text.strip()
+    except Exception as e:
+        raise ValueError("Impossible d'extraire du JSON proprement.") from e
 
 async def generate_scenario(prompt: str, style: str = None):
     """
@@ -34,26 +49,25 @@ async def generate_scenario(prompt: str, style: str = None):
     raw_text = response.choices[0].message.content
 
     print("🧪 Texte brut reçu :")
-    print(repr(raw_text))  # montre aussi les caractères invisibles
+    print(repr(raw_text))
 
     if not raw_text or not raw_text.strip():
         raise ValueError("❌ Le modèle n'a rien renvoyé (réponse vide)")
 
     try:
-        scenario = json.loads(raw_text)
+        clean_text = extract_json_from_response(raw_text)
+        scenario = json.loads(clean_text)
     except json.JSONDecodeError as e:
         print("❌ Erreur JSON : contenu reçu non valide")
         print(raw_text)
         raise ValueError("La réponse du modèle n'est pas un JSON valide") from e
 
-    # Ajout d'une seed si absente
     if "seed" not in scenario or not isinstance(scenario["seed"], int):
         scenario["seed"] = random.randint(0, 2_147_483_647)
         print(f"🔢 Seed générée automatiquement : {scenario['seed']}")
     else:
         print(f"🎯 Seed déjà présente dans la réponse : {scenario['seed']}")
 
-    # Ajout du style si transmis
     if style:
         scenario["style"] = style
         print(f"🎨 Style injecté dans le scénario : {style}")
