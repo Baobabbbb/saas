@@ -43,35 +43,26 @@ async def generate_images(scenario, init_image_path=None):
         print(f"📄 Génération image scène {idx + 1} avec seed {seed + idx}, style {style_preset}")
         print(f"🔤 Prompt traduit : {translated_prompt}")
 
+        files = {
+            "prompt": (None, translated_prompt),
+            "style_preset": (None, style_preset),
+            "seed": (None, str(seed + idx))
+        }
+
         if use_image_to_image:
-            response = requests.post(
-                endpoint,
-                headers={
-                    "Authorization": f"Bearer {STABILITY_API_KEY}",
-                    "Accept": "image/*"
-                },
-                files={
-                    "init_image": ("image.png", image_data, "image/png"),
-                    "prompt": (None, translated_prompt),
-                    "style_preset": (None, style_preset),
-                    "seed": (None, str(seed + idx))
-                }
-            )
+            files["init_image"] = ("image.png", image_data, "image/png")
         else:
-            response = requests.post(
-                endpoint,
-                headers={
-                    "Authorization": f"Bearer {STABILITY_API_KEY}",
-                    "Accept": "image/*"
-                },
-                files={
-                    "prompt": (None, translated_prompt),
-                    "output_format": (None, "png"),
-                    "aspect_ratio": (None, "1:1"),
-                    "style_preset": (None, style_preset),
-                    "seed": (None, str(seed + idx))
-                }
-            )
+            files["output_format"] = (None, "png")
+            files["aspect_ratio"] = (None, "1:1")
+
+        response = requests.post(
+            endpoint,
+            headers={
+                "Authorization": f"Bearer {STABILITY_API_KEY}",
+                # Ne pas mettre 'Accept' ici si ça déclenche une erreur ; certains endpoints n’aiment pas 'image/*'
+            },
+            files=files
+        )
 
         if response.status_code != 200:
             print(f"❌ Erreur Stability AI scène {idx + 1} : {response.text}")
