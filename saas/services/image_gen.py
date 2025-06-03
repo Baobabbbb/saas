@@ -4,6 +4,8 @@ import random
 from config import STABILITY_API_KEY
 from utils.translate import translate_text
 from utils.image_resize import resize_image_if_needed
+from PIL import Image
+import io
 
 STATIC_DIR = "static/comics"
 os.makedirs(STATIC_DIR, exist_ok=True)
@@ -15,59 +17,63 @@ STYLE_PRESETS = {
     "pixel": "pixel-art"
 }
 
+STABILITY_ENDPOINT = "https://api.stability.ai/v2beta/stable-image/generate/sd3"
+
 async def generate_images(scenario, init_image_path=None):
     scenes = scenario["scenes"]
     seed = scenario.get("seed", random.randint(0, 2_147_483_647))
     style_id = scenario.get("style", "cartoon")
     style_preset = STYLE_PRESETS.get(style_id, "comic-book")
 
-    use_image_to_image = init_image_path and os.path.exists(init_image_path)
-    endpoint = (
-        "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024x1024/image-to-image"
-        if use_image_to_image else
-        "https://api.stability.ai/v2beta/stable-image/generate/sd3"
-    )
-
     print(f"🎨 Style injecté dans Stability : {style_id} → {style_preset}")
-    print(f"📡 Endpoint utilisé : {endpoint}")
+    print(f"📡 Endpoint utilisé : {STABILITY_ENDPOINT}")
     images = []
-
-    if use_image_to_image:
-        resized_path = resize_image_if_needed(init_image_path)
-        image_data = open(resized_path, "rb").read()
 
     for idx, scene in enumerate(scenes):
         original_prompt = scene["description"]
         translated_prompt = translate_text(original_prompt)
+        prompt = f"{translated_prompt} --style {style_preset}"
 
         print(f"📄 Génération image scène {idx + 1} avec seed {seed + idx}, style {style_preset}")
-        print(f"🔤 Prompt traduit : {translated_prompt}")
+        print(f"🔤 Prompt traduit : {prompt}")
 
-        files = {
-            "prompt": (None, translated_prompt),
-            "style_preset": (None, style_preset),
-            "seed": (None, str(seed + idx))
+        headers = {
+            "Authorization": f"Bearer {STABILITY_API_KEY}",
         }
 
-        if use_image_to_image:
-            files["init_image"] = ("image.png", image_data, "image/png")
-        else:
-            files["output_format"] = (None, "png")
-            files["aspect_ratio"] = (None, "1:1")
+        files = None
+        data = {
+            "prompt": prompt,
+            "seed": str(seed + idx),
+        }
 
+        # --- Gestion de l'image personnalisée ---
+        if init_image_path and os.path.exists(init_image_path):
+            print(f"🖼 Image personnalisée trouvée : {init_image_path}")
+
+            with Image.open(init_image_path) as img:
+                img = resize_image_if_needed(img)
+                image_bytes = io.BytesIO()
+                img.save(image_bytes, format="PNG")
+                image_bytes.seek(0)
+
+            files = {
+                "image": ("init.png", image_bytes, "image/png"),
+            }
+
+        # --- Envoi à Stability ---
         response = requests.post(
-            endpoint,
-            headers={
-                "Authorization": f"Bearer {STABILITY_API_KEY}",
-                # Ne pas mettre 'Accept' ici si ça déclenche une erreur ; certains endpoints n’aiment pas 'image/*'
-            },
-            files=files
+            STABILITY_ENDPOINT,
+            headers=headers,
+            data=data,
+            files=files,
         )
 
         if response.status_code != 200:
             print(f"❌ Erreur Stability AI scène {idx + 1} : {response.text}")
             response.raise_for_status()
 
+        # --- Sauvegarde de l'image ---
         filename = f"scene_{seed + idx}.png"
         filepath = os.path.join(STATIC_DIR, filename)
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -77,10 +83,11 @@ async def generate_images(scenario, init_image_path=None):
 
         images.append(f"comics/{filename}")
 
-    if use_image_to_image:
+    # --- Suppression de l'image personnalisée après usage ---
+    if init_image_path and os.path.exists(init_image_path):
         try:
-            os.remove(resized_path)
-            print(f"🧽 Image personnalisée temporaire supprimée : {resized_path}")
+            os.remove(init_image_path)
+            print(f"🧽 Image personnalisée supprimée : {init_image_path}")
         except Exception as e:
             print(f"⚠️ Impossible de supprimer l'image : {e}")
 
