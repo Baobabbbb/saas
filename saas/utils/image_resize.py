@@ -1,37 +1,38 @@
 from PIL import Image
 import os
 
-# Les tailles minimales requises par Stability AI pour SD3 : >= 512x512 (et généralement <= 1536)
+# Seuil minimal recommandé par Stability SD3 : 512x512
 MIN_SIZE = 512
-MAX_SIZE = 1536
 
-def resize_image_if_needed(image_path):
+def resize_image_if_needed(image_path, min_size=MIN_SIZE):
     """
-    Vérifie et redimensionne l'image pour être carrée, >= 512x512, <= 1536x1536.
-    Renvoie le chemin du fichier redimensionné (si redimensionné) ou l'original sinon.
+    Prend le chemin d'une image, redimensionne si besoin pour SD3 (minimum 512x512),
+    sauvegarde une copie "_resized" dans le même dossier et retourne le chemin du fichier.
+    Si pas besoin de redimensionner, retourne le chemin d'origine.
     """
-    if not os.path.exists(image_path):
-        raise FileNotFoundError(f"Image not found: {image_path}")
+    # Génère le nom de fichier pour la copie redimensionnée
+    base, ext = os.path.splitext(image_path)
+    resized_path = f"{base}_resized{ext}"
 
-    with Image.open(image_path) as img:
-        width, height = img.size
+    try:
+        with Image.open(image_path) as img:
+            width, height = img.size
 
-        # Détermine la taille de base carrée
-        new_side = min(max(width, height, MIN_SIZE), MAX_SIZE)
+            # Si l'image est déjà assez grande, pas besoin de resize
+            if width >= min_size and height >= min_size:
+                return image_path
 
-        if width == height and MIN_SIZE <= width <= MAX_SIZE:
-            return image_path  # Déjà correct
+            # Sinon, calcule les nouvelles dimensions (conserve le ratio)
+            scale = max(min_size / width, min_size / height)
+            new_width = int(width * scale)
+            new_height = int(height * scale)
+            img_resized = img.resize((new_width, new_height), Image.LANCZOS)
 
-        # Nouvelle image blanche carrée
-        new_img = Image.new("RGBA", (new_side, new_side), (255, 255, 255, 0))
-        left = (new_side - width) // 2
-        top = (new_side - height) // 2
-        new_img.paste(img, (left, top))
-
-        # Enregistre la nouvelle image redimensionnée dans le même dossier
-        dirpath, fname = os.path.split(image_path)
-        base, ext = os.path.splitext(fname)
-        resized_path = os.path.join(dirpath, f"{base}_resized.png")
-        new_img.save(resized_path, "PNG")
-        print(f"🖼 Image redimensionnée à {new_side}x{new_side} → {resized_path}")
-        return resized_path
+            # Sauvegarde la nouvelle image
+            img_resized.save(resized_path, format="PNG")
+            print(f"🖼 Image redimensionnée à {new_width}x{new_height} → {resized_path}")
+            return resized_path
+    except Exception as e:
+        print(f"❌ Erreur resize image : {e}")
+        # Si souci, retourne l'original, mais log l'erreur
+        return image_path
