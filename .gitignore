@@ -4,6 +4,7 @@ venv/
 venv-stability/
 saas/env/
 backend/venv/
+env-stability/
 
 # --- Node.js ---
 frontend/node_modules/
