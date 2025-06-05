@@ -1,55 +1,53 @@
 import requests
-import base64
 import os
-
-from utils.image_resize import resize_image_if_needed
 
 STABILITY_API_KEY = os.environ.get("STABILITY_API_KEY")
 STABILITY_ENDPOINT = "https://api.stability.ai/v2beta/stable-image/generate/sd3"
 
-def encode_image_to_base64(image_path):
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode("utf-8")
-
 async def generate_images(scenario, init_image_path=None):
     images = []
-    for idx, scene in enumerate(scenario["scenes"]):
-        prompt = f"{scene['description']} --style comic-book"
-        seed = scenario.get("seed", None)
+    # --------- TEST MINIMAL UNIQUEMENT IMAGE-TO-IMAGE ----------
+    # Prompt très simple et image obligatoire
+    prompt = "A dog in space"
+    # Enlève tout ce qui concerne le seed, le style, etc.
 
-        headers = {
-            "Authorization": f"Bearer {STABILITY_API_KEY}",
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        }
+    headers = {
+        "Authorization": f"Bearer {STABILITY_API_KEY}",
+        "Accept": "application/json",
+    }
 
-        data = {
-            "prompt": prompt,
-            "output_format": "png",
-            "mode": "image-to-image" if init_image_path else "text-to-image"
-        }
+    files = {
+        "prompt": (None, prompt),
+        "mode": (None, "image-to-image"),
+        "strength": (None, "0.65"),
+        "output_format": (None, "png"),
+    }
 
-        if seed is not None:
-            data["seed"] = seed
+    # Met une image PNG toute simple dans init_image_path pour ce test !
+    if init_image_path:
+        with open(init_image_path, "rb") as img_file:
+            files["image"] = ("image.png", img_file, "image/png")
+            response = requests.post(
+                STABILITY_ENDPOINT,
+                headers=headers,
+                files=files,
+                timeout=90
+            )
+    else:
+        raise Exception("init_image_path est requis pour ce test image-to-image.")
 
-        if init_image_path:
-            resized_image_path = resize_image_if_needed(init_image_path)
-            image_base64 = encode_image_to_base64(resized_image_path)
-            data["image"] = image_base64
-            data["strength"] = 0.65  # Ajustez selon vos besoins
-
-        response = requests.post(
-            STABILITY_ENDPOINT,
-            headers=headers,
-            json=data
-        )
+    # Gestion d'erreur simple
+    try:
         response.raise_for_status()
+    except requests.HTTPError as e:
+        print("❌ Erreur Stability AI :", e, "→", response.text)
+        raise
 
-        result = response.json()
-        if "artifacts" in result and result["artifacts"]:
-            img_b64 = result["artifacts"][0]["base64"]
-            images.append(img_b64)
-        else:
-            raise ValueError("Aucune image retournée par Stability : " + str(result))
+    result = response.json()
+    if "artifacts" in result and result["artifacts"]:
+        img_b64 = result["artifacts"][0]["base64"]
+        images.append(img_b64)
+    else:
+        raise ValueError(f"Aucune image retournée par Stability AI: {result}")
 
     return images
