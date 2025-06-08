@@ -18,66 +18,60 @@ def estimate_character_position(description: str, character: str, img_width: int
         elif "droite" in desc:
             x = int(img_width * 0.7)
         else:
-            x = int(img_width * 0.45)
+            x = int(img_width * 0.5)
     else:
         x = int(img_width * 0.5)
-
     y = int(img_height * 0.55)
     return x, y
 
-def draw_speech_bubble(draw, text, font, img_width, img_height, target_x, target_y, bubble_index=0):
-    max_bubble_width = img_width - 40
-
-    # Découpage du texte
+def draw_speech_bubble(draw, text, font, img_width, img_height, target_x, target_y, bubble_index=0, total_bubbles=1):
     wrapped = textwrap.wrap(text, width=32)
     content_width = max(draw.textlength(line, font=font) for line in wrapped)
-    bubble_width = content_width + 40
-
-    # Largeur limitée pour cohérence
-    bubble_width = max(180, min(bubble_width, int(img_width * 0.75)))
-
-    # Hauteur en fonction du nombre de lignes
+    bubble_width = max(180, min(content_width + 40, int(img_width * 0.75)))
     line_count = len(wrapped)
     line_height = font.size + 6
-    bubble_height = line_count * line_height + 30
-    bubble_height = max(60, min(bubble_height, 160))  # hauteur cohérente
+    bubble_height = max(60, min(line_count * line_height + 30, 160))
 
-    # Décalage horizontal pour éviter chevauchement latéral
-    horizontal_shift = (bubble_index % 2) * 40 * (-1 if bubble_index % 4 == 1 else 1)
-    x = target_x - bubble_width // 2 + horizontal_shift
-    x = max(20, min(x, img_width - bubble_width - 20))  # contrainte de bord
+    margin_top = int(img_height * 0.04)
+    max_bubbles_area = int(img_height * 0.38)
+    spacing = (max_bubbles_area - bubble_height) // max(1, total_bubbles)
+    y = margin_top + bubble_index * spacing
 
-    # Position Y : bulle empilée proprement en haut
-    base_y = int(img_height * 0.05)
-    spacing = bubble_height + 30
-    y = base_y + bubble_index * spacing
-    if y + bubble_height > img_height * 0.95:
-        y = int(img_height * 0.95) - bubble_height
+    # --- Bulle à gauche/droite si 2 bulles, sinon comme avant
+    if total_bubbles == 1:
+        x = int((img_width - bubble_width) / 2)
+    elif total_bubbles == 2:
+        if bubble_index == 0:
+            x = int(img_width * 0.08)
+        else:
+            x = int(img_width * 0.54)
+        x = min(x, img_width - bubble_width - 20)
+    else:
+        x = max(20, min(target_x - bubble_width // 2 + (bubble_index - total_bubbles//2)*30, img_width - bubble_width - 20))
 
-    # Dessin de la bulle
+    # --- Dessin bulle ---
     bubble_box = [x, y, x + bubble_width, y + bubble_height]
-    draw.rounded_rectangle(bubble_box, radius=20, fill=(255, 255, 255, 180), outline="black", width=2)
+    # BULLE PLUS TRANSPARENTE (alpha=180)
+    draw.rounded_rectangle(bubble_box, radius=20, fill=(255, 255, 255, 180), outline="black", width=3)
 
-    # Pointe directionnelle en bas
-    if horizontal_shift > 0:
-        direction = "right"
-    elif horizontal_shift < 0:
-        direction = "left"
-    else:
-        direction = "center"
-
-    if direction == "left":
-        base_x = x + 20
-    elif direction == "right":
-        base_x = x + bubble_width - 20
-    else:
-        base_x = x + bubble_width // 2
-
+    # --- Queue compacte & BD ---
+    base_x = x + bubble_width // 2
     base_y = y + bubble_height
-    point1 = (base_x - 10, base_y)
-    point2 = (base_x + 10, base_y)
-    tip = (base_x, base_y + 20)
-    draw.polygon([point1, point2, tip], fill=(255, 255, 255, 180), outline="black")
+    tip_x = target_x
+    tip_y = min(target_y, base_y + 32)
+    dx = tip_x - base_x
+    shift = max(-20, min(20, dx//2))
+    left_x = base_x - 13 + shift
+    right_x = base_x + 13 + shift
+    left_y = right_y = base_y
+
+    # Queue = triangle compact BD-style, même alpha que la bulle
+    draw.polygon(
+        [(left_x, left_y), (right_x, right_y), (tip_x, tip_y)],
+        fill=(255,255,255,180),
+        outline="black"
+    )
+    draw.line([(left_x, left_y), (tip_x, tip_y), (right_x, right_y)], fill="black", width=2)
 
     # Texte dans la bulle
     text_y = y + 15
@@ -93,7 +87,11 @@ def compose_image_with_bubbles(image_url, dialogues, description, output_path):
             response.raise_for_status()
             img = Image.open(BytesIO(response.content)).convert("RGBA")
         else:
-            local_path = os.path.normpath(image_url.replace("/static/", "static/"))
+            local_path = image_url
+            if image_url.startswith("/static/"):
+                local_path = os.path.normpath(image_url.lstrip("/"))
+            else:
+                local_path = os.path.normpath(image_url)
             print(f"📁 Chargement image locale : {local_path}")
             img = Image.open(local_path).convert("RGBA")
 
@@ -105,12 +103,15 @@ def compose_image_with_bubbles(image_url, dialogues, description, output_path):
         except:
             font = ImageFont.load_default()
 
+        total_bubbles = len(dialogues)
         for i, dialog in enumerate(dialogues):
             character = dialog["character"]
             text = f"{character} : {dialog['text']}"
             target_x, target_y = estimate_character_position(description, character, img.width, img.height)
-            draw_speech_bubble(draw, text, font, img.width, img.height, target_x, target_y, bubble_index=i)
-
+            draw_speech_bubble(
+                draw, text, font, img.width, img.height,
+                target_x, target_y, bubble_index=i, total_bubbles=total_bubbles
+            )
 
         final = Image.alpha_composite(img, overlay).convert("RGB")
         final.save(output_path)
@@ -131,9 +132,12 @@ async def compose_pages(layout_data):
         if not image:
             raise ValueError(f"❌ La scène {idx + 1} n'a pas d'image")
 
-        image_url = os.path.join("static", image.replace("/static/", "").replace("\\", "/"))
-        output = os.path.join("static", f"scene_{idx + 1}.png")
+        if image.startswith("/static/"):
+            image_url = image
+        else:
+            image_url = f"/{image}" if not image.startswith("static/") else image
 
+        output = os.path.join("static", f"scene_{idx + 1}.png")
         dialogues = scene.get("dialogues", [])[:random.randint(1, 4)]
 
         compose_image_with_bubbles(

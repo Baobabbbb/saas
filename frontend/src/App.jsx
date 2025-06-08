@@ -68,6 +68,8 @@ function App() {
   const [showComicPopup, setShowComicPopup] = useState(false);
   const [numImages, setNumImages] = useState(4);
   const [uploadedImage, setUploadedImage] = useState(null);
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [selectedAvatar, setSelectedAvatar] = useState(null);
 
   // User account state
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -187,7 +189,14 @@ function App() {
       formData.append('custom_request', customRequest);
       formData.append('num_images', numImages);
       if (uploadedImage) {
-        formData.append('custom_image', uploadedImage); // 👈 ajoute le fichier
+        formData.append('avatar_type', 'photo');
+        formData.append('custom_image', uploadedImage); // fichier
+      } else if (customPrompt && customPrompt.trim().length > 0) {
+        formData.append('avatar_type', 'prompt');
+        formData.append('custom_prompt', customPrompt);
+      } else if (selectedAvatar) {
+        formData.append('avatar_type', 'emoji');
+        formData.append('emoji', selectedAvatar);
       }
 
       const response = await fetch('http://127.0.0.1:8000/generate_comic/', {
@@ -453,6 +462,10 @@ const downloadPDF = async (title, content) => {
                   setHeroName={setHeroName}
                   setUploadedImage={setUploadedImage}
                   uploadedImage={uploadedImage}
+                  customPrompt={customPrompt}
+                  setCustomPrompt={setCustomPrompt}
+                  selectedAvatar={selectedAvatar}
+                  setSelectedAvatar={setSelectedAvatar}
                 />
               </motion.div>
             )}
@@ -593,7 +606,11 @@ const downloadPDF = async (title, content) => {
     </button>
 
     <button className='download-pdf-button-a'
-      onClick={() => downloadComicAsPDF(comicResult.pages, getSafeFilename(comicResult.title))}
+      onClick={() => {
+        const backendUrl = "http://localhost:8000";
+        const pdfPages = comicResult.pages.map(p => backendUrl + p);
+        downloadComicAsPDF(pdfPages, getSafeFilename(comicResult.title));
+      }}
     >
       📄 Télécharger la BD
     </button>

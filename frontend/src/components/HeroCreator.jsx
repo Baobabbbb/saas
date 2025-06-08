@@ -2,15 +2,25 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import './HeroCreator.css';
 
-const HeroCreator = ({ heroName, setHeroName, uploadedImage, setUploadedImage }) => {
+const HeroCreator = ({
+  heroName,
+  setHeroName,
+  uploadedImage,
+  setUploadedImage,
+  customPrompt,
+  setCustomPrompt
+}) => {
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [uploadedPhoto, setUploadedPhoto] = useState(null);
+  const [showPromptInput, setShowPromptInput] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleAvatarSelect = (avatar) => {
     setSelectedAvatar(avatar);
     setUploadedPhoto(null);
-    setUploadedImage(null); // 🔄 réinitialise l'image réelle
+    setUploadedImage(null);
+    // Si on sélectionne un avatar emoji, on masque le prompt input
+    setShowPromptInput(false);
   };
 
   const handlePhotoUpload = (e) => {
@@ -18,9 +28,10 @@ const HeroCreator = ({ heroName, setHeroName, uploadedImage, setUploadedImage })
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setUploadedPhoto(event.target.result); // preview
-        setUploadedImage(file);                // 🧠 envoi au backend
-        setSelectedAvatar(null);               // désélectionne l’avatar
+        setUploadedPhoto(event.target.result);
+        setUploadedImage(file);
+        setSelectedAvatar(null);
+        setShowPromptInput(false);
       };
       reader.readAsDataURL(file);
     }
@@ -55,9 +66,10 @@ const HeroCreator = ({ heroName, setHeroName, uploadedImage, setUploadedImage })
         </div>
 
         <div className="avatar-selector">
-          <p>Choisissez un avatar ou ajoutez une photo</p>
+          <p>Personnalisez votre héros ou choisissez un avatar</p>
 
           <div className="avatar-options">
+            {/* 1. Bouton upload photo */}
             <motion.div
               className="avatar-upload"
               whileHover={{ scale: 1.1 }}
@@ -75,6 +87,23 @@ const HeroCreator = ({ heroName, setHeroName, uploadedImage, setUploadedImage })
               />
             </motion.div>
 
+            {/* 2. Bouton prompt personnalisé */}
+            <motion.div
+              className="avatar-prompt"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => {
+                setShowPromptInput(true);
+                setSelectedAvatar(null);
+                setUploadedPhoto(null);
+                setUploadedImage(null);
+              }}
+            >
+              <span role="img" aria-label="Créer via prompt">📝</span>
+              <span className="tooltip">Décris ton héros !</span>
+            </motion.div>
+
+            {/* 3+. Avatars prédéfinis */}
             {['👦', '👧', '👶'].map((avatar, index) => (
               <motion.div
                 key={index}
@@ -88,19 +117,34 @@ const HeroCreator = ({ heroName, setHeroName, uploadedImage, setUploadedImage })
             ))}
           </div>
 
+          {/* === Champ de saisie du prompt juste en dessous des boutons === */}
+          {showPromptInput && (
+            <div className="prompt-encart">
+              <input
+                type="text"
+                className="prompt-input"
+                value={customPrompt}
+                onChange={e => setCustomPrompt(e.target.value)}
+                placeholder="Décris le héros de ton histoire..."
+                autoFocus
+              />
+            </div>
+          )}
+
+          {/* Affichage de la photo uploadée */}
           {uploadedPhoto && (
             <div className="uploaded-photo-container">
               <div className="uploaded-photo">
                 <img src={uploadedPhoto} alt="Photo de l'enfant" />
               </div>
-                <motion.button
-                  className="remove-photo"
-                  onClick={removePhoto}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  ✕
-                </motion.button>
+              <motion.button
+                className="remove-photo"
+                onClick={removePhoto}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                ✕
+              </motion.button>
               <p className="photo-caption">Photo téléchargée</p>
             </div>
           )}

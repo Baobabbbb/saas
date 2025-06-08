@@ -75,10 +75,13 @@ const ComicViewer = ({ comic }) => {
 
       <div className="comic-download">
         <button className='download-pdf-button-b'
-              onClick={() => downloadComicAsPDF(comic.pages, getSafeFilename(comic.title))}
-            >
-              📄 Télécharger la BD
-            </button>
+          onClick={() => {
+            const pdfPages = comic.pages.map(p => `${BACKEND_URL}${p}`);
+            downloadComicAsPDF(pdfPages, getSafeFilename(comic.title));
+          }}
+        >
+          📄 Télécharger la BD
+        </button>
       </div>
     </div>
   );
