@@ -18,6 +18,7 @@ from services.image_gen import generate_images
 from services.composer import compose_pages
 from services.tts import generate_speech
 from services.stt import transcribe_audio
+from utils.translate import translate_text
 
 # --- Chargement .env ---
 load_dotenv()
@@ -71,6 +72,9 @@ async def generate_comic(
     story_type: str = Form(...),
     custom_request: str = Form(...),
     num_images: int = Form(...),
+    avatar_type: str = Form(None),
+    custom_prompt: str = Form(None),
+    emoji: str = Form(None),
     custom_image: Optional[UploadFile] = File(None)
 ):
     try:
@@ -101,29 +105,80 @@ Langue : français
 
         print("📜 Prompt de génération :", prompt)
 
-        # Sauvegarde de l'image personnalisée si elle existe
+        # -------- LOGIQUE CHOIX AVATAR --------
         image_path = None
-        if custom_image:
-            image_bytes = await custom_image.read()
-            os.makedirs("static/uploads", exist_ok=True)
-            image_path = f"static/uploads/{custom_image.filename}"
-            with open(image_path, "wb") as f:
-                f.write(image_bytes)
-            print(f"📸 Image personnalisée enregistrée : {image_path}")
+        try:
+            if avatar_type == "photo" and custom_image:
+                # Cas photo uploadée
+                image_bytes = await custom_image.read()
+                os.makedirs("static/uploads", exist_ok=True)
+                image_path = f"static/uploads/{custom_image.filename}"
+                with open(image_path, "wb") as f:
+                    f.write(image_bytes)
+                print(f"📸 Image personnalisée enregistrée : {image_path}")
 
-        # Génère le scénario
-        scenario = await generate_scenario(prompt)
-        scenario["style"] = style
-        print("🧠 Scénario généré :", scenario)
-        validate_scenario(scenario, expected_num_images=num_images)
+            elif avatar_type == "prompt" and custom_prompt:
+                # Traduction du prompt en anglais
+                prompt_en = await translate_text(custom_prompt)
+                from services.image_gen import generate_hero_from_prompt
+                image_path = await generate_hero_from_prompt(prompt_en)
+                print(f"🤖 Héros généré par prompt (traduit) : {prompt_en} -> {image_path}")
 
-        # Génère les images avec ou sans image de base
-        images = await generate_images(scenario, init_image_path=image_path)
-        for i, scene in enumerate(scenario["scenes"]):
-            scene["image"] = images[i]
+            elif avatar_type == "emoji" and emoji:
+                # Emoji = image par défaut (mapping conseillé)
+                EMOJI_TO_FILENAME = {
+                    "👦": "boy.png",
+                    "👧": "girl.png",
+                    "👶": "baby.png"
+                }
+                filename = EMOJI_TO_FILENAME.get(emoji, "default.png")
+                image_path = f"static/emojis/{filename}"
+                print(f"😀 Héros emoji : {emoji} → {image_path}")
 
-        # Compose les pages finales
-        result = await compose_pages(scenario)
+            print("🟢 image_path utilisé :", image_path)
+        except Exception as e:
+            print("❌ ERREUR étape CHOIX AVATAR :", e)
+            raise
+
+        # --------- Génération du scénario ---------
+        try:
+            scenario = await generate_scenario(prompt)
+            scenario["style"] = style
+            print("🧠 Scénario généré :", scenario)
+            validate_scenario(scenario, expected_num_images=num_images)
+            print("🟢 Génération scénario OK")
+        except Exception as e:
+            print("❌ ERREUR étape SCENARIO :", e)
+            raise
+
+        # --------- Génération des images ---------
+        try:
+            if avatar_type == "prompt" and custom_prompt:
+                images = await generate_images(scenario, hero_prompt_en=prompt_en, init_image_path=image_path)
+            else:
+                images = await generate_images(scenario, init_image_path=image_path)
+            print("🟢 Images générées :", images)
+            print("🟢 Nombre d'images générées :", len(images))
+        except Exception as e:
+            print("❌ ERREUR étape GENERATE_IMAGES :", e)
+            raise
+
+        # --------- Affectation des images aux scènes ---------
+        try:
+            for i, scene in enumerate(scenario["scenes"]):
+                print(f"➡️ Ajout image à la scène {i} : {images[i]}")
+                scene["image"] = images[i]
+        except Exception as e:
+            print("❌ ERREUR étape AFFECTATION IMAGE SCENE :", e)
+            raise
+
+        # --------- Composition des pages finales ---------
+        try:
+            print("🛠️ Lancement de compose_pages")
+            result = await compose_pages(scenario)
+        except Exception as e:
+            print("❌ ERREUR étape COMPOSE_PAGES :", e)
+            raise
 
         final_pages = result["final_pages"]
         for i, page in enumerate(final_pages):
@@ -251,3 +306,4 @@ async def generate_audio_story(request: AudioStoryRequest):
         print("❌ Erreur lors de la génération du conte audio :")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+    

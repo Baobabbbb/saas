@@ -152,3 +152,12 @@
 .form-actions button:hover {
   opacity: 0.9;
 }
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}

@@ -14,7 +14,7 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
           whileHover={{ y: -5 }}
           whileTap={{ scale: 0.98 }}
         >
-          <div className="content-type-icon">📚</div>
+          <div className="content-type-icon">💬</div>
           <div className="content-type-details">
             <h4>Bande dessinée</h4>
             <p>Créez une bande dessinée avec des personnages et une aventure</p>
@@ -40,7 +40,7 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
           whileHover={{ y: -5 }}
           whileTap={{ scale: 0.98 }}
         >
-          <div className="content-type-icon">🎧</div>
+          <div className="content-type-icon">📖</div>
           <div className="content-type-details">
             <h4>Histoire</h4>
             <p>Créez une courte histoire à lire ou à écouter pour votre enfant</p>

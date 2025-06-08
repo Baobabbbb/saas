@@ -8,7 +8,8 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
 
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
@@ -37,8 +38,9 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
 
   const handleRegister = (e) => {
     e.preventDefault();
-    onRegister({ name, email, password });
-    setName('');
+    onRegister({ firstName, lastName, email, password });
+    setFirstName('');
+    setLastName('');
     setEmail('');
     setPassword('');
     setShowRegisterForm(false);
@@ -157,15 +159,27 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
             <div className="auth-form">
               <h3>Inscription</h3>
               <form onSubmit={handleRegister}>
-                <div className="form-group">
-                  <label htmlFor="name">Nom</label>
-                  <input 
-                    type="text" 
-                    id="name" 
-                    value={name} 
-                    onChange={(e) => setName(e.target.value)} 
-                    required 
-                  />
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="firstName">Prénom</label>
+                    <input 
+                      type="text" 
+                      id="firstName" 
+                      value={firstName} 
+                      onChange={(e) => setFirstName(e.target.value)} 
+                      required 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="lastName">Nom</label>
+                    <input 
+                      type="text" 
+                      id="lastName" 
+                      value={lastName} 
+                      onChange={(e) => setLastName(e.target.value)} 
+                      required 
+                    />
+                  </div>
                 </div>
                 <div className="form-group">
                   <label htmlFor="register-email">Email</label>
