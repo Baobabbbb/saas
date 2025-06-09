@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './UserAccount.css';
+import { signUpWithProfile, signIn, signOut } from '../services/auth'
 
 const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -10,35 +11,51 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [error, setError] = useState('');
 
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
     setShowLoginForm(false);
     setShowRegisterForm(false);
+    setError('');
   };
 
   const handleLoginClick = () => {
     setShowLoginForm(true);
     setShowRegisterForm(false);
+    setError('');
   };
 
   const handleRegisterClick = () => {
     setShowRegisterForm(true);
     setShowLoginForm(false);
+    setError('');
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    onLogin({ email, password });
+    const { error } = await signIn({ email, password });
+    if (error) {
+      setError(error.message);
+    } else {
+      setError('');
+      // succès, tu peux mettre à jour isLoggedIn
+    }
     setEmail('');
     setPassword('');
     setShowLoginForm(false);
     setShowDropdown(false);
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    onRegister({ firstName, lastName, email, password });
+    const { error } = await signUpWithProfile({ email, password, firstName, lastName });
+    if (error) {
+      setError(error.message);
+    } else {
+      setError('');
+      // Success : message, redirection, ou MAJ isLoggedIn
+    }
     setFirstName('');
     setLastName('');
     setEmail('');
@@ -47,9 +64,10 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
     setShowDropdown(false);
   };
 
-  const handleLogout = () => {
-    onLogout();
+  const handleLogout = async () => {
+    await signOut();
     setShowDropdown(false);
+    setError('');
   };
 
   return (
@@ -116,6 +134,8 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
           >
             <div className="auth-form">
               <h3>Connexion</h3>
+              {/* Affichage de l'erreur ici */}
+              {error && <div className="error" style={{ color: "red", marginBottom: 10 }}>{error}</div>}
               <form onSubmit={handleLogin}>
                 <div className="form-group">
                   <label htmlFor="email">Email</label>
@@ -158,6 +178,8 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
           >
             <div className="auth-form">
               <h3>Inscription</h3>
+              {/* Affichage de l'erreur ici */}
+              {error && <div className="error" style={{ color: "red", marginBottom: 10 }}>{error}</div>}
               <form onSubmit={handleRegister}>
                 <div className="form-row">
                   <div className="form-group">

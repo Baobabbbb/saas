@@ -1,9 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { getUserCreations, deleteCreation } from '../services/creations';
 import './History.css';
 import jsPDF from 'jspdf';
 
-const History = ({ creations, onClose, onSelect, onDelete }) => {
+const History = ({ onClose, onSelect }) => {
+  const [creations, setCreations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getUserCreations().then((data) => {
+      setCreations(data || []);
+      setLoading(false);
+    });
+  }, []);
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('fr-FR', {
@@ -42,10 +53,12 @@ const History = ({ creations, onClose, onSelect, onDelete }) => {
   };
 
   const handleDownloadPDF = (creation) => {
-    if (!creation?.content) return;
+    // Récupère le contenu à exporter (adapte selon ta structure)
+    const content = creation.content || creation.data?.content || '';
+    if (!content) return;
 
     const doc = new jsPDF();
-    const lines = doc.splitTextToSize(creation.content, 180);
+    const lines = doc.splitTextToSize(content, 180);
     doc.setFontSize(12);
     doc.text(lines, 15, 20);
 
@@ -53,6 +66,15 @@ const History = ({ creations, onClose, onSelect, onDelete }) => {
     const safeTitle = rawTitle.toLowerCase().replace(/\s+/g, '_').replace(/[^\w\-]/g, '');
     doc.save(`${safeTitle}.pdf`);
   };
+
+  const handleDelete = async (id) => {
+    await deleteCreation(id);
+    // Rafraîchit la liste après suppression
+    const data = await getUserCreations();
+    setCreations(data || []);
+  };
+
+  if (loading) return <div>Chargement...</div>;
 
   return (
     <motion.div 
@@ -90,12 +112,14 @@ const History = ({ creations, onClose, onSelect, onDelete }) => {
                   <h3>{creation.title}</h3>
                   <div className="creation-meta">
                     <span className="creation-type">{getContentTypeLabel(creation.type)}</span>
-                    <span className="creation-date">{formatDate(creation.createdAt)}</span>
+                    {/* Attention : "created_at" au lieu de "createdAt" */}
+                    <span className="creation-date">{formatDate(creation.created_at)}</span>
                   </div>
 
-                  {creation.content && creation.type !== 'rhyme' && (
+                  {/* Récupère le contenu texte selon la structure */}
+                  {(creation.content || creation.data?.content) && creation.type !== 'rhyme' && (
                     <div className="creation-text">
-                      {creation.content}
+                      {creation.content || creation.data?.content}
                     </div>
                   )}
 
@@ -108,7 +132,7 @@ const History = ({ creations, onClose, onSelect, onDelete }) => {
                   )}
 
                   <div className="creation-actions">
-                    {(creation.type === 'audio' || creation.type === 'rhyme') && creation.content && (
+                    {(creation.type === 'audio' || creation.type === 'rhyme') && (creation.content || creation.data?.content) && (
                       <button
                         className="btn-pdf"
                         onClick={(e) => {
@@ -137,7 +161,7 @@ const History = ({ creations, onClose, onSelect, onDelete }) => {
                         e.stopPropagation();
                         const confirmDelete = window.confirm(`Supprimer « ${creation.title} » ?`);
                         if (confirmDelete) {
-                          onDelete(creation.id);
+                          handleDelete(creation.id);
                         }
                       }}
                     >
