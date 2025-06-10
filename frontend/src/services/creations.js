@@ -26,6 +26,11 @@ export async function getUserCreations() {
   return data || [];
 }
 
+// Supprimer une création
 export async function deleteCreation(id) {
-  return await supabase.from('creations').delete().eq('id', id);
+  const { error } = await supabase
+    .from('creations')
+    .delete()
+    .eq('id', id);
+  return { error };
 }

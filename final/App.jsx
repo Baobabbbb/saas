@@ -199,6 +199,10 @@ function App() {
       audio_path: generatedContent?.audio_path || null
     };
 
+    if (user) {
+      const updatedCreations = [...creations, newCreation];
+    }
+
     // setTimeout(() => setShowConfetti(false), 3000);
   } catch (error) {
     console.error('❌ Erreur de génération :', error);
@@ -218,6 +222,7 @@ function App() {
   };
 
   const handleDeleteCreation = (idToDelete) => {
+    const updated = creations.filter(c => c.id !== idToDelete);
   };
 
   const isFormValid = () => {
@@ -671,6 +676,7 @@ const downloadPDF = async (title, content) => {
           <History
             onClose={handleCloseHistory}
             onSelect={handleSelectCreation}
+            onDelete={handleDeleteCreation}
           />
         </motion.div>
       )}
