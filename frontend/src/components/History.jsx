@@ -9,11 +9,15 @@ const History = ({ onClose, onSelect }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getUserCreations().then((data) => {
-      setCreations(data || []);
-      setLoading(false);
-    });
+    fetchCreations();
   }, []);
+
+  const fetchCreations = async () => {
+    setLoading(true);
+    const data = await getUserCreations();
+    setCreations(data || []);
+    setLoading(false);
+  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -53,7 +57,6 @@ const History = ({ onClose, onSelect }) => {
   };
 
   const handleDownloadPDF = (creation) => {
-    // Récupère le contenu à exporter (adapte selon ta structure)
     const content = creation.content || creation.data?.content || '';
     if (!content) return;
 
@@ -68,10 +71,14 @@ const History = ({ onClose, onSelect }) => {
   };
 
   const handleDelete = async (id) => {
-    await deleteCreation(id);
-    // Rafraîchit la liste après suppression
-    const data = await getUserCreations();
-    setCreations(data || []);
+    const confirmDelete = window.confirm("Supprimer cette création ?");
+    if (!confirmDelete) return;
+    const { error } = await deleteCreation(id);
+    if (error) {
+      alert("Erreur lors de la suppression !");
+      return;
+    }
+    fetchCreations(); // Rafraîchir la liste après suppression
   };
 
   if (loading) return <div>Chargement...</div>;
@@ -112,11 +119,9 @@ const History = ({ onClose, onSelect }) => {
                   <h3>{creation.title}</h3>
                   <div className="creation-meta">
                     <span className="creation-type">{getContentTypeLabel(creation.type)}</span>
-                    {/* Attention : "created_at" au lieu de "createdAt" */}
                     <span className="creation-date">{formatDate(creation.created_at)}</span>
                   </div>
 
-                  {/* Récupère le contenu texte selon la structure */}
                   {(creation.content || creation.data?.content) && creation.type !== 'rhyme' && (
                     <div className="creation-text">
                       {creation.content || creation.data?.content}
@@ -159,10 +164,7 @@ const History = ({ onClose, onSelect }) => {
                       className="btn-delete"
                       onClick={(e) => {
                         e.stopPropagation();
-                        const confirmDelete = window.confirm(`Supprimer « ${creation.title} » ?`);
-                        if (confirmDelete) {
-                          handleDelete(creation.id);
-                        }
+                        handleDelete(creation.id);
                       }}
                     >
                       🗑️ Supprimer
