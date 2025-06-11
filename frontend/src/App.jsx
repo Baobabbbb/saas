@@ -9,15 +9,19 @@ import HeroCreator from './components/HeroCreator';
 import StorySelector from './components/StorySelector';
 import RhymeSelector from './components/RhymeSelector';
 import AudioStorySelector from './components/AudioStorySelector';
+import AnimationSelector from './components/AnimationSelector';
 import CustomRequest from './components/CustomRequest';
 import GenerateButton from './components/GenerateButton';
 import History from './components/History';
 import ComicViewer from './components/ComicViewer';
+import AnimationViewer from './components/AnimationViewer';
+import AnimationPopup from './components/AnimationPopup';
 import jsPDF from 'jspdf';
 import StoryPopup from './components/StoryPopup';
 import ComicImageSelector from './components/ComicImageSelector';
 import { downloadComicAsPDF } from './utils/pdfUtils';
 import useSupabaseUser from './hooks/useSupabaseUser';
+import veo3Service from './services/veo3';
 
 function splitTextIntoPages(text, maxChars = 600) {
   const sentences = text.split(/(?<=[.?!])\s+/);
@@ -48,7 +52,7 @@ const getSafeFilename = (title) => {
 };
 
 function App() {
-  const [contentType, setContentType] = useState('story'); // 'story', 'rhyme', or 'audio'
+  const [contentType, setContentType] = useState('animation'); // 'story', 'rhyme', 'audio', or 'animation'
   const [selectedStyle, setSelectedStyle] = useState(null);
   const [heroName, setHeroName] = useState('');
   const [selectedStory, setSelectedStory] = useState(null);
@@ -70,7 +74,15 @@ function App() {
   const [numImages, setNumImages] = useState(4);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [customPrompt, setCustomPrompt] = useState('');
-  const [selectedAvatar, setSelectedAvatar] = useState(null);
+  const [selectedAvatar, setSelectedAvatar] = useState(null);  // Animation states
+  const [selectedAnimationStyle, setSelectedAnimationStyle] = useState(null);
+  const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
+  const [animationDuration, setAnimationDuration] = useState(5);
+  const [animationPrompt, setAnimationPrompt] = useState('');
+  const [animationOrientation, setAnimationOrientation] = useState(null); // 'landscape' or 'portrait'
+  const [animationResult, setAnimationResult] = useState(null);
+  const [showAnimationPopup, setShowAnimationPopup] = useState(false);
+  const [animationGenerationStatus, setAnimationGenerationStatus] = useState(null);
 
   // User account state
   const { user, loading } = useSupabaseUser();
@@ -156,9 +168,7 @@ function App() {
 
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
-    }
-
-    if (contentType === 'audio') {
+    }    if (contentType === 'audio') {
       const payload = {
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
         voice: selectedVoice,
@@ -173,14 +183,65 @@ function App() {
 
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
+    }    if (contentType === 'animation') {
+      // Validation des données d'animation
+      const animationData = {
+        style: selectedAnimationStyle,
+        theme: selectedAnimationTheme,
+        orientation: animationOrientation,
+        prompt: animationPrompt,
+        title: `Dessin animé ${selectedAnimationTheme}`,
+        description: `Animation ${selectedAnimationStyle} sur le thème ${selectedAnimationTheme} (${animationOrientation})`
+      };
+
+      const validation = veo3Service.validateAnimationData(animationData);
+      if (!validation.isValid) {
+        throw new Error(validation.errors.join(', '));
+      }
+
+      // Optimiser le prompt pour Veo3
+      const optimizedPrompt = veo3Service.createOptimizedPrompt(
+        selectedAnimationStyle,
+        selectedAnimationTheme,
+        animationPrompt
+      );
+
+      animationData.prompt = optimizedPrompt;
+      
+      // Générer l'animation avec Veo3
+      const animationResponse = await veo3Service.generateAnimation(animationData);
+      
+      setAnimationGenerationStatus({
+        status: 'processing',
+        estimatedTime: veo3Service.estimateGenerationTime(animationDuration),
+        animationId: animationResponse.animationId
+      });
+
+      // Simuler le suivi du statut (dans un vrai projet, ce serait un polling)
+      setTimeout(() => {
+        setAnimationResult({
+          id: animationResponse.animationId,
+          title: animationData.title,
+          description: animationData.description,
+          videoUrl: '/sample-animation.mp4', // URL fictive pour la démo
+          thumbnailUrl: '/sample-thumbnail.jpg',
+          style: selectedAnimationStyle,
+          theme: selectedAnimationTheme,
+          duration: animationDuration,
+          status: 'completed',
+          createdAt: new Date().toISOString()
+        });
+        setAnimationGenerationStatus({ status: 'completed' });
+      }, 3000);
+
+      // Pour les animations, on n'utilise pas generatedContent
+      generatedContent = null;
     }
 
     // 🔁 Enregistre le résultat généré pour affichage audio/texte
     setGeneratedResult(generatedContent);
     // setStoryPages(splitTextIntoPages(generatedContent.content)); // Ajoute la pagination
-    setCurrentPageIndex(0); // Reviens à la première page
-
-    // Déterminer le titre
+    setCurrentPageIndex(0); // Reviens à la première page    // Déterminer le titre
     let title;
     if (contentType === 'story') {
       title = generatedContent.title || `L'histoire de ${heroName}`;
@@ -188,16 +249,21 @@ function App() {
       title = generatedContent.title || `Comptine générée`;
     } else if (contentType === 'audio') {
       title = generatedContent.title || `Conte généré`;
+    } else if (contentType === 'animation') {
+      title = animationResult?.title || `Dessin animé ${selectedAnimationTheme}`;
     }
 
-    const newCreation = {
-      id: Date.now().toString(),
-      type: contentType,
-      title: title,
-      createdAt: new Date().toISOString(),
-      content: generatedContent?.content || generatedContent || 'Contenu généré...',
-      audio_path: generatedContent?.audio_path || null
-    };
+    // Ne créer une entrée d'historique que pour les types non-animation
+    if (contentType !== 'animation') {
+      const newCreation = {
+        id: Date.now().toString(),
+        type: contentType,
+        title: title,
+        createdAt: new Date().toISOString(),
+        content: generatedContent?.content || generatedContent || 'Contenu généré...',
+        audio_path: generatedContent?.audio_path || null
+      };
+    }
 
     // setTimeout(() => setShowConfetti(false), 3000);
   } catch (error) {
@@ -219,7 +285,6 @@ function App() {
 
   const handleDeleteCreation = (idToDelete) => {
   };
-
   const isFormValid = () => {
     if (contentType === 'story') {
       if (!selectedStyle) return false;
@@ -232,7 +297,11 @@ function App() {
     } else if (contentType === 'audio') {
       if (!selectedAudioStory) return false;
       if (selectedAudioStory === 'custom' && !customAudioStory.trim()) return false;
-      // if (!selectedVoice) return false;
+      // if (!selectedVoice) return false;    } else if (contentType === 'animation') {
+      if (!selectedAnimationStyle) return false;
+      if (!selectedAnimationTheme) return false;
+      if (!animationOrientation) return false;
+      if (selectedAnimationTheme === 'custom' && !animationPrompt.trim()) return false;
     }
     return true;
   };
@@ -390,9 +459,7 @@ const downloadPDF = async (title, content) => {
                 />
               </motion.div>
             )}
-          </AnimatePresence>
-
-          <AnimatePresence mode="wait">
+          </AnimatePresence>          <AnimatePresence mode="wait">
             {contentType === 'story' ? (
               <motion.div
                 key="story-selector"
@@ -425,7 +492,7 @@ const downloadPDF = async (title, content) => {
                   setCustomRhyme={setCustomRhyme}
                 />
               </motion.div>
-            ) : (
+            ) : contentType === 'audio' ? (
               <motion.div
                 key="audio-story-selector"
                 variants={contentVariants}
@@ -443,7 +510,28 @@ const downloadPDF = async (title, content) => {
                   setSelectedVoice={setSelectedVoice}
                 />
               </motion.div>
-            )}
+            ) : contentType === 'animation' ? (
+              <motion.div
+                key="animation-selector"
+                variants={contentVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.3 }}
+              >                <AnimationSelector
+                  selectedAnimationStyle={selectedAnimationStyle}
+                  setSelectedAnimationStyle={setSelectedAnimationStyle}
+                  selectedAnimationTheme={selectedAnimationTheme}
+                  setSelectedAnimationTheme={setSelectedAnimationTheme}
+                  customPrompt={animationPrompt}
+                  setCustomPrompt={setAnimationPrompt}
+                  duration={animationDuration}
+                  setDuration={setAnimationDuration}
+                  orientation={animationOrientation}
+                  setOrientation={setAnimationOrientation}
+                />
+              </motion.div>
+            ) : null}
           </AnimatePresence>
 
           {contentType === 'story' && (
@@ -451,12 +539,10 @@ const downloadPDF = async (title, content) => {
               numImages={numImages}
               setNumImages={setNumImages}
             />
-          )}
-
-          <CustomRequest
+          )}          <CustomRequest
             customRequest={customRequest}
             setCustomRequest={setCustomRequest}
-            stepNumber={contentType === 'story' ? 5 : 3}
+            stepNumber={contentType === 'story' ? 5 : contentType === 'animation' ? 5 : 3}
           />
 
           <GenerateButton
@@ -489,16 +575,20 @@ const downloadPDF = async (title, content) => {
         <div className="dot"></div>
         <div className="dot"></div>
         <div className="dot"></div>
-      </div>
-      <p>
+      </div>      <p>
         {contentType === 'story'
           ? 'Création de la BD en cours...'
           : contentType === 'rhyme'
           ? 'Création de la comptine en cours...'
-          : 'Création de l\'histoire en cours...'}
+          : contentType === 'audio'
+          ? 'Création de l\'histoire en cours...'
+          : contentType === 'animation'
+          ? animationGenerationStatus?.status === 'processing'
+            ? `Génération du dessin animé en cours... (${animationGenerationStatus.estimatedTime} min estimées)`
+            : 'Préparation de l\'animation...'
+          : 'Génération en cours...'}
       </p>
     </motion.div>
-
   ) : comicResult && contentType === 'story' ? (
   <div
     style={{
@@ -536,6 +626,37 @@ const downloadPDF = async (title, content) => {
       📄 Télécharger la BD
     </button>
   </div>
+  
+  ) : animationResult && contentType === 'animation' ? (
+  <div
+    style={{
+      width: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '1rem'
+    }}
+  >
+    <div className="animation-preview-container">
+      <AnimationViewer animation={animationResult} />
+    </div>
+    
+    <button
+      onClick={() => setShowAnimationPopup(true)}
+      style={{
+        padding: '0.6rem 1.4rem',
+        backgroundColor: '#6B4EFF',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '0.5rem',
+        cursor: 'pointer',
+        fontWeight: '600'
+      }}
+    >
+      🎬 Voir en grand
+    </button>
+  </div>
   ) : (
     
     <motion.div
@@ -550,15 +671,18 @@ const downloadPDF = async (title, content) => {
     alt="BDKids logo"
     className="preview-logo"
   />*/}
-
-  {!generatedResult?.content && (
+  {!generatedResult?.content && !animationResult && (
     <div className="empty-preview">
     <p>
       {contentType === 'story'
         ? 'Votre bande dessinée apparaîtra ici'
         : contentType === 'rhyme'
         ? 'Votre comptine apparaîtra ici'
-        : 'Votre histoire apparaîtra ici'}
+        : contentType === 'audio'
+        ? 'Votre histoire apparaîtra ici'
+        : contentType === 'animation'
+        ? 'Votre dessin animé apparaîtra ici'
+        : 'Votre création apparaîtra ici'}
     </p>
     </div>
   )}
@@ -682,12 +806,18 @@ const downloadPDF = async (title, content) => {
     content={generatedResult.content}
     onClose={() => setShowStoryPopup(false)}
   />
-)}
-
-    {showComicPopup && (
+)}    {showComicPopup && (
       <StoryPopup onClose={() => setShowComicPopup(false)}>
         <ComicViewer comic={comicResult} />
       </StoryPopup>
+    )}
+
+    {showAnimationPopup && (
+      <AnimationPopup 
+        animation={animationResult}
+        isOpen={showAnimationPopup}
+        onClose={() => setShowAnimationPopup(false)}
+      />
     )}
   </div>
 );

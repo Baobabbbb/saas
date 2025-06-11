@@ -2,13 +2,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import './GenerateButton.css';
 
-const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) => {
-  const getButtonText = () => {
+const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) => {  const getButtonText = () => {
     if (isGenerating) {
       return contentType === 'story' 
         ? 'Création de la BD en cours...' 
         : contentType === 'rhyme'
         ? 'Création de la comptine en cours...'
+        : contentType === 'animation'
+        ? 'Création du dessin animé en cours...'
         : 'Création de l\'histoire en cours...';
     }
     
@@ -16,6 +17,8 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) =
       ? 'Créer ma bande dessinée' 
       : contentType === 'rhyme'
       ? 'Créer ma comptine'
+      : contentType === 'animation'
+      ? 'Créer mon dessin animé'
       : 'Créer mon histoire';
   };
 
@@ -47,12 +50,13 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) =
         <span>{getButtonText()}</span>
       </motion.button>
       
-      {isDisabled && !isGenerating && (
-        <p className="generate-button-hint">
+      {isDisabled && !isGenerating && (        <p className="generate-button-hint">
           {contentType === 'story' 
             ? 'Veuillez remplir tous les champs requis pour créer votre BD' 
             : contentType === 'rhyme'
             ? 'Veuillez sélectionner un type de comptine pour continuer'
+            : contentType === 'animation'
+            ? 'Veuillez remplir tous les champs requis pour créer votre dessin animé'
             : 'Veuillez sélectionner un type d\'histoire (et une voix) pour continuer'}
         </p>
       )}

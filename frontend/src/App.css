@@ -311,3 +311,70 @@ body {
   background-color: rgb(107, 78, 255);
   /*transform: scale(1.03);*/
 }
+
+/* Animation Preview Styles */
+.animation-preview-container {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  background: white;
+}
+
+.animation-preview-container .animation-viewer {
+  padding: 1rem;
+  box-shadow: none;
+  border-radius: 12px;
+}
+
+.animation-preview-container .animation-header {
+  margin-bottom: 1rem;
+}
+
+.animation-preview-container .animation-title {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.animation-preview-container .animation-description {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.animation-preview-container .animation-controls-top {
+  gap: 0.25rem;
+}
+
+.animation-preview-container .control-btn {
+  min-width: 32px;
+  height: 32px;
+  font-size: 0.8rem;
+}
+
+.animation-preview-container .video-container {
+  margin-bottom: 0.75rem;
+}
+
+.animation-preview-container .animation-video {
+  max-height: 200px;
+}
+
+.animation-preview-container .animation-controls {
+  padding: 0.75rem;
+}
+
+.animation-preview-container .animation-actions {
+  display: none; /* Cache les actions dans la preview */
+}
+
+/* Responsive pour les animations */
+@media (max-width: 768px) {
+  .animation-preview-container {
+    max-width: 100%;
+  }
+  
+  .animation-preview-container .animation-video {
+    max-height: 150px;
+  }
+}

@@ -13,11 +13,13 @@ import openai
 from openai import AsyncOpenAI
 
 from models import ComicRequest
+from schemas.animation import AnimationRequest, AnimationResponse, AnimationStatusResponse
 from services.scenario import generate_scenario
 from services.image_gen import generate_images
 from services.composer import compose_pages
 from services.tts import generate_speech
 from services.stt import transcribe_audio
+from services.veo3_service_simple import veo3_service
 from utils.translate import translate_text
 
 # --- Chargement .env ---
@@ -306,4 +308,84 @@ async def generate_audio_story(request: AudioStoryRequest):
         print("❌ Erreur lors de la génération du conte audio :")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+# === ENDPOINTS POUR LES ANIMATIONS ===
+
+@app.post("/api/animations/generate", response_model=AnimationResponse)
+async def generate_animation(request: AnimationRequest):
+    """Génère une nouvelle animation avec Veo3"""
+    try:
+        print(f"🎬 Génération d'animation demandée: {request.style} - {request.theme}")
+        
+        animation = await veo3_service.generate_animation(request)
+        
+        print(f"✅ Animation créée avec l'ID: {animation.id}")
+        return animation
+        
+    except Exception as e:
+        print("❌ Erreur lors de la génération d'animation:")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/animations/{animation_id}/status", response_model=AnimationStatusResponse)
+async def get_animation_status(animation_id: str):
+    """Récupère le statut d'une animation"""
+    try:
+        status = await veo3_service.get_animation_status(animation_id)
+        return status
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        print("❌ Erreur lors de la récupération du statut:")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/animations/{animation_id}", response_model=AnimationResponse)
+async def get_animation(animation_id: str):
+    """Récupère une animation complète"""
+    try:
+        animation = await veo3_service.get_animation(animation_id)
+        return animation
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        print("❌ Erreur lors de la récupération de l'animation:")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/animations")
+async def get_user_animations(page: int = 1, limit: int = 10):
+    """Récupère les animations d'un utilisateur (simulation)"""
+    try:
+        # Dans un vrai projet, on filtrerait par utilisateur
+        # Pour la démo, on retourne toutes les animations stockées
+        animations = []
+        for anim_id, anim_data in veo3_service.animations_storage.items():
+            animation = AnimationResponse(**anim_data["animation"])
+            animations.append(animation)
+        
+        # Pagination simple
+        start_idx = (page - 1) * limit
+        end_idx = start_idx + limit
+        paginated_animations = animations[start_idx:end_idx]
+        
+        return {
+            "animations": paginated_animations,
+            "total": len(animations),
+            "page": page,
+            "limit": limit,
+            "total_pages": (len(animations) + limit - 1) // limit
+        }
+        
+    except Exception as e:
+        print("❌ Erreur lors de la récupération des animations:")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Cleanup à la fermeture
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Nettoie les ressources à la fermeture"""
+    await veo3_service.close()
