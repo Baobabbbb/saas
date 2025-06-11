@@ -189,7 +189,7 @@ const AnimationSelector = ({
           >
             <div className="orientation-icon">📱</div>
             <h4 className="orientation-name">Paysage</h4>
-            <p className="orientation-description">Format horizontal (16:9)</p>
+            <p className="orientation-description">Format horizontal</p>
           </motion.div>
           
           <motion.div
@@ -200,7 +200,7 @@ const AnimationSelector = ({
           >
             <div className="orientation-icon">📱</div>
             <h4 className="orientation-name">Portrait</h4>
-            <p className="orientation-description">Format vertical (9:16)</p>
+            <p className="orientation-description">Format vertical</p>
           </motion.div>
         </div>
       </div>
