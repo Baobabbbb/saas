@@ -80,6 +80,7 @@ function App() {
   const [animationDuration, setAnimationDuration] = useState(5);
   const [animationPrompt, setAnimationPrompt] = useState('');
   const [animationOrientation, setAnimationOrientation] = useState(null); // 'landscape' or 'portrait'
+  const [uploadedAnimationImage, setUploadedAnimationImage] = useState(null);
   const [animationResult, setAnimationResult] = useState(null);
   const [showAnimationPopup, setShowAnimationPopup] = useState(false);
   const [animationGenerationStatus, setAnimationGenerationStatus] = useState(null);
@@ -529,6 +530,8 @@ const downloadPDF = async (title, content) => {
                   setDuration={setAnimationDuration}
                   orientation={animationOrientation}
                   setOrientation={setAnimationOrientation}
+                  uploadedAnimationImage={uploadedAnimationImage}
+                  setUploadedAnimationImage={setUploadedAnimationImage}
                 />
               </motion.div>
             ) : null}
