@@ -129,23 +129,31 @@ const HeroCreator = ({
                 autoFocus
               />
             </div>
-          )}
-
-          {/* Affichage de la photo uploadée */}
+          )}          {/* Affichage de la photo uploadée */}
           {uploadedPhoto && (
             <div className="uploaded-photo-container">
               <div className="uploaded-photo">
                 <img src={uploadedPhoto} alt="Photo de l'enfant" />
               </div>
-              <motion.button
-                className="remove-photo"
-                onClick={removePhoto}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                ✕
-              </motion.button>
               <p className="photo-caption">Photo téléchargée</p>
+              <div className="photo-actions">
+                <motion.button
+                  className="change-photo-btn"
+                  onClick={triggerFileInput}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Changer la photo
+                </motion.button>
+                <motion.button
+                  className="remove-photo-btn"
+                  onClick={removePhoto}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Supprimer la photo
+                </motion.button>
+              </div>
             </div>
           )}
         </div>

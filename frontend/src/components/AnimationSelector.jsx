@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import './AnimationSelector.css';
 
@@ -106,9 +106,13 @@ const AnimationSelector = ({
   customPrompt,
   setCustomPrompt,
   orientation,
-  setOrientation
+  setOrientation,
+  uploadedAnimationImage,
+  setUploadedAnimationImage
 }) => {
   const [showCustomThemeInput, setShowCustomThemeInput] = useState(false);
+  const [uploadedPhoto, setUploadedPhoto] = useState(null);
+  const fileInputRef = useRef(null);
 
   const handleStyleSelect = (styleId) => {
     setSelectedAnimationStyle(styleId);
@@ -125,9 +129,30 @@ const AnimationSelector = ({
   const handleCustomPromptChange = (e) => {
     setCustomPrompt(e.target.value);
   };
-
   const handleOrientationSelect = (orientationValue) => {
     setOrientation(orientationValue);
+  };
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setUploadedPhoto(event.target.result);
+        setUploadedAnimationImage(file);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current.click();
+  };
+
+  const removePhoto = () => {
+    setUploadedPhoto(null);
+    setUploadedAnimationImage(null);
+    fileInputRef.current.value = '';
   };
 
   return (
@@ -200,8 +225,7 @@ const AnimationSelector = ({
         </div>
 
         {/* Custom theme input */}
-        {showCustomThemeInput && (
-          <motion.div
+        {showCustomThemeInput && (          <motion.div
             className="custom-theme-input"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -218,6 +242,58 @@ const AnimationSelector = ({
             />
           </motion.div>
         )}
+      </div>
+
+      {/* Personnage principal (optionnel) */}
+      <div className="character-selector">
+        <h3>5. Personnage principal (optionnel)</h3>
+        <p className="character-description">
+          Ajoutez une photo pour créer un personnage à votre image dans l'animation
+        </p>        <div className="character-upload-section">
+          {!uploadedPhoto ? (
+            <motion.button
+              className="character-upload-button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={triggerFileInput}
+            >
+              <span className="upload-icon">📷</span>
+              <span>Ajouter une photo</span>
+            </motion.button>          ) : (
+            <div className="character-preview">
+              <div className="preview-image">
+                <img src={uploadedPhoto} alt="Personnage principal" />
+              </div>
+              <p className="preview-text">Votre personnage principal</p>
+              <div className="photo-actions">
+                <motion.button
+                  className="change-photo-btn"
+                  onClick={triggerFileInput}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Changer la photo
+                </motion.button>
+                <motion.button
+                  className="remove-photo-btn"
+                  onClick={removePhoto}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Supprimer la photo
+                </motion.button>
+              </div>
+            </div>
+          )}
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handlePhotoUpload}
+            accept="image/*"
+            style={{ display: 'none' }}
+          />
+        </div>
       </div>
     </div>
   );
