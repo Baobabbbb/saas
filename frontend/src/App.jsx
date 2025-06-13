@@ -77,7 +77,7 @@ function App() {
   const [selectedAvatar, setSelectedAvatar] = useState(null);  // Animation states
   const [selectedAnimationStyle, setSelectedAnimationStyle] = useState(null);
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
-  const [animationDuration, setAnimationDuration] = useState(5);
+  const [animationDuration, setAnimationDuration] = useState(8); // Fal-ai/Veo3 ne supporte que 8s
   const [animationPrompt, setAnimationPrompt] = useState('');
   const [animationOrientation, setAnimationOrientation] = useState(null); // 'landscape' or 'portrait'
   const [uploadedAnimationImage, setUploadedAnimationImage] = useState(null);
@@ -205,35 +205,45 @@ function App() {
         selectedAnimationStyle,
         selectedAnimationTheme,
         animationPrompt
-      );
-
-      animationData.prompt = optimizedPrompt;
+      );      animationData.prompt = optimizedPrompt;
       
-      // Générer l'animation avec Veo3
-      const animationResponse = await veo3Service.generateAnimation(animationData);
-      
-      setAnimationGenerationStatus({
-        status: 'processing',
-        estimatedTime: veo3Service.estimateGenerationTime(animationDuration),
-        animationId: animationResponse.animationId
-      });
-
-      // Simuler le suivi du statut (dans un vrai projet, ce serait un polling)
-      setTimeout(() => {
+      // Générer l'animation avec Veo3 via fal-ai
+      try {
+        const animationResponse = await veo3Service.generateAnimation(animationData);
+        
+        // Utiliser directement la réponse du backend
         setAnimationResult({
-          id: animationResponse.animationId,
-          title: animationData.title,
-          description: animationData.description,
-          videoUrl: '/sample-animation.mp4', // URL fictive pour la démo
-          thumbnailUrl: '/sample-thumbnail.jpg',
+          id: animationResponse.id,
+          title: animationResponse.title || animationData.title,
+          description: animationResponse.description || animationData.description,
+          videoUrl: animationResponse.video_url,
+          thumbnailUrl: animationResponse.thumbnail_url || null,
           style: selectedAnimationStyle,
           theme: selectedAnimationTheme,
-          duration: animationDuration,
-          status: 'completed',
+          duration: 8,
+          status: animationResponse.status || 'completed',
+          createdAt: animationResponse.created_at || new Date().toISOString()
+        });
+        
+        setAnimationGenerationStatus({ status: 'completed' });
+      } catch (error) {
+        console.error('Erreur génération animation:', error);
+        // En cas d'erreur (quota épuisé), afficher un message explicite
+        setAnimationResult({
+          id: `error_${Date.now()}`,
+          title: `⚠️ ${animationData.title}`,
+          description: `Erreur: ${error.message}`,
+          videoUrl: null,
+          thumbnailUrl: null,
+          style: selectedAnimationStyle,
+          theme: selectedAnimationTheme,
+          duration: 8,
+          status: 'failed',
+          error: error.message,
           createdAt: new Date().toISOString()
         });
-        setAnimationGenerationStatus({ status: 'completed' });
-      }, 3000);
+        setAnimationGenerationStatus({ status: 'failed', error: error.message });
+      }
 
       // Pour les animations, on n'utilise pas generatedContent
       generatedContent = null;

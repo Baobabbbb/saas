@@ -110,6 +110,63 @@ const AnimationViewer = ({ animation, onClose }) => {
 
   if (!animation) return null;
 
+  // Gestion des erreurs d'animation
+  if (animation.status === 'failed' || animation.error) {
+    return (
+      <motion.div 
+        className="animation-viewer error"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="animation-header">
+          <div className="animation-info">
+            <h2 className="animation-title">{animation.title}</h2>
+            <p className="animation-description" style={{color: '#ff6b6b'}}>
+              ❌ {animation.error || animation.description}
+            </p>
+          </div>
+          <button className="control-btn close-btn" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+        
+        <div className="animation-error-content">
+          <div style={{
+            padding: '2rem',
+            textAlign: 'center',
+            background: '#ffe5e5',
+            borderRadius: '8px',
+            border: '2px dashed #ff6b6b'
+          }}>
+            <h3 style={{color: '#d63031', marginBottom: '1rem'}}>
+              🚫 Génération échouée
+            </h3>
+            <p style={{color: '#636e72', lineHeight: '1.5'}}>
+              La génération de l'animation a échoué. <br/>
+              Cause: {animation.error || 'Erreur inconnue'}
+            </p>
+            <button 
+              onClick={onClose}
+              style={{
+                marginTop: '1rem',
+                padding: '0.5rem 1rem',
+                background: '#d63031',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div 
       className={`animation-viewer ${isFullscreen ? 'fullscreen' : ''}`}

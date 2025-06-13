@@ -13,3 +13,7 @@ STT_MODEL = os.getenv("STT_MODEL", "gpt-4o-mini-transcribe")
 # --- Clés API ---
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")  # ← ajout pour Stability AI
+
+# --- FAL-AI (Veo3) ---
+FAL_API_KEY = os.getenv("FAL_API_KEY")
+FAL_BASE_URL = os.getenv("FAL_BASE_URL", "https://queue.fal.run")
