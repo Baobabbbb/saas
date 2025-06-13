@@ -12,11 +12,10 @@ class Veo3Service {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        },        body: JSON.stringify({
           style: animationData.style,
           theme: animationData.theme,
-          duration: animationData.duration,
+          orientation: animationData.orientation,
           prompt: animationData.prompt,
           title: animationData.title || 'Mon Dessin Animé',
           description: animationData.description || 'Dessin animé créé avec Veo3'
@@ -122,11 +121,8 @@ class Veo3Service {
 
     if (!data.theme) {
       errors.push('Le thème est requis');
-    }
-
-    if (!data.duration || data.duration < 5 || data.duration > 20) {
-      errors.push('La durée doit être entre 5 et 20 secondes');
-    }
+    }    // Fal-ai/Veo3 utilise une durée fixe de 8 secondes
+    // Pas besoin de valider la durée côté frontend
 
     if (data.prompt && data.prompt.length > 500) {
       errors.push('La description ne peut pas dépasser 500 caractères');
