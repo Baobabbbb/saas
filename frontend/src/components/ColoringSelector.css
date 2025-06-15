@@ -1,0 +1,119 @@
+/* Variables pour cohérence avec les autres composants */
+:root {
+  --primary: #6B4EFF;
+  --text: #333;
+}
+
+.coloring-selector {
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.coloring-selector h3 {
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.coloring-selector h4 {
+  color: #4a3b8c;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: #f5f0ff;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.theme-option:hover {
+  background-color: #ede5ff;
+}
+
+.theme-option.selected {
+  border-color: var(--primary);
+  background-color: #ede5ff;
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
+}
+
+.theme-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.theme-info h4 {
+  font-weight: 600;
+  color: var(--primary);
+  margin: 0;
+  margin-bottom: 0.25rem;
+  text-align: center;
+}
+
+.theme-info p {
+  font-size: 0.8rem;
+  margin: 0;
+  color: var(--text);
+  opacity: 0.8;
+  text-align: center;
+}
+
+.personalization-options {
+  background: #f8f9fa;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.input-group {
+  margin-bottom: 1rem;
+}
+
+.input-group:last-child {
+  margin-bottom: 0;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #4a3b8c;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.personalization-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+  background: white;
+}
+
+.personalization-input:focus {
+  outline: none;
+  border-color: #6B4EFF;
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+}
+
+.personalization-input::placeholder {
+  color: #999;
+  opacity: 1;
+}

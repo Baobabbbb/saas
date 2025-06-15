@@ -1,0 +1,118 @@
+# Configuration des tâches CrewAI pour la génération complète de bandes dessinées
+# Respecte les spécifications franco-belges exactes
+
+create_scenario_task:
+  description: >
+    Crée un scénario de bande dessinée complet selon les spécifications utilisateur.
+    
+    SPÉCIFICATIONS OBLIGATOIRES :
+    - Style : {style}
+    - Héros : {hero_name} 
+    - Type d'histoire : {story_type}
+    - Demande spécifique : {custom_request}
+    - Nombre de scènes : {num_images}
+    
+    CONTRAINTES BD FRANCO-BELGE :
+    - Structure narrative : début → problème → aventure → résolution
+    - Dialogues courts : max 40 caractères par ligne, max 3 lignes par bulle
+    - Personnages cohérents et attachants
+    - Langage adapté aux enfants 6-9 ans
+    - Progression dramatique équilibrée
+    
+    SORTIE ATTENDUE :
+    Scénario structuré avec titre, description de chaque scène, dialogues optimisés 
+    pour bulles BD, indications de placement des personnages, métadonnées pour la suite.
+  expected_output: >
+    JSON structuré avec title, scenes (description, dialogues avec character/text/type, 
+    character_positions), style_notes, narrative_structure
+  agent: scenario_writer
+
+design_bubbles_task:
+  description: >
+    Conçois les spécifications exactes des bulles de dialogue selon les standards franco-belges.
+    
+    RÈGLES OBLIGATOIRES pour les bulles :
+    
+    1. FORME ET APPARENCE :
+    - Forme : ovales ou elliptiques UNIQUEMENT
+    - Contour : noir régulier et net (épaisseur constante 2-3px)
+    - Remplissage : fond blanc uni (#FFFFFF), AUCUNE texture ni dégradé
+    
+    2. APPENDICES (queue de bulle) :
+    - Parole normale : trait pointu partant vers la bouche du personnage
+    - Pensée : suite de petits cercles décroissants vers la tête
+    - Cri/onomatopées : forme anguleuse avec effets dynamiques
+    - Chuchotement : trait pointillé
+    
+    3. TEXTE :
+    - Police : manuscrite ou style BD, claire et lisible
+    - Alignement : centré avec bon espacement entre lettres
+    - Style : typographie franco-belge (comme Tintin)
+    - Contrainte : max 40 caractères/ligne, max 3 lignes
+    
+    4. PLACEMENT :
+    - Positionnement propre dans la case
+    - AUCUN chevauchement avec personnages
+    - AUCUNE coupure d'éléments visuels clés
+    - Respect ordre de lecture (gauche→droite, haut→bas)
+    
+    Utilise le scénario fourni en contexte.
+  expected_output: >
+    JSON avec bubble_specifications contenant pour chaque scène les spécifications 
+    détaillées de bulles (type, shape, position, appendix_style, etc.)
+  agent: bubble_designer
+
+create_image_prompts_task:
+  description: >
+    Crée des prompts détaillés pour générer des images de qualité professionnelle.
+    
+    SPÉCIFICATIONS STYLE :
+    - Style utilisateur : {style}
+    - Adaptation selon le style choisi (cartoon, manga, réaliste, etc.)
+    - Qualité professionnelle d'illustration
+    
+    CONTRAINTES TECHNIQUES :
+    - Espace réservé pour les bulles selon les spécifications
+    - Personnages bien visibles et identifiables
+    - Composition équilibrée
+    - Couleurs vives et attrayantes
+    - Résolution optimale pour BD
+    
+    ÉLÉMENTS À INTÉGRER :
+    - Description de la scène du scénario
+    - Position des personnages pour placement des bulles
+    - Style artistique cohérent
+    - Détails visuels enrichissants
+    
+    Utilise le scénario et les spécifications de bulles en contexte.
+  expected_output: >
+    JSON avec image_prompts contenant pour chaque scène : english_prompt, 
+    style_modifiers, technical_specs, bubble_space_constraints, character_positioning
+  agent: image_director
+
+final_composition_task:
+  description: >
+    Assemble tous les éléments pour créer la bande dessinée finale.
+    
+    PROCESSUS D'ASSEMBLAGE :
+    1. Génération des images selon les prompts
+    2. Application des bulles selon les spécifications exactes
+    3. Placement du texte avec typographie franco-belge
+    4. Vérification de la lisibilité et qualité
+    5. Export des fichiers finaux
+    
+    CONTRÔLES QUALITÉ :
+    - Respect des spécifications de bulles
+    - Lisibilité parfaite du texte
+    - Cohérence visuelle globale
+    - Absence de chevauchements
+    - Ordre de lecture respecté
+    
+    SORTIE FINALE :
+    - Images PNG haute qualité
+    - Métadonnées de création
+    - Rapport de qualité
+  expected_output: >
+    JSON avec comic_pages (scene_index, image_path, bubbles_applied, quality_score), 
+    comic_metadata, files_generated
+  agent: layout_composer

@@ -22,15 +22,15 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
         </motion.div>
 
         <motion.div
-          className={`content-type-option ${contentType === 'story' ? 'selected' : ''}`}
-          onClick={() => setContentType('story')}
+          className={`content-type-option ${contentType === 'coloring' ? 'selected' : ''}`}
+          onClick={() => setContentType('coloring')}
           whileHover={{ y: -5 }}
           whileTap={{ scale: 0.98 }}
         >
-          <div className="content-type-icon">💬</div>
+          <div className="content-type-icon">🎨</div>
           <div className="content-type-details">
-            <h4>Bande dessinée</h4>
-            <p>Créez une bande dessinée avec des personnages et une aventure</p>
+            <h4>Coloriage</h4>
+            <p>Créez des dessins à colorier personnalisés en noir et blanc</p>
           </div>
         </motion.div>
         

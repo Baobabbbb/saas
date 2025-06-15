@@ -15,12 +15,13 @@ from openai import AsyncOpenAI
 
 from schemas.animation import AnimationRequest, AnimationResponse, AnimationStatusResponse, AnimationStatus
 from datetime import datetime
-from services.scenario import generate_scenario
-from services.image_gen import generate_images
-from services.composer import compose_pages
+# from services.scenario import generate_scenario
+# from services.image_gen import generate_images
+# from services.composer import compose_pages
 from services.tts import generate_speech
 from services.stt import transcribe_audio
 from services.veo3_fal import veo3_fal_service
+from services.coloring_generator import ColoringGenerator
 from utils.translate import translate_text
 
 # --- Chargement .env ---
@@ -295,6 +296,12 @@ class AudioStoryRequest(BaseModel):
     voice: Optional[str] = None
     custom_request: Optional[str] = None
 
+# --- Coloriage ---
+class ColoringRequest(BaseModel):
+    theme: str
+    child_name: Optional[str] = None
+    favorite_animal: Optional[str] = None
+
 @app.post("/generate_audio_story/")
 async def generate_audio_story(request: AudioStoryRequest):
     try:
@@ -335,6 +342,31 @@ async def generate_audio_story(request: AudioStoryRequest):
 
     except Exception as e:
         print("❌ Erreur lors de la génération du conte audio :")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- Endpoint Coloriage ---
+@app.post("/generate_coloring/")
+async def generate_coloring(request: ColoringRequest):
+    try:
+        print("📥 Requête reçue sur /generate_coloring/")
+        print("🎨 Données reçues :", request.dict())
+
+        # Initialiser le générateur de coloriages
+        coloring_generator = ColoringGenerator()
+        
+        # Générer les images de coloriage
+        result = await coloring_generator.generate_coloring_images(
+            theme=request.theme,
+            child_name=request.child_name,
+            favorite_animal=request.favorite_animal
+        )
+        
+        print("✅ Coloriages générés avec succès")
+        return result
+
+    except Exception as e:
+        print("❌ Erreur lors de la génération des coloriages :")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 

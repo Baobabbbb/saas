@@ -27,10 +27,9 @@ const ComicViewer = ({ comic }) => {
   const goToNext = () => {
     setCurrentPageIndex((prev) => Math.min(prev + 1, comic.pages.length - 1));
   };
-
   return (
     <div className="comic-viewer">
-      <h2 className="comic-title">{comic.title}</h2>
+      <h2 className="comic-title">{comic.comic_metadata?.title || comic.title}</h2>
 
       <div className="comic-pages">
         <AnimatePresence mode="wait">
@@ -40,10 +39,9 @@ const ComicViewer = ({ comic }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-          >
+            transition={{ duration: 0.4 }}          >
             <img
-              src={`${BACKEND_URL}${page}`}
+              src={`${BACKEND_URL}${page.image_url || page}`}
               alt={`Page ${currentPageIndex + 1}`}
               className="comic-image"
             />
@@ -73,11 +71,10 @@ const ComicViewer = ({ comic }) => {
         </button>
       </div>
 
-      <div className="comic-download">
-        <button className='download-pdf-button-b'
+      <div className="comic-download">        <button className='download-pdf-button-b'
           onClick={() => {
-            const pdfPages = comic.pages.map(p => `${BACKEND_URL}${p}`);
-            downloadComicAsPDF(pdfPages, getSafeFilename(comic.title));
+            const pdfPages = comic.pages.map(p => `${BACKEND_URL}${p.image_url || p}`);
+            downloadComicAsPDF(pdfPages, getSafeFilename(comic.comic_metadata?.title || comic.title));
           }}
         >
           📄 Télécharger la BD

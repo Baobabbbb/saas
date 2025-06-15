@@ -4,24 +4,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './App.css';
 import Header from './components/Header';
 import ContentTypeSelector from './components/ContentTypeSelector';
-import StyleSelector from './components/StyleSelector';
-import HeroCreator from './components/HeroCreator';
-import StorySelector from './components/StorySelector';
 import RhymeSelector from './components/RhymeSelector';
 import AudioStorySelector from './components/AudioStorySelector';
 import AnimationSelector from './components/AnimationSelector';
 import CustomRequest from './components/CustomRequest';
 import GenerateButton from './components/GenerateButton';
 import History from './components/History';
-import ComicViewer from './components/ComicViewer';
 import AnimationViewer from './components/AnimationViewer';
 import AnimationPopup from './components/AnimationPopup';
-import jsPDF from 'jspdf';
 import StoryPopup from './components/StoryPopup';
-import ComicImageSelector from './components/ComicImageSelector';
-import { downloadComicAsPDF } from './utils/pdfUtils';
+import ColoringSelector from './components/ColoringSelector';
+import ColoringViewer from './components/ColoringViewer';
 import useSupabaseUser from './hooks/useSupabaseUser';
 import veo3Service from './services/veo3';
+import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
 
 function splitTextIntoPages(text, maxChars = 600) {
   const sentences = text.split(/(?<=[.?!])\s+/);
@@ -51,12 +47,7 @@ const getSafeFilename = (title) => {
     .replace(/[^a-z0-9_]/g, ""); // caractères spéciaux supprimés
 };
 
-function App() {
-  const [contentType, setContentType] = useState('animation'); // 'story', 'rhyme', 'audio', or 'animation'
-  const [selectedStyle, setSelectedStyle] = useState(null);
-  const [heroName, setHeroName] = useState('');
-  const [selectedStory, setSelectedStory] = useState(null);
-  const [customStory, setCustomStory] = useState('');
+function App() {  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'audio', or 'animation'
   const [selectedRhyme, setSelectedRhyme] = useState(null);
   const [customRhyme, setCustomRhyme] = useState('');
   const [selectedAudioStory, setSelectedAudioStory] = useState(null);
@@ -64,26 +55,22 @@ function App() {
   const [selectedVoice, setSelectedVoice] = useState(null);
   const [customRequest, setCustomRequest] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  {/*const [showConfetti, setShowConfetti] = useState(false);*/}
-  const [comicResult, setComicResult] = useState(null);
-  const [generatedResult, setGeneratedResult] = useState(null);
-  const [comicPages, setComicPages] = useState([]);
+  {/*const [showConfetti, setShowConfetti] = useState(false);*/}  const [generatedResult, setGeneratedResult] = useState(null);
   const [showFullStory, setShowFullStory] = useState(false);
   const [showStoryPopup, setShowStoryPopup] = useState(false);
-  const [showComicPopup, setShowComicPopup] = useState(false);
-  const [numImages, setNumImages] = useState(4);
-  const [uploadedImage, setUploadedImage] = useState(null);
-  const [customPrompt, setCustomPrompt] = useState('');
-  const [selectedAvatar, setSelectedAvatar] = useState(null);  // Animation states
+
+  // Animation states
   const [selectedAnimationStyle, setSelectedAnimationStyle] = useState(null);
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
   const [animationDuration, setAnimationDuration] = useState(8); // Fal-ai/Veo3 ne supporte que 8s
   const [animationPrompt, setAnimationPrompt] = useState('');
   const [animationOrientation, setAnimationOrientation] = useState(null); // 'landscape' or 'portrait'
-  const [uploadedAnimationImage, setUploadedAnimationImage] = useState(null);
-  const [animationResult, setAnimationResult] = useState(null);
+  const [uploadedAnimationImage, setUploadedAnimationImage] = useState(null);  const [animationResult, setAnimationResult] = useState(null);
   const [showAnimationPopup, setShowAnimationPopup] = useState(false);
   const [animationGenerationStatus, setAnimationGenerationStatus] = useState(null);
+  // Coloring states
+  const [selectedTheme, setSelectedTheme] = useState(null);
+  const [coloringResult, setColoringResult] = useState(null);
 
   // User account state
   const { user, loading } = useSupabaseUser();
@@ -115,11 +102,9 @@ function App() {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
-
   const handleGenerate = async () => {
   setIsGenerating(true);
   setGeneratedResult(null);
-  setComicResult(null);
   // setShowConfetti(true);
 
   if (loading) return <div>Chargement...</div>;
@@ -127,35 +112,7 @@ function App() {
   try {
     let generatedContent = null;
 
-    if (contentType === 'story') {
-      const formData = new FormData();
-      formData.append('style', selectedStyle);
-      formData.append('hero_name', heroName);
-      formData.append('story_type', selectedStory === 'custom' ? customStory : selectedStory);
-      formData.append('custom_request', customRequest);
-      formData.append('num_images', numImages);
-      if (uploadedImage) {
-        formData.append('avatar_type', 'photo');
-        formData.append('custom_image', uploadedImage); // fichier
-      } else if (customPrompt && customPrompt.trim().length > 0) {
-        formData.append('avatar_type', 'prompt');
-        formData.append('custom_prompt', customPrompt);
-      } else if (selectedAvatar) {
-        formData.append('avatar_type', 'emoji');
-        formData.append('emoji', selectedAvatar);
-      }
-
-      const response = await fetch('http://127.0.0.1:8000/generate_comic/', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
-      generatedContent = await response.json();
-      setComicResult(generatedContent);
-    }
-
-       else if (contentType === 'rhyme') {
+    if (contentType === 'rhyme') {
       const payload = {
         rhyme_type: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
         custom_request: customRequest
@@ -243,10 +200,25 @@ function App() {
           createdAt: new Date().toISOString()
         });
         setAnimationGenerationStatus({ status: 'failed', error: error.message });
-      }
-
-      // Pour les animations, on n'utilise pas generatedContent
+      }      // Pour les animations, on n'utilise pas generatedContent
       generatedContent = null;
+    }
+
+    if (contentType === 'coloring') {      const payload = {
+        theme: selectedTheme
+      };
+
+      const response = await fetch('http://127.0.0.1:8000/generate_coloring/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+      const coloringData = await response.json();
+      
+      setColoringResult(coloringData);
+      generatedContent = null; // Les coloriages utilisent un état séparé
     }
 
     // 🔁 Enregistre le résultat généré pour affichage audio/texte
@@ -254,18 +226,15 @@ function App() {
     // setStoryPages(splitTextIntoPages(generatedContent.content)); // Ajoute la pagination
     setCurrentPageIndex(0); // Reviens à la première page    // Déterminer le titre
     let title;
-    if (contentType === 'story') {
-      title = generatedContent.title || `L'histoire de ${heroName}`;
-    } else if (contentType === 'rhyme') {
+    if (contentType === 'rhyme') {
       title = generatedContent.title || `Comptine générée`;
     } else if (contentType === 'audio') {
       title = generatedContent.title || `Conte généré`;
     } else if (contentType === 'animation') {
-      title = animationResult?.title || `Dessin animé ${selectedAnimationTheme}`;
-    }
-
-    // Ne créer une entrée d'historique que pour les types non-animation
-    if (contentType !== 'animation') {
+      title = animationResult?.title || `Dessin animé ${selectedAnimationTheme}`;    } else if (contentType === 'coloring') {
+      title = `Coloriages ${selectedTheme}`;
+    }// Ne créer une entrée d'historique que pour les types non-animation et non-coloriage
+    if (contentType !== 'animation' && contentType !== 'coloring') {
       const newCreation = {
         id: Date.now().toString(),
         type: contentType,
@@ -295,14 +264,8 @@ function App() {
   };
 
   const handleDeleteCreation = (idToDelete) => {
-  };
-  const isFormValid = () => {
-    if (contentType === 'story') {
-      if (!selectedStyle) return false;
-      if (!heroName) return false;
-      if (!selectedStory) return false;
-      if (selectedStory === 'custom' && !customStory.trim()) return false;
-    } else if (contentType === 'rhyme') {
+  };  const isFormValid = () => {
+    if (contentType === 'rhyme') {
       if (!selectedRhyme) return false;
       if (selectedRhyme === 'custom' && !customRhyme.trim()) return false;
     } else if (contentType === 'audio') {
@@ -313,6 +276,8 @@ function App() {
       if (!selectedAnimationTheme) return false;
       if (!animationOrientation) return false;
       if (selectedAnimationTheme === 'custom' && !animationPrompt.trim()) return false;
+    } else if (contentType === 'coloring') {
+      if (!selectedTheme) return false;
     }
     return true;
   };
@@ -424,70 +389,11 @@ const downloadPDF = async (title, content) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-        >
-          <ContentTypeSelector
+        >          <ContentTypeSelector
             contentType={contentType}
             setContentType={setContentType}
-          />
-
-          <AnimatePresence mode="wait">
-            {contentType === 'story' && (
-              <motion.div
-                key="style-selector"
-                variants={contentVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                transition={{ duration: 0.3 }}
-              >
-                <StyleSelector
-                  selectedStyle={selectedStyle}
-                  setSelectedStyle={setSelectedStyle}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <AnimatePresence mode="wait">
-            {contentType === 'story' && (
-              <motion.div
-                key="hero-creator"
-                variants={contentVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                transition={{ duration: 0.3 }}
-              >
-                <HeroCreator
-                  heroName={heroName}
-                  setHeroName={setHeroName}
-                  setUploadedImage={setUploadedImage}
-                  uploadedImage={uploadedImage}
-                  customPrompt={customPrompt}
-                  setCustomPrompt={setCustomPrompt}
-                  selectedAvatar={selectedAvatar}
-                  setSelectedAvatar={setSelectedAvatar}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>          <AnimatePresence mode="wait">
-            {contentType === 'story' ? (
-              <motion.div
-                key="story-selector"
-                variants={contentVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                transition={{ duration: 0.3 }}
-              >
-                <StorySelector
-                  selectedStory={selectedStory}
-                  setSelectedStory={setSelectedStory}
-                  customStory={customStory}
-                  setCustomStory={setCustomStory}
-                />
-              </motion.div>
-            ) : contentType === 'rhyme' ? (
+          />          <AnimatePresence mode="wait">
+            {contentType === 'rhyme' ? (
               <motion.div
                 key="rhyme-selector"
                 variants={contentVariants}
@@ -542,20 +448,25 @@ const downloadPDF = async (title, content) => {
                   setOrientation={setAnimationOrientation}
                   uploadedAnimationImage={uploadedAnimationImage}
                   setUploadedAnimationImage={setUploadedAnimationImage}
+                />              </motion.div>
+            ) : contentType === 'coloring' ? (
+              <motion.div
+                key="coloring-selector"
+                variants={contentVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.3 }}
+              >                <ColoringSelector
+                  selectedTheme={selectedTheme}
+                  setSelectedTheme={setSelectedTheme}
                 />
               </motion.div>
             ) : null}
-          </AnimatePresence>
-
-          {contentType === 'story' && (
-            <ComicImageSelector
-              numImages={numImages}
-              setNumImages={setNumImages}
-            />
-          )}          <CustomRequest
+          </AnimatePresence><CustomRequest
             customRequest={customRequest}
             setCustomRequest={setCustomRequest}
-            stepNumber={contentType === 'story' ? 5 : contentType === 'animation' ? 5 : 3}
+            stepNumber={contentType === 'animation' ? 5 : contentType === 'coloring' ? 4 : 3}
           />
 
           <GenerateButton
@@ -574,7 +485,7 @@ const downloadPDF = async (title, content) => {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <div className="preview-container">
-              <div className={`comic-preview ${!comicResult && !generatedResult ? 'empty' : ''}`}>
+              <div className={`preview ${!generatedResult ? 'empty' : ''}`}>
                 <AnimatePresence mode="wait">
   {isGenerating ? (
     <motion.div
@@ -588,10 +499,7 @@ const downloadPDF = async (title, content) => {
         <div className="dot"></div>
         <div className="dot"></div>
         <div className="dot"></div>
-      </div>      <p>
-        {contentType === 'story'
-          ? 'Création de la BD en cours...'
-          : contentType === 'rhyme'
+      </div>      <p>        {contentType === 'rhyme'
           ? 'Création de la comptine en cours...'
           : contentType === 'audio'
           ? 'Création de l\'histoire en cours...'
@@ -599,47 +507,10 @@ const downloadPDF = async (title, content) => {
           ? animationGenerationStatus?.status === 'processing'
             ? `Génération du dessin animé en cours... (${animationGenerationStatus.estimatedTime} min estimées)`
             : 'Préparation de l\'animation...'
+          : contentType === 'coloring'
+          ? 'Création de vos coloriages en cours...'
           : 'Génération en cours...'}
-      </p>
-    </motion.div>
-  ) : comicResult && contentType === 'story' ? (
-  <div
-    style={{
-      //height: '300px',
-      width: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '1rem'
-    }}
-  >
-    <button
-      onClick={() => setShowComicPopup(true)}
-      style={{
-        padding: '0.6rem 1.4rem',
-        backgroundColor: '#6B4EFF',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '0.5rem',
-        cursor: 'pointer',
-        fontWeight: '600'
-      }}
-    >
-      📖 Lire la BD
-    </button>
-
-    <button className='download-pdf-button-a'
-      onClick={() => {
-        const backendUrl = "http://localhost:8000";
-        const pdfPages = comicResult.pages.map(p => backendUrl + p);
-        downloadComicAsPDF(pdfPages, getSafeFilename(comicResult.title));
-      }}
-    >
-      📄 Télécharger la BD
-    </button>
-  </div>
-  
+      </p></motion.div>
   ) : animationResult && contentType === 'animation' ? (
   <div
     style={{
@@ -668,8 +539,16 @@ const downloadPDF = async (title, content) => {
       }}
     >
       🎬 Voir en grand
-    </button>
-  </div>
+    </button>  </div>
+  ) : coloringResult && contentType === 'coloring' ? (
+    <ColoringViewer 
+      coloringResult={coloringResult}      onDownloadAll={() => {
+        if (coloringResult?.images) {
+          const title = selectedTheme ? `coloriages_${selectedTheme}` : 'coloriages';
+          downloadColoringAsPDF(coloringResult.images, title);
+        }
+      }}
+    />
   ) : (
     
     <motion.div
@@ -683,44 +562,20 @@ const downloadPDF = async (title, content) => {
     src="/cloud-logo.svg"
     alt="BDKids logo"
     className="preview-logo"
-  />*/}
-  {!generatedResult?.content && !animationResult && (
-    <div className="empty-preview">
-    <p>
-      {contentType === 'story'
-        ? 'Votre bande dessinée apparaîtra ici'
-        : contentType === 'rhyme'
+  />*/}  {!generatedResult?.content && !animationResult && !coloringResult && (
+    <div className="empty-preview">    <p>
+      {contentType === 'rhyme'
         ? 'Votre comptine apparaîtra ici'
         : contentType === 'audio'
         ? 'Votre histoire apparaîtra ici'
         : contentType === 'animation'
         ? 'Votre dessin animé apparaîtra ici'
+        : contentType === 'coloring'
+        ? 'Vos coloriages apparaîtront ici'
         : 'Votre création apparaîtra ici'}
     </p>
     </div>
   )}
-
-  {/* 📄 Texte plein (non paginé) si besoin (ex: debug autre type) */}
-  {contentType === 'story' && generatedResult?.content && (
-    <div
-      style={{
-      whiteSpace: 'pre-wrap',
-      textAlign: 'left',
-      marginTop: '1rem',
-      padding: '1.5rem',
-      background: '#fff',
-      borderRadius: '1rem',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-      fontSize: '1rem',
-      lineHeight: '1.6',
-      width: '100%',
-      maxWidth: '640px',
-  }}
-    >
-      {generatedResult.content}
-    </div>
-  )}
-
   {/* 🎵 Audio présent */}
 {generatedResult?.audio_path && (
   <div
@@ -819,12 +674,7 @@ const downloadPDF = async (title, content) => {
     content={generatedResult.content}
     onClose={() => setShowStoryPopup(false)}
   />
-)}    {showComicPopup && (
-      <StoryPopup onClose={() => setShowComicPopup(false)}>
-        <ComicViewer comic={comicResult} />
-      </StoryPopup>
-    )}
-
+)}
     {showAnimationPopup && (
       <AnimationPopup 
         animation={animationResult}

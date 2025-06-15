@@ -73,12 +73,15 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   width: 100%;
+  max-width: 600px; /* Limite la largeur du conteneur */
 }
 
-.comic-preview {
+.preview {
   position: relative;
   width: 100%;
+  max-width: 500px; /* Même largeur max que le coloriage */
   padding: 1rem;
   /*border: 2px dashed #ddd;*/
   border-radius: 1rem;
@@ -91,11 +94,13 @@ body {
   min-height: 250px;
 }
 
-.comic-preview.empty {
+.preview.empty {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 300px;
+  aspect-ratio: 1; /* Ratio carré comme le coloriage */
+  min-height: auto; /* Supprime la hauteur minimale fixe */
+  max-height: 500px; /* Hauteur max correspondante */
   background: none;
 }
 
@@ -113,13 +118,14 @@ body {
 
 .preview-placeholder {
   width: 100%;
+  max-width: 500px; /* Même largeur max que le coloriage */
   display: flex;
   flex-direction: column;
   align-items: center;
   background: none;
   border-radius: 1rem;
   padding: 1.5rem;
-  height: 300px; /* ou une hauteur fixe */
+  aspect-ratio: 1; /* Ratio carré */
   overflow: hidden;
   justify-content: center;
 }
@@ -253,42 +259,6 @@ body {
   cursor: not-allowed;
 }
 
-.comic-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-/*.comic-button,
-.comic-download {
-  /*background-color: rgb(107, 78, 255);
-  color: #4a3b8c;
-  padding: 8px 16px;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.2s ease-in-out;
-  cursor: pointer;
-  text-align: center;
-  width: fit-content;
-  min-width: 220px;
-  border: none;
-  outline: none;
-
-  /*padding: 0.5rem 1rem;
-  font-weight: 500;
-  text-decoration: none;
-  
-  background-color: rgb(107, 78, 255);
-  color: rgb(255, 255, 255);
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-}*/
-
 .download-pdf-button-a {
   background-color: rgb(107, 78, 255);
   color: rgb(255, 255, 255);;
@@ -304,12 +274,6 @@ body {
   min-width: 220px;
   border: none;
   outline: none;
-}
-
-.comic-button:hover,
-.comic-download:hover {
-  background-color: rgb(107, 78, 255);
-  /*transform: scale(1.03);*/
 }
 
 /* Animation Preview Styles */
