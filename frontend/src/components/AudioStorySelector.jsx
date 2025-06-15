@@ -28,8 +28,8 @@ const AudioStorySelector = ({
   setSelectedVoice
 }) => {
   const [showCustomInput, setShowCustomInput] = useState(false);
-
   const handleAudioStorySelect = (storyId) => {
+    console.log('🎵 Sélection histoire audio:', storyId);
     setSelectedAudioStory(storyId);
     if (storyId !== 'custom') {
       setShowCustomInput(false);
