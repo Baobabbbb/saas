@@ -15,6 +15,7 @@ import AnimationPopup from './components/AnimationPopup';
 import StoryPopup from './components/StoryPopup';
 import ColoringSelector from './components/ColoringSelector';
 import ColoringViewer from './components/ColoringViewer';
+import ColoringPopup from './components/ColoringPopup';
 import useSupabaseUser from './hooks/useSupabaseUser';
 import veo3Service from './services/veo3';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
@@ -58,6 +59,7 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
   {/*const [showConfetti, setShowConfetti] = useState(false);*/}  const [generatedResult, setGeneratedResult] = useState(null);
   const [showFullStory, setShowFullStory] = useState(false);
   const [showStoryPopup, setShowStoryPopup] = useState(false);
+  const [showColoringPopup, setShowColoringPopup] = useState(false);
 
   // Animation states
   const [selectedAnimationStyle, setSelectedAnimationStyle] = useState(null);
@@ -271,7 +273,8 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
     } else if (contentType === 'audio') {
       if (!selectedAudioStory) return false;
       if (selectedAudioStory === 'custom' && !customAudioStory.trim()) return false;
-      // if (!selectedVoice) return false;    } else if (contentType === 'animation') {
+      // La voix est optionnelle
+    } else if (contentType === 'animation') {
       if (!selectedAnimationStyle) return false;
       if (!selectedAnimationTheme) return false;
       if (!animationOrientation) return false;
@@ -281,7 +284,6 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
     }
     return true;
   };
-
   // Animation variants for content sections
   const contentVariants = {
     hidden: { opacity: 0, height: 0, marginBottom: 0 },
@@ -467,9 +469,7 @@ const downloadPDF = async (title, content) => {
             customRequest={customRequest}
             setCustomRequest={setCustomRequest}
             stepNumber={contentType === 'animation' ? 5 : contentType === 'coloring' ? 4 : 3}
-          />
-
-          <GenerateButton
+          />          <GenerateButton
             onGenerate={handleGenerate}
             isGenerating={isGenerating}
             isDisabled={!isFormValid()}
@@ -539,16 +539,56 @@ const downloadPDF = async (title, content) => {
       }}
     >
       🎬 Voir en grand
-    </button>  </div>
-  ) : coloringResult && contentType === 'coloring' ? (
-    <ColoringViewer 
-      coloringResult={coloringResult}      onDownloadAll={() => {
-        if (coloringResult?.images) {
-          const title = selectedTheme ? `coloriages_${selectedTheme}` : 'coloriages';
-          downloadColoringAsPDF(coloringResult.images, title);
-        }
+    </button>  </div>  ) : coloringResult && contentType === 'coloring' ? (
+    <motion.div
+      className="generated-result"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      key="coloring-result"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '1rem'
       }}
-    />
+    >
+      <button
+        onClick={() => setShowColoringPopup(true)}
+        style={{
+          padding: '0.6rem 1.4rem',
+          backgroundColor: '#6B4EFF',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '0.5rem',
+          cursor: 'pointer',
+          fontWeight: '600'
+        }}
+      >
+        🎨 Ouvrir le coloriage
+      </button>
+
+      <button
+        onClick={() => {
+          if (coloringResult?.images) {
+            const title = selectedTheme ? `coloriages_${selectedTheme}` : 'coloriages';
+            downloadColoringAsPDF(coloringResult.images, title);
+          }
+        }}
+        style={{
+          padding: '0.6rem 1.4rem',
+          backgroundColor: '#6B4EFF',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '0.5rem',
+          cursor: 'pointer',
+          fontWeight: '600'
+        }}
+      >
+        📄 Télécharger le coloriage
+      </button>
+    </motion.div>
   ) : (
     
     <motion.div
@@ -667,14 +707,19 @@ const downloadPDF = async (title, content) => {
         </motion.div>
       )}
     </AnimatePresence>
-    
-    {showStoryPopup && (
+      {showStoryPopup && (
   <StoryPopup
     title={generatedResult.title}
     content={generatedResult.content}
     onClose={() => setShowStoryPopup(false)}
   />
-)}
+)}    {showColoringPopup && (
+      <ColoringPopup
+        coloringResult={coloringResult}
+        selectedTheme={selectedTheme}
+        onClose={() => setShowColoringPopup(false)}
+      />
+    )}
     {showAnimationPopup && (
       <AnimationPopup 
         animation={animationResult}

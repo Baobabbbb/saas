@@ -85,7 +85,7 @@ body {
   padding: 1rem;
   /*border: 2px dashed #ddd;*/
   border-radius: 1rem;
-  background: #fff;
+  background: transparent; /* Suppression du fond blanc */
   display: flex;
   flex-direction: column;
   align-items: center;

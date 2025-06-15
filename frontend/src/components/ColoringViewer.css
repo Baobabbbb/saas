@@ -15,10 +15,10 @@
 }
 
 .coloring-item {
-  background: white;
+  background: transparent; /* Suppression du fond du conteneur principal */
   border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: visible; /* Permet aux éléments de dépasser si nécessaire */
+  box-shadow: none;
   width: 100%;
   max-width: 500px;
 }
@@ -28,6 +28,9 @@
   width: 100%;
   padding-bottom: 100%; /* Ratio carré */
   overflow: hidden;
+  background: white; /* Fond blanc seulement pour l'image */
+  border-radius: 1rem; /* Arrondi pour l'image */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Ombre seulement sur l'image */
 }
 
 .coloring-image {

@@ -35,14 +35,13 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
           />*/}
           <h1>FRIDAY</h1>
         </motion.div>
-        
-        <motion.h2 
+          <motion.h2 
           className="tagline"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          Créez des histoires et des comptines magiques pour vos enfants !
+          Offrez à vos enfants des créations ludiques et imaginatives personnalisées !
         </motion.h2>
       </div>
       
