@@ -16,8 +16,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class ColoringGenerator:
-    """Générateur de coloriages avec Stable Diffusion 3"""
-    
+    """Générateur de coloriages avec Stable Diffusion 3"""    
     def __init__(self):
         self.output_dir = Path("static/coloring")
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -29,47 +28,41 @@ class ColoringGenerator:
         """
         try:
             print(f"🎨 Génération de coloriages pour le thème: {theme}")
-              # Créer un ID unique pour cette série de coloriages
-            coloring_id = f"coloring_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            coloring_dir = self.output_dir / coloring_id
-            coloring_dir.mkdir(exist_ok=True)
+            
+            # Nettoyer le nom du thème pour le nom de fichier
+            clean_theme = theme.lower().replace(' ', '_').replace('é', 'e').replace('è', 'e')
             
             # Générer le prompt pour une seule image de coloriage
             prompt = self._create_single_coloring_prompt(theme)
             
-            # Générer l'image
+            # Générer l'image directement dans le dossier coloring
             images = []
             
             try:
                 print(f"🖼️ Génération du coloriage: {prompt[:50]}...")
-                image_path = await self._generate_coloring_image(prompt, coloring_dir, 1)
+                image_path = await self._generate_coloring_image(prompt, self.output_dir, clean_theme)
                 if image_path:
                     images.append({
-                        "image_url": f"http://localhost:8000/static/coloring/{coloring_id}/coloring_1_lineart.png",
+                        "image_url": f"http://localhost:8000/static/coloring/coloriage_{clean_theme}.png",
                         "prompt": prompt,
-                        "index": 1
+                        "theme": theme
                     })
             except Exception as e:
                 print(f"❌ Erreur génération image: {e}")
             
-            # Sauvegarder les métadonnées
+            # Sauvegarder les métadonnées (optionnel, dans un fichier unique)
             metadata = {
-                "coloring_id": coloring_id,
                 "theme": theme,
                 "created_at": datetime.now().isoformat(),
                 "total_images": len(images),
-                "prompt": prompt
+                "prompt": prompt,
+                "filename": f"coloriage_{clean_theme}.png"
             }
             
-            metadata_path = coloring_dir / "metadata.json"
-            with open(metadata_path, 'w', encoding='utf-8') as f:
-                json.dump(metadata, f, indent=2, ensure_ascii=False)
-            
-            print(f"🎉 Coloriages générés avec succès: {len(images)} images dans {coloring_dir}")
+            print(f"🎉 Coloriage généré avec succès: {len(images)} image(s)")
             
             return {
                 "success": True,
-                "coloring_id": coloring_id,
                 "theme": theme,
                 "images": images,
                 "total_images": len(images),
@@ -78,7 +71,8 @@ class ColoringGenerator:
             
         except Exception as e:
             print(f"❌ Erreur génération coloriages: {e}")
-            return {                "success": False,
+            return {
+                "success": False,
                 "error": str(e),
                 "images": []
             }
@@ -168,30 +162,32 @@ class ColoringGenerator:
             'princess': "A princess in a beautiful ball gown",
             'dinosaurs': "A friendly T-Rex in a prehistoric forest"
         }
+          # Obtenir le prompt de base pour le thème
+        base_prompt = theme_prompts.get(theme, theme_prompts['animals'])
         
-        # Obtenir le prompt de base pour le thème
-        base_prompt = theme_prompts.get(theme, theme_prompts['animals'])          # Créer le prompt pour l'image de coloriage (line art)
+        # Créer le prompt pour l'image de coloriage (line art)
         coloring_prompt = f"Simple black and white line art coloring page, {base_prompt}, clean outlines, no shading, no fill, white background, suitable for children to color, cartoon style"
         
         return coloring_prompt
         
-    async def _generate_coloring_image(self, prompt: str, coloring_dir: Path, image_number: int) -> Optional[Path]:
+    async def _generate_coloring_image(self, prompt: str, coloring_dir: Path, theme_name: str) -> Optional[Path]:
         """Générer une image de coloriage avec Stable Diffusion"""
         
-        try:            # Utiliser Stability AI si disponible
+        try:
+            # Utiliser Stability AI si disponible
             if self.stability_key:
-                image_path = await self._generate_with_stability(prompt, coloring_dir, image_number)
+                image_path = await self._generate_with_stability(prompt, coloring_dir, theme_name)
                 if image_path:
-                    return await self._convert_to_line_art(image_path, coloring_dir, image_number)
+                    return await self._convert_to_line_art(image_path, coloring_dir, theme_name)
             
             # Fallback vers une image générée localement
-            return await self._create_fallback_coloring(coloring_dir, image_number, prompt)
+            return await self._create_fallback_coloring(coloring_dir, theme_name, prompt)
             
         except Exception as e:
-            print(f"❌ Erreur génération image {image_number}: {e}")
-            return await self._create_fallback_coloring(coloring_dir, image_number, prompt)
+            print(f"❌ Erreur génération image {theme_name}: {e}")
+            return await self._create_fallback_coloring(coloring_dir, theme_name, prompt)
     
-    async def _generate_with_stability(self, prompt: str, coloring_dir: Path, image_number: int) -> Optional[Path]:
+    async def _generate_with_stability(self, prompt: str, coloring_dir: Path, theme_name: str) -> Optional[Path]:
         """Générer avec l'API Stability AI"""
         
         try:
@@ -221,7 +217,7 @@ class ColoringGenerator:
                 response_data = response.json()
                 image_data = base64.b64decode(response_data["artifacts"][0]["base64"])
                 
-                image_path = coloring_dir / f"coloring_{image_number}_original.png"
+                image_path = coloring_dir / f"coloriage_{theme_name}.png"
                 with open(image_path, 'wb') as f:
                     f.write(image_data)
                 
@@ -234,7 +230,7 @@ class ColoringGenerator:
             print(f"❌ Erreur API Stability: {e}")
             return None
     
-    async def _convert_to_line_art(self, image_path: Path, coloring_dir: Path, image_number: int) -> Path:
+    async def _convert_to_line_art(self, image_path: Path, coloring_dir: Path, theme_name: str) -> Path:
         """Convertir une image en line art noir et blanc"""
         
         try:
@@ -257,16 +253,16 @@ class ColoringGenerator:
                 edges = edges.point(lambda x: 255 if x > threshold else 0, mode='1')
                 
                 # Sauvegarder le line art
-                lineart_path = coloring_dir / f"coloring_{image_number}_lineart.png"
+                lineart_path = coloring_dir / f"coloriage_{theme_name}.png"
                 edges.save(lineart_path)
                 
                 return lineart_path
                 
         except Exception as e:
             print(f"❌ Erreur conversion line art: {e}")
-            return await self._create_fallback_coloring(coloring_dir, image_number, "Simple coloring page")
+            return await self._create_fallback_coloring(coloring_dir, theme_name, "Simple coloring page")
     
-    async def _create_fallback_coloring(self, coloring_dir: Path, image_number: int, description: str) -> Path:
+    async def _create_fallback_coloring(self, coloring_dir: Path, theme_name: str, description: str) -> Path:
         """Créer une image de coloriage de fallback simple"""
         
         # Créer une image simple avec du texte et des formes
@@ -294,13 +290,19 @@ class ColoringGenerator:
         # Texte
         if font:
             draw.text((400, 500), "Coloriage", fill='black', font=font)
-            draw.text((350, 530), f"Image {image_number}", fill='black', font=font)
+            draw.text((350, 530), f"Coloriage {theme_name}", fill='black', font=font)
         
         # Sauvegarder
-        fallback_path = coloring_dir / f"coloring_{image_number}_lineart.png"
+        fallback_path = coloring_dir / f"coloriage_{theme_name}.png"
         img.save(fallback_path)
         
         return fallback_path
+
+    async def generate_coloring(self, theme: str) -> Dict[str, Any]:
+        """
+        Méthode de compatibilité avec l'endpoint
+        """
+        return await self.generate_coloring_pages(theme)
 
 # Instance globale
 coloring_generator = ColoringGenerator()

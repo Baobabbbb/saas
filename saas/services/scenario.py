@@ -4,8 +4,7 @@ import random
 import re
 from openai import OpenAI
 from config import OPENAI_API_KEY, TEXT_MODEL
-# Importation du service CrewAI pour l'amélioration des BD
-from services.crewai_text_enhancer import get_crewai_comic_enhancer
+# Import CrewAI supprimé - plus utilisé
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -72,34 +71,10 @@ async def generate_scenario(prompt: str, style: str = None, use_crewai: bool = T
     
     if style:
         base_scenario["style"] = style
-        print(f"🎨 Style injecté dans le scénario : {style}")
-    
-    # Amélioration avec CrewAI si activée
-    if use_crewai:
-        try:
-            print("🚀 Amélioration du scénario avec CrewAI...")
-            enhancer = get_crewai_comic_enhancer()
-            enhanced_scenario = await enhancer.enhance_scenario_text_only(
-                base_scenario, prompt, style
-            )
-            
-            # Validation du scénario amélioré
-            validation = enhancer.validate_enhanced_scenario(enhanced_scenario)
-            
-            if validation['is_valid']:
-                print("✅ Scénario amélioré par CrewAI avec succès")
-                return enhanced_scenario
-            else:
-                print("⚠️ Scénario CrewAI invalide, utilisation de la version de base")
-                print(f"Erreurs: {validation['errors']}")
-                return base_scenario
-                
-        except Exception as e:
-            print(f"⚠️ Erreur CrewAI, utilisation du scénario de base: {e}")
-            return base_scenario
-    else:
-        print("📝 Utilisation du scénario de base (CrewAI désactivé)")
-        return base_scenario
+        print(f"🎨 Style injecté dans le scénario : {style}")    
+    # Génération directe du scénario (CrewAI supprimé)
+    print("📝 Génération du scénario de base")
+    return base_scenario
 
 # Fonction de compatibilité pour l'ancien système
 async def generate_scenario_basic(prompt: str, style: str = None, num_images: int = 3):

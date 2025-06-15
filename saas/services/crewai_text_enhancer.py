@@ -307,12 +307,4 @@ class CrewAIComicEnhancer:
             "has_crewai_enhancements": scenario.get("crewai_enhanced", False)
         }
 
-# Instance globale - sera initialisée à la demande
-_crewai_comic_enhancer = None
-
-def get_crewai_comic_enhancer():
-    """Retourne l'instance CrewAI, la crée si nécessaire"""
-    global _crewai_comic_enhancer
-    if _crewai_comic_enhancer is None:
-        _crewai_comic_enhancer = CrewAIComicEnhancer()
-    return _crewai_comic_enhancer
+# Fonctions CrewAI Comic supprimées - plus utilisées
