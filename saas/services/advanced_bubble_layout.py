@@ -13,41 +13,43 @@ class AdvancedBubbleLayout:
     Gestionnaire avancé de layout pour les bulles de BD
     Utilise les métadonnées CrewAI pour un placement optimal
     """
-    
-    # Types de bulles selon les standards BD
+      # Types de bulles selon les standards BD français (style franco-belge)
     BUBBLE_TYPES = {
         'speech': {
-            'fill': (255, 255, 255, 220),
+            'fill': (255, 255, 255, 255),  # Fond blanc uni, sans texture ni dégradé
             'outline': 'black',
-            'outline_width': 2,
-            'tail_style': 'normal'
+            'outline_width': 2,  # Contour noir régulier et net (épaisseur constante)
+            'tail_style': 'normal',
+            'shape': 'oval'  # Forme ovale ou elliptique
         },
         'thought': {
-            'fill': (240, 248, 255, 200),
-            'outline': 'gray',
-            'outline_width': 1,
-            'tail_style': 'bubbles'
+            'fill': (255, 255, 255, 255),  # Fond blanc uni
+            'outline': 'black',
+            'outline_width': 2,
+            'tail_style': 'bubbles',  # Suite de petits cercles vers la tête
+            'shape': 'oval'
         },
         'shout': {
-            'fill': (255, 255, 255, 240),
+            'fill': (255, 255, 255, 255),  # Fond blanc uni
             'outline': 'black',
-            'outline_width': 4,
-            'tail_style': 'jagged'
+            'outline_width': 3,  # Contour plus épais pour l'emphase
+            'tail_style': 'jagged',
+            'shape': 'jagged'  # Forme anguleuse pour les onomatopées
         },
         'whisper': {
-            'fill': (250, 250, 250, 180),
-            'outline': 'lightgray',
-            'outline_width': 1,
-            'tail_style': 'dashed'
-        }
+            'fill': (255, 255, 255, 255),  # Fond blanc uni
+            'outline': 'gray',
+            'outline_width': 1,  # Contour plus fin
+            'tail_style': 'dashed',
+            'shape': 'oval'        }
     }
     
     def __init__(self, font_path: str = "C:/Windows/Fonts/arial.ttf"):
         self.font_path = font_path
-        self.base_font_size = 18
+        self.base_font_size = 16  # Police claire et lisible style BD
         
     def _get_font(self, size: int = None) -> ImageFont.FreeTypeFont:
-        """Obtient la police avec la taille spécifiée"""
+        """Obtient la police avec la taille spécifiée - style manuscrit/BD"""
         try:
             return ImageFont.truetype(self.font_path, size or self.base_font_size)
         except:
@@ -200,26 +202,24 @@ class AdvancedBubbleLayout:
         char_x, char_y = character_pos
         
         bubble_config = self.BUBBLE_TYPES.get(bubble_type, self.BUBBLE_TYPES['speech'])
-        
-        # Dessine la bulle principale
+          # Dessine la bulle principale
         bubble_rect = [x, y, x + width, y + height]
         
         if bubble_type == 'thought':
-            # Bulle de pensée avec forme plus arrondie
+            # Bulle de pensée - forme ovale avec contour net
             draw.ellipse(bubble_rect, 
                         fill=bubble_config['fill'],
                         outline=bubble_config['outline'],
                         width=bubble_config['outline_width'])
         elif bubble_type == 'shout':
-            # Bulle de cri avec forme dentelée
+            # Bulle de cri/onomatopée - forme anguleuse avec couleurs vives
             self._draw_jagged_bubble(draw, bubble_rect, bubble_config)
         else:
-            # Bulle normale arrondie
-            draw.rounded_rectangle(bubble_rect, 
-                                 radius=15,
-                                 fill=bubble_config['fill'],
-                                 outline=bubble_config['outline'],
-                                 width=bubble_config['outline_width'])
+            # Bulle normale - forme ovale/elliptique avec contour noir régulier
+            draw.ellipse(bubble_rect, 
+                        fill=bubble_config['fill'],
+                        outline=bubble_config['outline'],
+                        width=bubble_config['outline_width'])
         
         # Dessine la queue selon le type
         self._draw_bubble_tail(draw, bubble_type, x, y, width, height, char_x, char_y, bubble_config)
@@ -326,8 +326,7 @@ class AdvancedBubbleLayout:
             (left_x, start_y),
             (right_x, start_y),
             (tip_x, tip_y)
-        ]
-        
+        ]        
         draw.polygon(triangle_points, 
                     fill=config['fill'], 
                     outline=config['outline'])
@@ -335,13 +334,13 @@ class AdvancedBubbleLayout:
     def _draw_bubble_text(self, draw: ImageDraw.Draw, text: str,
                          x: int, y: int, width: int, height: int,
                          font: ImageFont.FreeTypeFont, bubble_type: str):
-        """Dessine le texte dans la bulle avec un alignement optimal"""
+        """Dessine le texte dans la bulle avec le style franco-belge (Tintin)"""
         
-        # Divise le texte en lignes
+        # Divise le texte en lignes avec bon espacement
         words = text.split()
         lines = []
         current_line = ""
-        max_line_width = width - 20  # Marges
+        max_line_width = width - 20  # Marges pour ne pas toucher les bords
         
         for word in words:
             test_line = f"{current_line} {word}".strip()
@@ -355,18 +354,15 @@ class AdvancedBubbleLayout:
         if current_line:
             lines.append(current_line)
         
-        # Calcule la position verticale centré
-        total_text_height = len(lines) * font.size
+        # Calcule la position verticale centrée
+        line_height = font.size + 4  # Bon espacement entre les lettres
+        total_text_height = len(lines) * line_height
         start_y = y + (height - total_text_height) // 2
         
-        # Couleur du texte selon le type de bulle
+        # Couleur du texte - noir pour lisibilité style BD
         text_color = "black"
-        if bubble_type == 'shout':
-            text_color = "black"
-        elif bubble_type == 'whisper':
-            text_color = "gray"
         
-        # Dessine chaque ligne centrée
+        # Dessine chaque ligne centrée horizontalement
         for i, line in enumerate(lines):
             line_width = font.getlength(line)
             line_x = x + (width - line_width) // 2

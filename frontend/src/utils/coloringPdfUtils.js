@@ -30,43 +30,58 @@ function getSafeFilename(str) {
     .toLowerCase();
 }
 
-export async function downloadComicAsPDF(pages, title = 'bande-dessinee') {
+export async function downloadColoringAsPDF(images, title = 'coloriages') {
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'px',
-    format: [2048, 2048], // 📐 format carré, très haute résolution
+    format: 'a4',
   });
 
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 40;
-  const cellSize = (2048 - margin * 2) / 2; // 2x2 grille
-
+  const imageWidth = pageWidth - 2 * margin;
+  const imageHeight = pageHeight - 2 * margin;
   // PRÉCHARGE toutes les images AVANT la création du PDF :
   const imgInfos = await Promise.all(
-    pages.map(async (url) => {
+    images.map(async (imageItem) => {
       try {
+        const url = imageItem.image_url || imageItem;
         return await fetchImageInfo(url);
       } catch (e) {
-        console.warn("Erreur chargement image pour le PDF :", url, e);
+        console.warn("Erreur chargement image pour le PDF :", imageItem, e);
         return null;
       }
     })
   );
 
-  let pageCount = 0;
+  let isFirstPage = true;
+  
   for (let i = 0; i < imgInfos.length; i++) {
     if (!imgInfos[i]) continue; // saute si image non chargée
-    if (pageCount > 0 && pageCount % 4 === 0) pdf.addPage();
+    
+    if (!isFirstPage) {
+      pdf.addPage();
+    }
+    isFirstPage = false;
 
-    const { dataUrl } = imgInfos[i];
-    const position = pageCount % 4;
-    const row = Math.floor(position / 2);
-    const col = position % 2;
+    const { dataUrl, width, height } = imgInfos[i];
+    
+    // Calcul des dimensions pour garder les proportions
+    const aspectRatio = width / height;
+    let finalWidth = imageWidth;
+    let finalHeight = imageWidth / aspectRatio;
+    
+    if (finalHeight > imageHeight) {
+      finalHeight = imageHeight;
+      finalWidth = imageHeight * aspectRatio;
+    }
+    
+    // Centrage de l'image
+    const x = (pageWidth - finalWidth) / 2;
+    const y = (pageHeight - finalHeight) / 2;
 
-    const x = margin + col * cellSize;
-    const y = margin + row * cellSize;
-
-    pdf.addImage(dataUrl, 'PNG', x, y, cellSize, cellSize);
-    pageCount++;
+    pdf.addImage(dataUrl, 'PNG', x, y, finalWidth, finalHeight);
   }
 
   pdf.save(`${getSafeFilename(title)}.pdf`);

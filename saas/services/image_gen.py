@@ -10,32 +10,42 @@ STABILITY_API_KEY = os.environ.get("STABILITY_API_KEY")
 ENGINE_ID = "stable-diffusion-xl-1024-v1-0"
 STABILITY_ENDPOINT = f"https://api.stability.ai/v1/generation/{ENGINE_ID}/text-to-image"
 
-async def generate_images(scenario, hero_prompt_en=None, init_image_path=None):
+def get_style_prompt(style):
+    """Retourne le prompt adapté selon le style choisi par l'utilisateur"""
+    style_prompts = {        'cartoon': 'cartoon style, animated, colorful, family-friendly',
+        'realistic': 'realistic style, detailed, photorealistic, high quality',
+        'manga': 'manga style, anime art, japanese illustration style',
+        'watercolor': 'watercolor painting style, soft colors, artistic',
+        'sketch': 'pencil sketch style, hand-drawn, artistic lines'
+    }
+    return style_prompts.get(style.lower(), 'cartoon style')
+
+async def generate_images(scenario, hero_prompt_en=None, init_image_path=None, style="cartoon"):
     images = []
+    
+    # Récupère le prompt de style
+    style_prompt = get_style_prompt(style)
+    
     for idx, scene in enumerate(scenario["scenes"]):
         # Traduction FR -> EN pour la description
         description_fr = scene['description']
-        description_en = await translate_text(description_fr)
-
-        # Concatène le prompt héros si fourni
+        description_en = await translate_text(description_fr)        # Concatène le prompt héros si fourni + amélioration réalisme + style utilisateur
         if hero_prompt_en:
-            prompt = f"{hero_prompt_en}. {description_en} --style comic-book"
+            prompt = f"{hero_prompt_en}. {description_en}. {style_prompt}, professional illustration, highly detailed, realistic shading and lighting, crisp clean lines, vibrant colors"
         else:
-            prompt = f"{description_en} --style comic-book"
-        print(f"📝 Description FR : {description_fr}\n➡️ Prompt EN : {prompt}")
-
-        # Préparation du body JSON
+            prompt = f"{description_en}. {style_prompt}, professional illustration, highly detailed, realistic shading and lighting, crisp clean lines, vibrant colors"
+        print(f"📝 Description FR : {description_fr}\n➡️ Prompt EN : {prompt}")        # Préparation du body JSON avec paramètres optimisés pour réalisme
         body = {
             "text_prompts": [
                 {"text": prompt, "weight": 1.0}
             ],
-            "cfg_scale": 7,
+            "cfg_scale": 10,  # Plus élevé pour plus de fidélité au prompt
             "height": 1024,
             "width": 1024,
             "sampler": "K_DPMPP_2M",
             "samples": 1,
-            "steps": 30,
-            "style_preset": "comic-book"
+            "steps": 40,  # Plus d'étapes pour plus de qualité
+            "style_preset": "anime"
         }
 
         # Headers API REST
@@ -95,7 +105,7 @@ async def generate_hero_from_prompt(prompt):
         "sampler": "K_DPMPP_2M",
         "samples": 1,
         "steps": 30,
-        "style_preset": "comic-book"
+        "style_preset": "anime"
     }
 
     endpoint = f"https://api.stability.ai/v1/generation/{ENGINE_ID}/text-to-image"

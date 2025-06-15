@@ -82,12 +82,20 @@ class CrewAIComicEnhancer:
             dialogue_task = Task(
                 description=f"""
                 Améliore UNIQUEMENT les dialogues du scénario pour qu'ils soient plus naturels et expressifs.
-                
-                CONTRAINTES STRICTES:
+                  CONTRAINTES STRICTES pour les bulles BD (style franco-belge):
                 - Garde exactement le même nombre de scènes: {len(base_scenario.get("scenes", []))}
                 - Ne modifie PAS les descriptions de scènes (elles seront traitées séparément)
-                - Respecte les contraintes de bulles BD: max 50 caractères par ligne, max 3 lignes
+                - BULLES: max 40 caractères par ligne, max 3 lignes par bulle
                 - Garde la même structure narrative et les mêmes personnages
+                
+                SPÉCIFICATIONS BULLES BD (respecter absolument):
+                - Forme : ovales ou elliptiques avec contour noir régulier
+                - Texte : police manuscrite/BD, claire et lisible
+                - Texte centré avec bon espacement entre lettres
+                - Style franco-belge (comme Tintin)
+                - Pour parole : trait pointu vers la bouche du personnage
+                - Pour pensée : petits cercles vers la tête
+                - Pour cri/onomatopées : bulles anguleuses avec effets dynamiques
                 
                 Scénario original: {json.dumps(base_scenario, indent=2, ensure_ascii=False)}
                 
@@ -106,9 +114,8 @@ class CrewAIComicEnhancer:
                 {{
                     "scenes": [
                         {{
-                            "scene_index": 0,
-                            "improved_dialogues": [
-                                {{"character": "nom", "text": "dialogue amélioré", "tone": "normal/excited/whisper"}}
+                            "scene_index": 0,                            "improved_dialogues": [
+                                {{"character": "nom", "text": "dialogue amélioré (max 40 car/ligne)", "tone": "normal/excited/whisper/thought", "bubble_type": "speech/thought/shout/whisper"}}
                             ]
                         }}
                     ],
