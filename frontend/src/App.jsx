@@ -18,6 +18,7 @@ import ColoringViewer from './components/ColoringViewer';
 import ColoringPopup from './components/ColoringPopup';
 import useSupabaseUser from './hooks/useSupabaseUser';
 import veo3Service from './services/veo3';
+import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
 
 function splitTextIntoPages(text, maxChars = 600) {
@@ -103,32 +104,31 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
 
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
-  const handleGenerate = async () => {
-  setIsGenerating(true);
-  setGeneratedResult(null);
-  // setShowConfetti(true);
+  }, []);  const handleGenerate = async () => {
+    setIsGenerating(true);
+    setGeneratedResult(null);
+    // setShowConfetti(true);
 
-  if (loading) return <div>Chargement...</div>;
+    if (loading) return;
 
-  try {
-    let generatedContent = null;
+    try {
+      let generatedContent = null;
 
-    if (contentType === 'rhyme') {
-      const payload = {
-        rhyme_type: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
-        custom_request: customRequest
-      };
+      if (contentType === 'rhyme') {
+        const payload = {
+          rhyme_type: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
+          custom_request: customRequest
+        };
 
-      const response = await fetch('http://127.0.0.1:8000/generate_rhyme/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+        const response = await fetch('http://127.0.0.1:8000/generate_rhyme/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
-      generatedContent = await response.json();
-    }    if (contentType === 'audio') {
+        if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+        generatedContent = await response.json();
+      } else if (contentType === 'audio') {
       const payload = {
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
         voice: selectedVoice,
@@ -139,11 +139,9 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
-      generatedContent = await response.json();
-    }    if (contentType === 'animation') {
+      });        if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+        generatedContent = await response.json();
+      } else if (contentType === 'animation') {
       // Validation des données d'animation
       const animationData = {
         style: selectedAnimationStyle,
@@ -157,14 +155,14 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
       const validation = veo3Service.validateAnimationData(animationData);
       if (!validation.isValid) {
         throw new Error(validation.errors.join(', '));
-      }
+      }        // Optimiser le prompt pour Veo3
+        const optimizedPrompt = veo3Service.createOptimizedPrompt(
+          selectedAnimationStyle,
+          selectedAnimationTheme,
+          animationPrompt
+        );
 
-      // Optimiser le prompt pour Veo3
-      const optimizedPrompt = veo3Service.createOptimizedPrompt(
-        selectedAnimationStyle,
-        selectedAnimationTheme,
-        animationPrompt
-      );      animationData.prompt = optimizedPrompt;
+        animationData.prompt = optimizedPrompt;
       
       // Générer l'animation avec Veo3 via fal-ai
       try {
@@ -199,14 +197,13 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
           duration: 8,
           status: 'failed',
           error: error.message,
-          createdAt: new Date().toISOString()
-        });
+          createdAt: new Date().toISOString()        });
         setAnimationGenerationStatus({ status: 'failed', error: error.message });
-      }      // Pour les animations, on n'utilise pas generatedContent
-      generatedContent = null;
-    }
+      }
 
-    if (contentType === 'coloring') {      const payload = {
+      // Pour les animations, on n'utilise pas generatedContent
+      generatedContent = null;
+    } else if (contentType === 'coloring') {const payload = {
         theme: selectedTheme
       };
 
@@ -235,7 +232,7 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
     } else if (contentType === 'animation') {
       title = animationResult?.title || `Dessin animé ${selectedAnimationTheme}`;    } else if (contentType === 'coloring') {
       title = `Coloriages ${selectedTheme}`;
-    }// Ne créer une entrée d'historique que pour les types non-animation et non-coloriage
+    }    // Ne créer une entrée d'historique que pour les types non-animation et non-coloriage
     if (contentType !== 'animation' && contentType !== 'coloring') {
       const newCreation = {
         id: Date.now().toString(),
@@ -245,11 +242,24 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
         content: generatedContent?.content || generatedContent || 'Contenu généré...',
         audio_path: generatedContent?.audio_path || null
       };
+      
+      // Enregistrer dans l'historique via Supabase
+      try {
+        await addCreation({
+          type: contentType,
+          title: title,
+          data: newCreation
+        });
+      } catch (historyError) {
+        console.error('Erreur lors de l\'enregistrement dans l\'historique:', historyError);
+      }
     }
 
-    // setTimeout(() => setShowConfetti(false), 3000);
-  } catch (error) {
+    // setTimeout(() => setShowConfetti(false), 3000);  } catch (error) {
     console.error('❌ Erreur de génération :', error);
+    
+    // Afficher une alerte avec plus d'informations
+    alert(`❌ Erreur lors de la génération : ${error.message}\n\n💡 Conseil : Vérifiez que les clés API sont configurées dans le fichier .env du serveur.`);
   } finally {
     setIsGenerating(false);
   }
