@@ -161,3 +161,115 @@
 .form-row .form-group {
   flex: 1;
 }
+
+/* Popup d'erreur */
+.error-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.error-popup {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 90%;
+  margin: 20px;
+  overflow: hidden;
+}
+
+.error-popup-header {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.error-popup-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.error-popup-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.error-popup-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.error-popup-content {
+  padding: 20px;
+}
+
+.error-popup-content p {
+  margin: 0;
+  color: #333;
+  line-height: 1.5;
+}
+
+.error-popup-actions {
+  padding: 0 20px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.error-popup-btn {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.error-popup-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.3);
+}
+
+.error-popup-btn:active {
+  transform: translateY(0);
+}
+
+.error-popup-btn-secondary {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.error-popup-btn-secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.3);
+}
+
+.error-popup-btn-secondary:active {
+  transform: translateY(0);
+}

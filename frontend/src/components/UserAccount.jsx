@@ -7,67 +7,102 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [error, setError] = useState('');
-
+  const [errorPopupMessage, setErrorPopupMessage] = useState('');
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
     setShowLoginForm(false);
     setShowRegisterForm(false);
     setError('');
+    setShowErrorPopup(false);
   };
 
   const handleLoginClick = () => {
     setShowLoginForm(true);
     setShowRegisterForm(false);
     setError('');
+    setShowErrorPopup(false);
   };
 
   const handleRegisterClick = () => {
     setShowRegisterForm(true);
     setShowLoginForm(false);
     setError('');
-  };
-
-  const handleLogin = async (e) => {
+    setShowErrorPopup(false);
+  };  const handleLogin = async (e) => {
     e.preventDefault();
     const { error } = await signIn({ email, password });
+    
     if (error) {
-      setError(error.message);
+      // Vérifier le type d'erreur selon nos codes personnalisés
+      if (error.message === 'WRONG_PASSWORD') {
+        // Mauvais mot de passe ou email inexistant - afficher popup d'erreur avec option d'inscription
+        setErrorPopupMessage('Les identifiants saisis sont incorrects. Vérifiez votre email et mot de passe, ou inscrivez-vous si vous n\'avez pas encore de compte.');
+        setShowErrorPopup(true);
+        setError('');
+        setPassword(''); // Vider le mot de passe
+      } else {
+        // Autres erreurs - afficher dans le formulaire
+        setError(error.originalMessage || error.message);
+      }
     } else {
       setError('');
-      // succès, tu peux mettre à jour isLoggedIn
+      // Succès de connexion
+      setEmail('');
+      setPassword('');
+      setShowLoginForm(false);
+      setShowDropdown(false);
+      // Appeler le callback de connexion pour mettre à jour l'état global
+      if (onLogin) {
+        onLogin();
+      }
     }
-    setEmail('');
-    setPassword('');
-    setShowLoginForm(false);
-    setShowDropdown(false);
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     const { error } = await signUpWithProfile({ email, password, firstName, lastName });
     if (error) {
-      setError(error.message);
-    } else {
+      setError(error.message);    } else {
       setError('');
-      // Success : message, redirection, ou MAJ isLoggedIn
+      // Succès de l'inscription
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setPassword('');
+      setShowRegisterForm(false);
+      setShowDropdown(false);
+      // Appeler le callback d'inscription pour mettre à jour l'état global
+      if (onRegister) {
+        onRegister();
+      }
     }
-    setFirstName('');
-    setLastName('');
-    setEmail('');
-    setPassword('');
-    setShowRegisterForm(false);
-    setShowDropdown(false);
-  };
-
-  const handleLogout = async () => {
+  };  const handleLogout = async () => {
     await signOut();
     setShowDropdown(false);
     setError('');
+    setShowErrorPopup(false);
+    // Appeler le callback de déconnexion pour mettre à jour l'état global
+    if (onLogout) {
+      onLogout();
+    }
+  };
+  const closeErrorPopup = () => {
+    setShowErrorPopup(false);
+    setErrorPopupMessage('');
+  };
+
+  const switchToRegisterFromPopup = () => {
+    setShowErrorPopup(false);
+    setErrorPopupMessage('');
+    setShowLoginForm(false);
+    setShowRegisterForm(true);
+    setPassword(''); // Vider le mot de passe mais garder l'email
   };
 
   return (
@@ -228,7 +263,53 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                   <button type="submit">S'inscrire</button>
                 </div>
               </form>
-            </div>
+            </div>          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Popup d'erreur pour les mots de passe incorrects */}
+      <AnimatePresence>
+        {showErrorPopup && (
+          <motion.div 
+            className="error-popup-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div 
+              className="error-popup"
+              initial={{ opacity: 0, scale: 0.8, y: -50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: -50 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="error-popup-header">
+                <h4>⚠️ Erreur de connexion</h4>
+                <button 
+                  className="error-popup-close"
+                  onClick={closeErrorPopup}
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="error-popup-content">
+                <p>{errorPopupMessage}</p>
+              </div>              <div className="error-popup-actions">
+                <button 
+                  className="error-popup-btn"
+                  onClick={closeErrorPopup}
+                >
+                  Réessayer
+                </button>
+                <button 
+                  className="error-popup-btn error-popup-btn-secondary"
+                  onClick={switchToRegisterFromPopup}
+                >
+                  S'inscrire
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

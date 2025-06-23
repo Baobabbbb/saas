@@ -140,10 +140,8 @@ class ColoringGenerator:
             # Utiliser des animaux génériques
             if '{animal}' in prompt:
                 prompt = prompt.replace('{animal}', 'cat')
-            
-            # Ajouter les instructions pour le line art
-            coloring_prompt = f"Simple black and white line art coloring page, {prompt}, clean outlines, no shading, no fill, white background, suitable for children to color, cartoon style"
-            
+              # Ajouter les instructions pour le line art
+            coloring_prompt = f"Simple black and white line art coloring page, {prompt}, clean outlines, no shading, no fill, white background, suitable for children to color, cartoon style"            
             prompts.append(coloring_prompt)
         
         return prompts[:4]  # Limiter à 4 images max
@@ -151,36 +149,46 @@ class ColoringGenerator:
     def _create_single_coloring_prompt(self, theme: str) -> str:
         """Créer un seul prompt pour le coloriage selon le thème"""
         
-        # Prompts par thème (un seul par thème)
+        # Prompts par thème - Optimisés pour le coloriage
         theme_prompts = {
-            'animals': "A cute cat sitting in a meadow with flowers",
-            'space': "An astronaut floating among stars and planets",
-            'fairies': "A fairy with butterfly wings sitting on a mushroom",
-            'superheroes': "A superhero flying through the city",
-            'nature': "Beautiful flowers in a sunny garden",
-            'vehicles': "A race car speeding on a track",
-            'princess': "A princess in a beautiful ball gown",
-            'dinosaurs': "A friendly T-Rex in a prehistoric forest"
+            'animaux': "A cute friendly cat sitting in a meadow with butterflies and flowers",
+            'dinosaures': "A friendly cartoon T-Rex playing with a ball in a forest with palm trees",
+            'espace': "An astronaut floating among stars, planets and a rocket ship",
+            'fees': "A beautiful fairy with butterfly wings sitting on a large mushroom in an enchanted garden",
+            'super-heros': "A superhero with a cape flying above a city with tall buildings",
+            'nature': "Beautiful sunflowers and roses in a garden with butterflies and a sun",
+            'vehicules': "A racing car with number on it speeding on a track with flags",
+            'princesse': "A princess in an elegant ball gown standing in front of a castle",
+            'licorne': "A magical unicorn with a horn and mane galloping through a rainbow landscape",
+            'ocean': "Friendly dolphins jumping over waves with fish and coral",
+            'ferme': "A happy cow, pig and chicken in a farm with a barn and flowers"
         }
-          # Obtenir le prompt de base pour le thème
-        base_prompt = theme_prompts.get(theme, theme_prompts['animals'])
         
-        # Créer le prompt pour l'image de coloriage (line art)
-        coloring_prompt = f"Simple black and white line art coloring page, {base_prompt}, clean outlines, no shading, no fill, white background, suitable for children to color, cartoon style"
+        # Obtenir le prompt de base pour le thème (avec fallback)
+        base_prompt = theme_prompts.get(theme.lower(), f"A cute {theme} scene for children")
+          # Créer le prompt optimisé pour Stable Diffusion line art
+        coloring_prompt = f"Black and white line drawing coloring book page, {base_prompt}, simple clean outlines, no shading, no gradients, no fill, thick black lines, white background, cartoon style, suitable for children ages 4-10, high contrast, clear details"
         
         return coloring_prompt
-        
+    
     async def _generate_coloring_image(self, prompt: str, coloring_dir: Path, theme_name: str) -> Optional[Path]:
         """Générer une image de coloriage avec Stable Diffusion"""
         
         try:
+            print(f"🎨 Génération coloriage pour '{theme_name}' avec prompt: {prompt[:100]}...")
+            
             # Utiliser Stability AI si disponible
-            if self.stability_key:
+            if self.stability_key and self.stability_key != "your_stability_key_here":
+                print("🔑 Utilisation de Stability AI...")
                 image_path = await self._generate_with_stability(prompt, coloring_dir, theme_name)
                 if image_path:
+                    print("✅ Génération Stability AI réussie")
                     return await self._convert_to_line_art(image_path, coloring_dir, theme_name)
-            
-            # Fallback vers une image générée localement
+                else:
+                    print("❌ Échec Stability AI, passage au fallback")
+            else:
+                print("⚠️ Clé Stability AI manquante ou invalide, utilisation du fallback")
+              # Fallback vers une image générée localement
             return await self._create_fallback_coloring(coloring_dir, theme_name, prompt)
             
         except Exception as e:
@@ -197,13 +205,17 @@ class ColoringGenerator:
             }
             
             data = {
-                "text_prompts": [{"text": prompt}],
-                "cfg_scale": 7,
+                "text_prompts": [
+                    {"text": prompt, "weight": 1.0},
+                    {"text": "colored, shaded, filled, gradients, complex details, realistic, photographic, blurry", "weight": -0.8}
+                ],
+                "cfg_scale": 10,
                 "height": 1024,
                 "width": 1024,
                 "samples": 1,
-                "steps": 20,
-                "style_preset": "line-art"  # Style spécialement pour le line art
+                "steps": 30,
+                "style_preset": "line-art",  # Style spécialement pour le line art
+                "sampler": "K_DPM_2_ANCESTRAL"
             }
             
             response = requests.post(
@@ -251,8 +263,7 @@ class ColoringGenerator:
                 # Convertir en noir et blanc pur
                 threshold = 200
                 edges = edges.point(lambda x: 255 if x > threshold else 0, mode='1')
-                
-                # Sauvegarder le line art
+                  # Sauvegarder le line art
                 lineart_path = coloring_dir / f"coloriage_{theme_name}.png"
                 edges.save(lineart_path)
                 
@@ -263,39 +274,76 @@ class ColoringGenerator:
             return await self._create_fallback_coloring(coloring_dir, theme_name, "Simple coloring page")
     
     async def _create_fallback_coloring(self, coloring_dir: Path, theme_name: str, description: str) -> Path:
-        """Créer une image de coloriage de fallback simple"""
+        """Créer une image de coloriage de fallback plus élaborée"""
         
-        # Créer une image simple avec du texte et des formes
+        # Créer une image avec des formes adaptées au thème
         img = Image.new('RGB', (1024, 1024), 'white')
         draw = ImageDraw.Draw(img)
         
         try:
-            # Utiliser une police par défaut
+            # Utiliser une police par défaut plus grande
             font = ImageFont.load_default()
         except:
             font = None
         
-        # Dessiner des formes simples pour le coloriage
-        # Cercle central
-        draw.ellipse([300, 300, 700, 700], outline='black', width=3)
+        # Dessiner des formes selon le thème
+        if 'animaux' in theme_name.lower() or 'cat' in theme_name.lower():
+            # Dessiner un chat simple
+            # Corps ovale
+            draw.ellipse([350, 450, 650, 700], outline='black', width=4)
+            # Tête
+            draw.ellipse([400, 350, 600, 500], outline='black', width=4)
+            # Oreilles
+            draw.polygon([(420, 350), (400, 300), (450, 320)], outline='black', width=3)
+            draw.polygon([(580, 350), (600, 300), (550, 320)], outline='black', width=3)
+            # Yeux
+            draw.ellipse([440, 380, 470, 410], outline='black', width=3)
+            draw.ellipse([530, 380, 560, 410], outline='black', width=3)
+            # Queue
+            draw.arc([250, 500, 350, 650], 45, 180, fill='black', width=4)
+            
+        elif 'fleur' in theme_name.lower() or 'nature' in theme_name.lower():
+            # Dessiner une fleur
+            center_x, center_y = 500, 500
+            # Pétales
+            for i in range(8):
+                angle = i * 45
+                x1 = center_x + 80 * (i % 2 + 1) * 0.7
+                y1 = center_y + 80 * (i % 2 + 1) * 0.7
+                draw.ellipse([center_x-40, center_y-40, center_x+40, center_y+40], outline='black', width=4)
+                if i % 2 == 0:
+                    draw.ellipse([center_x-20+60, center_y-60, center_x+20+60, center_y-20], outline='black', width=3)
+            # Centre
+            draw.ellipse([center_x-30, center_y-30, center_x+30, center_y+30], outline='black', width=4)
+            # Tige
+            draw.line([center_x, center_y+40, center_x, center_y+200], fill='black', width=6)
+            
+        else:
+            # Forme géométrique générique plus jolie
+            # Étoile centrale plus grande
+            star_points = [
+                (500, 250), (530, 350), (630, 350), (560, 420),
+                (590, 520), (500, 470), (410, 520), (440, 420),
+                (370, 350), (470, 350)
+            ]
+            draw.polygon(star_points, outline='black', width=4)
+            
+            # Cercles décoratifs
+            for i, (x, y) in enumerate([(300, 300), (700, 300), (300, 700), (700, 700)]):
+                draw.ellipse([x-50, y-50, x+50, y+50], outline='black', width=3)
         
-        # Étoiles autour
-        star_points = [
-            (500, 200), (520, 260), (580, 260), (540, 300),
-            (560, 360), (500, 330), (440, 360), (460, 300),
-            (420, 260), (480, 260)
-        ]
-        draw.polygon(star_points, outline='black', width=2)
+        # Bordure décorative
+        draw.rectangle([50, 50, 974, 974], outline='black', width=6)
         
-        # Texte
+        # Titre plus joli
         if font:
-            draw.text((400, 500), "Coloriage", fill='black', font=font)
-            draw.text((350, 530), f"Coloriage {theme_name}", fill='black', font=font)
+            draw.text((350, 100), f"Coloriage {theme_name.title()}", fill='black', font=font)
         
         # Sauvegarder
         fallback_path = coloring_dir / f"coloriage_{theme_name}.png"
         img.save(fallback_path)
         
+        print(f"🎨 Fallback coloriage créé pour {theme_name}")
         return fallback_path
 
     async def generate_coloring(self, theme: str) -> Dict[str, Any]:

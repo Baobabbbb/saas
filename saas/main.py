@@ -48,6 +48,25 @@ async def log_exceptions(request: Request, call_next):
         traceback.print_exc()
         raise
 
+# === ROUTE DE DIAGNOSTIC ===
+
+@app.get("/diagnostic")
+async def diagnostic():
+    """Route de diagnostic pour vérifier la configuration des clés API"""
+    openai_key = os.getenv("OPENAI_API_KEY")
+    stability_key = os.getenv("STABILITY_API_KEY")
+    fal_key = os.getenv("FAL_API_KEY")
+    
+    return {
+        "openai_configured": openai_key is not None and not openai_key.startswith("sk-votre"),
+        "stability_configured": stability_key is not None and not stability_key.startswith("sk-votre"),
+        "fal_configured": fal_key is not None and not fal_key.startswith("votre-cle"),
+        "text_model": TEXT_MODEL,
+        "openai_key_preview": f"{openai_key[:10]}..." if openai_key else "Non configurée",
+        "stability_key_preview": f"{stability_key[:10]}..." if stability_key else "Non configurée",
+        "fal_key_preview": f"{fal_key[:10]}..." if fal_key else "Non configurée"
+    }
+
 # === ENDPOINTS VALIDÉS ===
 
 @app.post("/tts")
@@ -78,12 +97,20 @@ class RhymeRequest(BaseModel):
 @app.post("/generate_rhyme/")
 async def generate_rhyme(request: RhymeRequest):
     try:
+        # Vérifier la clé API
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key or openai_key.startswith("sk-votre"):
+            raise HTTPException(
+                status_code=400, 
+                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
+            )
+        
         prompt = f"Écris une comptine courte, joyeuse et rythmée pour enfants sur le thème : {request.rhyme_type}.\n"
         if request.custom_request:
             prompt += f"Demande spécifique : {request.custom_request}\n"
         prompt += "La comptine doit être en français, adaptée aux enfants de 3 à 8 ans, avec des rimes simples et un rythme enjoué."
 
-        client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        client = AsyncOpenAI(api_key=openai_key)
         
         response = await client.chat.completions.create(
             model=TEXT_MODEL,
@@ -102,9 +129,11 @@ async def generate_rhyme(request: RhymeRequest):
             "content": content,
             "type": "rhyme"
         }
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"❌ Erreur génération comptine: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
 
 # --- Histoire Audio ---
 class AudioStoryRequest(BaseModel):
@@ -115,12 +144,20 @@ class AudioStoryRequest(BaseModel):
 @app.post("/generate_audio_story/")
 async def generate_audio_story(request: AudioStoryRequest):
     try:
+        # Vérifier la clé API
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key or openai_key.startswith("sk-votre"):
+            raise HTTPException(
+                status_code=400, 
+                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
+            )
+        
         prompt = f"Écris une histoire courte et captivante pour enfants sur le thème : {request.story_type}.\n"
         if request.custom_request:
             prompt += f"Demande spécifique : {request.custom_request}\n"
         prompt += "L'histoire doit être en français, adaptée aux enfants de 4 à 10 ans, avec une morale positive et des personnages attachants. Maximum 800 mots."
 
-        client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        client = AsyncOpenAI(api_key=openai_key)
         
         response = await client.chat.completions.create(
             model=TEXT_MODEL,
@@ -148,9 +185,11 @@ async def generate_audio_story(request: AudioStoryRequest):
             "audio_path": audio_path,
             "type": "audio"
         }
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"❌ Erreur génération histoire: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
 
 # --- Coloriage ---
 class ColoringRequest(BaseModel):

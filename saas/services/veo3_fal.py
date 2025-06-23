@@ -17,9 +17,9 @@ class Veo3FalService:
         self.api_key = os.getenv("FAL_API_KEY")
         self.base_url = os.getenv("FAL_BASE_URL", "https://queue.fal.run")
         self.endpoint = "fal-ai/veo3"
-        
         if not self.api_key:
-            raise ValueError("FAL_API_KEY manquante dans les variables d'environnement")
+            print("⚠️ FAL_API_KEY manquante - les animations ne seront pas disponibles")
+            self.api_key = None
         
         # Configuration par défaut
         self.default_config = {
