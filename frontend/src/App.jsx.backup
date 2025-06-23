@@ -1,10 +1,28 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 // import Confetti from 'react-confetti';
+import jsPDF from 'jspdf';
 import './App.css';
 import Header from './components/Header';
 import ContentTypeSelector from './components/ContentTypeSelector';
-import RhymeSelector from './components/RhymeSelector';
+import RhymeSelector from './components/RhymeSelector';eState, useEffect, useRef, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+// import Confetti from 'react-confetti';
+import jsPDF from 'jspdf';
+import './App.css';
+import Header from './components/Header';
+import ContentTypeSelector from './components/ContentTypeSelector';  // 🌠 Chargement de l'image de fond
+  const loadImage = (url) =>
+    new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = url;
+      img.onload = () => resolve(img);
+      img.onerror = () => {
+        console.warn("⚠️ Impossible de charger l'image de fond, PDF sans fond");
+        resolve(null);
+      };
+    }); RhymeSelector from './components/RhymeSelector';
 import AudioStorySelector from './components/AudioStorySelector';
 import AnimationSelector from './components/AnimationSelector';
 import CustomRequest from './components/CustomRequest';
@@ -263,21 +281,11 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
   } finally {
     setIsGenerating(false);
   }
-};  const handleSelectCreation = (creation) => {
-    // Si c'est une demande pour afficher l'histoire
-    if (creation.action === 'showStory') {
-      setGeneratedResult({
-        title: creation.title,
-        content: creation.content || creation.data?.content || '',
-        type: creation.type
-      });
-      setShowStoryPopup(true);
-      // On ne ferme PAS l'historique, juste on affiche la popup
-    } else {
-      // Pour les autres actions, on ferme l'historique
-      setShowHistory(false);
-      window.location.hash = '';
-    }
+};
+
+  const handleSelectCreation = (creation) => {
+    setShowHistory(false);
+    window.location.hash = '';
   };
 
   const handleCloseHistory = () => {

@@ -103,40 +103,33 @@ const History = ({ onClose, onSelect }) => {
             <p className="empty-subtext">Vos créations apparaîtront ici une fois générées</p>
           </div>
         ) : (
-          <div className="creations-list">
-            {creations.map((creation) => (
+          <div className="creations-list">            {creations.map((creation) => (
               <motion.div 
                 key={creation.id}
                 className="creation-item"
-                onClick={() => onSelect(creation)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                onClick={() => onSelect({
+                  ...creation,
+                  action: 'showStory'
+                })}
+                whileHover={{ scale: 1.01 }}
+                transition={{ duration: 0.2 }}
               >
                 <div className="creation-icon">
                   {getContentTypeIcon(creation.type)}
-                </div>
-                <div className="creation-details">
+                </div>                  <div className="creation-details">
                   <h3>{creation.title}</h3>
                   <div className="creation-meta">
                     <span className="creation-type">{getContentTypeLabel(creation.type)}</span>
                     <span className="creation-date">{formatDate(creation.created_at)}</span>
                   </div>
 
-                  {(creation.content || creation.data?.content) && creation.type !== 'rhyme' && (
-                    <div className="creation-text">
-                      {creation.content || creation.data?.content}
-                    </div>
-                  )}
-
                   {creation.audio_path && (
                     <audio
                       controls
                       className="creation-audio"
-                      src={`http://localhost:8000/${creation.audio_path}`}
+                      src={`http://localhost:8001/${creation.audio_path}`}
                     />
-                  )}
-
-                  <div className="creation-actions">
+                  )}                  <div className="creation-actions">
                     {(creation.type === 'audio' || creation.type === 'rhyme') && (creation.content || creation.data?.content) && (
                       <button
                         className="btn-pdf"
@@ -152,7 +145,7 @@ const History = ({ onClose, onSelect }) => {
                     {creation.audio_path && (
                       <a
                         className="btn-audio"
-                        href={`http://localhost:8000/${creation.audio_path}`}
+                        href={`http://localhost:8001/${creation.audio_path}`}
                         download
                         onClick={(e) => e.stopPropagation()}
                       >
