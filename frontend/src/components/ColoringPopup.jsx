@@ -55,12 +55,11 @@ const ColoringPopup = ({ coloringResult, onClose, selectedTheme }) => {
               alt="Coloriage"
               className="coloring-popup-image"
             />
-          </div>          <div className="coloring-popup-actions">
-            <button
+          </div>          <div className="coloring-popup-actions">            <button
               className="coloring-download-btn"
               onClick={handleDownloadPDF}
             >
-              � Télécharger le coloriage
+              📄 Télécharger le coloriage
             </button>
           </div>
         </div>
