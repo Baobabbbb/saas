@@ -17,7 +17,7 @@ from schemas.animation import AnimationRequest, AnimationResponse, AnimationStat
 from datetime import datetime
 from services.tts import generate_speech
 from services.stt import transcribe_audio
-from services.veo3_fal import veo3_fal_service
+from services.runway_gen4_new import runway_gen4_service
 from services.coloring_generator import ColoringGenerator
 from utils.translate import translate_text
 
@@ -323,22 +323,27 @@ Titre uniquement (sans autre texte) :"""
 @app.post("/api/animations/generate", response_model=AnimationResponse)
 async def generate_animation(request: AnimationRequest):
     """
-    Génère un dessin animé avec Veo3 via fal-ai
+    Génère un dessin animé avec Runway Gen-4 Turbo
     """
     try:
         print(f"🎬 Génération animation: {request.style} / {request.theme}")
         
-        # Générer un titre attractif avec l'IA
-        animation_title = await _generate_animation_title(request.theme, request.style)
+        # Convertir les enum en chaînes
+        style_str = request.style.value
+        theme_str = request.theme.value
+        orientation_str = request.orientation.value
         
-        # Générer l'animation avec le service Veo3
-        result = await veo3_fal_service.generate_animation({
-            'style': request.style,
-            'theme': request.theme,
-            'orientation': request.orientation,
+        # Générer un titre attractif avec l'IA
+        animation_title = await _generate_animation_title(theme_str, style_str)
+        
+        # Générer l'animation avec le service Runway Gen-4 Turbo
+        result = await runway_gen4_service.generate_animation({
+            'style': style_str,
+            'theme': theme_str,
+            'orientation': orientation_str,
             'prompt': request.prompt,
             'title': animation_title,
-            'description': f"Animation {request.style} sur le thème {request.theme}"
+            'description': f"Animation {style_str} sur le thème {theme_str}"
         })
         
         return AnimationResponse(
@@ -348,10 +353,10 @@ async def generate_animation(request: AnimationRequest):
             video_url=result['video_url'],
             thumbnail_url=result.get('thumbnail_url'),
             status=AnimationStatus.COMPLETED,
-            created_at=result['created_at'],
+            created_at=datetime.fromisoformat(result['created_at']),
             style=request.style,
             theme=request.theme,
-            duration=8
+            orientation=request.orientation
         )
         
     except Exception as e:
@@ -364,10 +369,9 @@ async def get_animation_status(animation_id: str):
     Récupère le statut d'une animation
     """
     try:
-        # Pour Veo3, les animations sont générées immédiatement
+        # Pour Runway Gen-4 Turbo, les animations sont générées avec polling
         # Cette route est maintenue pour la compatibilité
         return AnimationStatusResponse(
-            id=animation_id,
             status=AnimationStatus.COMPLETED,
             progress=100
         )
@@ -411,13 +415,13 @@ Titre uniquement (sans autre texte) :"""
                 {"role": "user", "content": prompt}
             ],
             max_tokens=25,
-            temperature=0.7
-        )
+            temperature=0.7        )
         
-        title = response.choices[0].message.content.strip()
-        
-        # Nettoyer le titre (enlever guillemets éventuels)
-        title = title.replace('"', '').replace("'", '').strip()
+        title = response.choices[0].message.content
+        if title:
+            title = title.strip()
+            # Nettoyer le titre (enlever guillemets éventuels)
+            title = title.replace('"', '').replace("'", '').strip()
         
         return title if title else f"Animation {theme.title()}"
         
