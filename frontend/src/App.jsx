@@ -120,7 +120,7 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
           custom_request: customRequest
         };
 
-        const response = await fetch('http://127.0.0.1:8001/generate_rhyme/', {
+        const response = await fetch('http://127.0.0.1:8000/generate_rhyme/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -135,7 +135,7 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
         custom_request: customRequest
       };
 
-      const response = await fetch('http://127.0.0.1:8001/generate_audio_story/', {
+      const response = await fetch('http://127.0.0.1:8000/generate_audio_story/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -207,17 +207,16 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
         theme: selectedTheme
       };
 
-      const response = await fetch('http://127.0.0.1:8001/generate_coloring/', {
+      const response = await fetch('http://127.0.0.1:8000/generate_coloring/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
-      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
-      const coloringData = await response.json();
+      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);      const coloringData = await response.json();
       
       setColoringResult(coloringData);
-      generatedContent = null; // Les coloriages utilisent un état séparé
+      generatedContent = coloringData; // Stocker pour l'historique
     }
 
     // 🔁 Enregistre le résultat généré pour affichage audio/texte
@@ -230,18 +229,37 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
     } else if (contentType === 'audio') {
       title = generatedContent.title || `Conte généré`;
     } else if (contentType === 'animation') {
-      title = animationResult?.title || `Dessin animé ${selectedAnimationTheme}`;    } else if (contentType === 'coloring') {
+      title = animationResult?.title || `Dessin animé ${selectedAnimationTheme}`;
+    } else if (contentType === 'coloring') {
       title = `Coloriages ${selectedTheme}`;
-    }    // Ne créer une entrée d'historique que pour les types non-animation et non-coloriage
-    if (contentType !== 'animation' && contentType !== 'coloring') {
-      const newCreation = {
-        id: Date.now().toString(),
-        type: contentType,
-        title: title,
-        createdAt: new Date().toISOString(),
-        content: generatedContent?.content || generatedContent || 'Contenu généré...',
-        audio_path: generatedContent?.audio_path || null
-      };
+    }
+
+    // Créer une entrée d'historique pour tous les types sauf les animations
+    if (contentType !== 'animation') {
+      let newCreation;
+        if (contentType === 'coloring') {
+        // Pour les coloriages, utiliser les données du coloriage
+        newCreation = {
+          id: Date.now().toString(),
+          type: contentType,
+          title: title,
+          createdAt: new Date().toISOString(),
+          content: generatedContent ? `${generatedContent.total_images} coloriage(s) généré(s)` : 'Coloriage généré',
+          theme: selectedTheme,
+          images: generatedContent?.images || [],
+          metadata: generatedContent?.metadata || {}
+        };
+      } else {
+        // Pour les autres types (rhyme, audio)
+        newCreation = {
+          id: Date.now().toString(),
+          type: contentType,
+          title: title,
+          createdAt: new Date().toISOString(),
+          content: generatedContent?.content || generatedContent || 'Contenu généré...',
+          audio_path: generatedContent?.audio_path || null
+        };
+      }
       
       // Enregistrer dans l'historique via Supabase
       try {
@@ -272,6 +290,17 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
         type: creation.type
       });
       setShowStoryPopup(true);
+      // On ne ferme PAS l'historique, juste on affiche la popup
+    } else if (creation.action === 'showColoring') {
+      // Pour les coloriages, on affiche dans la popup de coloriage
+      setColoringResult({
+        success: true,
+        theme: creation.theme || creation.data?.theme || 'coloriage',
+        images: creation.images || creation.data?.images || [],
+        total_images: (creation.images || creation.data?.images || []).length,
+        metadata: creation.metadata || creation.data?.metadata || {}
+      });
+      setShowColoringPopup(true);
       // On ne ferme PAS l'historique, juste on affiche la popup
     } else {
       // Pour les autres actions, on ferme l'historique
@@ -650,7 +679,7 @@ const downloadPDF = async (title, content) => {
     <audio
       controls
       style={{ width: '100%', maxWidth: '360px' }} // 👈 limite la largeur pour l’esthétique
-      src={`http://localhost:8001/${generatedResult.audio_path}`}
+      src={`http://localhost:8000/${generatedResult.audio_path}`}
       download={generatedResult.audio_path.split('/').pop()}
     />
   </div>

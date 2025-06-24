@@ -29,7 +29,6 @@ const History = ({ onClose, onSelect }) => {
       minute: '2-digit'
     }).format(date);
   };
-
   const getContentTypeIcon = (type) => {
     switch (type) {
       case 'story':
@@ -38,6 +37,8 @@ const History = ({ onClose, onSelect }) => {
         return '🎵';
       case 'audio':
         return '🎧';
+      case 'coloring':
+        return '🎨';
       default:
         return '📄';
     }
@@ -51,6 +52,8 @@ const History = ({ onClose, onSelect }) => {
         return 'Comptine';
       case 'audio':
         return 'Conte audio';
+      case 'coloring':
+        return 'Coloriage';
       default:
         return 'Création';
     }
@@ -103,13 +106,12 @@ const History = ({ onClose, onSelect }) => {
             <p className="empty-subtext">Vos créations apparaîtront ici une fois générées</p>
           </div>
         ) : (
-          <div className="creations-list">            {creations.map((creation) => (
-              <motion.div 
+          <div className="creations-list">            {creations.map((creation) => (              <motion.div 
                 key={creation.id}
                 className="creation-item"
                 onClick={() => onSelect({
                   ...creation,
-                  action: 'showStory'
+                  action: creation.type === 'coloring' ? 'showColoring' : 'showStory'
                 })}
                 whileHover={{ scale: 1.01 }}
                 transition={{ duration: 0.2 }}
@@ -121,15 +123,34 @@ const History = ({ onClose, onSelect }) => {
                   <div className="creation-meta">
                     <span className="creation-type">{getContentTypeLabel(creation.type)}</span>
                     <span className="creation-date">{formatDate(creation.created_at)}</span>
-                  </div>
-
-                  {creation.audio_path && (
+                  </div>                  {creation.audio_path && (
                     <audio
                       controls
                       className="creation-audio"
-                      src={`http://localhost:8001/${creation.audio_path}`}
+                      src={`http://localhost:8000/${creation.audio_path}`}
                     />
-                  )}                  <div className="creation-actions">
+                  )}
+
+                  {creation.type === 'coloring' && creation.images && creation.images.length > 0 && (
+                    <div className="coloring-preview">
+                      {creation.images.map((image, index) => (
+                        <img 
+                          key={index}
+                          src={image.image_url} 
+                          alt={`Coloriage ${creation.theme}`}
+                          className="coloring-thumbnail"
+                          style={{
+                            width: '100px',
+                            height: '100px',
+                            objectFit: 'cover',
+                            border: '2px solid #ddd',
+                            borderRadius: '8px',
+                            margin: '5px'
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}<div className="creation-actions">
                     {(creation.type === 'audio' || creation.type === 'rhyme') && (creation.content || creation.data?.content) && (
                       <button
                         className="btn-pdf"
@@ -140,17 +161,29 @@ const History = ({ onClose, onSelect }) => {
                       >
                         📄 Télécharger le PDF
                       </button>
-                    )}
-
-                    {creation.audio_path && (
+                    )}                    {creation.audio_path && (
                       <a
                         className="btn-audio"
-                        href={`http://localhost:8001/${creation.audio_path}`}
+                        href={`http://localhost:8000/${creation.audio_path}`}
                         download
                         onClick={(e) => e.stopPropagation()}
                       >
                         🔊 Télécharger l'audio
                       </a>
+                    )}
+
+                    {creation.type === 'coloring' && creation.images && creation.images.length > 0 && (
+                      creation.images.map((image, index) => (
+                        <a
+                          key={index}
+                          className="btn-coloring"
+                          href={image.image_url}
+                          download={`coloriage_${creation.theme}_${index + 1}.png`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          🎨 Télécharger coloriage {index + 1}
+                        </a>
+                      ))
                     )}
 
                     <button
