@@ -1,7 +1,7 @@
-// Service pour l'intégration avec l'API Veo3
+// Service pour l'intégration avec l'API Runway Gen-4 Turbo
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
 
-class Veo3Service {
+class RunwayAnimationService {
   constructor() {
     this.baseUrl = BACKEND_URL;
   }
@@ -63,12 +63,11 @@ class Veo3Service {
       throw error;
     }
   }
-
-  // Fonction utilitaire pour créer un prompt optimisé pour Veo3
+  // Fonction utilitaire pour créer un prompt optimisé pour Runway Gen-4 Turbo
   createOptimizedPrompt(style, theme, customPrompt) {
     let basePrompt = '';
 
-    // Style mappings pour Veo3
+    // Style mappings pour Runway Gen-4 Turbo
     const stylePrompts = {
       cartoon: 'vibrant cartoon animation style, colorful and playful, Disney-Pixar inspired',
       fairy_tale: 'magical fairy tale animation, enchanted atmosphere with sparkles and soft lighting',
@@ -97,8 +96,8 @@ class Veo3Service {
       basePrompt += `, ${customPrompt.trim()}`;
     }
 
-    // Ajouter des directives pour optimiser pour les enfants
-    basePrompt += ', suitable for children, bright colors, positive atmosphere, high quality animation';
+    // Ajouter des directives pour optimiser pour les enfants et Runway
+    basePrompt += ', suitable for children, bright colors, positive atmosphere, high quality animation, smooth motion';
 
     return basePrompt;
   }
@@ -121,7 +120,7 @@ class Veo3Service {
 
     if (!data.theme) {
       errors.push('Le thème est requis');
-    }    // Fal-ai/Veo3 utilise une durée fixe de 8 secondes
+    }    // Runway Gen-4 Turbo génère des vidéos de 10 secondes
     // Pas besoin de valider la durée côté frontend
 
     if (data.prompt && data.prompt.length > 500) {
@@ -135,4 +134,4 @@ class Veo3Service {
   }
 }
 
-export default new Veo3Service();
+export default new RunwayAnimationService();

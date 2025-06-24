@@ -146,12 +146,13 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
 
     // Listen for hash changes
     const handleHashChange = () => {
-      setShowHistory(window.location.hash === '#historique');
-    };
+      setShowHistory(window.location.hash === '#historique');    };
 
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);  const handleGenerate = async () => {
+  }, []);
+  
+  const handleGenerate = async () => {
     setIsGenerating(true);
     setGeneratedResult(null);
     // setShowConfetti(true);
@@ -180,14 +181,14 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
         voice: selectedVoice,
         custom_request: customRequest
-      };
-
-      const response = await fetch('http://127.0.0.1:8000/generate_audio_story/', {
+      };      const response = await fetch('http://127.0.0.1:8000/generate_audio_story/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
-      });        if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
-        generatedContent = await response.json();
+      });
+      
+      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+      generatedContent = await response.json();
       } else if (contentType === 'animation') {
       // Validation des données d'animation
       const animationData = {
@@ -197,21 +198,20 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
         prompt: animationPrompt,
         title: `Dessin animé ${selectedAnimationTheme}`,
         description: `Animation ${selectedAnimationStyle} sur le thème ${selectedAnimationTheme} (${animationOrientation})`
-      };
-
-      const validation = veo3Service.validateAnimationData(animationData);
+      };      const validation = veo3Service.validateAnimationData(animationData);
       if (!validation.isValid) {
         throw new Error(validation.errors.join(', '));
-      }        // Optimiser le prompt pour Veo3
-        const optimizedPrompt = veo3Service.createOptimizedPrompt(
-          selectedAnimationStyle,
-          selectedAnimationTheme,
-          animationPrompt
-        );
-
-        animationData.prompt = optimizedPrompt;
+      }
       
-      // Générer l'animation avec Veo3 via fal-ai
+      // Optimiser le prompt pour Runway Gen-4 Turbo
+      const optimizedPrompt = veo3Service.createOptimizedPrompt(
+        selectedAnimationStyle,
+        selectedAnimationTheme,        animationPrompt
+      );
+
+      animationData.prompt = optimizedPrompt;
+      
+      // Générer l'animation avec Runway Gen-4 Turbo
       try {
         const animationResponse = await veo3Service.generateAnimation(animationData);
         
@@ -224,7 +224,7 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
           thumbnailUrl: animationResponse.thumbnail_url || null,
           style: selectedAnimationStyle,
           theme: selectedAnimationTheme,
-          duration: 8,
+          duration: 10, // Runway Gen-4 Turbo génère 10 secondes
           status: animationResponse.status || 'completed',
           createdAt: animationResponse.created_at || new Date().toISOString()
         });
@@ -241,26 +241,25 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
           thumbnailUrl: null,
           style: selectedAnimationStyle,
           theme: selectedAnimationTheme,
-          duration: 8,
+          duration: 10, // Runway Gen-4 Turbo génère 10 secondes
           status: 'failed',
           error: error.message,
           createdAt: new Date().toISOString()        });
         setAnimationGenerationStatus({ status: 'failed', error: error.message });
-      }
-
-      // Pour les animations, on n'utilise pas generatedContent
+      }      // Pour les animations, on n'utilise pas generatedContent
       generatedContent = null;
-    } else if (contentType === 'coloring') {const payload = {
+    } else if (contentType === 'coloring') {
+      const payload = {
         theme: selectedTheme
-      };
-
-      const response = await fetch('http://127.0.0.1:8000/generate_coloring/', {
+      };      const response = await fetch('http://127.0.0.1:8000/generate_coloring/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
-      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);      const coloringData = await response.json();
+      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+      
+      const coloringData = await response.json();
       
       setColoringResult(coloringData);
       generatedContent = coloringData; // Stocker pour l'historique
@@ -284,10 +283,10 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
         title = generatedContent.title;
       } else {
         title = generateChildFriendlyTitle('histoire', selectedAudioStory === 'custom' ? 'default' : selectedAudioStory);
-      }
-    } else if (contentType === 'animation') {
+      }    } else if (contentType === 'animation') {
       // Utiliser le titre généré par l'IA depuis l'API animation
-      title = animationResult?.title || generateChildFriendlyTitle('animation', selectedAnimationTheme === 'custom' ? 'default' : selectedAnimationTheme);    } else if (contentType === 'coloring') {
+      title = animationResult?.title || generateChildFriendlyTitle('animation', selectedAnimationTheme === 'custom' ? 'default' : selectedAnimationTheme);
+    } else if (contentType === 'coloring') {
       // Utiliser le titre généré par l'IA depuis l'API coloriage
       title = generatedContent?.title || generateChildFriendlyTitle('coloriage', selectedTheme);
     }
@@ -327,22 +326,23 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
         await addCreation({
           type: contentType,
           title: title,
-          data: newCreation
-        });
+          data: newCreation        });
       } catch (historyError) {
         console.error('Erreur lors de l\'enregistrement dans l\'historique:', historyError);
       }
     }
 
-    // setTimeout(() => setShowConfetti(false), 3000);  } catch (error) {
+    // setTimeout(() => setShowConfetti(false), 3000);
+  } catch (error) {
     console.error('❌ Erreur de génération :', error);
     
     // Afficher une alerte avec plus d'informations
-    alert(`❌ Erreur lors de la génération : ${error.message}\n\n💡 Conseil : Vérifiez que les clés API sont configurées dans le fichier .env du serveur.`);
-  } finally {
+    alert(`❌ Erreur lors de la génération : ${error.message}\n\n💡 Conseil : Vérifiez que les clés API sont configurées dans le fichier .env du serveur.`);  } finally {
     setIsGenerating(false);
   }
-};  const handleSelectCreation = (creation) => {
+};
+
+const handleSelectCreation = (creation) => {
     // Si c'est une demande pour afficher l'histoire
     if (creation.action === 'showStory') {
       setGeneratedResult({
