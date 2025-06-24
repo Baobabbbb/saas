@@ -15,9 +15,6 @@ from openai import AsyncOpenAI
 
 from schemas.animation import AnimationRequest, AnimationResponse, AnimationStatusResponse, AnimationStatus
 from datetime import datetime
-# from services.scenario import generate_scenario
-# from services.image_gen import generate_images
-# from services.composer import compose_pages
 from services.tts import generate_speech
 from services.stt import transcribe_audio
 from services.veo3_fal import veo3_fal_service
@@ -44,189 +41,33 @@ app.add_middleware(
 # Middleware pour afficher les erreurs
 @app.middleware("http")
 async def log_exceptions(request: Request, call_next):
-    try:        return await call_next(request)
+    try:
+        return await call_next(request)
     except Exception:
         print("🔥 Exception occurred during request:")
         traceback.print_exc()
         raise
 
-def validate_scenario(scenario, expected_num_images: int):
-    scenes = scenario.get("scenes", [])
-    if not scenes:
-        raise ValueError("❌ Le scénario ne contient aucune scène.")
+# === ROUTE DE DIAGNOSTIC ===
+
+@app.get("/diagnostic")
+async def diagnostic():
+    """Route de diagnostic pour vérifier la configuration des clés API"""
+    openai_key = os.getenv("OPENAI_API_KEY")
+    stability_key = os.getenv("STABILITY_API_KEY")
+    fal_key = os.getenv("FAL_API_KEY")
     
-    if len(scenes) != expected_num_images:
-        raise ValueError(f"❌ Le scénario contient {len(scenes)} scènes au lieu de {expected_num_images}")
+    return {
+        "openai_configured": openai_key is not None and not openai_key.startswith("sk-votre"),
+        "stability_configured": stability_key is not None and not stability_key.startswith("sk-votre"),
+        "fal_configured": fal_key is not None and not fal_key.startswith("votre-cle"),
+        "text_model": TEXT_MODEL,
+        "openai_key_preview": f"{openai_key[:10]}..." if openai_key else "Non configurée",
+        "stability_key_preview": f"{stability_key[:10]}..." if stability_key else "Non configurée",
+        "fal_key_preview": f"{fal_key[:10]}..." if fal_key else "Non configurée"
+    }
 
-    for i, scene in enumerate(scenario["scenes"]):
-        dialogues = scene.get("dialogues")
-        if dialogues is None:
-            raise ValueError(f"❌ La scène {i + 1} n'a pas de clé 'dialogues'")
-        for j, dialog in enumerate(dialogues):
-            if not isinstance(dialog, dict):
-                raise ValueError(f"❌ Le dialogue {j + 1} de la scène {i + 1} est invalide")
-            if "character" not in dialog or "text" not in dialog:
-                raise ValueError(f"❌ Le dialogue {j + 1} est mal formé : {dialog}")
-
-@app.post("/generate_comic/")
-async def generate_comic(
-    style: str = Form(...),
-    hero_name: str = Form(...),
-    story_type: str = Form(...),
-    custom_request: str = Form(...),
-    num_images: int = Form(...),
-    avatar_type: str = Form(None),
-    custom_prompt: str = Form(None),
-    emoji: str = Form(None),
-    custom_image: Optional[UploadFile] = File(None)
-):
-    """
-    Génère une bande dessinée avec CrewAI activé par défaut
-    pour des bulles et dialogues plus réalistes et professionnels
-    """
-    try:
-        print("🚀 Génération BD avec CrewAI (défaut)")
-        
-        # Construction du prompt optimisé pour CrewAI
-        prompt = f"""
-Tu es un scénariste de bande dessinée pour enfants de 6 à 9 ans.
-
-Crée une BD avec un héros nommé {hero_name}, sur le thème "{story_type}", 
-dans un style {style}. Suis cette structure :
-
-1. La BD doit comporter exactement **{num_images} scènes**, une par image.
-2. Chaque scène contient :
-   - Une description visuelle claire et précise pour l'image
-   - **Entre 1 et 3 dialogues maximum**, adaptés aux bulles de BD
-   - Des indications de placement des personnages (gauche, droite, centre, haut, bas)
-
-3. Les dialogues doivent être :
-   - Naturels et expressifs
-   - Adaptés à des enfants
-   - Courts et percutants (max 2-3 phrases par bulle)
-   - Variés dans le ton (parole normale, cri, chuchotement, pensée)
-   - Éviter les répétitions
-
-Structure narrative : début → problème → aventure → résolution
-
-Langue : français
-
-{custom_request}
-""".strip()
-
-        print("📜 Prompt de génération optimisé :", prompt)
-
-        # -------- LOGIQUE CHOIX AVATAR --------
-        image_path = None
-        try:
-            if avatar_type == "photo" and custom_image:
-                # Cas photo uploadée
-                image_bytes = await custom_image.read()
-                os.makedirs("static/uploads", exist_ok=True)
-                image_path = f"static/uploads/{custom_image.filename}"
-                with open(image_path, "wb") as f:
-                    f.write(image_bytes)
-                print(f"📸 Image personnalisée enregistrée : {image_path}")
-
-            elif avatar_type == "prompt" and custom_prompt:
-                # Traduction du prompt en anglais
-                prompt_en = await translate_text(custom_prompt)
-                from services.image_gen import generate_hero_from_prompt
-                image_path = await generate_hero_from_prompt(prompt_en)
-                print(f"🤖 Héros généré par prompt (traduit) : {prompt_en} -> {image_path}")
-
-            elif avatar_type == "emoji" and emoji:
-                # Emoji = image par défaut (mapping conseillé)
-                EMOJI_TO_FILENAME = {
-                    "👦": "boy.png",
-                    "👧": "girl.png",
-                    "👶": "baby.png"
-                }
-                filename = EMOJI_TO_FILENAME.get(emoji, "default.png")
-                image_path = f"static/emojis/{filename}"
-                print(f"😀 Héros emoji : {emoji} → {image_path}")
-
-            print("🟢 image_path utilisé :", image_path)
-        except Exception as e:
-            print("❌ ERREUR étape CHOIX AVATAR :", e)
-            raise        # --------- Génération du scénario avec CrewAI ---------
-        try:            # Génération avec CrewAI activé par défaut
-            scenario = await generate_scenario(prompt=prompt, style=style, use_crewai=True, num_images=num_images)
-            
-            print("🧠 Scénario généré :", json.dumps(scenario, indent=2, ensure_ascii=False))
-            validate_scenario(scenario, expected_num_images=num_images)
-            
-            if scenario.get('crewai_enhanced'):
-                print("✅ Scénario amélioré par CrewAI")
-            else:
-                print("📝 Scénario de base utilisé")
-                
-        except Exception as e:
-            print("❌ ERREUR étape SCENARIO avec CrewAI :", e)
-            # Fallback vers génération classique
-            print("🔄 Fallback vers génération classique...")
-            try:
-                scenario = await generate_scenario(prompt=prompt, style=style, use_crewai=False, num_images=num_images)
-                validate_scenario(scenario, expected_num_images=num_images)
-                print("🟢 Fallback réussi")
-            except Exception as fallback_error:
-                print("❌ ERREUR Fallback :", fallback_error)
-                raise
-
-        # --------- Génération des images ---------
-        try:
-            if avatar_type == "prompt" and custom_prompt:
-                images = await generate_images(scenario, hero_prompt_en=prompt_en, init_image_path=image_path)
-            else:
-                images = await generate_images(scenario, init_image_path=image_path)
-            print("🟢 Images générées :", images)
-            print("🟢 Nombre d'images générées :", len(images))
-        except Exception as e:
-            print("❌ ERREUR étape GENERATE_IMAGES :", e)
-            raise        # --------- Affectation des images aux scènes ---------
-        try:
-            for i, scene in enumerate(scenario["scenes"]):
-                print(f"➡️ Ajout image à la scène {i} : {images[i]}")
-                scene["image"] = images[i]
-        except Exception as e:
-            print("❌ ERREUR étape AFFECTATION IMAGE SCENE :", e)
-            raise
-
-        # --------- Composition des pages avec le système classique ---------
-        try:
-            print("🛠️ Composition des pages finales...")
-            result = await compose_pages(scenario)
-            
-            # Marquage de l'amélioration CrewAI (textuelle uniquement)
-            result["enhanced_by_crewai"] = scenario.get("crewai_enhanced", False)
-            if result["enhanced_by_crewai"]:
-                print("✅ BD générée avec améliorations textuelles CrewAI")
-            else:
-                print("� BD générée avec système classique")
-                
-        except Exception as e:
-            print(f"❌ ERREUR étape COMPOSITION : {e}")
-            raise
-
-        # Nettoyage final des chemins
-        final_pages = result.get("final_pages", [])
-        for i, page in enumerate(final_pages):
-            if page.startswith("/static/static/"):
-                final_pages[i] = page.replace("/static/static/", "/static/")
-
-        print("✅ BD générée avec succès (CrewAI par défaut)")
-        print(f"📖 Pages finales : {final_pages}")
-        
-        return {
-            "title": result.get("title", scenario.get("title", "Ma BD")),
-            "pages": final_pages,
-            "enhanced_by_crewai": result.get("enhanced_by_crewai", False)
-        }
-
-    except Exception as e:
-        print("❌ Erreur globale génération BD :")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération: {str(e)}")
+# === ENDPOINTS VALIDÉS ===
 
 @app.post("/tts")
 async def tts_endpoint(data: dict):
@@ -256,445 +97,334 @@ class RhymeRequest(BaseModel):
 @app.post("/generate_rhyme/")
 async def generate_rhyme(request: RhymeRequest):
     try:
+        # Vérifier la clé API
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key or openai_key.startswith("sk-votre"):
+            raise HTTPException(
+                status_code=400, 
+                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
+            )
+        
         prompt = f"Écris une comptine courte, joyeuse et rythmée pour enfants sur le thème : {request.rhyme_type}.\n"
         if request.custom_request:
-            prompt += f"Détails supplémentaires : {request.custom_request}"
+            prompt += f"Demande spécifique : {request.custom_request}\n"
+        prompt += """La comptine doit être en français, adaptée aux enfants de 3 à 8 ans, avec des rimes simples et un rythme enjoué.
 
-        client = AsyncOpenAI()
+IMPORTANT : Génère aussi un titre court et attractif pour cette comptine (maximum 4-5 mots), qui plaira aux enfants de 3-8 ans. Le titre doit être simple et joyeux.
 
+Format de réponse attendu :
+TITRE: [titre de la comptine]
+COMPTINE: [texte de la comptine]"""
+
+        client = AsyncOpenAI(api_key=openai_key)
+        
         response = await client.chat.completions.create(
             model=TEXT_MODEL,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {"role": "system", "content": "Tu es un spécialiste des comptines pour enfants. Tu écris des textes courts, amusants et éducatifs."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=300,
             temperature=0.8
         )
+        
         content = response.choices[0].message.content.strip()
-
-        # Extraire un titre nettoyé depuis le contenu si possible
-        final_title = "audio_story"
-        if content.startswith("**") and "**" in content[2:]:
-            final_title = content.split("**")[1].strip()
-
-        # Nettoyer pour un nom de fichier
-        safe_filename = unidecode(final_title.lower().replace(" ", "_"))
-
-        audio_path = generate_speech(content, voice=request.voice, filename=safe_filename)
-
+        
+        # Extraire le titre et le contenu si le format est respecté
+        title = f"Comptine {request.rhyme_type}"  # Titre par défaut
+        rhyme_content = content
+        
+        if "TITRE:" in content and "COMPTINE:" in content:
+            try:
+                lines = content.split('\n')
+                for line in lines:
+                    if line.startswith("TITRE:"):
+                        title = line.replace("TITRE:", "").strip()
+                        break
+                
+                # Extraire le contenu de la comptine
+                comptine_start = content.find("COMPTINE:")
+                if comptine_start != -1:
+                    rhyme_content = content[comptine_start + 9:].strip()
+            except:
+                # En cas d'erreur, utiliser le contenu complet
+                pass
+        
         return {
-            "title": final_title,
-            "content": content,
-            "audio_path": audio_path
+            "title": title,
+            "content": rhyme_content,
+            "type": "rhyme"
         }
-
+    except HTTPException:
+        raise
     except Exception as e:
-        import traceback
-        print("❌ Erreur dans /generate_rhyme/ :", traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"❌ Erreur génération comptine: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
 
-# --- Histoire / Conte ---
+# --- Histoire Audio ---
 class AudioStoryRequest(BaseModel):
     story_type: str
     voice: Optional[str] = None
     custom_request: Optional[str] = None
 
-# --- Coloriage ---
-class ColoringRequest(BaseModel):
-    theme: str
-    child_name: Optional[str] = None
-    favorite_animal: Optional[str] = None
-
 @app.post("/generate_audio_story/")
 async def generate_audio_story(request: AudioStoryRequest):
     try:
-        print("📥 Requête reçue sur /generate_audio_story/")
-        print("🧾 Données reçues :", request)
-
-        prompt = f"Raconte un conte original pour enfant sur le thème : {request.story_type}. "
-        prompt += "Utilise un ton bienveillant, imagé et adapté à un enfant de 4 à 8 ans. "
+        # Vérifier la clé API
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key or openai_key.startswith("sk-votre"):
+            raise HTTPException(
+                status_code=400, 
+                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
+            )
+        
+        prompt = f"Écris une histoire courte et captivante pour enfants sur le thème : {request.story_type}.\n"
         if request.custom_request:
-            prompt += f"Détails supplémentaires : {request.custom_request}"
+            prompt += f"Demande spécifique : {request.custom_request}\n"
+        prompt += """L'histoire doit être en français, adaptée aux enfants de 4 à 10 ans, avec une morale positive et des personnages attachants. Maximum 800 mots.
 
-        print("💡 Prompt généré :", prompt)
+IMPORTANT : Commence par générer un titre court et attractif pour cette histoire (maximum 5-6 mots), qui captivera les enfants de 4-10 ans.
 
-        client = AsyncOpenAI()
+Format de réponse OBLIGATOIRE :
+TITRE: [titre de l'histoire]
+HISTOIRE: [texte de l'histoire]
 
+N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie TITRE."""
+
+        client = AsyncOpenAI(api_key=openai_key)
+        
         response = await client.chat.completions.create(
             model=TEXT_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.8
+            messages=[
+                {"role": "system", "content": "Tu es un conteur spécialisé dans les histoires pour enfants. Tu écris des histoires engageantes avec des valeurs positives."},
+                {"role": "user", "content": prompt}
+            ],            max_tokens=1000,
+            temperature=0.7
         )
-
+        
         content = response.choices[0].message.content.strip()
-        print("📝 Conte généré :", content[:200], "...")  # Affiche un extrait
-
+        
+        # Extraire le titre et le contenu si le format est respecté
+        title = f"Histoire {request.story_type}"  # Titre par défaut
+        story_content = content
+        
+        if "TITRE:" in content and "HISTOIRE:" in content:
+            try:
+                lines = content.split('\n')
+                for line in lines:
+                    if line.startswith("TITRE:"):
+                        title = line.replace("TITRE:", "").strip()
+                        break
+                
+                # Extraire le contenu de l'histoire
+                histoire_start = content.find("HISTOIRE:")
+                if histoire_start != -1:
+                    story_content = content[histoire_start + 9:].strip()
+            except:
+                # En cas d'erreur, utiliser le contenu complet
+                pass
+        
+        # Génération de l'audio si une voix est spécifiée
         audio_path = None
         if request.voice:
-            print("🔊 Génération audio activée avec la voix :", request.voice)
-            audio_path = generate_speech(content, voice=request.voice)
-            print("✅ Audio généré :", audio_path)
-        else:
-            print("ℹ️ Aucune voix spécifiée, audio non généré.")
-
+            try:
+                # Utiliser le contenu de l'histoire pour l'audio, pas le titre
+                audio_path = generate_speech(story_content, voice=request.voice)
+            except Exception as audio_error:
+                print(f"⚠️ Erreur génération audio: {audio_error}")
+        
         return {
-            "title": f"L’histoire de {request.story_type.capitalize()}",
-            "content": content,
-            "audio_path": audio_path
+            "title": title,
+            "content": story_content,
+            "audio_path": audio_path,
+            "type": "audio"
         }
-
+    except HTTPException:
+        raise
     except Exception as e:
-        print("❌ Erreur lors de la génération du conte audio :")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"❌ Erreur génération histoire: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
 
-# --- Endpoint Coloriage ---
+# --- Coloriage ---
+class ColoringRequest(BaseModel):
+    theme: str
+
 @app.post("/generate_coloring/")
 async def generate_coloring(request: ColoringRequest):
     try:
-        print("📥 Requête reçue sur /generate_coloring/")
-        print("🎨 Données reçues :", request.dict())
-
-        # Initialiser le générateur de coloriages
+        print(f"🎨 Génération coloriage theme: {request.theme}")
+        
+        # Générer un titre attractif avec l'IA
+        title = await _generate_coloring_title(request.theme)
+        
         coloring_generator = ColoringGenerator()
+        result = await coloring_generator.generate_coloring(request.theme)
         
-        # Générer les images de coloriage
-        result = await coloring_generator.generate_coloring_images(
-            theme=request.theme,
-            child_name=request.child_name,
-            favorite_animal=request.favorite_animal
-        )
+        # Ajouter le titre généré au résultat
+        if result.get("success"):
+            result["title"] = title
+            result["type"] = "coloring"
         
-        print("✅ Coloriages générés avec succès")
         return result
-
     except Exception as e:
-        print("❌ Erreur lors de la génération des coloriages :")
-        traceback.print_exc()
+        print(f"❌ Erreur génération coloriage: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# === ENDPOINTS POUR LES ANIMATIONS ===
-
-@app.post("/api/animations/generate", response_model=AnimationResponse)
-async def generate_animation(request: AnimationRequest):
-    """Génère une nouvelle animation avec Veo3 via fal-ai"""
+async def _generate_coloring_title(theme: str) -> str:
+    """Génère un titre attractif pour un coloriage selon le thème"""
     try:
-        print(f"🎬 Génération d'animation demandée: {request.style} - {request.theme}")
+        # Vérifier la clé API
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key or openai_key.startswith("sk-votre"):
+            # Fallback si pas d'API
+            return f"Coloriage {theme.title()}"
         
-        # Construction du prompt pour fal-ai
-        style_map = {
-            "cartoon": "style cartoon coloré",
-            "fairy_tale": "style conte de fées magique",
-            "anime": "style anime japonais",
-            "realistic": "style réaliste cinématique",
-            "paper_craft": "style papier découpé artisanal",
-            "watercolor": "style aquarelle artistique"
-        }
+        prompt = f"""Génère un titre court et attractif pour un coloriage sur le thème : {theme}
+
+Le titre doit être :
+- Court (maximum 3-4 mots)
+- Adapté aux enfants de 3-8 ans
+- Joyeux et imaginatif  
+- En français
+- Sans ponctuation spéciale
+
+Exemples de bons titres :
+- "Princesse Magique"
+- "Super Héros Volant"
+- "Animaux Rigolos"
+- "Licorne Arc-en-ciel"
+
+Titre uniquement (sans autre texte) :"""
+
+        client = AsyncOpenAI(api_key=openai_key)
         
-        theme_map = {
-            "adventure": "aventure épique avec des héros",
-            "magic": "monde magique avec des sortilèges",
-            "animals": "animaux mignons et amicaux",
-            "friendship": "amitié et entraide",
-            "space": "exploration spatiale futuriste",
-            "underwater": "monde sous-marin coloré",
-            "forest": "forêt enchantée mystérieuse",
-            "superhero": "super-héros sauvant le monde"
-        }
-        
-        prompt_parts = [
-            f"Animation courte {style_map.get(request.style, request.style)}",
-            f"sur le thème: {theme_map.get(request.theme, request.theme)}",
-            "Adapté aux enfants, couleurs vives, mouvements fluides",
-            "Qualité professionnelle haute définition"
-        ]
-        
-        if request.prompt:
-            prompt_parts.append(f"Histoire: {request.prompt}")
-        
-        animation_prompt = ". ".join(prompt_parts)
-        
-        # Détermination de l'aspect ratio
-        aspect_ratio = "9:16" if request.orientation == "portrait" else "16:9"
-        
-        # Génération avec le service fal-ai
-        result = await veo3_fal_service.generate_video(
-            prompt=animation_prompt,
-            aspect_ratio=aspect_ratio,
-            generate_audio=True
+        response = await client.chat.completions.create(
+            model=TEXT_MODEL,
+            messages=[
+                {"role": "system", "content": "Tu es un spécialiste des activités créatives pour enfants. Tu génères des titres courts et attractifs."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=20,
+            temperature=0.7
         )
         
-        # Création de la réponse
-        import uuid
-        animation_id = str(uuid.uuid4())
+        title = response.choices[0].message.content.strip()
         
-        animation = AnimationResponse(
-            id=animation_id,
-            title=request.title or "Mon Dessin Animé",
-            description=request.description or "Dessin animé créé avec Veo3",
-            style=request.style,
-            theme=request.theme,
-            orientation=request.orientation,
-            status=AnimationStatus.COMPLETED,
-            video_url=result["video_url"],
-            created_at=datetime.now(),
-            completed_at=datetime.now()
-        )
+        # Nettoyer le titre (enlever guillemets éventuels)
+        title = title.replace('"', '').replace("'", '').strip()
         
-        print(f"✅ Animation créée avec l'ID: {animation.id}")
-        print(f"🎥 URL vidéo: {animation.video_url}")
-        
-        return animation
+        return title if title else f"Coloriage {theme.title()}"
         
     except Exception as e:
-        print("❌ Erreur lors de la génération d'animation:")
-        traceback.print_exc()
+        print(f"⚠️ Erreur génération titre coloriage: {e}")
+        return f"Coloriage {theme.title()}"
+
+# --- Dessins Animés ---
+@app.post("/api/animations/generate", response_model=AnimationResponse)
+async def generate_animation(request: AnimationRequest):
+    """
+    Génère un dessin animé avec Veo3 via fal-ai
+    """
+    try:
+        print(f"🎬 Génération animation: {request.style} / {request.theme}")
+        
+        # Générer un titre attractif avec l'IA
+        animation_title = await _generate_animation_title(request.theme, request.style)
+        
+        # Générer l'animation avec le service Veo3
+        result = await veo3_fal_service.generate_animation({
+            'style': request.style,
+            'theme': request.theme,
+            'orientation': request.orientation,
+            'prompt': request.prompt,
+            'title': animation_title,
+            'description': f"Animation {request.style} sur le thème {request.theme}"
+        })
+        
+        return AnimationResponse(
+            id=result['id'],
+            title=result['title'],
+            description=result['description'],
+            video_url=result['video_url'],
+            thumbnail_url=result.get('thumbnail_url'),
+            status=AnimationStatus.COMPLETED,
+            created_at=result['created_at'],
+            style=request.style,
+            theme=request.theme,
+            duration=8
+        )
+        
+    except Exception as e:
+        print(f"❌ Erreur génération animation: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/animations/{animation_id}/status", response_model=AnimationStatusResponse)
 async def get_animation_status(animation_id: str):
-    """Récupère le statut d'une animation (pour compatibilité)"""
+    """
+    Récupère le statut d'une animation
+    """
     try:
-        # Avec fal-ai, les animations sont synchrones donc toujours completed
+        # Pour Veo3, les animations sont générées immédiatement
+        # Cette route est maintenue pour la compatibilité
         return AnimationStatusResponse(
+            id=animation_id,
             status=AnimationStatus.COMPLETED,
             progress=100
         )
-        
     except Exception as e:
-        print("❌ Erreur lors de la récupération du statut:")
-        traceback.print_exc()
+        print(f"❌ Erreur récupération statut: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/animations/{animation_id}", response_model=AnimationResponse)
-async def get_animation(animation_id: str):
-    """Récupère une animation complète (pour compatibilité)"""
+async def _generate_animation_title(theme: str, style: str) -> str:
+    """Génère un titre attractif pour une animation selon le thème et le style"""
     try:
-        # Dans cette version simplifiée, on ne stocke pas les animations
-        # On retourne une animation d'exemple ou une erreur 404
-        raise HTTPException(status_code=404, detail="Animation non trouvée")
+        # Vérifier la clé API
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key or openai_key.startswith("sk-votre"):
+            # Fallback si pas d'API
+            return f"Animation {theme.title()}"
         
-    except HTTPException:
-        raise
+        prompt = f"""Génère un titre court et attractif pour un dessin animé sur le thème : {theme} 
+Style d'animation : {style}
+
+Le titre doit être :
+- Court (maximum 4-5 mots)
+- Adapté aux enfants de 4-10 ans
+- Captivant et imaginatif  
+- En français
+- Sans ponctuation spéciale
+
+Exemples de bons titres :
+- "Les Aventures de Luna"
+- "Super Chat Volant"
+- "Princesse des Océans"
+- "Mission Spatiale Secrète"
+
+Titre uniquement (sans autre texte) :"""
+
+        client = AsyncOpenAI(api_key=openai_key)
+        
+        response = await client.chat.completions.create(
+            model=TEXT_MODEL,
+            messages=[
+                {"role": "system", "content": "Tu es un spécialiste des contenus audiovisuels pour enfants. Tu génères des titres courts et captivants."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=25,
+            temperature=0.7
+        )
+        
+        title = response.choices[0].message.content.strip()
+        
+        # Nettoyer le titre (enlever guillemets éventuels)
+        title = title.replace('"', '').replace("'", '').strip()
+        
+        return title if title else f"Animation {theme.title()}"
+        
     except Exception as e:
-        print("❌ Erreur lors de la récupération de l'animation:")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"⚠️ Erreur génération titre animation: {e}")
+        return f"Animation {theme.title()}"
 
-@app.get("/api/animations")
-async def get_user_animations(page: int = 1, limit: int = 10):
-    """Récupère les animations d'un utilisateur (version simplifiée)"""
-    try:
-        # Version simplifiée - retourne une liste vide
-        # Dans un vrai projet, on aurait une base de données
-        return {
-            "animations": [],
-            "total": 0,
-            "page": page,
-            "limit": limit,
-            "total_pages": 0
-        }
-        
-        return {
-            "animations": paginated_animations,
-            "total": len(animations),
-            "page": page,
-            "limit": limit,
-            "total_pages": (len(animations) + limit - 1) // limit
-        }
-        
-    except Exception as e:
-        print("❌ Erreur lors de la récupération des animations:")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-
-# Cleanup à la fermeture
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Nettoie les ressources à la fermeture"""
-    if hasattr(veo3_fal_service, 'close'):
-        await veo3_fal_service.close()
-
-# === NOUVEAU ENDPOINT BD AMÉLIORÉE AVEC CREWAI ===
-
-@app.post("/generate_comic_enhanced/")
-async def generate_comic_enhanced(
-    style: str = Form(...),
-    hero_name: str = Form(...),
-    story_type: str = Form(...),
-    custom_request: str = Form(...),
-    num_images: int = Form(...),
-    avatar_type: str = Form(None),
-    custom_prompt: str = Form(None),
-    emoji: str = Form(None),
-    use_crewai: bool = Form(True),
-    custom_image: Optional[UploadFile] = File(None)
-):
-    """
-    Génère une bande dessinée avec les améliorations CrewAI
-    pour des bulles et dialogues plus réalistes
-    """
-    try:
-        print(f"🚀 Génération BD améliorée - CrewAI: {'ON' if use_crewai else 'OFF'}")
-        
-        # Construction du prompt optimisé pour CrewAI
-        prompt = f"""
-Tu es un scénariste de bande dessinée pour enfants de 6 à 9 ans.
-
-Crée une BD avec un héros nommé {hero_name}, sur le thème "{story_type}", 
-dans un style {style}. Suis cette structure :
-
-1. La BD doit comporter exactement **{num_images} scènes**, une par image.
-2. Chaque scène contient :
-   - Une description visuelle claire et précise pour l'image
-   - **Entre 1 et 3 dialogues maximum**, adaptés aux bulles de BD
-   - Des indications de placement des personnages (gauche, droite, centre, haut, bas)
-
-3. Les dialogues doivent être :
-   - Naturels et expressifs
-   - Adaptés à des enfants
-   - Courts et percutants (max 2-3 phrases par bulle)
-   - Variés dans le ton (parole normale, cri, chuchotement, pensée)
-   - Éviter les répétitions
-
-Structure narrative : début → problème → aventure → résolution
-
-Langue : français
-
-{custom_request}
-""".strip()
-
-        print("📜 Prompt de génération amélioré :", prompt)
-
-        # -------- LOGIQUE CHOIX AVATAR --------
-        image_path = None
-        try:
-            if avatar_type == "photo" and custom_image:
-                # Cas photo uploadée
-                image_bytes = await custom_image.read()
-                os.makedirs("static/uploads", exist_ok=True)
-                image_path = f"static/uploads/{custom_image.filename}"
-                with open(image_path, "wb") as f:
-                    f.write(image_bytes)
-                print(f"📸 Image personnalisée enregistrée : {image_path}")
-
-            elif avatar_type == "prompt" and custom_prompt:
-                # Traduction du prompt en anglais
-                prompt_en = await translate_text(custom_prompt)
-                from services.image_gen import generate_hero_from_prompt
-                image_path = await generate_hero_from_prompt(prompt_en)
-                print(f"🤖 Héros généré par prompt (traduit) : {prompt_en} -> {image_path}")
-
-            elif avatar_type == "emoji" and emoji:
-                # Emoji = image par défaut (mapping conseillé)
-                EMOJI_TO_FILENAME = {
-                    "👦": "boy.png",
-                    "👧": "girl.png", 
-                    "👶": "baby.png"
-                }
-                filename = EMOJI_TO_FILENAME.get(emoji, "default.png")
-                image_path = f"static/emojis/{filename}"
-                print(f"😀 Héros emoji : {emoji} → {image_path}")
-
-            print("🟢 image_path utilisé :", image_path)
-        except Exception as e:
-            print("❌ ERREUR étape CHOIX AVATAR :", e)
-            raise
-
-        # --------- Génération du scénario avec CrewAI ---------
-        try:
-            # Génération avec ou sans CrewAI selon le paramètre
-            scenario = await generate_scenario(prompt, style, use_crewai=use_crewai, num_images=num_images)
-            
-            print("🧠 Scénario généré :", json.dumps(scenario, indent=2, ensure_ascii=False))
-            validate_scenario(scenario, expected_num_images=num_images)
-            
-            if scenario.get('crewai_enhanced'):
-                print("✅ Scénario amélioré par CrewAI")
-            else:
-                print("📝 Scénario de base utilisé")
-                
-        except Exception as e:
-            print("❌ ERREUR étape SCENARIO :", e)
-            raise
-
-        # --------- Génération des images ---------
-        try:
-            if avatar_type == "prompt" and custom_prompt:
-                images = await generate_images(scenario, hero_prompt_en=prompt_en, init_image_path=image_path)
-            else:
-                images = await generate_images(scenario, init_image_path=image_path)
-            print("🟢 Images générées :", images)
-        except Exception as e:
-            print("❌ ERREUR étape GENERATE_IMAGES :", e)
-            raise
-
-        # --------- Affectation des images aux scènes ---------
-        try:
-            for i, scene in enumerate(scenario["scenes"]):
-                scene["image"] = images[i]
-                print(f"➡️ Image assignée à la scène {i+1} : {images[i]}")
-        except Exception as e:
-            print("❌ ERREUR étape AFFECTATION IMAGE SCENE :", e)
-            raise        # --------- Composition avec le système classique ---------
-        try:
-            print("�️ Composition des pages finales...")
-            result = await compose_pages(scenario)
-            
-            # Marquage de l'amélioration CrewAI
-            result["enhanced_by_crewai"] = scenario.get("crewai_enhanced", False)
-            if result["enhanced_by_crewai"]:
-                print("✅ BD générée avec améliorations textuelles CrewAI")
-            else:
-                print("� BD générée avec système classique")
-                
-        except Exception as e:
-            print(f"❌ ERREUR étape COMPOSITION : {e}")
-            # Fallback sur le système classique
-            print("🔄 Fallback vers composition classique...")
-            result = await compose_pages(scenario)
-            result["enhanced_by_crewai"] = False
-
-        # Nettoyage final des chemins
-        final_pages = result.get("final_pages", [])
-        for i, page in enumerate(final_pages):
-            if page.startswith("/static/static/"):
-                final_pages[i] = page.replace("/static/static/", "/static/")
-
-        print("✅ BD améliorée générée avec succès")
-        print(f"📖 Pages finales : {final_pages}")
-        
-        return {
-            "title": result.get("title", scenario.get("title", "Ma BD")),
-            "pages": final_pages,
-            "enhanced_by_crewai": result.get("enhanced_by_crewai", False),
-            "total_scenes": len(scenario.get("scenes", [])),
-            "improvements": result.get("improvements", [])
-        }
-
-    except Exception as e:
-        print("❌ Erreur globale génération BD améliorée:")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération: {str(e)}")
-
-# === ENDPOINT POUR ACTIVER/DÉSACTIVER CREWAI ===
-
-@app.post("/toggle_crewai/")
-async def toggle_crewai_enhancement(enabled: bool = Form(...)):
-    """
-    Active ou désactive l'amélioration CrewAI globalement
-    """
-    try:
-        # Ici vous pourriez stocker cette préférence en base de données
-        # Pour l'instant, on retourne juste le statut
-        return {
-            "crewai_enabled": enabled,
-            "message": f"Amélioration CrewAI {'activée' if enabled else 'désactivée'}",
-            "features": [
-                "Dialogues plus naturels et réalistes",
-                "Bulles de dialogue optimisées", 
-                "Placement intelligent des bulles",
-                "Révision narrative par des agents spécialisés"
-            ] if enabled else ["Génération BD standard"]
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# Section des endpoints BD supprimée - plus utilisée
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

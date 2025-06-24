@@ -21,6 +21,51 @@ import veo3Service from './services/veo3';
 import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
 
+// Fonction pour générer des titres attractifs pour les enfants
+const generateChildFriendlyTitle = (contentType, theme, content = '') => {
+  const titlesLibrary = {
+    comptine: {
+      animaux: ['Les Amis de la Forêt', 'La Danse des Animaux', 'Mes Amis les Animaux', 'Le Grand Bal des Animaux'],
+      nature: ['Les Fleurs Magiques', 'L\'Aventure dans les Bois', 'Les Secrets du Jardin', 'La Fête de la Nature'],
+      transport: ['Le Train des Copains', 'L\'Aventure en Voiture', 'Le Voyage Fantastique', 'En Route pour l\'Aventure'],
+      couleurs: ['L\'Arc-en-Ciel Magique', 'Le Monde des Couleurs', 'La Danse des Couleurs', 'Mon Joli Tableau'],
+      famille: ['Ma Famille d\'Amour', 'Tous Ensemble', 'Les Câlins de Famille', 'Mon Coeur de Famille'],
+      default: ['Ma Jolie Comptine', 'Chanson du Bonheur', 'Ma Petite Mélodie', 'Comptine Rigolote']
+    },
+    histoire: {
+      aventure: ['La Grande Aventure', 'Voyage Extraordinaire', 'Mission Secrète', 'L\'Aventure Fantastique'],
+      animaux: ['Les Amis de la Forêt', 'L\'Histoire des Petits Animaux', 'Mes Copains Animaux', 'La Famille Animaux'],
+      magie: ['Le Monde Magique', 'L\'Aventure Enchantée', 'Le Secret Magique', 'La Fée et ses Amis'],
+      amitié: ['Les Meilleurs Amis', 'Une Belle Amitié', 'Copains pour la Vie', 'L\'Amitié Magique'],
+      espace: ['Voyage dans les Étoiles', 'L\'Aventure Spatiale', 'Les Amis de l\'Espace', 'Mission sur la Lune'],
+      default: ['Mon Belle Histoire', 'Conte Merveilleux', 'Histoire Fantastique', 'Récit d\'Aventure']
+    },
+    coloriage: {
+      animaux: ['Mes Amis Animaux', 'Zoo Rigolo', 'Famille Animaux', 'Copains de la Forêt'],
+      licorne: ['Licorne Magique', 'Princesse Licorne', 'Pays des Licornes', 'Licorne Arc-en-Ciel'],
+      dinosaures: ['Dino Rigolo', 'Mes Amis Dinosaures', 'Parc des Dinosaures', 'T-Rex et ses Copains'],
+      nature: ['Jardin Fleuri', 'Forêt Enchantée', 'Promenade Nature', 'Fleurs et Papillons'],
+      espace: ['Voyage Spatial', 'Planètes Rigolotes', 'Astronaute en Mission', 'Étoiles et Fusées'],
+      véhicules: ['Mes Voitures', 'Garage Rigolo', 'Course Automobile', 'Train et Avions'],
+      default: ['Mon Coloriage', 'Dessin Rigolo', 'Art Créatif', 'Belle Image']
+    },
+    animation: {
+      aventure: ['Super Aventure', 'Mission Héroïque', 'Voyage Fantastique', 'Grande Expédition'],
+      magie: ['Monde Magique', 'Sort Enchanteur', 'Fée et Magie', 'Château Magique'],
+      animaux: ['Amis Animaux', 'Safari Rigolo', 'Zoo Animé', 'Copains de la Jungle'],
+      espace: ['Mission Spatiale', 'Voyage Galactique', 'Planète Mystère', 'Astronaute Héros'],
+      default: ['Mon Dessin Animé', 'Film Rigolo', 'Animation Magique', 'Spectacle Animé']
+    }
+  };
+
+  const categoryTitles = titlesLibrary[contentType] || titlesLibrary.histoire;
+  const themeTitles = categoryTitles[theme] || categoryTitles.default || categoryTitles.aventure;
+  
+  // Choisir un titre au hasard dans la liste
+  const randomIndex = Math.floor(Math.random() * themeTitles.length);
+  return themeTitles[randomIndex];
+};
+
 function splitTextIntoPages(text, maxChars = 600) {
   const sentences = text.split(/(?<=[.?!])\s+/);
   const pages = [];
@@ -70,10 +115,12 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
   const [animationOrientation, setAnimationOrientation] = useState(null); // 'landscape' or 'portrait'
   const [uploadedAnimationImage, setUploadedAnimationImage] = useState(null);  const [animationResult, setAnimationResult] = useState(null);
   const [showAnimationPopup, setShowAnimationPopup] = useState(false);
-  const [animationGenerationStatus, setAnimationGenerationStatus] = useState(null);
-  // Coloring states
+  const [animationGenerationStatus, setAnimationGenerationStatus] = useState(null);  // Coloring states
   const [selectedTheme, setSelectedTheme] = useState(null);
   const [coloringResult, setColoringResult] = useState(null);
+  
+  // Store the current generated title for use in UI
+  const [currentTitle, setCurrentTitle] = useState(null);
 
   // User account state
   const { user, loading } = useSupabaseUser();
@@ -222,17 +269,31 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
     // 🔁 Enregistre le résultat généré pour affichage audio/texte
     setGeneratedResult(generatedContent);
     // setStoryPages(splitTextIntoPages(generatedContent.content)); // Ajoute la pagination
-    setCurrentPageIndex(0); // Reviens à la première page    // Déterminer le titre
+    setCurrentPageIndex(0); // Reviens à la première page    // Déterminer le titre avec des noms attractifs pour les enfants
     let title;
     if (contentType === 'rhyme') {
-      title = generatedContent.title || `Comptine générée`;
+      // Utiliser le titre de l'IA ou générer un titre attractif
+      if (generatedContent.title && !generatedContent.title.includes('générée')) {
+        title = generatedContent.title;
+      } else {
+        title = generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme);
+      }
     } else if (contentType === 'audio') {
-      title = generatedContent.title || `Conte généré`;
+      // Utiliser le titre de l'IA ou générer un titre attractif
+      if (generatedContent.title && !generatedContent.title.includes('générée')) {
+        title = generatedContent.title;
+      } else {
+        title = generateChildFriendlyTitle('histoire', selectedAudioStory === 'custom' ? 'default' : selectedAudioStory);
+      }
     } else if (contentType === 'animation') {
-      title = animationResult?.title || `Dessin animé ${selectedAnimationTheme}`;
-    } else if (contentType === 'coloring') {
-      title = `Coloriages ${selectedTheme}`;
+      // Utiliser le titre généré par l'IA depuis l'API animation
+      title = animationResult?.title || generateChildFriendlyTitle('animation', selectedAnimationTheme === 'custom' ? 'default' : selectedAnimationTheme);    } else if (contentType === 'coloring') {
+      // Utiliser le titre généré par l'IA depuis l'API coloriage
+      title = generatedContent?.title || generateChildFriendlyTitle('coloriage', selectedTheme);
     }
+
+    // Stocker le titre pour l'utiliser dans l'UI
+    setCurrentTitle(title);
 
     // Créer une entrée d'historique pour tous les types sauf les animations
     if (contentType !== 'animation') {
@@ -616,13 +677,12 @@ const downloadPDF = async (title, content) => {
         }}
       >
         🎨 Ouvrir le coloriage
-      </button>
-
-      <button
+      </button>      <button
         onClick={() => {
           if (coloringResult?.images) {
-            const title = selectedTheme ? `coloriages_${selectedTheme}` : 'coloriages';
-            downloadColoringAsPDF(coloringResult.images, title);
+            // Utiliser le titre généré par l'IA, sinon fallback sur le thème
+            const titleForDownload = currentTitle || (selectedTheme ? `coloriages_${selectedTheme}` : 'coloriages');
+            downloadColoringAsPDF(coloringResult.images, titleForDownload);
           }
         }}
         style={{
