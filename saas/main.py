@@ -346,13 +346,20 @@ async def generate_animation(request: AnimationRequest):
             'description': f"Animation {style_str} sur le thème {theme_str}"
         })
         
+        # Ajuster le statut et la description selon le mode utilisé
+        response_status = AnimationStatus.COMPLETED
+        
+        # Si c'est une simulation à cause des crédits, l'indiquer
+        if result.get('simulation_reason'):
+            result['description'] += f" (Mode simulation: {result['simulation_reason']})"
+        
         return AnimationResponse(
             id=result['id'],
             title=result['title'],
             description=result['description'],
             video_url=result['video_url'],
             thumbnail_url=result.get('thumbnail_url'),
-            status=AnimationStatus.COMPLETED,
+            status=response_status,
             created_at=datetime.fromisoformat(result['created_at']),
             style=request.style,
             theme=request.theme,
@@ -378,6 +385,28 @@ async def get_animation_status(animation_id: str):
     except Exception as e:
         print(f"❌ Erreur récupération statut: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# --- Status et monitoring ---
+@app.get("/api/runway/credits")
+async def get_runway_credits_status():
+    """
+    Vérifie l'état des crédits Runway
+    """
+    try:
+        status = await runway_gen4_service.check_credits_status()
+        return {
+            "service": "runway_gen4",
+            "timestamp": datetime.now().isoformat(),
+            **status
+        }
+    except Exception as e:
+        return {
+            "service": "runway_gen4",
+            "timestamp": datetime.now().isoformat(),
+            "status": "error",
+            "error": str(e),
+            "credits_available": False
+        }
 
 async def _generate_animation_title(theme: str, style: str) -> str:
     """Génère un titre attractif pour une animation selon le thème et le style"""
@@ -428,6 +457,103 @@ Titre uniquement (sans autre texte) :"""
     except Exception as e:
         print(f"⚠️ Erreur génération titre animation: {e}")
         return f"Animation {theme.title()}"
+
+# --- Dessins Animés Optimisés ---
+@app.post("/api/animations/generate-fast", response_model=AnimationResponse)
+async def generate_animation_fast(request: AnimationRequest):
+    """
+    Génère un dessin animé avec Runway Gen-4 Turbo (mode optimisé pour la vitesse)
+    """
+    try:
+        print(f"⚡ Génération animation RAPIDE: {request.style} / {request.theme}")
+        
+        # Convertir les enum en chaînes
+        style_str = request.style.value
+        theme_str = request.theme.value
+        orientation_str = request.orientation.value
+        
+        # Générer un titre attractif avec l'IA
+        animation_title = await _generate_animation_title(theme_str, style_str)
+        
+        # Générer l'animation avec le service Runway Gen-4 Turbo (mode rapide)
+        result = await runway_gen4_service.generate_animation({
+            'style': style_str,
+            'theme': theme_str,
+            'orientation': orientation_str,
+            'prompt': request.prompt,
+            'title': animation_title,
+            'description': f"Animation {style_str} sur le thème {theme_str} (optimisée)"
+        })
+        
+        # Ajuster le statut et la description selon le mode utilisé
+        response_status = AnimationStatus.COMPLETED
+        
+        # Si c'est une simulation à cause des crédits, l'indiquer
+        if result.get('simulation_reason'):
+            result['description'] += f" (Mode simulation: {result['simulation_reason']})"
+        
+        return AnimationResponse(
+            id=result['id'],
+            title=result['title'],
+            description=result['description'],
+            video_url=result['video_url'],
+            thumbnail_url=result.get('thumbnail_url'),
+            status=response_status,
+            created_at=datetime.fromisoformat(result['created_at']),
+            style=request.style,
+            theme=request.theme,
+            orientation=request.orientation
+        )
+        
+    except Exception as e:
+        print(f"❌ Erreur génération animation rapide: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/animations/generate-async", response_model=AnimationResponse)
+async def generate_animation_async(request: AnimationRequest):
+    """
+    Démarre une génération d'animation asynchrone (retour immédiat)
+    """
+    try:
+        print(f"🔄 Génération animation ASYNCHRONE: {request.style} / {request.theme}")
+        
+        # Convertir les enum en chaînes
+        style_str = request.style.value
+        theme_str = request.theme.value
+        orientation_str = request.orientation.value
+        
+        # Générer un titre attractif avec l'IA
+        animation_title = await _generate_animation_title(theme_str, style_str)
+        
+        # Démarrer la génération asynchrone
+        result = await runway_gen4_service.generate_animation_async({
+            'style': style_str,
+            'theme': theme_str,
+            'orientation': orientation_str,
+            'prompt': request.prompt,
+            'title': animation_title,
+            'description': f"Animation {style_str} sur le thème {theme_str}"
+        })
+        
+        # Déterminer le statut
+        status = AnimationStatus.PROCESSING if result.get('status') == 'processing' else AnimationStatus.COMPLETED
+        
+        return AnimationResponse(
+            id=result['id'],
+            title=result['title'],
+            description=result['description'],
+            video_url=result.get('video_url'),
+            thumbnail_url=result.get('thumbnail_url'),
+            status=status,
+            created_at=datetime.fromisoformat(result['created_at']),
+            style=request.style,
+            theme=request.theme,
+            orientation=request.orientation
+        )
+        
+    except Exception as e:
+        print(f"❌ Erreur génération animation async: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
