@@ -17,7 +17,7 @@ from schemas.animation import AnimationRequest, AnimationResponse, AnimationStat
 from datetime import datetime
 from services.tts import generate_speech
 from services.stt import transcribe_audio
-from services.runway_gen4_new import runway_gen4_service
+from services.runway_story import runway_story_service
 from services.coloring_generator import ColoringGenerator
 from utils.translate import translate_text
 
@@ -26,10 +26,10 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
 
-app = FastAPI()
+app = FastAPI(title="API Dessins Animés", version="1.0", description="API pour générer des dessins animés avec Runway Gen-4 Turbo")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# CORS
+# CORS avec support UTF-8
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5177"],
@@ -336,8 +336,8 @@ async def generate_animation(request: AnimationRequest):
         # Générer un titre attractif avec l'IA
         animation_title = await _generate_animation_title(theme_str, style_str)
         
-        # Générer l'animation avec le service Runway Gen-4 Turbo
-        result = await runway_gen4_service.generate_animation({
+        # Générer l'animation avec le service Runway Story (vrais dessins animés)
+        result = await runway_story_service.generate_animation({
             'style': style_str,
             'theme': theme_str,
             'orientation': orientation_str,
@@ -393,11 +393,12 @@ async def get_runway_credits_status():
     Vérifie l'état des crédits Runway
     """
     try:
-        status = await runway_gen4_service.check_credits_status()
+        # status = await runway_simple_service.check_credits_status()
         return {
-            "service": "runway_gen4",
+            "service": "runway_simple",
             "timestamp": datetime.now().isoformat(),
-            **status
+            "status": "available",
+            "message": "Service simplifié - vérification des crédits non implémentée"
         }
     except Exception as e:
         return {
@@ -475,8 +476,8 @@ async def generate_animation_fast(request: AnimationRequest):
         # Générer un titre attractif avec l'IA
         animation_title = await _generate_animation_title(theme_str, style_str)
         
-        # Générer l'animation avec le service Runway Gen-4 Turbo (mode rapide)
-        result = await runway_gen4_service.generate_animation({
+        # Générer l'animation avec le service Runway Story (mode rapide)
+        result = await runway_story_service.generate_animation({
             'style': style_str,
             'theme': theme_str,
             'orientation': orientation_str,
@@ -525,8 +526,8 @@ async def generate_animation_async(request: AnimationRequest):
         # Générer un titre attractif avec l'IA
         animation_title = await _generate_animation_title(theme_str, style_str)
         
-        # Démarrer la génération asynchrone
-        result = await runway_gen4_service.generate_animation_async({
+        # Démarrer la génération avec le service story
+        result = await runway_story_service.generate_animation({
             'style': style_str,
             'theme': theme_str,
             'orientation': orientation_str,
@@ -555,6 +556,13 @@ async def generate_animation_async(request: AnimationRequest):
         print(f"❌ Erreur génération animation async: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# Test endpoint pour debug
+@app.post("/api/animations/test-data")
+async def test_animation_data(request: dict):
+    """Test pour vérifier les données reçues"""
+    print(f"📊 Données reçues: {request}")
+    return {"status": "ok", "received": request}
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
