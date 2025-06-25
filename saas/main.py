@@ -18,6 +18,7 @@ from datetime import datetime
 from services.tts import generate_speech
 from services.stt import transcribe_audio
 from services.runway_story import runway_story_service
+from services.integrated_animation_service import integrated_animation_service
 from services.coloring_generator import ColoringGenerator
 from utils.translate import translate_text
 
@@ -556,6 +557,99 @@ async def generate_animation_async(request: AnimationRequest):
         print(f"❌ Erreur génération animation async: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# Nouvel endpoint pour génération d'animation narrative complète avec CrewAI
+@app.post("/api/animations/generate-story")
+async def generate_story_animation(request: dict):
+    """
+    Génère une animation narrative complète à partir d'un texte avec CrewAI
+    Pipeline: Analyse narrative → Direction artistique → Génération vidéo → Assemblage
+    """
+    try:
+        story_text = request.get('story', '')
+        style_preferences = request.get('style_preferences', {
+            'style': 'cartoon coloré',
+            'mood': 'joyeux',
+            'target_age': '3-8 ans'
+        })
+        
+        if not story_text:
+            raise HTTPException(status_code=400, detail="Le texte de l'histoire est requis")
+        
+        if len(story_text) < 10:
+            raise HTTPException(status_code=400, detail="L'histoire doit contenir au moins 10 caractères")
+        
+        print(f"🎬 Génération animation narrative CrewAI")
+        print(f"📖 Histoire: {story_text[:100]}...")
+        print(f"🎨 Style: {style_preferences}")
+        
+        # Utiliser le service intégré CrewAI
+        result = await integrated_animation_service.generate_complete_animation(
+            story_text=story_text,
+            style_preferences=style_preferences
+        )
+        
+        if result.get('status') == 'success':
+            return {
+                "status": "success",
+                "message": "Animation narrative générée avec succès !",
+                "video_url": result.get('video_url'),
+                "video_path": result.get('video_path'),
+                "scenes_count": result.get('scenes_count'),
+                "total_duration": result.get('total_duration'),
+                "generation_time": result.get('generation_time'),
+                "scenes_details": result.get('scenes_details'),
+                "timestamp": result.get('timestamp')
+            }
+        else:
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Erreur génération animation: {result.get('error', 'Erreur inconnue')}"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur endpoint animation narrative: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+# Test endpoint pour pipeline CrewAI
+@app.post("/api/animations/test-crewai")
+async def test_crewai_pipeline(request: dict):
+    """Test du pipeline CrewAI avec une histoire simple"""
+    try:
+        test_story = request.get('story', "Il était une fois un petit lapin qui découvrait un jardin magique plein de couleurs.")
+        
+        print(f"🧪 Test pipeline CrewAI")
+        print(f"📝 Histoire de test: {test_story}")
+        
+        # Tester juste la phase d'analyse (sans génération vidéo)
+        result = await integrated_animation_service.generate_complete_animation(
+            story_text=test_story,
+            style_preferences={
+                'style': 'cartoon test',
+                'mood': 'test',
+                'target_age': '3-8 ans'
+            }
+        )
+        
+        return {
+            "status": "test_completed",
+            "result": result,
+            "message": "Test CrewAI pipeline terminé"
+        }
+        
+    except Exception as e:
+        print(f"❌ Erreur test CrewAI: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "status": "error",
+            "error": str(e),
+            "message": "Erreur lors du test CrewAI"
+        }
+
 # Test endpoint pour debug
 @app.post("/api/animations/test-data")
 async def test_animation_data(request: dict):
@@ -565,4 +659,4 @@ async def test_animation_data(request: dict):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

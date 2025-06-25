@@ -1,68 +1,7 @@
-// Service pour l'intégration avec l'API Runway Gen-4 Turbo
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
-
-class RunwayAnimationService {
+// Version standalone du service d'animation (sans modules ES6)
+class StandaloneRunwayAnimationService {
   constructor() {
-    this.baseUrl = BACKEND_URL;
-  }
-
-  async generateAnimation(animationData) {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/animations/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          style: animationData.style,
-          theme: animationData.theme,
-          orientation: animationData.orientation,
-          prompt: animationData.prompt,
-          title: animationData.title || 'Mon Dessin Animé',
-          description: animationData.description || 'Dessin animé créé avec Veo3'
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erreur lors de la génération');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Erreur dans generateAnimation:', error);
-      throw error;
-    }
-  }
-
-  async getAnimationStatus(animationId) {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/animations/${animationId}/status`);
-      
-      if (!response.ok) {
-        throw new Error('Erreur lors de la vérification du statut');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Erreur dans getAnimationStatus:', error);
-      throw error;
-    }
-  }
-
-  async getUserAnimations(page = 1, limit = 10) {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/animations?page=${page}&limit=${limit}`);
-      
-      if (!response.ok) {
-        throw new Error('Erreur lors de la récupération des animations');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Erreur dans getUserAnimations:', error);
-      throw error;
-    }
+    this.baseUrl = "http://127.0.0.1:8000";
   }
 
   // Configuration des styles compatibles Stable Diffusion/Runway
@@ -76,7 +15,7 @@ class RunwayAnimationService {
         color: '#FF6B6B'
       },
       anime: {
-        name: 'Anime',
+        name: 'Anime', 
         description: 'Style anime avec personnages expressifs',
         prompt: 'anime animation style, expressive characters, Japanese animation inspired',
         icon: '🎭',
@@ -84,7 +23,7 @@ class RunwayAnimationService {
       },
       realistic: {
         name: 'Réaliste',
-        description: 'Style semi-réaliste adapté aux enfants',
+        description: 'Style semi-réaliste adapté aux enfants', 
         prompt: 'semi-realistic animation style, detailed but child-friendly',
         icon: '🎪',
         color: '#45B7D1'
@@ -121,7 +60,7 @@ class RunwayAnimationService {
         description: 'Scènes d\'exploration et découverte',
         prompt: 'exciting adventure scene with exploration and discovery',
         icon: '🗺️',
-        color: '#FF6B6B'
+        color: '#FF7675'
       },
       magic: {
         name: 'Magie',
@@ -135,42 +74,56 @@ class RunwayAnimationService {
         description: 'Animaux mignons dans leur habitat',
         prompt: 'cute animals in their natural habitat, friendly and endearing',
         icon: '🐾',
-        color: '#00B894'
+        color: '#6C5CE7'
       },
       space: {
         name: 'Espace',
         description: 'Aventure spatiale avec étoiles et planètes',
         prompt: 'space adventure with stars, planets, and cosmic elements',
         icon: '🚀',
-        color: '#6C5CE7'
+        color: '#74B9FF'
       },
       underwater: {
         name: 'Sous-marin',
         description: 'Monde sous-marin avec vie marine',
         prompt: 'underwater scene with marine life and coral reefs',
         icon: '🌊',
-        color: '#00CEC9'
+        color: '#00B894'
       },
       forest: {
         name: 'Forêt',
         description: 'Forêt enchantée avec créatures magiques',
         prompt: 'enchanted forest with magical creatures and nature',
         icon: '🌲',
-        color: '#00B894'
+        color: '#00CEC9'
       },
       city: {
         name: 'Ville',
         description: 'Environnement urbain coloré',
         prompt: 'colorful city environment, friendly urban setting',
         icon: '🏙️',
-        color: '#0984E3'
+        color: '#FDCB6E'
       },
       countryside: {
         name: 'Campagne',
         description: 'Paysage rural paisible',
         prompt: 'peaceful countryside landscape, rolling hills, nature',
         icon: '🌾',
-        color: '#00B894'
+        color: '#E17055'
+      },
+      fantasy: {
+        name: 'Fantasy',
+        description: 'Monde fantastique avec châteaux',
+        prompt: 'fantasy world with castles, dragons, medieval settings',
+        icon: '🏰',
+        color: '#B2BEC3'
+      },
+      winter: {
+        name: 'Hiver',
+        description: 'Paysage d\'hiver féerique',
+        prompt: 'winter wonderland with snow, ice crystals, cozy atmosphere',
+        icon: '❄️',
+        color: '#81ECEC'
       }
     };
   }
@@ -223,35 +176,7 @@ class RunwayAnimationService {
     };
   }
 
-  // Fonction utilitaire pour créer un prompt optimisé
-  createOptimizedPrompt(style, theme, customPrompt) {
-    const styles = this.getAvailableStyles();
-    const themes = this.getAvailableThemes();
-    
-    let basePrompt = '';
-
-    // Construire le prompt
-    basePrompt = `${styles[style]?.prompt || 'cartoon animation style'}, ${themes[theme]?.prompt || 'adventure scene'}`;
-    
-    if (customPrompt && customPrompt.trim()) {
-      basePrompt += `, ${customPrompt.trim()}`;
-    }
-
-    // Ajouter des directives pour optimiser pour les enfants et Runway
-    basePrompt += ', suitable for children, bright colors, positive atmosphere, high quality animation, smooth motion';
-
-    return basePrompt;
-  }
-
-  // Fonction pour estimer le temps de génération
-  estimateGenerationTime(duration) {
-    // Estimation basée sur la durée (temps en minutes)
-    const baseTime = 2; // 2 minutes de base
-    const durationMultiplier = duration / 5; // facteur basé sur la durée
-    return Math.ceil(baseTime + (durationMultiplier * 1.5));
-  }
-
-  // Fonction pour valider les paramètres de génération narrative
+  // Validation des données
   validateStoryAnimationData(data) {
     const errors = [];
 
@@ -287,59 +212,6 @@ class RunwayAnimationService {
     };
   }
 
-  // Fonction pour valider les paramètres avant envoi (animation classique)
-  validateAnimationData(data) {
-    const errors = [];
-
-    if (!data.style) {
-      errors.push('Le style est requis');
-    }
-
-    if (!data.theme) {
-      errors.push('Le thème est requis');
-    }
-
-    if (data.prompt && data.prompt.length > 500) {
-      errors.push('La description ne peut pas dépasser 500 caractères');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  }
-
-  // Nouvelle fonction pour génération d'animation narrative avec CrewAI
-  async generateStoryAnimation(storyText, stylePreferences = {}) {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/animations/generate-story`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          story: storyText,
-          style_preferences: {
-            style: stylePreferences.style || 'cartoon coloré',
-            mood: stylePreferences.mood || 'joyeux',
-            target_age: stylePreferences.target_age || '3-8 ans',
-            ...stylePreferences
-          }
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Erreur lors de la génération narrative');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Erreur dans generateStoryAnimation:', error);
-      throw error;
-    }
-  }
-
   // Test du pipeline CrewAI
   async testCrewAI(testStory = null) {
     try {
@@ -364,6 +236,39 @@ class RunwayAnimationService {
       throw error;
     }
   }
+
+  // Génération d'animation narrative avec CrewAI
+  async generateStoryAnimation(storyText, stylePreferences = {}) {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/animations/generate-story`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          story: storyText,
+          style_preferences: {
+            style: stylePreferences.style || 'cartoon',
+            theme: stylePreferences.theme || 'adventure',
+            mood: stylePreferences.mood || 'joyful',
+            target_age: stylePreferences.target_age || '3-8 ans',
+            ...stylePreferences
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Erreur lors de la génération narrative');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Erreur dans generateStoryAnimation:', error);
+      throw error;
+    }
+  }
 }
 
-export default new RunwayAnimationService();
+// Instance globale
+const runwayService = new StandaloneRunwayAnimationService();
