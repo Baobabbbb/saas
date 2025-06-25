@@ -7,6 +7,7 @@ from unidecode import unidecode
 import traceback
 import os
 import json
+import time
 from fastapi import Form
 
 from dotenv import load_dotenv
@@ -18,7 +19,8 @@ from datetime import datetime
 from services.tts import generate_speech
 from services.stt import transcribe_audio
 from services.runway_story import runway_story_service
-from services.integrated_animation_service import integrated_animation_service
+from services.runway_gen4_new import runway_gen4_service
+# from services.integrated_animation_service import integrated_animation_service  # Temporairement désactivé
 from services.coloring_generator import ColoringGenerator
 from utils.translate import translate_text
 
@@ -250,77 +252,16 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
 class ColoringRequest(BaseModel):
     theme: str
 
-@app.post("/generate_coloring/")
-async def generate_coloring(request: ColoringRequest):
-    try:
-        print(f"🎨 Génération coloriage theme: {request.theme}")
-        
-        # Générer un titre attractif avec l'IA
-        title = await _generate_coloring_title(request.theme)
-        
-        coloring_generator = ColoringGenerator()
-        result = await coloring_generator.generate_coloring(request.theme)
-        
-        # Ajouter le titre généré au résultat
-        if result.get("success"):
-            result["title"] = title
-            result["type"] = "coloring"
-        
-        return result
-    except Exception as e:
-        print(f"❌ Erreur génération coloriage: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+# --- Animation Cohérente CrewAI ---
+class AnimationCohesiveRequest(BaseModel):
+    story: str
+    style: str = "cartoon"
+    theme: str = "adventure"
+    orientation: str = "landscape"
+    duration: int = 60  # Durée en secondes (30s à 300s = 5min)
+    quality: str = "medium"  # fast, medium, high
+    title: Optional[str] = None
 
-async def _generate_coloring_title(theme: str) -> str:
-    """Génère un titre attractif pour un coloriage selon le thème"""
-    try:
-        # Vérifier la clé API
-        openai_key = os.getenv("OPENAI_API_KEY")
-        if not openai_key or openai_key.startswith("sk-votre"):
-            # Fallback si pas d'API
-            return f"Coloriage {theme.title()}"
-        
-        prompt = f"""Génère un titre court et attractif pour un coloriage sur le thème : {theme}
-
-Le titre doit être :
-- Court (maximum 3-4 mots)
-- Adapté aux enfants de 3-8 ans
-- Joyeux et imaginatif  
-- En français
-- Sans ponctuation spéciale
-
-Exemples de bons titres :
-- "Princesse Magique"
-- "Super Héros Volant"
-- "Animaux Rigolos"
-- "Licorne Arc-en-ciel"
-
-Titre uniquement (sans autre texte) :"""
-
-        client = AsyncOpenAI(api_key=openai_key)
-        
-        response = await client.chat.completions.create(
-            model=TEXT_MODEL,
-            messages=[
-                {"role": "system", "content": "Tu es un spécialiste des activités créatives pour enfants. Tu génères des titres courts et attractifs."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=20,
-            temperature=0.7
-        )
-        
-        title = response.choices[0].message.content.strip()
-        
-        # Nettoyer le titre (enlever guillemets éventuels)
-        title = title.replace('"', '').replace("'", '').strip()
-        
-        return title if title else f"Coloriage {theme.title()}"
-        
-    except Exception as e:
-        print(f"⚠️ Erreur génération titre coloriage: {e}")
-        return f"Coloriage {theme.title()}"
-
-# --- Dessins Animés ---
 @app.post("/api/animations/generate", response_model=AnimationResponse)
 async def generate_animation(request: AnimationRequest):
     """
@@ -337,8 +278,8 @@ async def generate_animation(request: AnimationRequest):
         # Générer un titre attractif avec l'IA
         animation_title = await _generate_animation_title(theme_str, style_str)
         
-        # Générer l'animation avec le service Runway Story (vrais dessins animés)
-        result = await runway_story_service.generate_animation({
+        # Générer l'animation avec le service Runway Gen-4 Turbo
+        result = await runway_gen4_service.generate_animation({
             'style': style_str,
             'theme': theme_str,
             'orientation': orientation_str,
@@ -477,8 +418,8 @@ async def generate_animation_fast(request: AnimationRequest):
         # Générer un titre attractif avec l'IA
         animation_title = await _generate_animation_title(theme_str, style_str)
         
-        # Générer l'animation avec le service Runway Story (mode rapide)
-        result = await runway_story_service.generate_animation({
+        # Générer l'animation avec le service Runway Gen-4 Turbo (mode rapide)
+        result = await runway_gen4_service.generate_animation_fast({
             'style': style_str,
             'theme': theme_str,
             'orientation': orientation_str,
@@ -582,11 +523,12 @@ async def generate_story_animation(request: dict):
         print(f"📖 Histoire: {story_text[:100]}...")
         print(f"🎨 Style: {style_preferences}")
         
-        # Utiliser le service intégré CrewAI
-        result = await integrated_animation_service.generate_complete_animation(
-            story_text=story_text,
-            style_preferences=style_preferences
-        )
+        # Service temporairement désactivé
+        return {
+            "status": "error", 
+            "message": "Service intégré temporairement désactivé",
+            "error": "integrated_animation_service non disponible"
+        }
         
         if result.get('status') == 'success':
             return {
@@ -624,20 +566,11 @@ async def test_crewai_pipeline(request: dict):
         print(f"🧪 Test pipeline CrewAI")
         print(f"📝 Histoire de test: {test_story}")
         
-        # Tester juste la phase d'analyse (sans génération vidéo)
-        result = await integrated_animation_service.generate_complete_animation(
-            story_text=test_story,
-            style_preferences={
-                'style': 'cartoon test',
-                'mood': 'test',
-                'target_age': '3-8 ans'
-            }
-        )
-        
+        # Service temporairement désactivé  
         return {
             "status": "test_completed",
-            "result": result,
-            "message": "Test CrewAI pipeline terminé"
+            "message": "Service intégré temporairement désactivé pour les tests",
+            "error": "integrated_animation_service non disponible"
         }
         
     except Exception as e:
@@ -657,6 +590,115 @@ async def test_animation_data(request: dict):
     print(f"📊 Données reçues: {request}")
     return {"status": "ok", "received": request}
 
+# --- Dessins Animés Narratifs avec CrewAI ---
+@app.post("/api/animations/generate-narrative")
+async def generate_narrative_animation(request: dict):
+    """
+    Génère un dessin animé narratif complet avec CrewAI + Runway
+    """
+    try:
+        print(f"🎬 Génération animation narrative avec CrewAI")
+        
+        # Extraire les paramètres
+        story = request.get("story", "")
+        style = request.get("style", "cartoon")
+        theme = request.get("theme", "adventure")
+        orientation = request.get("orientation", "landscape")
+        
+        if not story or len(story) < 20:
+            raise HTTPException(status_code=400, detail="L'histoire doit contenir au moins 20 caractères")
+        
+        print(f"📖 Histoire: {story[:100]}...")
+        print(f"🎨 Style: {style}, Thème: {theme}")
+        
+        # Générer l'animation narrative avec CrewAI + Runway
+        result = await runway_gen4_service.generate_narrative_animation({
+            'story': story,
+            'style': style,
+            'theme': theme,
+            'orientation': orientation
+        })
+        
+        return {
+            "status": "success",
+            "message": "Animation narrative générée avec succès !",
+            "animation": result,
+            "type": "narrative",
+            "scenes_count": result.get("total_scenes", 1),
+            "duration": result.get("total_duration", 10)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur génération narrative: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+# --- Animation Cohérente avec CrewAI ---
+
+@app.post("/api/animations/generate-cohesive")
+async def generate_cohesive_animation(request: AnimationCohesiveRequest):
+    """
+    🎬 Génération d'animation cohérente avec CrewAI
+    Pipeline multi-agents pour créer des animations de 30s à 5min
+    avec continuité visuelle et narrative parfaite
+    """
+    try:
+        print(f"🎭 Demande animation cohérente:")
+        print(f"   📖 Histoire: {request.story[:100]}...")
+        print(f"   🎨 Style: {request.style}")
+        print(f"   ⏱️ Durée: {request.duration}s")
+        print(f"   💎 Qualité: {request.quality}")
+        
+        # Préparer les données pour le service CrewAI
+        story_data = {
+            "story": request.story,
+            "style": request.style,
+            "theme": request.theme,
+            "orientation": request.orientation,
+            "duration": request.duration,
+            "quality": request.quality,
+            "title": request.title
+        }
+        
+        # Lancer le pipeline CrewAI complet
+        start_time = time.time()
+        
+        result = await runway_gen4_service.generate_narrative_animation(story_data)
+        
+        generation_time = time.time() - start_time
+        
+        # Ajouter les métadonnées de performance
+        result.update({
+            "generation_time": round(generation_time, 2),
+            "endpoint": "cohesive",
+            "pipeline_type": "crewai_multi_agent",
+            "success": True
+        })
+        
+        print(f"✅ Animation cohérente générée en {generation_time:.2f}s")
+        print(f"🎯 Score continuité: {result.get('visual_consistency_score', 'N/A')}")
+        
+        return result
+        
+    except Exception as e:
+        print(f"❌ Erreur génération cohérente: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Erreur lors de la génération de l'animation cohérente",
+            "fallback_suggestion": "Essayer le mode génération simple"
+        }
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    print("🚀 Démarrage du serveur FastAPI...")
+    print("📍 Backend accessible sur: http://localhost:8000")
+    print("🎬 Endpoints disponibles:")
+    print("   • /api/animations/generate (Génération simple)")
+    print("   • /api/animations/generate-fast (Génération rapide)")
+    print("   • /api/animations/generate-narrative (Multi-scènes)")
+    print("   • /api/animations/generate-cohesive (🆕 CrewAI cohérent)")
+    print("📱 Frontend accessible sur: http://localhost:5173")
+    
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

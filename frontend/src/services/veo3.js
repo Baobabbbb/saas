@@ -364,6 +364,77 @@ class RunwayAnimationService {
       throw error;
     }
   }
+
+  // Nouvelle méthode pour générer des animations narratives
+  async generateNarrativeAnimation(storyData) {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/animations/generate-narrative`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          story: storyData.story,
+          style: storyData.style,
+          theme: storyData.theme,
+          orientation: storyData.orientation || 'landscape'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erreur lors de la génération narrative');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Erreur dans generateNarrativeAnimation:', error);
+      throw error;
+    }
+  }
+
+  // Méthode pour générer des animations cohérentes avec CrewAI
+  async generateCohesiveAnimation(storyData) {
+    try {
+      console.log('🎬 Génération animation cohérente CrewAI:', storyData);
+      
+      const response = await fetch(`${this.baseUrl}/api/animations/generate-cohesive`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          story: storyData.story,
+          style: storyData.style || 'cartoon',
+          theme: storyData.theme || 'adventure',
+          orientation: storyData.orientation || 'landscape',
+          duration: storyData.duration || 60, // 60 secondes par défaut
+          quality: storyData.quality || 'medium', // fast, medium, high
+          title: storyData.title || 'Animation CrewAI'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || errorData.error || 'Erreur lors de la génération cohérente');
+      }
+
+      const result = await response.json();
+      
+      console.log('✅ Animation cohérente générée:', {
+        id: result.id,
+        duration: result.total_duration,
+        scenes: result.total_scenes,
+        consistency_score: result.visual_consistency_score,
+        agents_used: result.agents_used
+      });
+
+      return result;
+    } catch (error) {
+      console.error('❌ Erreur dans generateCohesiveAnimation:', error);
+      throw error;
+    }
+  }
 }
 
 export default new RunwayAnimationService();
