@@ -94,7 +94,8 @@ const getSafeFilename = (title) => {
     .replace(/[^a-z0-9_]/g, ""); // caractères spéciaux supprimés
 };
 
-function App() {  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'audio', or 'animation'
+function App() {
+  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'audio', or 'animation'
   const [selectedRhyme, setSelectedRhyme] = useState(null);
   const [customRhyme, setCustomRhyme] = useState('');
   const [selectedAudioStory, setSelectedAudioStory] = useState(null);
@@ -102,7 +103,8 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
   const [selectedVoice, setSelectedVoice] = useState(null);
   const [customRequest, setCustomRequest] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  {/*const [showConfetti, setShowConfetti] = useState(false);*/}  const [generatedResult, setGeneratedResult] = useState(null);
+  // const [showConfetti, setShowConfetti] = useState(false);
+  const [generatedResult, setGeneratedResult] = useState(null);
   const [showFullStory, setShowFullStory] = useState(false);
   const [showStoryPopup, setShowStoryPopup] = useState(false);
   const [showColoringPopup, setShowColoringPopup] = useState(false);
@@ -113,9 +115,12 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
   const [animationDuration, setAnimationDuration] = useState(8); // Fal-ai/Veo3 ne supporte que 8s
   const [animationPrompt, setAnimationPrompt] = useState('');
   const [animationOrientation, setAnimationOrientation] = useState(null); // 'landscape' or 'portrait'
-  const [uploadedAnimationImage, setUploadedAnimationImage] = useState(null);  const [animationResult, setAnimationResult] = useState(null);
+  const [uploadedAnimationImage, setUploadedAnimationImage] = useState(null);
+  const [animationResult, setAnimationResult] = useState(null);
   const [showAnimationPopup, setShowAnimationPopup] = useState(false);
-  const [animationGenerationStatus, setAnimationGenerationStatus] = useState(null);  // Coloring states
+  const [animationGenerationStatus, setAnimationGenerationStatus] = useState(null);
+  
+  // Coloring states
   const [selectedTheme, setSelectedTheme] = useState(null);
   const [coloringResult, setColoringResult] = useState(null);
   
@@ -198,7 +203,9 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
         prompt: animationPrompt,
         title: `Dessin animé ${selectedAnimationTheme}`,
         description: `Animation ${selectedAnimationStyle} sur le thème ${selectedAnimationTheme} (${animationOrientation})`
-      };      const validation = veo3Service.validateAnimationData(animationData);
+      };
+      
+      const validation = veo3Service.validateAnimationData(animationData);
       if (!validation.isValid) {
         throw new Error(validation.errors.join(', '));
       }
@@ -206,7 +213,8 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
       // Optimiser le prompt pour Runway Gen-4 Turbo
       const optimizedPrompt = veo3Service.createOptimizedPrompt(
         selectedAnimationStyle,
-        selectedAnimationTheme,        animationPrompt
+        selectedAnimationTheme,
+        animationPrompt
       );
 
       animationData.prompt = optimizedPrompt;
@@ -224,9 +232,11 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
           thumbnailUrl: animationResponse.thumbnail_url || null,
           style: selectedAnimationStyle,
           theme: selectedAnimationTheme,
-          duration: 10, // Runway Gen-4 Turbo génère 10 secondes
+          duration: animationResponse.duration || 24, // Durée du dessin animé complet
           status: animationResponse.status || 'completed',
-          createdAt: animationResponse.created_at || new Date().toISOString()
+          createdAt: animationResponse.created_at || new Date().toISOString(),
+          storyScenes: animationResponse.story_scenes || [], // Scènes de l'histoire
+          narrativeType: animationResponse.narrative_type || 'simple' // Type de narration
         });
         
         setAnimationGenerationStatus({ status: 'completed' });
@@ -244,14 +254,19 @@ function App() {  const [contentType, setContentType] = useState('animation'); /
           duration: 10, // Runway Gen-4 Turbo génère 10 secondes
           status: 'failed',
           error: error.message,
-          createdAt: new Date().toISOString()        });
+          createdAt: new Date().toISOString()
+        });
         setAnimationGenerationStatus({ status: 'failed', error: error.message });
-      }      // Pour les animations, on n'utilise pas generatedContent
+      }
+      
+      // Pour les animations, on n'utilise pas generatedContent
       generatedContent = null;
     } else if (contentType === 'coloring') {
       const payload = {
         theme: selectedTheme
-      };      const response = await fetch('http://127.0.0.1:8000/generate_coloring/', {
+      };
+      
+      const response = await fetch('http://127.0.0.1:8000/generate_coloring/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -615,8 +630,8 @@ const downloadPDF = async (title, content) => {
           ? 'Création de l\'histoire en cours...'
           : contentType === 'animation'
           ? animationGenerationStatus?.status === 'processing'
-            ? `Génération du dessin animé en cours... (${animationGenerationStatus.estimatedTime} min estimées)`
-            : 'Préparation de l\'animation...'
+            ? `Création du dessin animé narratif... Génération des scènes de l'histoire en cours...`
+            : 'Préparation du scénario et des personnages...'
           : contentType === 'coloring'
           ? 'Création de vos coloriages en cours...'
           : 'Génération en cours...'}

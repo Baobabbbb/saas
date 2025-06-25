@@ -10,6 +10,7 @@ const AnimationViewer = ({ animation, onClose }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const videoRef = useRef(null);
   const containerRef = useRef(null);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -22,17 +23,12 @@ const AnimationViewer = ({ animation, onClose }) => {
       setIsPlaying(false);
       setCurrentTime(0);
     };
-    const handleError = (e) => {
-      console.warn('Erreur de lecture vidéo:', e.target.error);
-      // Ne pas afficher d'erreur pour les vidéos de simulation
-    };
 
     video.addEventListener('timeupdate', updateTime);
     video.addEventListener('loadedmetadata', updateDuration);
     video.addEventListener('play', handlePlay);
     video.addEventListener('pause', handlePause);
     video.addEventListener('ended', handleEnded);
-    video.addEventListener('error', handleError);
 
     return () => {
       video.removeEventListener('timeupdate', updateTime);
@@ -40,7 +36,6 @@ const AnimationViewer = ({ animation, onClose }) => {
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('ended', handleEnded);
-      video.removeEventListener('error', handleError);
     };
   }, []);
 
@@ -48,17 +43,10 @@ const AnimationViewer = ({ animation, onClose }) => {
     const video = videoRef.current;
     if (!video) return;
 
-    try {
-      if (isPlaying) {
-        video.pause();
-      } else {
-        video.play().catch(error => {
-          console.warn('Erreur de lecture:', error);
-          // Pour les vidéos de simulation, on ignore l'erreur
-        });
-      }
-    } catch (error) {
-      console.warn('Erreur de contrôle vidéo:', error);
+    if (isPlaying) {
+      video.pause();
+    } else {
+      video.play();
     }
   };
 

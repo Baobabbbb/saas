@@ -15,6 +15,7 @@ class AnimationStyle(str, Enum):
 class AnimationOrientation(str, Enum):
     LANDSCAPE = "landscape"
     PORTRAIT = "portrait"
+    SQUARE = "square"
 
 class AnimationTheme(str, Enum):
     ADVENTURE = "adventure"
@@ -25,6 +26,7 @@ class AnimationTheme(str, Enum):
     UNDERWATER = "underwater"
     FOREST = "forest"
     SUPERHERO = "superhero"
+    CUSTOM = "custom"
 
 class AnimationStatus(str, Enum):
     PENDING = "pending"
