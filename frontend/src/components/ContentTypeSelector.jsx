@@ -9,8 +9,8 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
       
       <div className="content-type-options">
         <motion.div
-          className={`content-type-option ${contentType === 'animation' ? 'selected' : ''}`}
-          onClick={() => setContentType('animation')}
+          className={`content-type-option ${contentType === 'crewai_animation' ? 'selected' : ''}`}
+          onClick={() => setContentType('crewai_animation')}
           whileHover={{ y: -5 }}
           whileTap={{ scale: 0.98 }}
         >

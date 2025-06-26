@@ -6,13 +6,10 @@ import Header from './components/Header';
 import ContentTypeSelector from './components/ContentTypeSelector';
 import RhymeSelector from './components/RhymeSelector';
 import AudioStorySelector from './components/AudioStorySelector';
-import AnimationSelector from './components/AnimationSelector';
 import CrewAIAnimationGenerator from './components/CrewAIAnimationGenerator';
 import CustomRequest from './components/CustomRequest';
 import GenerateButton from './components/GenerateButton';
 import History from './components/History';
-import AnimationViewer from './components/AnimationViewer';
-import AnimationPopup from './components/AnimationPopup';
 import StoryPopup from './components/StoryPopup';
 import ColoringSelector from './components/ColoringSelector';
 import ColoringViewer from './components/ColoringViewer';
@@ -96,7 +93,7 @@ const getSafeFilename = (title) => {
 };
 
 function App() {
-  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'audio', 'animation', 'crewai_animation' or 'coloring'
+  const [contentType, setContentType] = useState('crewai_animation'); // 'rhyme', 'audio', 'crewai_animation' or 'coloring'
   const [selectedRhyme, setSelectedRhyme] = useState(null);
   const [customRhyme, setCustomRhyme] = useState('');
   const [selectedAudioStory, setSelectedAudioStory] = useState(null);
@@ -110,17 +107,6 @@ function App() {
   const [showStoryPopup, setShowStoryPopup] = useState(false);
   const [showColoringPopup, setShowColoringPopup] = useState(false);
 
-  // Animation states (ancienne méthode)
-  const [selectedAnimationStyle, setSelectedAnimationStyle] = useState(null);
-  const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
-  const [animationDuration, setAnimationDuration] = useState(8); // Durée par défaut
-  const [animationPrompt, setAnimationPrompt] = useState('');
-  const [animationOrientation, setAnimationOrientation] = useState(null); // 'landscape' or 'portrait'
-  const [uploadedAnimationImage, setUploadedAnimationImage] = useState(null);
-  const [animationResult, setAnimationResult] = useState(null);
-  const [showAnimationPopup, setShowAnimationPopup] = useState(false);
-  const [animationGenerationStatus, setAnimationGenerationStatus] = useState(null);
-  
   // CrewAI Animation states (nouvelle méthode)
   const [crewaiAnimationResult, setCrewaiAnimationResult] = useState(null);
   const [showCrewaiAnimationPopup, setShowCrewaiAnimationPopup] = useState(false);
@@ -292,23 +278,6 @@ function App() {
       
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
-      } else if (contentType === 'animation') {
-      // Validation des données d'animation
-      const animationData = {
-        style: selectedAnimationStyle,
-        theme: selectedAnimationTheme,
-        orientation: animationOrientation,
-        prompt: animationPrompt,
-        title: `Dessin animé ${selectedAnimationTheme}`,
-        description: `Animation ${selectedAnimationStyle} sur le thème ${selectedAnimationTheme} (${animationOrientation})`
-      };
-      
-      // Cette fonctionnalité a été remplacée par CrewAI Animation Generator
-      console.log('Animation generation with old method is deprecated. Use CrewAI Animation Generator instead.');
-      setAnimationGenerationStatus({ status: 'failed', error: 'Cette méthode de génération a été remplacée par CrewAI Animation Generator' });
-      
-      // Pour les animations, on n'utilise pas generatedContent
-      generatedContent = null;
     } else if (contentType === 'crewai_animation') {
       // Ne pas utiliser generatedContent pour CrewAI animations
       generatedContent = null;
@@ -349,9 +318,9 @@ function App() {
         title = generatedContent.title;
       } else {
         title = generateChildFriendlyTitle('histoire', selectedAudioStory === 'custom' ? 'default' : selectedAudioStory);
-      }    } else if (contentType === 'animation') {
+      }    } else if (contentType === 'crewai_animation') {
       // Utiliser le titre généré par l'IA depuis l'API animation
-      title = animationResult?.title || generateChildFriendlyTitle('animation', selectedAnimationTheme === 'custom' ? 'default' : selectedAnimationTheme);
+      title = crewaiAnimationResult?.title || generateChildFriendlyTitle('animation', 'crewai');
     } else if (contentType === 'coloring') {
       // Utiliser le titre généré par l'IA depuis l'API coloriage
       title = generatedContent?.title || generateChildFriendlyTitle('coloriage', selectedTheme);
@@ -360,8 +329,8 @@ function App() {
     // Stocker le titre pour l'utiliser dans l'UI
     setCurrentTitle(title);
 
-    // Créer une entrée d'historique pour tous les types sauf les animations
-    if (contentType !== 'animation') {
+    // Créer une entrée d'historique pour tous les types sauf les animations CrewAI
+    if (contentType !== 'crewai_animation') {
       let newCreation;
         if (contentType === 'coloring') {
         // Pour les coloriages, utiliser les données du coloriage
@@ -450,11 +419,9 @@ const handleSelectCreation = (creation) => {
       if (!selectedAudioStory) return false;
       if (selectedAudioStory === 'custom' && !customAudioStory.trim()) return false;
       // La voix est optionnelle
-    } else if (contentType === 'animation') {
-      if (!selectedAnimationStyle) return false;
-      if (!selectedAnimationTheme) return false;
-      if (!animationOrientation) return false;
-      if (selectedAnimationTheme === 'custom' && !animationPrompt.trim()) return false;
+    } else if (contentType === 'crewai_animation') {
+      // Pour CrewAI, la validation est gérée dans le composant CrewAIAnimationGenerator
+      return true;
     } else if (contentType === 'coloring') {
       if (!selectedTheme) return false;
     }
@@ -605,28 +572,6 @@ const downloadPDF = async (title, content) => {
                   setSelectedVoice={setSelectedVoice}
                 />
               </motion.div>
-            ) : contentType === 'animation' ? (
-              <motion.div
-                key="animation-selector"
-                variants={contentVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                transition={{ duration: 0.3 }}
-              >                <AnimationSelector
-                  selectedAnimationStyle={selectedAnimationStyle}
-                  setSelectedAnimationStyle={setSelectedAnimationStyle}
-                  selectedAnimationTheme={selectedAnimationTheme}
-                  setSelectedAnimationTheme={setSelectedAnimationTheme}
-                  customPrompt={animationPrompt}
-                  setCustomPrompt={setAnimationPrompt}
-                  duration={animationDuration}
-                  setDuration={setAnimationDuration}
-                  orientation={animationOrientation}
-                  setOrientation={setAnimationOrientation}
-                  uploadedAnimationImage={uploadedAnimationImage}
-                  setUploadedAnimationImage={setUploadedAnimationImage}
-                />              </motion.div>
             ) : contentType === 'crewai_animation' ? (
               <motion.div
                 key="crewai-animation-generator"
@@ -658,7 +603,7 @@ const downloadPDF = async (title, content) => {
           </AnimatePresence><CustomRequest
             customRequest={customRequest}
             setCustomRequest={setCustomRequest}
-            stepNumber={contentType === 'animation' ? 5 : contentType === 'coloring' ? 4 : 3}
+            stepNumber={contentType === 'crewai_animation' ? 2 : contentType === 'coloring' ? 4 : 3}
           />          <GenerateButton
             onGenerate={handleGenerate}
             isGenerating={isGenerating}
@@ -693,45 +638,13 @@ const downloadPDF = async (title, content) => {
           ? 'Création de la comptine en cours...'
           : contentType === 'audio'
           ? 'Création de l\'histoire en cours...'
-          : contentType === 'animation'
-          ? animationGenerationStatus?.status === 'processing'
-            ? `Création du dessin animé narratif... Génération des scènes de l'histoire en cours...`
-            : 'Préparation du scénario et des personnages...'
           : contentType === 'crewai_animation'
           ? 'Équipe CrewAI au travail... Analyse narrative et génération multi-scènes...'
           : contentType === 'coloring'
           ? 'Création de vos coloriages en cours...'
           : 'Génération en cours...'}
       </p></motion.div>
-  ) : animationResult && contentType === 'animation' ? (
-  <div
-    style={{
-      width: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '1rem'
-    }}
-  >
-    <div className="animation-preview-container">
-      <AnimationViewer animation={animationResult} />
-    </div>
-    
-    <button
-      onClick={() => setShowAnimationPopup(true)}
-      style={{
-        padding: '0.6rem 1.4rem',
-        backgroundColor: '#6B4EFF',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '0.5rem',
-        cursor: 'pointer',
-        fontWeight: '600'
-      }}
-    >
-      🎬 Voir en grand
-    </button>  </div>  ) : crewaiAnimationResult && contentType === 'crewai_animation' ? (
+  ) : crewaiAnimationResult && contentType === 'crewai_animation' ? (
     <motion.div
       className="crewai-animation-result"
       initial={{ opacity: 0 }}
@@ -876,13 +789,13 @@ const downloadPDF = async (title, content) => {
     src="/cloud-logo.svg"
     alt="BDKids logo"
     className="preview-logo"
-  />*/}  {!generatedResult?.content && !animationResult && !coloringResult && (
+  />*/}  {!generatedResult?.content && !crewaiAnimationResult && !coloringResult && (
     <div className="empty-preview">    <p>
       {contentType === 'rhyme'
         ? 'Votre comptine apparaîtra ici'
         : contentType === 'audio'
         ? 'Votre histoire apparaîtra ici'
-        : contentType === 'animation'
+        : contentType === 'crewai_animation'
         ? 'Votre dessin animé apparaîtra ici'
         : contentType === 'coloring'
         ? 'Vos coloriages apparaîtront ici'
@@ -992,13 +905,6 @@ const downloadPDF = async (title, content) => {
         coloringResult={coloringResult}
         selectedTheme={selectedTheme}
         onClose={() => setShowColoringPopup(false)}
-      />
-    )}
-    {showAnimationPopup && (
-      <AnimationPopup 
-        animation={animationResult}
-        isOpen={showAnimationPopup}
-        onClose={() => setShowAnimationPopup(false)}
       />
     )}
     
