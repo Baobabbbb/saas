@@ -2,11 +2,11 @@
 
 ## 📋 Vue d'ensemble
 
-Ce générateur permet de créer des dessins animés narratifs personnalisés à partir d'une histoire textuelle. L'utilisateur peut choisir des paramètres de style, thème et ambiance compatibles avec Stable Diffusion et Runway ML pour obtenir une vidéo animée cohérente.
+Ce générateur permet de créer des dessins animés narratifs personnalisés à partir d'une histoire textuelle. L'utilisateur peut choisir des paramètres de style, thème et ambiance avec l'architecture CrewAI pour obtenir une animation narrative cohérente.
 
 ## 🎨 Paramètres Disponibles
 
-### Styles Visuels (Compatible Stable Diffusion/Runway)
+### Styles Visuels (Architecture CrewAI)
 
 | Style | Description | Icône | Recommandé pour |
 |-------|-------------|-------|----------------|

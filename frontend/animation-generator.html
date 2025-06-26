@@ -517,7 +517,6 @@
         </div>
     </div>
 
-    <script src="./src/services/veo3-standalone.js"></script>
     <script>
         // Variables globales
         let selectedStyle = '';
@@ -525,6 +524,36 @@
         let selectedMood = 'joyful';
         let isGenerating = false;
 
+        // Services simplifiés pour CrewAI
+        const crewaiService = {
+            getAvailableStyles: () => ['Disney', '3D Pixar', 'Anime', 'Traditional', 'Stop Motion'],
+            getAvailableThemes: () => ['Aventure', 'Animaux', 'Magie', 'Amitié', 'Espace'],
+            getAvailableMoods: () => ['joyful', 'calm', 'energetic', 'mysterious', 'romantic'],
+            
+            validateStoryAnimationData: (data) => ({
+                isValid: data && data.story && data.story.trim().length > 0,
+                errors: []
+            }),
+            
+            testCrewAI: async (story) => {
+                const response = await fetch('http://127.0.0.1:8000/test-crewai/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ story })
+                });
+                return await response.json();
+            },
+            
+            generateStoryAnimation: async (story, stylePreferences) => {
+                const response = await fetch('http://127.0.0.1:8000/generate-story-animation/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ story, style_preferences: stylePreferences })
+                });
+                return await response.json();
+            }
+        };
+        
         // Initialisation
         window.addEventListener('DOMContentLoaded', function() {
             initializeOptions();
@@ -545,9 +574,9 @@
         ];
 
         function initializeOptions() {
-            const styles = runwayService.getAvailableStyles();
-            const themes = runwayService.getAvailableThemes();
-            const moods = runwayService.getAvailableMoods();
+            const styles = crewaiService.getAvailableStyles();
+            const themes = crewaiService.getAvailableThemes();
+            const moods = crewaiService.getAvailableMoods();
 
             // Générer les options de style
             const styleContainer = document.getElementById('styleOptions');
@@ -645,7 +674,7 @@
             showLoading('Test du pipeline CrewAI...');
 
             try {
-                const result = await runwayService.testCrewAI(story);
+                const result = await crewaiService.testCrewAI(story);
                 hideLoading();
                 
                 if (result.status === 'test_completed') {
@@ -675,7 +704,7 @@
                 theme: selectedTheme
             };
 
-            const validation = runwayService.validateStoryAnimationData(validationData);
+            const validation = crewaiService.validateStoryAnimationData(validationData);
             if (!validation.isValid) {
                 showError('Erreurs de validation: ' + validation.errors.join(', '));
                 return;
@@ -692,7 +721,7 @@
                     target_age: '3-8 ans'
                 };
 
-                const result = await runwayService.generateStoryAnimation(story, stylePreferences);
+                const result = await crewaiService.generateStoryAnimation(story, stylePreferences);
                 hideLoading();
                 
                 if (result.status === 'success') {
@@ -800,9 +829,9 @@
             const previewContent = document.getElementById('previewContent');
             
             if (story.length >= 10 && selectedStyle && selectedTheme) {
-                const styles = runwayService.getAvailableStyles();
-                const themes = runwayService.getAvailableThemes();
-                const moods = runwayService.getAvailableMoods();
+                const styles = crewaiService.getAvailableStyles();
+                const themes = crewaiService.getAvailableThemes();
+                const moods = crewaiService.getAvailableMoods();
                 
                 const styleInfo = styles[selectedStyle];
                 const themeInfo = themes[selectedTheme];

@@ -1,4 +1,4 @@
-# 🎨 Frontend Amélioré - Paramètres Utilisateur Compatibles Stable Diffusion/Runway
+# 🎨 Frontend Amélioré - Paramètres Utilisateur CrewAI
 
 ## ✨ Améliorations Apportées
 
@@ -51,14 +51,14 @@
 
 ### 🔧 Fonctionnalités Techniques
 
-#### 1. **Compatibilité Stable Diffusion/Runway**
+#### 1. **Compatibilité CrewAI**
 - Tous les paramètres testés et validés
 - Prompts optimisés pour les modèles IA
 - Styles compatibles avec les capacités actuelles
 
 #### 2. **Services Frontend**
-- `veo3.js` : Service principal avec modules ES6
-- `veo3-standalone.js` : Version compatible HTML direct
+- `CrewAIAnimationGenerator.jsx` : Composant principal avec React
+- `CrewAIAnimationGenerator.css` : Styles et animations
 - Configuration centralisée des paramètres
 - Validation côté client robuste
 
@@ -74,8 +74,8 @@ frontend/
 ├── animation-generator.html          # Interface principale améliorée
 ├── dev-server.py                    # Serveur de développement
 └── src/services/
-    ├── veo3.js                      # Service ES6 modules
-    └── veo3-standalone.js           # Service HTML standalone
+    ├── CrewAIAnimationGenerator.jsx # Composant React principal
+    └── CrewAIAnimationGenerator.css # Styles associés
 
 saas/
 ├── test_frontend_integration.py     # Tests d'intégration
@@ -86,7 +86,7 @@ saas/
 ## 🎯 Paramètres Disponibles (Compatibles Stable Diffusion)
 
 ### Styles Visuels
-| Paramètre | Nom | Compatible SD | Runway | Prompt |
+| Paramètre | Nom | Compatible CrewAI | Description | Prompt |
 |-----------|-----|---------------|--------|--------|
 | `cartoon` | Cartoon | ✅ | ✅ | vibrant cartoon animation style, Disney-Pixar inspired |
 | `anime` | Anime | ✅ | ✅ | anime animation style, Japanese animation inspired |
@@ -168,7 +168,7 @@ L'utilisateur peut maintenant :
 - **Générer** des dessins animés personnalisés
 - **Obtenir** des résultats cohérents et de qualité
 
-Tous les paramètres sont **100% compatibles** avec Stable Diffusion et Runway ML, garantissant des résultats optimaux pour la génération d'animations narratives.
+Tous les paramètres sont **100% compatibles** avec l'architecture CrewAI, garantissant des résultats optimaux pour la génération d'animations narratives avec multi-agents.
 
 ---
 

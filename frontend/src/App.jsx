@@ -7,6 +7,7 @@ import ContentTypeSelector from './components/ContentTypeSelector';
 import RhymeSelector from './components/RhymeSelector';
 import AudioStorySelector from './components/AudioStorySelector';
 import AnimationSelector from './components/AnimationSelector';
+import CrewAIAnimationGenerator from './components/CrewAIAnimationGenerator';
 import CustomRequest from './components/CustomRequest';
 import GenerateButton from './components/GenerateButton';
 import History from './components/History';
@@ -17,7 +18,7 @@ import ColoringSelector from './components/ColoringSelector';
 import ColoringViewer from './components/ColoringViewer';
 import ColoringPopup from './components/ColoringPopup';
 import useSupabaseUser from './hooks/useSupabaseUser';
-import veo3Service from './services/veo3';
+
 import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
 
@@ -95,7 +96,7 @@ const getSafeFilename = (title) => {
 };
 
 function App() {
-  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'audio', or 'animation'
+  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'audio', 'animation', 'crewai_animation' or 'coloring'
   const [selectedRhyme, setSelectedRhyme] = useState(null);
   const [customRhyme, setCustomRhyme] = useState('');
   const [selectedAudioStory, setSelectedAudioStory] = useState(null);
@@ -109,16 +110,20 @@ function App() {
   const [showStoryPopup, setShowStoryPopup] = useState(false);
   const [showColoringPopup, setShowColoringPopup] = useState(false);
 
-  // Animation states
+  // Animation states (ancienne méthode)
   const [selectedAnimationStyle, setSelectedAnimationStyle] = useState(null);
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
-  const [animationDuration, setAnimationDuration] = useState(8); // Fal-ai/Veo3 ne supporte que 8s
+  const [animationDuration, setAnimationDuration] = useState(8); // Durée par défaut
   const [animationPrompt, setAnimationPrompt] = useState('');
   const [animationOrientation, setAnimationOrientation] = useState(null); // 'landscape' or 'portrait'
   const [uploadedAnimationImage, setUploadedAnimationImage] = useState(null);
   const [animationResult, setAnimationResult] = useState(null);
   const [showAnimationPopup, setShowAnimationPopup] = useState(false);
   const [animationGenerationStatus, setAnimationGenerationStatus] = useState(null);
+  
+  // CrewAI Animation states (nouvelle méthode)
+  const [crewaiAnimationResult, setCrewaiAnimationResult] = useState(null);
+  const [showCrewaiAnimationPopup, setShowCrewaiAnimationPopup] = useState(false);
   
   // Coloring states
   const [selectedTheme, setSelectedTheme] = useState(null);
@@ -157,6 +162,99 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
   
+  // Handle CrewAI Animation Generation
+  const handleCrewAIAnimationGenerate = async (generationData) => {
+    setIsGenerating(true);
+    setCrewaiAnimationResult(null);
+    
+    try {
+      console.log('🎬 Démarrage génération CrewAI:', generationData);
+      
+      let endpoint = '/api/animations/generate-story';
+      
+      // Choisir l'endpoint selon le mode
+      if (generationData.generation_mode === 'fast') {
+        endpoint = '/api/animations/generate-fast';
+      } else if (generationData.generation_mode === 'cohesive') {
+        endpoint = '/api/animations/generate-cohesive';
+      }
+      
+      const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(generationData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || `Erreur HTTP : ${response.status}`);
+      }
+      
+      const animationData = await response.json();
+      console.log('✅ Réponse CrewAI reçue:', animationData);
+      
+      if (animationData.status === 'success') {
+        setCrewaiAnimationResult({
+          id: `crewai_${Date.now()}`,
+          title: generationData.title || 'Animation CrewAI',
+          description: `Animation narrative générée avec CrewAI (${animationData.scenes_count} scènes)`,
+          videoUrl: animationData.video_url,
+          videoPath: animationData.video_path,
+          scenesCount: animationData.scenes_count,
+          totalDuration: animationData.total_duration,
+          generationTime: animationData.generation_time,
+          scenesDetails: animationData.scenes_details || [],
+          pipelineType: 'crewai_multi_agent',
+          status: 'completed',
+          createdAt: new Date().toISOString(),
+          story: generationData.story,
+          stylePreferences: generationData.style_preferences
+        });
+        
+        // Afficher la popup de résultat
+        setShowCrewaiAnimationPopup(true);
+        
+        // Sauvegarder dans l'historique
+        try {
+          await addCreation({
+            type: 'crewai_animation',
+            title: generationData.title || 'Animation CrewAI',
+            data: {
+              ...animationData,
+              story: generationData.story,
+              stylePreferences: generationData.style_preferences
+            }
+          });
+        } catch (historyError) {
+          console.error('Erreur historique CrewAI:', historyError);
+        }
+        
+      } else {
+        throw new Error(animationData.error || 'Erreur génération CrewAI');
+      }
+      
+    } catch (error) {
+      console.error('❌ Erreur génération CrewAI:', error);
+      
+      // Afficher un résultat d'erreur
+      setCrewaiAnimationResult({
+        id: `crewai_error_${Date.now()}`,
+        title: '⚠️ Erreur Animation CrewAI',
+        description: `Erreur: ${error.message}`,
+        videoUrl: null,
+        status: 'failed',
+        error: error.message,
+        createdAt: new Date().toISOString()
+      });
+      
+      setShowCrewaiAnimationPopup(true);
+      
+      alert(`❌ Erreur génération CrewAI : ${error.message}\n\n💡 Vérifiez que le service CrewAI est démarré et configuré.`);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleGenerate = async () => {
     setIsGenerating(true);
     setGeneratedResult(null);
@@ -205,61 +303,14 @@ function App() {
         description: `Animation ${selectedAnimationStyle} sur le thème ${selectedAnimationTheme} (${animationOrientation})`
       };
       
-      const validation = veo3Service.validateAnimationData(animationData);
-      if (!validation.isValid) {
-        throw new Error(validation.errors.join(', '));
-      }
-      
-      // Optimiser le prompt pour Runway Gen-4 Turbo
-      const optimizedPrompt = veo3Service.createOptimizedPrompt(
-        selectedAnimationStyle,
-        selectedAnimationTheme,
-        animationPrompt
-      );
-
-      animationData.prompt = optimizedPrompt;
-      
-      // Générer l'animation avec Runway Gen-4 Turbo
-      try {
-        const animationResponse = await veo3Service.generateAnimation(animationData);
-        
-        // Utiliser directement la réponse du backend
-        setAnimationResult({
-          id: animationResponse.id,
-          title: animationResponse.title || animationData.title,
-          description: animationResponse.description || animationData.description,
-          videoUrl: animationResponse.video_url,
-          thumbnailUrl: animationResponse.thumbnail_url || null,
-          style: selectedAnimationStyle,
-          theme: selectedAnimationTheme,
-          duration: animationResponse.duration || 24, // Durée du dessin animé complet
-          status: animationResponse.status || 'completed',
-          createdAt: animationResponse.created_at || new Date().toISOString(),
-          storyScenes: animationResponse.story_scenes || [], // Scènes de l'histoire
-          narrativeType: animationResponse.narrative_type || 'simple' // Type de narration
-        });
-        
-        setAnimationGenerationStatus({ status: 'completed' });
-      } catch (error) {
-        console.error('Erreur génération animation:', error);
-        // En cas d'erreur (quota épuisé), afficher un message explicite
-        setAnimationResult({
-          id: `error_${Date.now()}`,
-          title: `⚠️ ${animationData.title}`,
-          description: `Erreur: ${error.message}`,
-          videoUrl: null,
-          thumbnailUrl: null,
-          style: selectedAnimationStyle,
-          theme: selectedAnimationTheme,
-          duration: 10, // Runway Gen-4 Turbo génère 10 secondes
-          status: 'failed',
-          error: error.message,
-          createdAt: new Date().toISOString()
-        });
-        setAnimationGenerationStatus({ status: 'failed', error: error.message });
-      }
+      // Cette fonctionnalité a été remplacée par CrewAI Animation Generator
+      console.log('Animation generation with old method is deprecated. Use CrewAI Animation Generator instead.');
+      setAnimationGenerationStatus({ status: 'failed', error: 'Cette méthode de génération a été remplacée par CrewAI Animation Generator' });
       
       // Pour les animations, on n'utilise pas generatedContent
+      generatedContent = null;
+    } else if (contentType === 'crewai_animation') {
+      // Ne pas utiliser generatedContent pour CrewAI animations
       generatedContent = null;
     } else if (contentType === 'coloring') {
       const payload = {
@@ -576,6 +627,20 @@ const downloadPDF = async (title, content) => {
                   uploadedAnimationImage={uploadedAnimationImage}
                   setUploadedAnimationImage={setUploadedAnimationImage}
                 />              </motion.div>
+            ) : contentType === 'crewai_animation' ? (
+              <motion.div
+                key="crewai-animation-generator"
+                variants={contentVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.3 }}
+              >
+                <CrewAIAnimationGenerator
+                  onGenerate={handleCrewAIAnimationGenerate}
+                  isGenerating={isGenerating}
+                />
+              </motion.div>
             ) : contentType === 'coloring' ? (
               <motion.div
                 key="coloring-selector"
@@ -632,6 +697,8 @@ const downloadPDF = async (title, content) => {
           ? animationGenerationStatus?.status === 'processing'
             ? `Création du dessin animé narratif... Génération des scènes de l'histoire en cours...`
             : 'Préparation du scénario et des personnages...'
+          : contentType === 'crewai_animation'
+          ? 'Équipe CrewAI au travail... Analyse narrative et génération multi-scènes...'
           : contentType === 'coloring'
           ? 'Création de vos coloriages en cours...'
           : 'Génération en cours...'}
@@ -664,7 +731,90 @@ const downloadPDF = async (title, content) => {
       }}
     >
       🎬 Voir en grand
-    </button>  </div>  ) : coloringResult && contentType === 'coloring' ? (
+    </button>  </div>  ) : crewaiAnimationResult && contentType === 'crewai_animation' ? (
+    <motion.div
+      className="crewai-animation-result"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      key="crewai-animation-result"
+      style={{
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '1rem',
+        padding: '1rem'
+      }}
+    >
+      <div className="crewai-animation-info" style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white',
+        padding: '1rem',
+        borderRadius: '12px',
+        textAlign: 'center',
+        width: '100%'
+      }}>
+        <h3 style={{ margin: '0 0 0.5rem 0' }}>🎬 {crewaiAnimationResult.title}</h3>
+        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}>{crewaiAnimationResult.description}</p>
+        {crewaiAnimationResult.status === 'completed' && (
+          <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>
+            📊 {crewaiAnimationResult.scenesCount} scènes • ⏱️ {crewaiAnimationResult.totalDuration}s • 🤖 {crewaiAnimationResult.generationTime}s
+          </div>
+        )}
+      </div>
+      
+      {crewaiAnimationResult.videoUrl ? (
+        <div className="crewai-video-preview" style={{ width: '100%', maxWidth: '400px' }}>
+          <video 
+            controls 
+            style={{ width: '100%', borderRadius: '8px' }}
+            poster="/placeholder-video.png"
+          >
+            <source src={crewaiAnimationResult.videoUrl} type="video/mp4" />
+            Votre navigateur ne supporte pas la vidéo.
+          </video>
+        </div>
+      ) : crewaiAnimationResult.status === 'failed' ? (
+        <div style={{
+          background: '#fed7d7',
+          color: '#c53030',
+          padding: '1rem',
+          borderRadius: '8px',
+          textAlign: 'center'
+        }}>
+          ⚠️ {crewaiAnimationResult.error || 'Erreur de génération'}
+        </div>
+      ) : (
+        <div style={{
+          background: '#bee3f8',
+          color: '#2c5282',
+          padding: '1rem',
+          borderRadius: '8px',
+          textAlign: 'center'
+        }}>
+          🎭 Animation en cours de génération...
+        </div>
+      )}
+      
+      <button
+        onClick={() => setShowCrewaiAnimationPopup(true)}
+        style={{
+          padding: '0.8rem 1.6rem',
+          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '25px',
+          cursor: 'pointer',
+          fontWeight: '600',
+          fontSize: '1rem'
+        }}
+      >
+        🎬 Voir les détails
+      </button>
+    </motion.div>
+  ) : coloringResult && contentType === 'coloring' ? (
     <motion.div
       className="generated-result"
       initial={{ opacity: 0 }}
@@ -850,6 +1000,168 @@ const downloadPDF = async (title, content) => {
         isOpen={showAnimationPopup}
         onClose={() => setShowAnimationPopup(false)}
       />
+    )}
+    
+    {showCrewaiAnimationPopup && (
+      <motion.div
+        className="crewai-animation-popup-overlay"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={() => setShowCrewaiAnimationPopup(false)}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}
+      >
+        <motion.div
+          className="crewai-animation-popup"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.8, opacity: 0 }}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            background: 'white',
+            borderRadius: '20px',
+            padding: '30px',
+            maxWidth: '90vw',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            position: 'relative'
+          }}
+        >
+          <button
+            onClick={() => setShowCrewaiAnimationPopup(false)}
+            style={{
+              position: 'absolute',
+              top: '15px',
+              right: '15px',
+              background: 'none',
+              border: 'none',
+              fontSize: '24px',
+              cursor: 'pointer',
+              color: '#666'
+            }}
+          >
+            ×
+          </button>
+          
+          <div className="crewai-popup-content">
+            {crewaiAnimationResult && (
+              <>
+                <h2 style={{ marginBottom: '20px', color: '#2d3748' }}>
+                  🎬 {crewaiAnimationResult.title}
+                </h2>
+                
+                <div style={{ marginBottom: '20px' }}>
+                  <p style={{ color: '#718096', marginBottom: '10px' }}>
+                    {crewaiAnimationResult.description}
+                  </p>
+                  
+                  {crewaiAnimationResult.status === 'completed' && (
+                    <div style={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      padding: '15px',
+                      borderRadius: '12px',
+                      marginBottom: '20px'
+                    }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', fontSize: '0.9rem' }}>
+                        <div>📊 <strong>{crewaiAnimationResult.scenesCount}</strong> scènes</div>
+                        <div>⏱️ <strong>{crewaiAnimationResult.totalDuration}s</strong> durée</div>
+                        <div>🤖 <strong>{crewaiAnimationResult.generationTime}s</strong> génération</div>
+                        <div>🎭 <strong>CrewAI</strong> multi-agents</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {crewaiAnimationResult.videoUrl ? (
+                  <div style={{ marginBottom: '20px' }}>
+                    <video 
+                      controls 
+                      style={{ 
+                        width: '100%', 
+                        maxWidth: '600px', 
+                        borderRadius: '12px',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)'
+                      }}
+                    >
+                      <source src={crewaiAnimationResult.videoUrl} type="video/mp4" />
+                      Votre navigateur ne supporte pas la vidéo.
+                    </video>
+                  </div>
+                ) : crewaiAnimationResult.status === 'failed' ? (
+                  <div style={{
+                    background: '#fed7d7',
+                    color: '#c53030',
+                    padding: '20px',
+                    borderRadius: '12px',
+                    marginBottom: '20px',
+                    textAlign: 'center'
+                  }}>
+                    <h3>⚠️ Erreur de génération</h3>
+                    <p>{crewaiAnimationResult.error}</p>
+                  </div>
+                ) : null}
+                
+                {crewaiAnimationResult.scenesDetails && crewaiAnimationResult.scenesDetails.length > 0 && (
+                  <div style={{ marginBottom: '20px' }}>
+                    <h3 style={{ marginBottom: '15px', color: '#2d3748' }}>🎭 Détails des scènes</h3>
+                    <div style={{ display: 'grid', gap: '10px' }}>
+                      {crewaiAnimationResult.scenesDetails.map((scene, index) => (
+                        <div key={index} style={{
+                          background: '#f7fafc',
+                          padding: '12px',
+                          borderRadius: '8px',
+                          borderLeft: '4px solid #667eea'
+                        }}>
+                          <div style={{ fontWeight: '600', marginBottom: '5px' }}>
+                            Scène {scene.scene_number} ({scene.duration}s)
+                          </div>
+                          <div style={{ fontSize: '0.9rem', color: '#4a5568' }}>
+                            {scene.description}
+                          </div>
+                          {scene.action && (
+                            <div style={{ fontSize: '0.8rem', color: '#718096', marginTop: '5px' }}>
+                              Action: {scene.action}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {crewaiAnimationResult.story && (
+                  <div style={{ marginBottom: '20px' }}>
+                    <h3 style={{ marginBottom: '10px', color: '#2d3748' }}>📖 Histoire originale</h3>
+                    <div style={{
+                      background: '#f0fff4',
+                      padding: '15px',
+                      borderRadius: '8px',
+                      fontStyle: 'italic',
+                      color: '#2d3748',
+                      lineHeight: '1.6'
+                    }}>
+                      {crewaiAnimationResult.story}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
     )}
   </div>
 );
