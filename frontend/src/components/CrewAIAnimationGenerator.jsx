@@ -155,238 +155,198 @@ const CrewAIAnimationGenerator = ({ onGenerate, isGenerating }) => {
 
   return (
     <div className="crewai-animation-generator">
-      <div className="generator-header">
-        <h2>🎬 Créateur d'Animation Narrative</h2>
-        <p>Générez des dessins animés complets avec l'intelligence artificielle CrewAI</p>
-      </div>
+      {/* Section Histoire */}
+      <motion.div 
+        className="story-section"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <h3>📖 1. Écrivez votre histoire</h3>
+        
+        {/* Titre */}
+        <div className="title-section">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Titre de votre animation (optionnel)"
+            className="title-input"
+          />
+        </div>
 
-      <div className="generator-content">
-        {/* Story Input Section */}
-        <motion.div 
-          className="story-section"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <h3>📖 Votre Histoire</h3>
-          
-          {/* Example Stories */}
-          <div className="example-stories">
-            <p>💡 Exemples d'histoires :</p>
-            <div className="examples-grid">
-              {exampleStories.map((example, index) => (
-                <motion.div
-                  key={index}
-                  className="example-card"
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => loadExampleStory(example)}
-                >
-                  <h4>{example.title}</h4>
-                  <p>{example.story.substring(0, 100)}...</p>
-                  <button className="load-example">Utiliser cet exemple</button>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Title Input */}
-          <div className="input-group">
-            <label>🏷️ Titre (optionnel)</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ex: Les Aventures de Luna"
-              className="title-input"
-            />
-          </div>
-
-          {/* Story Textarea */}
-          <div className="input-group">
-            <label>
-              ✍️ Histoire complète 
-              <span className="char-count">({story.length} caractères)</span>
-            </label>
-            <textarea
-              value={story}
-              onChange={(e) => setStory(e.target.value)}
-              placeholder="Écrivez ici votre histoire pour enfants... 
+        {/* Histoire */}
+        <textarea
+          value={story}
+          onChange={(e) => setStory(e.target.value)}
+          placeholder="Écrivez ici votre histoire pour enfants... 
 
 Ex: Il était une fois un petit lapin qui découvrait un jardin magique. Les fleurs pouvaient chanter et les papillons racontaient des histoires merveilleuses. Un jour, une sombre malédiction menace le jardin et notre héros doit trouver le courage de sauver son monde enchanté..."
-              className="story-textarea"
-              rows={8}
-            />
-            {story.length < 20 && story.length > 0 && (
-              <span className="validation-warning">⚠️ L'histoire doit contenir au moins 20 caractères</span>
-            )}
-          </div>
-        </motion.div>
+          className="story-textarea"
+          rows={6}
+        />
+        {story.length < 20 && story.length > 0 && (
+          <span style={{ color: '#ff6b6b', fontSize: '0.8rem' }}>⚠️ L'histoire doit contenir au moins 20 caractères</span>
+        )}
+      </motion.div>
 
-        {/* Style Selection */}
-        <motion.div 
-          className="style-section"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <h3>🎨 Style Visuel</h3>
-          <div className="styles-grid">
-            {storyStyles.map((style) => (
-              <motion.div
-                key={style.id}
-                className={`style-card ${selectedStyle === style.id ? 'selected' : ''}`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setSelectedStyle(style.id)}
-              >
-                <div 
-                  className="style-preview"
-                  style={{ background: style.preview }}
-                >
-                  <span className="style-emoji">{style.emoji}</span>
-                </div>
-                <div className="style-info">
-                  <h4>{style.name}</h4>
-                  <p>{style.description}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+      {/* Section Style */}
+      <motion.div 
+        className="style-section"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <h3>🎨 2. Choisissez le style visuel</h3>
+        <div className="style-grid">
+          {storyStyles.map((style) => (
+            <motion.div
+              key={style.id}
+              className={`style-option ${selectedStyle === style.id ? 'selected' : ''}`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setSelectedStyle(style.id)}
+            >
+              <div className="style-icon">{style.emoji}</div>
+              <div className="style-info">
+                <h4>{style.name}</h4>
+                <p>{style.description}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
 
-        {/* Theme Selection */}
-        <motion.div 
-          className="theme-section"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <h3>🌟 Thème</h3>
-          <div className="themes-grid">
-            {storyThemes.map((theme) => (
-              <motion.div
-                key={theme.id}
-                className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''}`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setSelectedTheme(theme.id)}
-              >
-                <span className="theme-emoji">{theme.emoji}</span>
-                <div className="theme-info">
-                  <h4>{theme.name}</h4>
-                  <p>{theme.description}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+      {/* Section Thème */}
+      <motion.div 
+        className="theme-section"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <h3>🌟 3. Choisissez le thème</h3>
+        <div className="theme-grid">
+          {storyThemes.map((theme) => (
+            <motion.div
+              key={theme.id}
+              className={`theme-option ${selectedTheme === theme.id ? 'selected' : ''}`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setSelectedTheme(theme.id)}
+            >
+              <div className="theme-icon">{theme.emoji}</div>
+              <div className="theme-info">
+                <h4>{theme.name}</h4>
+                <p>{theme.description}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
 
-        {/* Generation Mode */}
-        <motion.div 
-          className="mode-section"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <h3>🚀 Mode de Génération</h3>
-          <div className="modes-grid">
-            {generationModes.map((modeOption) => (
-              <motion.div
-                key={modeOption.id}
-                className={`mode-card ${mode === modeOption.id ? 'selected' : ''}`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setMode(modeOption.id)}
-              >
-                <span className="mode-emoji">{modeOption.emoji}</span>
-                <div className="mode-info">
-                  <h4>{modeOption.name}</h4>
-                  <p>{modeOption.description}</p>
-                  <span className="mode-time">⏱️ {modeOption.time}</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+      {/* Section Mode de génération */}
+      <motion.div 
+        className="mode-section"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <h3>🚀 4. Mode de génération</h3>
+        <div className="mode-grid">
+          {generationModes.map((modeOption) => (
+            <motion.div
+              key={modeOption.id}
+              className={`mode-option ${mode === modeOption.id ? 'selected' : ''}`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setMode(modeOption.id)}
+            >
+              <span className="mode-emoji">{modeOption.emoji}</span>
+              <div className="mode-info">
+                <h4>{modeOption.name}</h4>
+                <p>{modeOption.description}</p>
+                <span className="mode-time">⏱️ {modeOption.time}</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
 
-        {/* Advanced Settings */}
-        <motion.div 
-          className="settings-section"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <h3>⚙️ Paramètres Avancés</h3>
+      {/* Section Options */}
+      <motion.div 
+        className="options-section"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
+        <h3>⚙️ 5. Options avancées</h3>
+        <div className="options-grid">
+          <div className="option-group">
+            <label>⏱️ Durée de l'animation</label>
+            <select
+              value={duration}
+              onChange={(e) => setDuration(parseInt(e.target.value))}
+            >
+              <option value={30}>30 secondes (3-4 scènes)</option>
+              <option value={60}>1 minute (5-6 scènes)</option>
+              <option value={120}>2 minutes (8-10 scènes)</option>
+              <option value={180}>3 minutes (12-15 scènes)</option>
+            </select>
+          </div>
           
-          <div className="settings-grid">
-            <div className="setting-group">
-              <label>⏱️ Durée cible</label>
-              <input
-                type="range"
-                min="30"
-                max="300"
-                value={duration}
-                onChange={(e) => setDuration(Number(e.target.value))}
-                className="duration-slider"
-              />
-              <span className="duration-display">{duration} secondes ({Math.floor(duration/60)}min {duration%60}s)</span>
-            </div>
-
-            <div className="setting-group">
-              <label>💎 Qualité</label>
-              <select
-                value={quality}
-                onChange={(e) => setQuality(e.target.value)}
-                className="quality-select"
-              >
-                <option value="fast">Rapide (moins de détails)</option>
-                <option value="medium">Standard (équilibré)</option>
-                <option value="high">Haute qualité (plus de temps)</option>
-              </select>
-            </div>
+          <div className="option-group">
+            <label>💎 Qualité de génération</label>
+            <select
+              value={quality}
+              onChange={(e) => setQuality(e.target.value)}
+            >
+              <option value="fast">Rapide (moins de détails)</option>
+              <option value="medium">Standard (équilibré)</option>
+              <option value="high">Haute qualité (plus de temps)</option>
+            </select>
           </div>
-        </motion.div>
+        </div>
+      </motion.div>
 
-        {/* Generate Button */}
-        <motion.div 
-          className="generate-section"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+      {/* Bouton de génération */}
+      <motion.div 
+        className="generate-section"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+      >
+        <motion.button
+          className={`generate-btn ${isGenerating ? 'generating' : ''}`}
+          onClick={handleGenerate}
+          disabled={isGenerating || !story.trim() || story.length < 20}
+          whileHover={{ scale: isGenerating ? 1 : 1.05 }}
+          whileTap={{ scale: isGenerating ? 1 : 0.98 }}
         >
-          <motion.button
-            className={`generate-btn ${isGenerating ? 'generating' : ''}`}
-            onClick={handleGenerate}
-            disabled={isGenerating || !story.trim() || story.length < 20}
-            whileHover={{ scale: isGenerating ? 1 : 1.05 }}
-            whileTap={{ scale: isGenerating ? 1 : 0.98 }}
-          >
-            {isGenerating ? (
-              <>
-                <div className="loading-spinner"></div>
-                Génération en cours...
-              </>
-            ) : (
-              <>
-                🎬 Créer l'Animation
-              </>
-            )}
-          </motion.button>
-
-          {mode === 'complete' && (
-            <div className="generation-info">
-              <p>🤖 <strong>Pipeline CrewAI complet :</strong></p>
-              <ul>
-                <li>🧩 Scénariste : Découpage en scènes</li>
-                <li>🎨 Directeur Artistique : Style et cohérence</li>
-                <li>🧠 Prompt Engineer : Optimisation IA</li>
-                <li>📡 Opérateur Technique : Génération vidéo</li>
-                <li>🎬 Monteur : Assemblage final</li>
-              </ul>
-            </div>
+          {isGenerating ? (
+            <>
+              <div className="loading-spinner"></div>
+              Génération en cours...
+            </>
+          ) : (
+            <>
+              🎬 Créer l'Animation
+            </>
           )}
-        </motion.div>
-      </div>
+        </motion.button>
+
+        {mode === 'complete' && (
+          <div className="generation-info">
+            <p>🤖 <strong>Pipeline CrewAI complet :</strong></p>
+            <ul>
+              <li>🧩 Scénariste : Découpage en scènes</li>
+              <li>🎨 Directeur Artistique : Style et cohérence</li>
+              <li>🧠 Prompt Engineer : Optimisation IA</li>
+              <li>📡 Opérateur Technique : Génération vidéo</li>
+              <li>🎬 Monteur : Assemblage final</li>
+            </ul>
+          </div>
+        )}
+      </motion.div>
     </div>
   );
 };

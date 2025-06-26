@@ -36,9 +36,13 @@ const History = ({ onClose, onSelect }) => {
       case 'rhyme':
         return '🎵';
       case 'audio':
-        return '🎧';
+        return '📖';
       case 'coloring':
         return '🎨';
+      case 'crewai_animation':
+        return '🎬';
+      case 'animation':
+        return '🎬';
       default:
         return '📄';
     }
@@ -51,9 +55,13 @@ const History = ({ onClose, onSelect }) => {
       case 'rhyme':
         return 'Comptine';
       case 'audio':
-        return 'Conte audio';
+        return 'Histoire';
       case 'coloring':
         return 'Coloriage';
+      case 'crewai_animation':
+        return 'Dessin animé';
+      case 'animation':
+        return 'Dessin animé';
       default:
         return 'Création';
     }
