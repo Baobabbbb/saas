@@ -1,4 +1,4 @@
-# Animation models for Veo3 integration
+# Animation models for CrewAI integration
 from pydantic import BaseModel, validator
 from typing import Optional, List
 from enum import Enum
@@ -40,7 +40,7 @@ class AnimationRequest(BaseModel):
     orientation: AnimationOrientation
     prompt: Optional[str] = ""
     title: Optional[str] = "Mon Dessin Animé"
-    description: Optional[str] = "Dessin animé créé avec Veo3"
+    description: Optional[str] = "Dessin animé créé avec CrewAI"
 
     @validator('prompt')
     def validate_prompt(cls, v):

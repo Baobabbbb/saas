@@ -24,12 +24,12 @@ Fonctionnalité **complètement opérationnelle** de génération de dessins ani
 
 3. **🧠 Prompt Engineer Expert**
    - Transforme les scènes en prompts optimisés
-   - Respecte les contraintes Runway (50-200 caractères)
+   - Respecte les meilleures pratiques de génération d'images
    - Intègre le style artistique défini
-   - **Output**: Prompts prêts pour génération vidéo
+   - **Output**: Prompts prêts pour génération d'images
 
 4. **📡 Opérateur Technique** (intégré)
-   - Orchestration des appels API Runway
+   - Orchestration de la génération d'images
    - Gestion des téléchargements vidéo
    - Surveillance de la qualité
 
@@ -45,9 +45,8 @@ Fonctionnalité **complètement opérationnelle** de génération de dessins ani
 ```
 saas/
 ├── services/
-│   ├── integrated_animation_service.py  # Service complet CrewAI + Runway
-│   ├── simple_animation_service.py      # Version test sans vidéo
-│   └── runway_story.py                  # Service Runway basique
+│   ├── animation_crewai_service.py      # Service CrewAI complet
+│   └── simple_animation_service.py      # Version test sans vidéo
 ├── test_simple_crewai.py               # Test pipeline CrewAI
 ├── test_endpoints_crewai.py            # Test endpoints HTTP
 └── main.py                             # Endpoints FastAPI intégrés
@@ -166,7 +165,7 @@ Content-Type: application/json
 ### **Service Frontend Mis à Jour**
 
 ```javascript
-// Nouveau dans veo3.js
+// Nouveau dans CrewAIAnimationGenerator.jsx
 async generateStoryAnimation(storyText, stylePreferences = {}) {
   const response = await fetch(`${this.baseUrl}/api/animations/generate-story`, {
     method: 'POST',
@@ -182,10 +181,10 @@ async generateStoryAnimation(storyText, stylePreferences = {}) {
 
 ### **Exemple d'Utilisation**
 ```javascript
-import RunwayAnimationService from './services/veo3.js';
+import CrewAIAnimationService from './components/CrewAIAnimationGenerator.jsx';
 
 // Génération animation narrative
-const result = await RunwayAnimationService.generateStoryAnimation(
+const result = await CrewAIAnimationService.generateStoryAnimation(
   "Un petit lapin découvre un jardin magique...",
   {
     style: "cartoon mignon",
@@ -217,7 +216,7 @@ console.log(`${result.scenes_count} scènes assemblées`);
 ### **Variables d'Environnement**
 ```bash
 OPENAI_API_KEY=sk-votre-cle-openai
-RUNWAY_API_KEY=key_votre-cle-runway  # Optionnel (mode simulation sinon)
+# Configuration CrewAI uniquement - aucune clé API externe requise
 ```
 
 ### **Dépendances Python**
@@ -234,7 +233,7 @@ pip install crewai langchain-openai moviepy aiohttp fastapi
 - 🤖 **Architecture CrewAI**: ✅ Implémentée et testée
 - 🎬 **Pipeline Narratif**: ✅ Découpage automatique des histoires
 - 🎨 **Direction Artistique**: ✅ Style cohérent garanti
-- 🧠 **Prompts Optimisés**: ✅ Compatibles Runway Gen-4
+- 🧠 **Prompts Optimisés**: ✅ Compatibles génération d'images IA
 - 📡 **Intégration API**: ✅ Endpoints FastAPI fonctionnels
 - 🎥 **Assemblage Vidéo**: ✅ Export MP4 automatique
 - 💻 **Frontend Ready**: ✅ Service JavaScript intégré

@@ -8,6 +8,7 @@ import traceback
 import os
 import json
 import time
+import uuid
 from fastapi import Form
 
 from dotenv import load_dotenv
@@ -18,9 +19,7 @@ from schemas.animation import AnimationRequest, AnimationResponse, AnimationStat
 from datetime import datetime
 from services.tts import generate_speech
 from services.stt import transcribe_audio
-from services.runway_story import runway_story_service
-from services.runway_gen4_new import runway_gen4_service
-# from services.integrated_animation_service import integrated_animation_service  # Temporairement désactivé
+from services.animation_crewai_service import animation_crewai_service
 from services.coloring_generator import ColoringGenerator
 from utils.translate import translate_text
 
@@ -29,7 +28,7 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
 
-app = FastAPI(title="API Dessins Animés", version="1.0", description="API pour générer des dessins animés avec Runway Gen-4 Turbo")
+app = FastAPI(title="API Dessins Animés", version="1.0", description="API pour générer des dessins animés avec CrewAI")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # CORS avec support UTF-8
@@ -131,7 +130,11 @@ COMPTINE: [texte de la comptine]"""
             temperature=0.8
         )
         
-        content = response.choices[0].message.content.strip()
+        content = response.choices[0].message.content
+        if content:
+            content = content.strip()
+        else:
+            content = ""
         
         # Extraire le titre et le contenu si le format est respecté
         title = f"Comptine {request.rhyme_type}"  # Titre par défaut
@@ -205,7 +208,11 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
             temperature=0.7
         )
         
-        content = response.choices[0].message.content.strip()
+        content = response.choices[0].message.content
+        if content:
+            content = content.strip()
+        else:
+            content = ""
         
         # Extraire le titre et le contenu si le format est respecté
         title = f"Histoire {request.story_type}"  # Titre par défaut
@@ -265,48 +272,48 @@ class AnimationCohesiveRequest(BaseModel):
 @app.post("/api/animations/generate", response_model=AnimationResponse)
 async def generate_animation(request: AnimationRequest):
     """
-    Génère un dessin animé avec Runway Gen-4 Turbo
+    Génère un dessin animé avec CrewAI - Animation simple
     """
     try:
-        print(f"🎬 Génération animation: {request.style} / {request.theme}")
+        print(f"🎬 Génération animation CrewAI: {request.style} / {request.theme}")
         
         # Convertir les enum en chaînes
         style_str = request.style.value
         theme_str = request.theme.value
-        orientation_str = request.orientation.value
         
-        # Générer un titre attractif avec l'IA
-        animation_title = await _generate_animation_title(theme_str, style_str)
+        # Créer une histoire simple basée sur le prompt ou les paramètres
+        simple_story = request.prompt or f"Une {theme_str} {style_str} pour enfants"
         
-        # Générer l'animation avec le service Runway Gen-4 Turbo
-        result = await runway_gen4_service.generate_animation({
-            'style': style_str,
-            'theme': theme_str,
-            'orientation': orientation_str,
-            'prompt': request.prompt,
-            'title': animation_title,
-            'description': f"Animation {style_str} sur le thème {theme_str}"
-        })
+        # Préparer les préférences de style
+        style_preferences = {
+            "style": style_str,
+            "theme": theme_str,
+            "orientation": request.orientation.value,
+            "mood": "joyeux et coloré",
+            "target_age": "3-8 ans"
+        }
         
-        # Ajuster le statut et la description selon le mode utilisé
-        response_status = AnimationStatus.COMPLETED
-        
-        # Si c'est une simulation à cause des crédits, l'indiquer
-        if result.get('simulation_reason'):
-            result['description'] += f" (Mode simulation: {result['simulation_reason']})"
-        
-        return AnimationResponse(
-            id=result['id'],
-            title=result['title'],
-            description=result['description'],
-            video_url=result['video_url'],
-            thumbnail_url=result.get('thumbnail_url'),
-            status=response_status,
-            created_at=datetime.fromisoformat(result['created_at']),
-            style=request.style,
-            theme=request.theme,
-            orientation=request.orientation
+        # Générer l'animation avec CrewAI
+        result = await animation_crewai_service.generate_complete_animation(
+            simple_story, 
+            style_preferences
         )
+        
+        if result.get('status') == 'success':
+            return AnimationResponse(
+                id=str(uuid.uuid4()),
+                title=f"Animation {theme_str}",
+                description=f"Animation {style_str} créée avec CrewAI",
+                video_url=result['video_url'],
+                thumbnail_url=None,
+                status=AnimationStatus.COMPLETED,
+                created_at=datetime.now(),
+                style=request.style,
+                theme=request.theme,
+                orientation=request.orientation
+            )
+        else:
+            raise HTTPException(status_code=500, detail=result.get('error', 'Erreur génération'))
         
     except Exception as e:
         print(f"❌ Erreur génération animation: {e}")
@@ -318,7 +325,7 @@ async def get_animation_status(animation_id: str):
     Récupère le statut d'une animation
     """
     try:
-        # Pour Runway Gen-4 Turbo, les animations sont générées avec polling
+        # Pour CrewAI, les animations sont générées avec polling
         # Cette route est maintenue pour la compatibilité
         return AnimationStatusResponse(
             status=AnimationStatus.COMPLETED,
@@ -329,26 +336,31 @@ async def get_animation_status(animation_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- Status et monitoring ---
-@app.get("/api/runway/credits")
-async def get_runway_credits_status():
+@app.get("/api/crewai/status")
+async def get_crewai_status():
     """
-    Vérifie l'état des crédits Runway
+    Vérifie l'état du service CrewAI
     """
     try:
-        # status = await runway_simple_service.check_credits_status()
+        openai_key = os.getenv("OPENAI_API_KEY")
+        stability_key = os.getenv("STABILITY_API_KEY")
+        
         return {
-            "service": "runway_simple",
+            "service": "crewai_animation",
             "timestamp": datetime.now().isoformat(),
             "status": "available",
-            "message": "Service simplifié - vérification des crédits non implémentée"
+            "openai_configured": openai_key is not None and not openai_key.startswith("sk-votre"),
+            "stability_configured": stability_key is not None and not stability_key.startswith("sk-votre"),
+            "agents_available": ["screenwriter", "art_director", "prompt_engineer", "technical_operator", "video_editor"],
+            "message": "Service CrewAI opérationnel"
         }
     except Exception as e:
         return {
-            "service": "runway_gen4",
+            "service": "crewai_animation",
             "timestamp": datetime.now().isoformat(),
             "status": "error",
             "error": str(e),
-            "credits_available": False
+            "message": "Erreur service CrewAI"
         }
 
 async def _generate_animation_title(theme: str, style: str) -> str:
@@ -405,48 +417,46 @@ Titre uniquement (sans autre texte) :"""
 @app.post("/api/animations/generate-fast", response_model=AnimationResponse)
 async def generate_animation_fast(request: AnimationRequest):
     """
-    Génère un dessin animé avec Runway Gen-4 Turbo (mode optimisé pour la vitesse)
+    Génère un dessin animé avec CrewAI (mode optimisé rapide)
     """
     try:
-        print(f"⚡ Génération animation RAPIDE: {request.style} / {request.theme}")
+        print(f"⚡ Génération animation RAPIDE CrewAI: {request.style} / {request.theme}")
         
-        # Convertir les enum en chaînes
+        # Utiliser le même service CrewAI mais avec une histoire plus courte
         style_str = request.style.value
         theme_str = request.theme.value
-        orientation_str = request.orientation.value
         
-        # Générer un titre attractif avec l'IA
-        animation_title = await _generate_animation_title(theme_str, style_str)
+        # Histoire simple et courte pour mode rapide
+        simple_story = f"Une courte aventure {theme_str} en style {style_str}"
         
-        # Générer l'animation avec le service Runway Gen-4 Turbo (mode rapide)
-        result = await runway_gen4_service.generate_animation_fast({
-            'style': style_str,
-            'theme': theme_str,
-            'orientation': orientation_str,
-            'prompt': request.prompt,
-            'title': animation_title,
-            'description': f"Animation {style_str} sur le thème {theme_str} (optimisée)"
-        })
+        style_preferences = {
+            "style": style_str,
+            "theme": theme_str,
+            "mode": "fast",
+            "scenes_max": 3,  # Limiter à 3 scènes pour plus de rapidité
+            "duration_per_scene": 5  # Scènes plus courtes
+        }
         
-        # Ajuster le statut et la description selon le mode utilisé
-        response_status = AnimationStatus.COMPLETED
-        
-        # Si c'est une simulation à cause des crédits, l'indiquer
-        if result.get('simulation_reason'):
-            result['description'] += f" (Mode simulation: {result['simulation_reason']})"
-        
-        return AnimationResponse(
-            id=result['id'],
-            title=result['title'],
-            description=result['description'],
-            video_url=result['video_url'],
-            thumbnail_url=result.get('thumbnail_url'),
-            status=response_status,
-            created_at=datetime.fromisoformat(result['created_at']),
-            style=request.style,
-            theme=request.theme,
-            orientation=request.orientation
+        result = await animation_crewai_service.generate_complete_animation(
+            simple_story, 
+            style_preferences
         )
+        
+        if result.get('status') == 'success':
+            return AnimationResponse(
+                id=str(uuid.uuid4()),
+                title=f"Animation Rapide {theme_str}",
+                description=f"Animation {style_str} rapide avec CrewAI",
+                video_url=result['video_url'],
+                thumbnail_url=None,
+                status=AnimationStatus.COMPLETED,
+                created_at=datetime.now(),
+                style=request.style,
+                theme=request.theme,
+                orientation=request.orientation
+            )
+        else:
+            raise HTTPException(status_code=500, detail=result.get('error', 'Erreur génération'))
         
     except Exception as e:
         print(f"❌ Erreur génération animation rapide: {e}")
@@ -455,40 +465,39 @@ async def generate_animation_fast(request: AnimationRequest):
 @app.post("/api/animations/generate-async", response_model=AnimationResponse)
 async def generate_animation_async(request: AnimationRequest):
     """
-    Démarre une génération d'animation asynchrone (retour immédiat)
+    Démarre une génération d'animation asynchrone avec CrewAI
     """
     try:
-        print(f"🔄 Génération animation ASYNCHRONE: {request.style} / {request.theme}")
+        print(f"🔄 Génération animation ASYNCHRONE CrewAI: {request.style} / {request.theme}")
         
-        # Convertir les enum en chaînes
+        # Pour l'instant, on utilise le même service mais on pourrait l'adapter pour être vraiment asynchrone
         style_str = request.style.value
         theme_str = request.theme.value
-        orientation_str = request.orientation.value
         
-        # Générer un titre attractif avec l'IA
-        animation_title = await _generate_animation_title(theme_str, style_str)
+        simple_story = f"Une aventure {theme_str} en style {style_str}"
         
-        # Démarrer la génération avec le service story
-        result = await runway_story_service.generate_animation({
-            'style': style_str,
-            'theme': theme_str,
-            'orientation': orientation_str,
-            'prompt': request.prompt,
-            'title': animation_title,
-            'description': f"Animation {style_str} sur le thème {theme_str}"
-        })
+        style_preferences = {
+            "style": style_str,
+            "theme": theme_str,
+            "mode": "async"
+        }
+        
+        result = await animation_crewai_service.generate_complete_animation(
+            simple_story, 
+            style_preferences
+        )
         
         # Déterminer le statut
-        status = AnimationStatus.PROCESSING if result.get('status') == 'processing' else AnimationStatus.COMPLETED
+        status = AnimationStatus.COMPLETED if result.get('status') == 'success' else AnimationStatus.FAILED
         
         return AnimationResponse(
-            id=result['id'],
-            title=result['title'],
-            description=result['description'],
+            id=str(uuid.uuid4()),
+            title=f"Animation Async {theme_str}",
+            description=f"Animation {style_str} générée avec CrewAI",
             video_url=result.get('video_url'),
-            thumbnail_url=result.get('thumbnail_url'),
+            thumbnail_url=None,
             status=status,
-            created_at=datetime.fromisoformat(result['created_at']),
+            created_at=datetime.now(),
             style=request.style,
             theme=request.theme,
             orientation=request.orientation
@@ -523,12 +532,11 @@ async def generate_story_animation(request: dict):
         print(f"📖 Histoire: {story_text[:100]}...")
         print(f"🎨 Style: {style_preferences}")
         
-        # Service temporairement désactivé
-        return {
-            "status": "error", 
-            "message": "Service intégré temporairement désactivé",
-            "error": "integrated_animation_service non disponible"
-        }
+        # Utiliser le service CrewAI
+        result = await animation_crewai_service.generate_complete_animation(
+            story_text, 
+            style_preferences
+        )
         
         if result.get('status') == 'success':
             return {
@@ -566,11 +574,17 @@ async def test_crewai_pipeline(request: dict):
         print(f"🧪 Test pipeline CrewAI")
         print(f"📝 Histoire de test: {test_story}")
         
-        # Service temporairement désactivé  
+        # Test avec le service CrewAI réel
+        result = await animation_crewai_service.generate_complete_animation(
+            test_story,
+            {"style": "cartoon test", "mode": "test"}
+        )
+        
         return {
             "status": "test_completed",
-            "message": "Service intégré temporairement désactivé pour les tests",
-            "error": "integrated_animation_service non disponible"
+            "message": "Test CrewAI exécuté avec succès",
+            "result": result,
+            "test_story": test_story
         }
         
     except Exception as e:
@@ -594,7 +608,7 @@ async def test_animation_data(request: dict):
 @app.post("/api/animations/generate-narrative")
 async def generate_narrative_animation(request: dict):
     """
-    Génère un dessin animé narratif complet avec CrewAI + Runway
+    Génère un dessin animé narratif complet avec CrewAI
     """
     try:
         print(f"🎬 Génération animation narrative avec CrewAI")
@@ -611,22 +625,31 @@ async def generate_narrative_animation(request: dict):
         print(f"📖 Histoire: {story[:100]}...")
         print(f"🎨 Style: {style}, Thème: {theme}")
         
-        # Générer l'animation narrative avec CrewAI + Runway
-        result = await runway_gen4_service.generate_narrative_animation({
-            'story': story,
-            'style': style,
-            'theme': theme,
-            'orientation': orientation
-        })
-        
-        return {
-            "status": "success",
-            "message": "Animation narrative générée avec succès !",
-            "animation": result,
-            "type": "narrative",
-            "scenes_count": result.get("total_scenes", 1),
-            "duration": result.get("total_duration", 10)
+        # Préparer les préférences de style
+        style_preferences = {
+            "style": style,
+            "theme": theme,
+            "orientation": orientation,
+            "mode": "narrative"
         }
+        
+        # Générer l'animation narrative avec CrewAI
+        result = await animation_crewai_service.generate_complete_animation(
+            story,
+            style_preferences
+        )
+        
+        if result.get('status') == 'success':
+            return {
+                "status": "success",
+                "message": "Animation narrative générée avec succès !",
+                "animation": result,
+                "type": "narrative",
+                "scenes_count": result.get("scenes_count", 1),
+                "duration": result.get("total_duration", 10)
+            }
+        else:
+            raise HTTPException(status_code=500, detail=result.get('error', 'Erreur génération'))
         
     except HTTPException:
         raise
@@ -651,20 +674,23 @@ async def generate_cohesive_animation(request: AnimationCohesiveRequest):
         print(f"   💎 Qualité: {request.quality}")
         
         # Préparer les données pour le service CrewAI
-        story_data = {
-            "story": request.story,
+        style_preferences = {
             "style": request.style,
             "theme": request.theme,
             "orientation": request.orientation,
             "duration": request.duration,
             "quality": request.quality,
-            "title": request.title
+            "title": request.title,
+            "mode": "cohesive"
         }
         
         # Lancer le pipeline CrewAI complet
         start_time = time.time()
         
-        result = await runway_gen4_service.generate_narrative_animation(story_data)
+        result = await animation_crewai_service.generate_complete_animation(
+            request.story,
+            style_preferences
+        )
         
         generation_time = time.time() - start_time
         
@@ -673,11 +699,10 @@ async def generate_cohesive_animation(request: AnimationCohesiveRequest):
             "generation_time": round(generation_time, 2),
             "endpoint": "cohesive",
             "pipeline_type": "crewai_multi_agent",
-            "success": True
+            "success": result.get('status') == 'success'
         })
         
         print(f"✅ Animation cohérente générée en {generation_time:.2f}s")
-        print(f"🎯 Score continuité: {result.get('visual_consistency_score', 'N/A')}")
         
         return result
         

@@ -2,7 +2,7 @@
 
 ## Vue d'ensemble
 
-La nouvelle fonctionnalité **Dessin animé** permet aux utilisateurs de créer des animations courtes personnalisées en utilisant l'IA Veo3. Cette fonctionnalité offre une expérience complète de création d'animations adaptées aux enfants.
+La fonctionnalité **Dessin animé** permet aux utilisateurs de créer des animations courtes personnalisées en utilisant l'architecture multi-agents CrewAI. Cette fonctionnalité offre une expérience complète de création d'animations narratives adaptées aux enfants.
 
 ## 🚀 Fonctionnalités
 

@@ -1,4 +1,4 @@
-# Animation models for Veo3 integration
+# Animation models for CrewAI integration
 from pydantic import BaseModel, validator
 from typing import Optional, List
 from enum import Enum
@@ -21,6 +21,12 @@ class AnimationTheme(str, Enum):
     UNDERWATER = "underwater"
     FOREST = "forest"
     SUPERHERO = "superhero"
+    CUSTOM = "custom"
+
+class AnimationOrientation(str, Enum):
+    LANDSCAPE = "landscape"
+    PORTRAIT = "portrait"
+    SQUARE = "square"
 
 class AnimationStatus(str, Enum):
     PENDING = "pending"
@@ -32,9 +38,10 @@ class AnimationRequest(BaseModel):
     style: AnimationStyle
     theme: AnimationTheme
     duration: int
+    orientation: AnimationOrientation = AnimationOrientation.LANDSCAPE
     prompt: Optional[str] = ""
     title: Optional[str] = "Mon Dessin Animé"
-    description: Optional[str] = "Dessin animé créé avec Veo3"
+    description: Optional[str] = "Dessin animé créé avec CrewAI"
 
     @validator('duration')
     def validate_duration(cls, v):
