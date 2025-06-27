@@ -2,14 +2,38 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './CrewAIAnimationGenerator.css';
 
-const CrewAIAnimationGenerator = ({ onGenerate, isGenerating }) => {
-  const [story, setStory] = useState('');
-  const [selectedStyle, setSelectedStyle] = useState('cartoon');
-  const [selectedTheme, setSelectedTheme] = useState('adventure');
-  const [duration, setDuration] = useState(60); // en secondes
-  const [quality, setQuality] = useState('medium');
-  const [title, setTitle] = useState('');
-  const [mode, setMode] = useState('complete'); // complete, fast, cohesive
+const CrewAIAnimationGenerator = ({ onSelectionChange }) => {
+  const [selectedStyle, setSelectedStyle] = useState('');
+  const [selectedTheme, setSelectedTheme] = useState('');
+  const [selectedDuration, setSelectedDuration] = useState('');
+
+  // Notifier le parent quand les sélections changent
+  const handleStyleChange = (style) => {
+    // Déselectionner si on clique sur le même style
+    const newStyle = selectedStyle === style ? '' : style;
+    setSelectedStyle(newStyle);
+    if (onSelectionChange) {
+      onSelectionChange({ style: newStyle, theme: selectedTheme, duration: selectedDuration });
+    }
+  };
+
+  const handleThemeChange = (theme) => {
+    // Déselectionner si on clique sur le même thème
+    const newTheme = selectedTheme === theme ? '' : theme;
+    setSelectedTheme(newTheme);
+    if (onSelectionChange) {
+      onSelectionChange({ style: selectedStyle, theme: newTheme, duration: selectedDuration });
+    }
+  };
+
+  const handleDurationChange = (duration) => {
+    // Déselectionner si on clique sur la même durée
+    const newDuration = selectedDuration === duration ? '' : duration;
+    setSelectedDuration(newDuration);
+    if (onSelectionChange) {
+      onSelectionChange({ style: selectedStyle, theme: selectedTheme, duration: newDuration });
+    }
+  };
   
   const storyStyles = [
     { 
@@ -74,6 +98,48 @@ const CrewAIAnimationGenerator = ({ onGenerate, isGenerating }) => {
       emoji: '🚀'
     },
     { 
+      id: 'ocean', 
+      name: 'Océan', 
+      description: 'Aventures sous-marines',
+      emoji: '🌊'
+    },
+    { 
+      id: 'forest', 
+      name: 'Forêt', 
+      description: 'Mystères de la forêt',
+      emoji: '🌲'
+    },
+    { 
+      id: 'pirates', 
+      name: 'Pirates', 
+      description: 'Aventures de pirates',
+      emoji: '🏴‍☠️'
+    },
+    { 
+      id: 'dinosaurs', 
+      name: 'Dinosaures', 
+      description: 'L\'époque des dinosaures',
+      emoji: '🦕'
+    },
+    { 
+      id: 'fairy_tale', 
+      name: 'Conte de fées', 
+      description: 'Contes classiques revisités',
+      emoji: '🏰'
+    },
+    { 
+      id: 'superhero', 
+      name: 'Super-héros', 
+      description: 'Aventures héroïques',
+      emoji: '🦸'
+    },
+    { 
+      id: 'winter', 
+      name: 'Hiver', 
+      description: 'Magie de l\'hiver',
+      emoji: '❄️'
+    },
+    { 
       id: 'educational', 
       name: 'Éducatif', 
       description: 'Apprentissage ludique',
@@ -81,82 +147,10 @@ const CrewAIAnimationGenerator = ({ onGenerate, isGenerating }) => {
     }
   ];
 
-  const generationModes = [
-    {
-      id: 'complete',
-      name: 'Complet',
-      description: 'Analyse narrative complète avec 5 agents CrewAI',
-      time: '5-10 min',
-      emoji: '🎬'
-    },
-    {
-      id: 'fast',
-      name: 'Rapide',
-      description: 'Génération optimisée (3-4 scènes)',
-      time: '2-5 min',
-      emoji: '⚡'
-    },
-    {
-      id: 'cohesive',
-      name: 'Cohérent',
-      description: 'Focus sur la continuité visuelle',
-      time: '7-12 min',
-      emoji: '🎭'
-    }
-  ];
-
-  const handleGenerate = () => {
-    if (!story.trim()) {
-      alert('Veuillez entrer une histoire');
-      return;
-    }
-
-    if (story.length < 20) {
-      alert('L\'histoire doit contenir au moins 20 caractères');
-      return;
-    }
-
-    const generationData = {
-      story: story.trim(),
-      style_preferences: {
-        style: selectedStyle,
-        theme: selectedTheme,
-        quality: quality,
-        target_age: '3-8 ans',
-        mode: mode
-      },
-      duration: duration,
-      title: title.trim() || undefined,
-      generation_mode: mode
-    };
-
-    onGenerate(generationData);
-  };
-
-  const exampleStories = [
-    {
-      title: "Le Petit Dragon Courageux",
-      story: "Il était une fois un petit dragon qui avait peur de voler. Un jour, il découvre qu'un village est en danger et qu'il est le seul à pouvoir aider. Grâce à l'encouragement de ses amis, il trouve le courage de déployer ses ailes et devient le héros du village."
-    },
-    {
-      title: "Luna et l'Étoile Perdue",
-      story: "Luna, une petite fille curieuse, remarque qu'une étoile a disparu du ciel. Elle entreprend un voyage magique à travers les nuages pour la retrouver. En chemin, elle rencontre des créatures fantastiques qui l'aident dans sa quête et apprend l'importance de l'entraide."
-    },
-    {
-      title: "Le Jardin Secret de Grand-mère",
-      story: "Maxime découvre le jardin secret de sa grand-mère où les fleurs peuvent parler et les papillons racontent des histoires. Quand les plantes commencent à faner, Maxime doit résoudre le mystère et sauver ce monde merveilleux avec l'aide de ses nouveaux amis magiques."
-    }
-  ];
-
-  const loadExampleStory = (example) => {
-    setStory(example.story);
-    setTitle(example.title);
-  };
-
   return (
     <div className="crewai-animation-generator">
-      {/* Section Histoire */}
-      <motion.div 
+      {/* Section Histoire - SUPPRIMÉE */}
+      {/* <motion.div 
         className="story-section"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -164,7 +158,6 @@ const CrewAIAnimationGenerator = ({ onGenerate, isGenerating }) => {
       >
         <h3>📖 1. Écrivez votre histoire</h3>
         
-        {/* Titre */}
         <div className="title-section">
           <input
             type="text"
@@ -175,7 +168,6 @@ const CrewAIAnimationGenerator = ({ onGenerate, isGenerating }) => {
           />
         </div>
 
-        {/* Histoire */}
         <textarea
           value={story}
           onChange={(e) => setStory(e.target.value)}
@@ -188,7 +180,7 @@ Ex: Il était une fois un petit lapin qui découvrait un jardin magique. Les fle
         {story.length < 20 && story.length > 0 && (
           <span style={{ color: '#ff6b6b', fontSize: '0.8rem' }}>⚠️ L'histoire doit contenir au moins 20 caractères</span>
         )}
-      </motion.div>
+      </motion.div> */}
 
       {/* Section Style */}
       <motion.div 
@@ -197,7 +189,7 @@ Ex: Il était une fois un petit lapin qui découvrait un jardin magique. Les fle
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <h3>🎨 2. Choisissez le style visuel</h3>
+        <h3>2. Choisissez le style visuel</h3>
         <div className="style-grid">
           {storyStyles.map((style) => (
             <motion.div
@@ -205,11 +197,11 @@ Ex: Il était une fois un petit lapin qui découvrait un jardin magique. Les fle
               className={`style-option ${selectedStyle === style.id ? 'selected' : ''}`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => setSelectedStyle(style.id)}
+              onClick={() => handleStyleChange(style.id)}
             >
               <div className="style-icon">{style.emoji}</div>
               <div className="style-info">
-                <h4>{style.name}</h4>
+                <h4 className="section-subtitle">{style.name}</h4>
                 <p>{style.description}</p>
               </div>
             </motion.div>
@@ -224,28 +216,59 @@ Ex: Il était une fois un petit lapin qui découvrait un jardin magique. Les fle
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <h3>🌟 3. Choisissez le thème</h3>
+        <h3>3. Choisissez le thème</h3>
         <div className="theme-grid">
           {storyThemes.map((theme) => (
             <motion.div
               key={theme.id}
-              className={`theme-option ${selectedTheme === theme.id ? 'selected' : ''}`}
-              whileHover={{ scale: 1.02 }}
+              className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''}`}
+              whileHover={{ y: -5 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => setSelectedTheme(theme.id)}
+              onClick={() => handleThemeChange(theme.id)}
             >
-              <div className="theme-icon">{theme.emoji}</div>
-              <div className="theme-info">
-                <h4>{theme.name}</h4>
-                <p>{theme.description}</p>
-              </div>
+              <div className="theme-emoji">{theme.emoji}</div>
+              <h4>{theme.name}</h4>
+              <p>{theme.description}</p>
             </motion.div>
           ))}
         </div>
       </motion.div>
 
-      {/* Section Mode de génération */}
+      {/* Section Durée */}
       <motion.div 
+        className="duration-section"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <h3>4. Choisissez la durée</h3>
+        <div className="duration-grid">
+          {[
+            { id: '10', label: '10 secondes', description: 'Animation courte et rythmée', emoji: '⚡' },
+            { id: '30', label: '30 secondes', description: 'Animation équilibrée', emoji: '⏱️' },
+            { id: '60', label: '1 minute', description: 'Animation développée', emoji: '🎬' },
+            { id: '120', label: '2 minutes', description: 'Histoire complète', emoji: '📽️' },
+            { id: '180', label: '3 minutes', description: 'Animation riche', emoji: '🎭' },
+            { id: '240', label: '4 minutes', description: 'Récit détaillé', emoji: '📚' },
+            { id: '300', label: '5 minutes', description: 'Animation complète', emoji: '🎪' }
+          ].map((duration) => (
+            <motion.div
+              key={duration.id}
+              className={`duration-card ${selectedDuration === duration.id ? 'selected' : ''}`}
+              whileHover={{ y: -5 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => handleDurationChange(duration.id)}
+            >
+              <div className="duration-emoji">{duration.emoji}</div>
+              <h4>{duration.label}</h4>
+              <p>{duration.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Section Mode de génération - SUPPRIMÉE */}
+      {/* <motion.div 
         className="mode-section"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -270,10 +293,10 @@ Ex: Il était une fois un petit lapin qui découvrait un jardin magique. Les fle
             </motion.div>
           ))}
         </div>
-      </motion.div>
+      </motion.div> */}
 
-      {/* Section Options */}
-      <motion.div 
+      {/* Section Options - SUPPRIMÉE */}
+      {/* <motion.div 
         className="options-section"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -306,47 +329,7 @@ Ex: Il était une fois un petit lapin qui découvrait un jardin magique. Les fle
             </select>
           </div>
         </div>
-      </motion.div>
-
-      {/* Bouton de génération */}
-      <motion.div 
-        className="generate-section"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-      >
-        <motion.button
-          className={`generate-btn ${isGenerating ? 'generating' : ''}`}
-          onClick={handleGenerate}
-          disabled={isGenerating || !story.trim() || story.length < 20}
-          whileHover={{ scale: isGenerating ? 1 : 1.05 }}
-          whileTap={{ scale: isGenerating ? 1 : 0.98 }}
-        >
-          {isGenerating ? (
-            <>
-              <div className="loading-spinner"></div>
-              Génération en cours...
-            </>
-          ) : (
-            <>
-              🎬 Créer l'Animation
-            </>
-          )}
-        </motion.button>
-
-        {mode === 'complete' && (
-          <div className="generation-info">
-            <p>🤖 <strong>Pipeline CrewAI complet :</strong></p>
-            <ul>
-              <li>🧩 Scénariste : Découpage en scènes</li>
-              <li>🎨 Directeur Artistique : Style et cohérence</li>
-              <li>🧠 Prompt Engineer : Optimisation IA</li>
-              <li>📡 Opérateur Technique : Génération vidéo</li>
-              <li>🎬 Monteur : Assemblage final</li>
-            </ul>
-          </div>
-        )}
-      </motion.div>
+      </motion.div> */}
     </div>
   );
 };

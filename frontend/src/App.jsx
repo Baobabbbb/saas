@@ -6,7 +6,7 @@ import Header from './components/Header';
 import ContentTypeSelector from './components/ContentTypeSelector';
 import RhymeSelector from './components/RhymeSelector';
 import AudioStorySelector from './components/AudioStorySelector';
-import CrewAIAnimationGenerator from './components/CrewAIAnimationGenerator';
+import AnimationGenerator from './components/AnimationGenerator';
 import CustomRequest from './components/CustomRequest';
 import GenerateButton from './components/GenerateButton';
 import History from './components/History';
@@ -18,6 +18,7 @@ import useSupabaseUser from './hooks/useSupabaseUser';
 
 import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
+import { generateCompleteAnimation } from './services/animation';
 
 // Fonction pour générer des titres attractifs pour les enfants
 const generateChildFriendlyTitle = (contentType, theme, content = '') => {
@@ -93,7 +94,7 @@ const getSafeFilename = (title) => {
 };
 
 function App() {
-  const [contentType, setContentType] = useState('crewai_animation'); // 'rhyme', 'audio', 'crewai_animation' or 'coloring'
+  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'audio', 'animation' or 'coloring'
   const [selectedRhyme, setSelectedRhyme] = useState(null);
   const [customRhyme, setCustomRhyme] = useState('');
   const [selectedAudioStory, setSelectedAudioStory] = useState(null);
@@ -107,9 +108,10 @@ function App() {
   const [showStoryPopup, setShowStoryPopup] = useState(false);
   const [showColoringPopup, setShowColoringPopup] = useState(false);
 
-  // CrewAI Animation states (nouvelle méthode)
-  const [crewaiAnimationResult, setCrewaiAnimationResult] = useState(null);
-  const [showCrewaiAnimationPopup, setShowCrewaiAnimationPopup] = useState(false);
+  // Animation states (nouvelle méthode)
+  const [animationResult, setAnimationResult] = useState(null);
+  const [showAnimationPopup, setShowAnimationPopup] = useState(false);
+  const [animationSelections, setAnimationSelections] = useState({ style: '', theme: '', duration: '' });
   
   // Coloring states
   const [selectedTheme, setSelectedTheme] = useState(null);
@@ -148,49 +150,36 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
   
-  // Handle CrewAI Animation Generation
-  const handleCrewAIAnimationGenerate = async (generationData) => {
-    setIsGenerating(true);
-    setCrewaiAnimationResult(null);
+  // Handle Animation Generation
+  const handleAnimationGenerate = async (generationData) => {
+    setAnimationResult(null);
     
     try {
-      console.log('🎬 Démarrage génération CrewAI:', generationData);
+      console.log('🎬 Démarrage génération animation:', generationData);
       
-      let endpoint = '/api/animations/generate-story';
-      
-      // Choisir l'endpoint selon le mode
-      if (generationData.generation_mode === 'fast') {
-        endpoint = '/api/animations/generate-fast';
-      } else if (generationData.generation_mode === 'cohesive') {
-        endpoint = '/api/animations/generate-cohesive';
-      }
-      
-      const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(generationData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || `Erreur HTTP : ${response.status}`);
-      }
-      
-      const animationData = await response.json();
-      console.log('✅ Réponse CrewAI reçue:', animationData);
+      const animationData = await generateCompleteAnimation(generationData);
+      console.log('✅ Réponse animation reçue:', animationData);
       
       if (animationData.status === 'success') {
-        setCrewaiAnimationResult({
-          id: `crewai_${Date.now()}`,
-          title: generationData.title || 'Animation CrewAI',
-          description: `Animation narrative générée avec CrewAI (${animationData.scenes_count} scènes)`,
-          videoUrl: animationData.video_url,
+        // Construire l'URL complète de la vidéo
+        const fullVideoUrl = animationData.video_url.startsWith('http') 
+          ? animationData.video_url 
+          : `http://127.0.0.1:8000${animationData.video_url}`;
+        
+        console.log('🎥 DEBUG - URL originale:', animationData.video_url);
+        console.log('🎥 DEBUG - URL complète:', fullVideoUrl);
+        
+        setAnimationResult({
+          id: `animation_${Date.now()}`,
+          title: generationData.title || 'Animation IA',
+          description: `Animation narrative générée par IA (${animationData.scenes_count} scènes)`,
+          videoUrl: fullVideoUrl,
           videoPath: animationData.video_path,
           scenesCount: animationData.scenes_count,
           totalDuration: animationData.total_duration,
           generationTime: animationData.generation_time,
           scenesDetails: animationData.scenes_details || [],
-          pipelineType: 'crewai_multi_agent',
+          pipelineType: 'complete_animation',
           status: 'completed',
           createdAt: new Date().toISOString(),
           story: generationData.story,
@@ -198,13 +187,13 @@ function App() {
         });
         
         // Afficher la popup de résultat
-        setShowCrewaiAnimationPopup(true);
+        setShowAnimationPopup(true);
         
         // Sauvegarder dans l'historique
         try {
           await addCreation({
-            type: 'crewai_animation',
-            title: generationData.title || 'Animation CrewAI',
+            type: 'animation',
+            title: generationData.title || 'Animation IA',
             data: {
               ...animationData,
               story: generationData.story,
@@ -212,20 +201,20 @@ function App() {
             }
           });
         } catch (historyError) {
-          console.error('Erreur historique CrewAI:', historyError);
+          console.error('Erreur historique animation:', historyError);
         }
         
       } else {
-        throw new Error(animationData.error || 'Erreur génération CrewAI');
+        throw new Error(animationData.error || 'Erreur génération animation');
       }
       
     } catch (error) {
-      console.error('❌ Erreur génération CrewAI:', error);
+      console.error('❌ Erreur génération animation:', error);
       
       // Afficher un résultat d'erreur
-      setCrewaiAnimationResult({
-        id: `crewai_error_${Date.now()}`,
-        title: '⚠️ Erreur Animation CrewAI',
+      setAnimationResult({
+        id: `animation_error_${Date.now()}`,
+        title: '⚠️ Erreur Animation IA',
         description: `Erreur: ${error.message}`,
         videoUrl: null,
         status: 'failed',
@@ -233,11 +222,9 @@ function App() {
         createdAt: new Date().toISOString()
       });
       
-      setShowCrewaiAnimationPopup(true);
+      setShowAnimationPopup(true);
       
-      alert(`❌ Erreur génération CrewAI : ${error.message}\n\n💡 Vérifiez que le service CrewAI est démarré et configuré.`);
-    } finally {
-      setIsGenerating(false);
+      alert(`❌ Erreur génération animation : ${error.message}\n\n💡 Vérifiez que le service d'animation est démarré et configuré.`);
     }
   };
 
@@ -278,9 +265,59 @@ function App() {
       
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
-    } else if (contentType === 'crewai_animation') {
-      // Ne pas utiliser generatedContent pour CrewAI animations
-      generatedContent = null;
+    } else if (contentType === 'animation') {
+      // Créer les données de génération à partir des sélections
+      const defaultStory = "Il était une fois un petit héros qui part dans une grande aventure pleine de surprises et d'amitié. Dans un monde magique rempli de couleurs et de merveilles, notre personnage découvre des lieux fantastiques et rencontre des amis extraordinaires qui l'aideront à grandir et à apprendre de belles leçons.";
+      
+      const themeNames = {
+        'adventure': 'Aventure',
+        'magic': 'Magie',
+        'animals': 'Animaux',
+        'friendship': 'Amitié',
+        'space': 'Espace',
+        'educational': 'Éducatif'
+      };
+      
+      const styleNames = {
+        'cartoon': 'Cartoon',
+        'watercolor': 'Aquarelle',
+        'anime': 'Anime',
+        'fairy_tale': 'Conte'
+      };
+      
+      const themeName = themeNames[animationSelections.theme] || 'Aventure';
+      const styleName = styleNames[animationSelections.style] || 'Cartoon';
+      const autoTitle = `${themeName} en ${styleName}`;
+      
+      // Utiliser l'histoire par défaut ou la demande spécifique
+      const storyToUse = customRequest.trim() || 
+        "Il était une fois un petit héros qui part dans une grande aventure pleine de surprises et d'amitié. Dans un monde magique rempli de couleurs et de merveilles, notre personnage découvre des lieux fantastiques et rencontre des amis extraordinaires qui l'aideront à grandir et à apprendre de belles leçons.";
+      
+      // Convertir la durée sélectionnée en nombre (durée totale)
+      const selectedDurationNum = parseInt(animationSelections.duration) || 30;
+      
+      const generationData = {
+        story: storyToUse,
+        style: animationSelections.style,
+        theme: animationSelections.theme,
+        duration: selectedDurationNum,
+        title: autoTitle,
+        style_preferences: {
+          visual_style: animationSelections.style,
+          theme: animationSelections.theme,
+          color_palette: 'vibrant',
+          target_audience: 'children'
+        },
+        duration_preferences: {
+          total_duration: selectedDurationNum,
+          scene_duration: Math.min(5, Math.max(2, selectedDurationNum / 6)), // Durée par scène adaptée
+          total_max_duration: selectedDurationNum
+        }
+      };
+
+      // Appeler la fonction de génération animation
+      await handleAnimationGenerate(generationData);
+      generatedContent = null; // Géré séparément
     } else if (contentType === 'coloring') {
       const payload = {
         theme: selectedTheme
@@ -318,9 +355,9 @@ function App() {
         title = generatedContent.title;
       } else {
         title = generateChildFriendlyTitle('histoire', selectedAudioStory === 'custom' ? 'default' : selectedAudioStory);
-      }    } else if (contentType === 'crewai_animation') {
+      }    } else if (contentType === 'animation') {
       // Utiliser le titre généré par l'IA depuis l'API animation
-      title = crewaiAnimationResult?.title || generateChildFriendlyTitle('animation', 'crewai');
+      title = animationResult?.title || generateChildFriendlyTitle('animation', 'animation');
     } else if (contentType === 'coloring') {
       // Utiliser le titre généré par l'IA depuis l'API coloriage
       title = generatedContent?.title || generateChildFriendlyTitle('coloriage', selectedTheme);
@@ -329,8 +366,8 @@ function App() {
     // Stocker le titre pour l'utiliser dans l'UI
     setCurrentTitle(title);
 
-    // Créer une entrée d'historique pour tous les types sauf les animations CrewAI
-    if (contentType !== 'crewai_animation') {
+    // Créer une entrée d'historique pour tous les types sauf les animations IA
+    if (contentType !== 'animation') {
       let newCreation;
         if (contentType === 'coloring') {
         // Pour les coloriages, utiliser les données du coloriage
@@ -419,9 +456,9 @@ const handleSelectCreation = (creation) => {
       if (!selectedAudioStory) return false;
       if (selectedAudioStory === 'custom' && !customAudioStory.trim()) return false;
       // La voix est optionnelle
-    } else if (contentType === 'crewai_animation') {
-      // Pour CrewAI, la validation est gérée dans le composant CrewAIAnimationGenerator
-      return true;
+    } else if (contentType === 'animation') {
+      // Vérifier que les sélections de style, thème ET durée sont faites
+      return animationSelections.style && animationSelections.theme && animationSelections.duration;
     } else if (contentType === 'coloring') {
       if (!selectedTheme) return false;
     }
@@ -572,18 +609,17 @@ const downloadPDF = async (title, content) => {
                   setSelectedVoice={setSelectedVoice}
                 />
               </motion.div>
-            ) : contentType === 'crewai_animation' ? (
+            ) : contentType === 'animation' ? (
               <motion.div
-                key="crewai-animation-generator"
+                key="animation-generator"
                 variants={contentVariants}
                 initial="hidden"
                 animate="visible"
                 exit="exit"
                 transition={{ duration: 0.3 }}
               >
-                <CrewAIAnimationGenerator
-                  onGenerate={handleCrewAIAnimationGenerate}
-                  isGenerating={isGenerating}
+                <AnimationGenerator
+                  onSelectionChange={setAnimationSelections}
                 />
               </motion.div>
             ) : contentType === 'coloring' ? (
@@ -600,11 +636,11 @@ const downloadPDF = async (title, content) => {
                 />
               </motion.div>
             ) : null}
-          </AnimatePresence><CustomRequest
+          </AnimatePresence>          <CustomRequest
             customRequest={customRequest}
             setCustomRequest={setCustomRequest}
-            stepNumber={contentType === 'crewai_animation' ? 2 : contentType === 'coloring' ? 4 : 3}
-          />          <GenerateButton
+            stepNumber={contentType === 'animation' ? 4 : contentType === 'coloring' ? 4 : 3}
+          /><GenerateButton
             onGenerate={handleGenerate}
             isGenerating={isGenerating}
             isDisabled={!isFormValid()}
@@ -638,19 +674,19 @@ const downloadPDF = async (title, content) => {
           ? 'Création de la comptine en cours...'
           : contentType === 'audio'
           ? 'Création de l\'histoire en cours...'
-          : contentType === 'crewai_animation'
-          ? 'Équipe CrewAI au travail... Analyse narrative et génération multi-scènes...'
+          : contentType === 'animation'
+          ? 'Pipeline IA au travail... Analyse narrative et génération multi-scènes...'
           : contentType === 'coloring'
           ? 'Création de vos coloriages en cours...'
           : 'Génération en cours...'}
       </p></motion.div>
-  ) : crewaiAnimationResult && contentType === 'crewai_animation' ? (
+  ) : animationResult && contentType === 'animation' ? (
     <motion.div
-      className="crewai-animation-result"
+      className="animation-result"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      key="crewai-animation-result"
+      key="animation-result"
       style={{
         width: '100%',
         display: 'flex',
@@ -661,7 +697,7 @@ const downloadPDF = async (title, content) => {
         padding: '1rem'
       }}
     >
-      <div className="crewai-animation-info" style={{
+      <div className="animation-info" style={{
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: 'white',
         padding: '1rem',
@@ -669,27 +705,27 @@ const downloadPDF = async (title, content) => {
         textAlign: 'center',
         width: '100%'
       }}>
-        <h3 style={{ margin: '0 0 0.5rem 0' }}>🎬 {crewaiAnimationResult.title}</h3>
-        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}>{crewaiAnimationResult.description}</p>
-        {crewaiAnimationResult.status === 'completed' && (
+        <h3 style={{ margin: '0 0 0.5rem 0' }}>🎬 {animationResult.title}</h3>
+        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}>{animationResult.description}</p>
+        {animationResult.status === 'completed' && (
           <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>
-            📊 {crewaiAnimationResult.scenesCount} scènes • ⏱️ {crewaiAnimationResult.totalDuration}s • 🤖 {crewaiAnimationResult.generationTime}s
+            📊 {animationResult.scenesCount} scènes • ⏱️ {animationResult.totalDuration}s • 🤖 {animationResult.generationTime}s
           </div>
         )}
       </div>
       
-      {crewaiAnimationResult.videoUrl ? (
-        <div className="crewai-video-preview" style={{ width: '100%', maxWidth: '400px' }}>
+      {animationResult.videoUrl ? (
+        <div className="animation-video-preview" style={{ width: '100%', maxWidth: '400px' }}>
           <video 
             controls 
             style={{ width: '100%', borderRadius: '8px' }}
             poster="/placeholder-video.png"
           >
-            <source src={crewaiAnimationResult.videoUrl} type="video/mp4" />
+            <source src={animationResult.videoUrl} type="video/mp4" />
             Votre navigateur ne supporte pas la vidéo.
           </video>
         </div>
-      ) : crewaiAnimationResult.status === 'failed' ? (
+      ) : animationResult.status === 'failed' ? (
         <div style={{
           background: '#fed7d7',
           color: '#c53030',
@@ -697,7 +733,7 @@ const downloadPDF = async (title, content) => {
           borderRadius: '8px',
           textAlign: 'center'
         }}>
-          ⚠️ {crewaiAnimationResult.error || 'Erreur de génération'}
+          ⚠️ {animationResult.error || 'Erreur de génération'}
         </div>
       ) : (
         <div style={{
@@ -712,7 +748,7 @@ const downloadPDF = async (title, content) => {
       )}
       
       <button
-        onClick={() => setShowCrewaiAnimationPopup(true)}
+        onClick={() => setShowAnimationPopup(true)}
         style={{
           padding: '0.8rem 1.6rem',
           background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
@@ -789,13 +825,13 @@ const downloadPDF = async (title, content) => {
     src="/cloud-logo.svg"
     alt="BDKids logo"
     className="preview-logo"
-  />*/}  {!generatedResult?.content && !crewaiAnimationResult && !coloringResult && (
+  />*/}  {!generatedResult?.content && !animationResult && !coloringResult && (
     <div className="empty-preview">    <p>
       {contentType === 'rhyme'
         ? 'Votre comptine apparaîtra ici'
         : contentType === 'audio'
         ? 'Votre histoire apparaîtra ici'
-        : contentType === 'crewai_animation'
+        : contentType === 'animation'
         ? 'Votre dessin animé apparaîtra ici'
         : contentType === 'coloring'
         ? 'Vos coloriages apparaîtront ici'
@@ -908,13 +944,13 @@ const downloadPDF = async (title, content) => {
       />
     )}
     
-    {showCrewaiAnimationPopup && (
+    {showAnimationPopup && (
       <motion.div
-        className="crewai-animation-popup-overlay"
+        className="animation-popup-overlay"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={() => setShowCrewaiAnimationPopup(false)}
+        onClick={() => setShowAnimationPopup(false)}
         style={{
           position: 'fixed',
           top: 0,
@@ -930,7 +966,7 @@ const downloadPDF = async (title, content) => {
         }}
       >
         <motion.div
-          className="crewai-animation-popup"
+          className="animation-popup"
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.8, opacity: 0 }}
@@ -946,7 +982,7 @@ const downloadPDF = async (title, content) => {
           }}
         >
           <button
-            onClick={() => setShowCrewaiAnimationPopup(false)}
+            onClick={() => setShowAnimationPopup(false)}
             style={{
               position: 'absolute',
               top: '15px',
@@ -961,19 +997,19 @@ const downloadPDF = async (title, content) => {
             ×
           </button>
           
-          <div className="crewai-popup-content">
-            {crewaiAnimationResult && (
+          <div className="animation-popup-content">
+            {animationResult && (
               <>
                 <h2 style={{ marginBottom: '20px', color: '#2d3748' }}>
-                  🎬 {crewaiAnimationResult.title}
+                  🎬 {animationResult.title}
                 </h2>
                 
                 <div style={{ marginBottom: '20px' }}>
                   <p style={{ color: '#718096', marginBottom: '10px' }}>
-                    {crewaiAnimationResult.description}
+                    {animationResult.description}
                   </p>
                   
-                  {crewaiAnimationResult.status === 'completed' && (
+                  {animationResult.status === 'completed' && (
                     <div style={{
                       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                       color: 'white',
@@ -982,16 +1018,16 @@ const downloadPDF = async (title, content) => {
                       marginBottom: '20px'
                     }}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', fontSize: '0.9rem' }}>
-                        <div>📊 <strong>{crewaiAnimationResult.scenesCount}</strong> scènes</div>
-                        <div>⏱️ <strong>{crewaiAnimationResult.totalDuration}s</strong> durée</div>
-                        <div>🤖 <strong>{crewaiAnimationResult.generationTime}s</strong> génération</div>
-                        <div>🎭 <strong>CrewAI</strong> multi-agents</div>
+                        <div>📊 <strong>{animationResult.scenesCount}</strong> scènes</div>
+                        <div>⏱️ <strong>{animationResult.totalDuration}s</strong> durée</div>
+                        <div>🤖 <strong>{animationResult.generationTime}s</strong> génération</div>
+                        <div>🎭 <strong>Pipeline IA</strong> complète</div>
                       </div>
                     </div>
                   )}
                 </div>
                 
-                {crewaiAnimationResult.videoUrl ? (
+                {animationResult.videoUrl ? (
                   <div style={{ marginBottom: '20px' }}>
                     <video 
                       controls 
@@ -1002,11 +1038,11 @@ const downloadPDF = async (title, content) => {
                         boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)'
                       }}
                     >
-                      <source src={crewaiAnimationResult.videoUrl} type="video/mp4" />
+                      <source src={animationResult.videoUrl} type="video/mp4" />
                       Votre navigateur ne supporte pas la vidéo.
                     </video>
                   </div>
-                ) : crewaiAnimationResult.status === 'failed' ? (
+                ) : animationResult.status === 'failed' ? (
                   <div style={{
                     background: '#fed7d7',
                     color: '#c53030',
@@ -1016,15 +1052,15 @@ const downloadPDF = async (title, content) => {
                     textAlign: 'center'
                   }}>
                     <h3>⚠️ Erreur de génération</h3>
-                    <p>{crewaiAnimationResult.error}</p>
+                    <p>{animationResult.error}</p>
                   </div>
                 ) : null}
                 
-                {crewaiAnimationResult.scenesDetails && crewaiAnimationResult.scenesDetails.length > 0 && (
+                {animationResult.scenesDetails && animationResult.scenesDetails.length > 0 && (
                   <div style={{ marginBottom: '20px' }}>
                     <h3 style={{ marginBottom: '15px', color: '#2d3748' }}>🎭 Détails des scènes</h3>
                     <div style={{ display: 'grid', gap: '10px' }}>
-                      {crewaiAnimationResult.scenesDetails.map((scene, index) => (
+                      {animationResult.scenesDetails.map((scene, index) => (
                         <div key={index} style={{
                           background: '#f7fafc',
                           padding: '12px',
@@ -1032,7 +1068,7 @@ const downloadPDF = async (title, content) => {
                           borderLeft: '4px solid #667eea'
                         }}>
                           <div style={{ fontWeight: '600', marginBottom: '5px' }}>
-                            Scène {scene.scene_number} ({scene.duration}s)
+                            Scène {scene.scene_number || (index + 1)} ({scene.duration || '3'}s)
                           </div>
                           <div style={{ fontSize: '0.9rem', color: '#4a5568' }}>
                             {scene.description}
@@ -1048,7 +1084,7 @@ const downloadPDF = async (title, content) => {
                   </div>
                 )}
                 
-                {crewaiAnimationResult.story && (
+                {animationResult.story && (
                   <div style={{ marginBottom: '20px' }}>
                     <h3 style={{ marginBottom: '10px', color: '#2d3748' }}>📖 Histoire originale</h3>
                     <div style={{
@@ -1059,7 +1095,7 @@ const downloadPDF = async (title, content) => {
                       color: '#2d3748',
                       lineHeight: '1.6'
                     }}>
-                      {crewaiAnimationResult.story}
+                      {animationResult.story}
                     </div>
                   </div>
                 )}

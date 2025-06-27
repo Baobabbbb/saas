@@ -10,9 +10,11 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) =
         ? 'Création de la comptine en cours...'
         : contentType === 'animation'
         ? 'Création du dessin animé en cours...'
+        : contentType === 'crewai_animation'
+        ? 'Création du dessin animé en cours...'
         : contentType === 'coloring'
         ? 'Création du coloriage en cours...'
-        : 'Création de l\'histoire en cours...';
+        : 'Création du contenu en cours...';
     }
     
     return contentType === 'story' 
@@ -21,9 +23,11 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) =
       ? 'Créer ma comptine'
       : contentType === 'animation'
       ? 'Créer mon dessin animé'
+      : contentType === 'crewai_animation'
+      ? 'Créer mon dessin animé'
       : contentType === 'coloring'
       ? 'Créer mon coloriage'
-      : 'Créer mon histoire';
+      : 'Créer mon contenu';
   };
 
   return (
