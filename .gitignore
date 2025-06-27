@@ -12,6 +12,7 @@ node_modules/
 
 # --- Variables d’environnement ---
 .env
+*.env*
 saas/.env
 backend/.env
 

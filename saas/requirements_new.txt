@@ -1,0 +1,34 @@
+# Backend Animation Pipeline - Dependencies
+# Core FastAPI et serveur
+fastapi==0.115.12
+uvicorn==0.23.2
+python-dotenv==1.1.0
+python-multipart==0.0.20
+
+# HTTP et async
+aiohttp==3.9.1
+aiofiles==24.1.0
+httpx==0.28.1
+requests==2.32.3
+
+# OpenAI pour analyse de texte
+openai==1.77.0
+
+# Validation et sérialisation
+pydantic==2.11.4
+pydantic_core==2.33.2
+
+# Utilitaires
+pillow==11.2.0
+tqdm==4.67.1
+urllib3==2.4.0
+
+# Dépendances système
+certifi==2025.4.26
+charset-normalizer==3.4.2
+idna==3.10
+anyio==3.7.1
+sniffio==1.3.1
+click==8.2.1
+colorama==0.4.6
+typing_extensions==4.13.2
