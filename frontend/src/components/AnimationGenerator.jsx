@@ -156,7 +156,7 @@ const AnimationGenerator = ({ onSelectionChange }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <h3>🎨 1. Choisissez le style visuel</h3>
+        <h3>2. Choisissez le style visuel</h3>
         <div className="style-grid">
           {storyStyles.map((style) => (
             <motion.div
@@ -183,7 +183,7 @@ const AnimationGenerator = ({ onSelectionChange }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <h3>🌟 2. Choisissez le thème</h3>
+        <h3>3. Choisissez le thème</h3>
         <div className="theme-grid">
           {storyThemes.map((theme) => (
             <motion.div
@@ -208,7 +208,7 @@ const AnimationGenerator = ({ onSelectionChange }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <h3>⏱️ 3. Choisissez la durée totale</h3>
+        <h3>4. Choisissez la durée totale</h3>
         <div className="duration-grid">
           {[
             { id: '10', label: '10 secondes', description: 'Animation courte et dynamique', emoji: '⚡' },

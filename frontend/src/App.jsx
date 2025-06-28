@@ -1051,7 +1051,7 @@ const downloadPDF = async (title, content) => {
                     marginBottom: '20px',
                     textAlign: 'center'
                   }}>
-                    <h3>⚠️ Erreur de génération</h3>
+                    <h3>Erreur de génération</h3>
                     <p>{animationResult.error}</p>
                   </div>
                 ) : null}

@@ -34,3 +34,5 @@ urllib3==2.4.0
 uvicorn==0.23.2
 watchgod==0.8.2
 aiohttp==3.9.1
+opencv-python==4.10.0.84
+numpy==2.2.1

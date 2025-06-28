@@ -156,7 +156,7 @@ const CrewAIAnimationGenerator = ({ onSelectionChange }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <h3>📖 1. Écrivez votre histoire</h3>
+        <h3>1. Écrivez votre histoire</h3>
         
         <div className="title-section">
           <input
@@ -274,7 +274,7 @@ Ex: Il était une fois un petit lapin qui découvrait un jardin magique. Les fle
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <h3>🚀 4. Mode de génération</h3>
+        <h3>5. Mode de génération</h3>
         <div className="mode-grid">
           {generationModes.map((modeOption) => (
             <motion.div
@@ -302,7 +302,7 @@ Ex: Il était une fois un petit lapin qui découvrait un jardin magique. Les fle
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <h3>⚙️ 5. Options avancées</h3>
+        <h3>6. Options avancées</h3>
         <div className="options-grid">
           <div className="option-group">
             <label>⏱️ Durée de l'animation</label>

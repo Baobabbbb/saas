@@ -774,12 +774,12 @@ async def generate_cohesive_animation(request: AnimationCohesiveRequest):
             except Exception as e:
                 print(f"⚠️ Service IA réel indisponible: {e}")
         
-        # FALLBACK: UTILISATION SERVICE CREWAI FINAL (100% conforme documentation)
+        # FALLBACK: UTILISATION SERVICE ANIMATION COMPLET
         try:
-            from services.animation_crewai_final import animation_crewai_final
-            print("🚀 Utilisation du service CrewAI FINAL (100% conforme)...")
+            from services.complete_animation_pipeline import complete_animation_pipeline
+            print("🚀 Utilisation du service animation complet...")
             
-            result = await animation_crewai_final.generate_complete_animation(
+            result = await complete_animation_pipeline.generate_complete_animation(
                 request.story,
                 style_preferences
             )
@@ -798,12 +798,12 @@ async def generate_cohesive_animation(request: AnimationCohesiveRequest):
         except Exception as e:
             print(f"⚠️ Service final indisponible: {e}")
             
-        # FALLBACK: Essayer la version corrigée
+        # FALLBACK: Essayer la version simple
         try:
-            from services.animation_crewai_corrected import animation_crewai_corrected
-            print("🔧 Fallback: Utilisation du service CrewAI corrigé...")
+            from services.simple_animation_service import simple_animation_service
+            print("🔧 Fallback: Utilisation du service simple...")
             
-            result = await animation_crewai_corrected.generate_complete_animation(
+            result = await simple_animation_service.generate_complete_animation(
                 request.story,
                 style_preferences
             )
