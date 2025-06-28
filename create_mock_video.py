@@ -3,8 +3,41 @@
 Générateur de vidéo mock simple sans dépendances lourdes
 """
 
-import cv2
-import numpy as np
+try:
+    import cv2
+    import numpy as np
+except ImportError:
+    print("OpenCV n'est pas installé. Installation avec: pip install opencv-python")
+    # Créer des fonctions mock pour éviter les erreurs
+    class MockCV2:
+        @staticmethod
+        def VideoWriter_fourcc(*args):
+            return None
+        
+        @staticmethod
+        def VideoWriter(output_path, fourcc, fps, size):
+            return MockVideoWriter()
+    
+    class MockVideoWriter:
+        def write(self, frame):
+            pass
+        
+        def release(self):
+            pass
+    
+    cv2 = MockCV2()
+    
+    class MockNumpy:
+        @staticmethod
+        def zeros(shape, dtype=None):
+            return []
+        
+        @staticmethod
+        def uint8():
+            return 'uint8'
+    
+    np = MockNumpy()
+
 import os
 from pathlib import Path
 

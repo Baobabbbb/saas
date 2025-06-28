@@ -1,3 +1,18 @@
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import Optional
+from openai import AsyncOpenAI
+import os
+
+# Configuration
+app = FastAPI()
+TEXT_MODEL = "gpt-4o-mini"
+
+# Fonction pour générer la parole (placeholder)
+def generate_speech(text, voice=None):
+    # Implémentation mock pour éviter l'erreur
+    return "mock_audio_path.mp3"
+
 # --- Histoire Audio ---
 class AudioStoryRequest(BaseModel):
     story_type: str

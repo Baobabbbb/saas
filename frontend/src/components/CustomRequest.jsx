@@ -5,7 +5,7 @@ import './CustomRequest.css';
 const CustomRequest = ({ customRequest, setCustomRequest }) => {
   return (
     <div className="custom-request">
-      <h3>Demandes spécifiques (optionnel)</h3>
+      <h3>5. Demandes spécifiques (optionnel)</h3>
       
       <div className="request-form">
         <div className="input-group">
