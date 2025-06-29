@@ -1,0 +1,305 @@
+{
+  "status": "success",
+  "message": "✅ Animation générée avec succès",
+  "timeline": {
+    "total_duration": 60,
+    "scenes_count": 8,
+    "clips_count": 8
+  },
+  "clips": [
+    {
+      "scene_number": 1,
+      "scene_id": 1,
+      "video_path": "cache\\animations\\clips\\scene_1_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_1_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_1_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_1_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 7,
+      "prompt": "Dans une forêt magique, les rayons de soleil filtrent à travers des arbres colorés. Luna, une licorne scintillante, gambade joyeusement, courant et sautant avec des sabots étincelants. La caméra effectue un traveling fluide, suivant Luna tout en se déplaçant à travers des fleurs vibrantes et des créatures enchantées, créant une ambiance joyeuse et féerique. Un dégradé lumineux enveloppe la scène, accentuant la magie de l'environnement.",
+      "metadata": {
+        "scene_id": 1,
+        "prompt": "Dans une forêt magique, les rayons de soleil filtrent à travers des arbres colorés. Luna, une licorne scintillante, gambade joyeusement, courant et sautant avec des sabots étincelants. La caméra effectue un traveling fluide, suivant Luna tout en se déplaçant à travers des fleurs vibrantes et des créatures enchantées, créant une ambiance joyeuse et féerique. Un dégradé lumineux enveloppe la scène, accentuant la magie de l'environnement.",
+        "duration": 7,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1751213338.0315955
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 2,
+      "scene_id": 2,
+      "video_path": "cache\\animations\\clips\\scene_2_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_2_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_2_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_2_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 7,
+      "prompt": "Dans un jardin secret enchanté, Luna, une petite licorne joyeuse, s'approche des fleurs géantes qui chantent harmonieusement. La caméra effectue un traveling doux à travers ce paysage vibrant, capturant les couleurs éclatantes des fleurs et les mouvements fluides de Luna. L'atmosphère magique est accentuée par des lumières scintillantes et des créatures amicales qui dansent autour, créant une ambiance féerique et joyeuse.",
+      "metadata": {
+        "scene_id": 2,
+        "prompt": "Dans un jardin secret enchanté, Luna, une petite licorne joyeuse, s'approche des fleurs géantes qui chantent harmonieusement. La caméra effectue un traveling doux à travers ce paysage vibrant, capturant les couleurs éclatantes des fleurs et les mouvements fluides de Luna. L'atmosphère magique est accentuée par des lumières scintillantes et des créatures amicales qui dansent autour, créant une ambiance féerique et joyeuse.",
+        "duration": 7,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1751213339.0594487
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 3,
+      "scene_id": 3,
+      "video_path": "cache\\animations\\clips\\scene_3_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_3_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_3_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_3_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 7,
+      "prompt": "Dans un jardin secret enchanteur, des fleurs vibrent et dansent au rythme de chants mélodieux. Luna, une petite licorne joyeuse, tourne sur elle-même, émerveillée par la magie qui l'entoure. La caméra effectue un traveling fluide autour d'elle, capturant les mouvements joyeux des fleurs et la lumière scintillante qui enveloppe la scène. Les couleurs douces et les détails riches créent une atmosphère féerique et magique.",
+      "metadata": {
+        "scene_id": 3,
+        "prompt": "Dans un jardin secret enchanteur, des fleurs vibrent et dansent au rythme de chants mélodieux. Luna, une petite licorne joyeuse, tourne sur elle-même, émerveillée par la magie qui l'entoure. La caméra effectue un traveling fluide autour d'elle, capturant les mouvements joyeux des fleurs et la lumière scintillante qui enveloppe la scène. Les couleurs douces et les détails riches créent une atmosphère féerique et magique.",
+        "duration": 7,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1751213340.067542
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 4,
+      "scene_id": 4,
+      "video_path": "cache\\animations\\clips\\scene_4_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_4_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_4_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_4_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 7,
+      "prompt": "Dans un jardin secret baigné de lumière dorée, un papillon doré danse gracieusement autour de Luna, une petite licorne joyeuse. La caméra effectue un léger traveling circulaire, capturant les mouvements fluides et joyeux de Luna qui suit le papillon. Les fleurs vibrent et scintillent, créant une ambiance magique. Les couleurs pastel s'entrelacent, tandis que l'animation dévoile un monde féerique où la nature s'éveille.",
+      "metadata": {
+        "scene_id": 4,
+        "prompt": "Dans un jardin secret baigné de lumière dorée, un papillon doré danse gracieusement autour de Luna, une petite licorne joyeuse. La caméra effectue un léger traveling circulaire, capturant les mouvements fluides et joyeux de Luna qui suit le papillon. Les fleurs vibrent et scintillent, créant une ambiance magique. Les couleurs pastel s'entrelacent, tandis que l'animation dévoile un monde féerique où la nature s'éveille.",
+        "duration": 7,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1751213341.078394
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 5,
+      "scene_id": 5,
+      "video_path": "cache\\animations\\clips\\scene_5_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_5_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_5_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_5_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 7,
+      "prompt": "Luna, une petite licorne joyeuse, trottine avec entrain derrière un papillon doré à travers un sentier scintillant dans une forêt magique. La caméra effectue un léger zoom avant, capturant les éclats de lumière et les couleurs pastel vibrantes autour d'eux. Les fleurs chantent doucement et des créatures amicales apparaissent dans les buissons. L'animation est fluide, mettant en valeur les mouvements joyeux de Luna et l'élégance du papillon, créant une ambiance féerique.",
+      "metadata": {
+        "scene_id": 5,
+        "prompt": "Luna, une petite licorne joyeuse, trottine avec entrain derrière un papillon doré à travers un sentier scintillant dans une forêt magique. La caméra effectue un léger zoom avant, capturant les éclats de lumière et les couleurs pastel vibrantes autour d'eux. Les fleurs chantent doucement et des créatures amicales apparaissent dans les buissons. L'animation est fluide, mettant en valeur les mouvements joyeux de Luna et l'élégance du papillon, créant une ambiance féerique.",
+        "duration": 7,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1751213342.1006417
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 6,
+      "scene_id": 6,
+      "video_path": "cache\\animations\\clips\\scene_6_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_6_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_6_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_6_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 7,
+      "prompt": "Dans une ambiance magique, Luna, une petite licorne joyeuse, saute avec enthousiasme sur un nuage moelleux brillant sous le soleil, accompagnée d'un papillon doré. Le nuage s'étend comme un pont vers un château caché, richement détaillé en arrière-plan. La caméra effectue un léger travelling de gauche à droite, capturant les mouvements fluides et joyeux de Luna et du papillon, tandis que des dégradés lumineux et des textures stylisées enveloppent la scène d'une atmosphère féerique.",
+      "metadata": {
+        "scene_id": 6,
+        "prompt": "Dans une ambiance magique, Luna, une petite licorne joyeuse, saute avec enthousiasme sur un nuage moelleux brillant sous le soleil, accompagnée d'un papillon doré. Le nuage s'étend comme un pont vers un château caché, richement détaillé en arrière-plan. La caméra effectue un léger travelling de gauche à droite, capturant les mouvements fluides et joyeux de Luna et du papillon, tandis que des dégradés lumineux et des textures stylisées enveloppent la scène d'une atmosphère féerique.",
+        "duration": 7,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1751213343.1048253
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 7,
+      "scene_id": 7,
+      "video_path": "cache\\animations\\clips\\scene_7_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_7_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_7_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_7_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 7,
+      "prompt": "Dans un ciel bleu éclatant, un château féerique scintille à travers des nuages moelleux. Luna, une petite licorne joyeuse, s'arrête et lève les yeux, émerveillée par sa beauté. La caméra effectue un léger zoom avant sur son visage radieux, puis un travelling à travers les nuages pour révéler le château en détail, avec ses tours étincelantes. L'ambiance magique est accentuée par des couleurs pastel et des lumières scintillantes, créant un environnement enchanteur.",
+      "metadata": {
+        "scene_id": 7,
+        "prompt": "Dans un ciel bleu éclatant, un château féerique scintille à travers des nuages moelleux. Luna, une petite licorne joyeuse, s'arrête et lève les yeux, émerveillée par sa beauté. La caméra effectue un léger zoom avant sur son visage radieux, puis un travelling à travers les nuages pour révéler le château en détail, avec ses tours étincelantes. L'ambiance magique est accentuée par des couleurs pastel et des lumières scintillantes, créant un environnement enchanteur.",
+        "duration": 7,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1751213344.1118293
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 8,
+      "scene_id": 8,
+      "video_path": "cache\\animations\\clips\\scene_8_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_8_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_8_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_8_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 7,
+      "prompt": "Luna, la petite licorne joyeuse, s'avance côte à côte avec le papillon doré, illuminés par un chemin magique menant au château. La caméra effectue un traveling latéral fluide, capturant leurs mouvements enjoués. Les couleurs vives et les dégradés créent une ambiance féerique, tandis que des fleurs chantantes et des lumières scintillantes entourent le duo. L'atmosphère est joyeuse et pleine de promesses d'aventures.",
+      "metadata": {
+        "scene_id": 8,
+        "prompt": "Luna, la petite licorne joyeuse, s'avance côte à côte avec le papillon doré, illuminés par un chemin magique menant au château. La caméra effectue un traveling latéral fluide, capturant leurs mouvements enjoués. Les couleurs vives et les dégradés créent une ambiance féerique, tandis que des fleurs chantantes et des lumières scintillantes entourent le duo. L'atmosphère est joyeuse et pleine de promesses d'aventures.",
+        "duration": 7,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1751213345.1232307
+      },
+      "type": "local_image"
+    }
+  ],
+  "video_finale": {
+    "video_finale_path": "cache\\animations\\final\\playlist_1751213346.m3u8",
+    "video_url": "/cache/animations/final/playlist_1751213346.m3u8",
+    "duree_totale": 56,
+    "clips_count": 8,
+    "format": "demo_playlist"
+  },
+  "generation_time": 61.51441931724548,
+  "pipeline_version": "v2.0_specs",
+  "scenes": [
+    {
+      "id": 1,
+      "description": "La forêt magique s'éveille avec des rayons de soleil filtrant à travers les arbres. Luna, une petite licorne aux crins scintillants, gambade joyeusement.",
+      "duree_estimee": 7,
+      "action_principale": "Luna court et saute de joie, ses sabots scintillant.",
+      "personnages": [
+        "Luna"
+      ],
+      "decor": "Une forêt dense avec des arbres aux couleurs vives, des fleurs colorées et des créatures magiques qui observent."
+    },
+    {
+      "id": 2,
+      "description": "Luna découvre un jardin secret rempli de fleurs géantes qui chantent harmonieusement.",
+      "duree_estimee": 7,
+      "action_principale": "Luna s'approche des fleurs et les écoute avec émerveillement.",
+      "personnages": [
+        "Luna"
+      ],
+      "decor": "Un jardin luxuriant, avec des fleurs de toutes les couleurs, brillantes et animées, dans un champ de lumière douce."
+    },
+    {
+      "id": 3,
+      "description": "Les fleurs dansent et vibrent au rythme de leurs chants, créant une atmosphère enchantée.",
+      "duree_estimee": 7,
+      "action_principale": "Les fleurs ondulent et Luna tourne sur elle-même, émerveillée.",
+      "personnages": [
+        "Luna"
+      ],
+      "decor": "Le jardin secret avec des fleurs chantantes et une lumière scintillante qui enveloppe la scène."
+    },
+    {
+      "id": 4,
+      "description": "Un papillon doré apparaît, voletant gracieusement autour de Luna.",
+      "duree_estimee": 7,
+      "action_principale": "Le papillon danse autour de Luna, l'invitant à le suivre.",
+      "personnages": [
+        "Luna",
+        "Papillon doré"
+      ],
+      "decor": "Le jardin secret, avec des fleurs et une lumière dorée qui illumine le papillon."
+    },
+    {
+      "id": 5,
+      "description": "Luna décide de suivre le papillon doré à travers un sentier lumineux.",
+      "duree_estimee": 7,
+      "action_principale": "Luna trottine joyeusement derrière le papillon, sautillant sur le chemin.",
+      "personnages": [
+        "Luna",
+        "Papillon doré"
+      ],
+      "decor": "Un sentier scintillant qui serpente à travers la forêt, avec des éclats de lumière."
+    },
+    {
+      "id": 6,
+      "description": "Le sentier les mène vers un nuage moelleux qui sert de pont vers un château caché.",
+      "duree_estimee": 7,
+      "action_principale": "Luna saute sur le nuage avec enthousiasme, le papillon l'accompagnant.",
+      "personnages": [
+        "Luna",
+        "Papillon doré"
+      ],
+      "decor": "Un nuage blanc et doux, brillant sous le soleil, avec le château en arrière-plan."
+    },
+    {
+      "id": 7,
+      "description": "Le château caché dans les nuages se dévoile, majestueux et scintillant.",
+      "duree_estimee": 7,
+      "action_principale": "Luna s'arrête, émerveillée par la beauté du château.",
+      "personnages": [
+        "Luna"
+      ],
+      "decor": "Un château féerique avec des tours étincelantes, entouré de nuages moelleux."
+    },
+    {
+      "id": 8,
+      "description": "Luna et le papillon doré s'avancent ensemble vers le château, prêts pour de nouvelles aventures.",
+      "duree_estimee": 7,
+      "action_principale": "Ils s'avancent côte à côte, unis par l'amitié.",
+      "personnages": [
+        "Luna",
+        "Papillon doré"
+      ],
+      "decor": "Le chemin menant au château, baigné de lumière et rempli de promesses d'aventures."
+    }
+  ],
+  "style": {
+    "style_global": "Un style visuel enchanteur et coloré, avec des lignes douces et arrondies pour les personnages et les éléments naturels. Les arrière-plans sont richement détaillés, avec une utilisation de dégradés lumineux pour créer une ambiance de rêve. L'animation est fluide et dynamique, mettant en valeur les mouvements joyeux de Luna et des créatures magiques. Les textures sont légèrement stylisées, évoquant un univers féerique.",
+    "palette_couleurs": [
+      "#FFB3E6",
+      "#FFDD57",
+      "#B2E0D9"
+    ],
+    "ambiance": "magique",
+    "seeds": {
+      "style_principal": 54321,
+      "environnement_principal": 98765
+    },
+    "qualite_tags": [
+      "high quality",
+      "detailed",
+      "colorful",
+      "child-friendly"
+    ],
+    "style_prompt_base": "Créer un environnement magique et coloré où Luna, une petite licorne joyeuse, explore des paysages enchanteurs remplis de fleurs chantantes, de créatures amicales et de lumières scintillantes."
+  },
+  "histoire": "Il était une fois une petite licorne nommée Luna qui vivait dans une forêt magique. \n    Un jour, elle découvre un jardin secret rempli de fleurs qui chantent des mélodies douces. \n    En explorant ce lieu merveilleux, Luna rencontre un papillon doré qui lui montre le chemin \n    vers un château caché dans les nuages.",
+  "duree_totale": 60,
+  "theme": "enfants",
+  "original_request": {
+    "story": "Il était une fois une petite licorne nommée Luna qui vivait dans une forêt magique. \n    Un jour, elle découvre un jardin secret rempli de fleurs qui chantent des mélodies douces. \n    En explorant ce lieu merveilleux, Luna rencontre un papillon doré qui lui montre le chemin \n    vers un château caché dans les nuages.",
+    "duration": 60,
+    "style": "cartoon",
+    "theme": "enfants"
+  },
+  "api_version": "2.0",
+  "pipeline": "GPT-4o-mini + SD3-Turbo"
+}

@@ -51,7 +51,7 @@ app.mount("/cache", StaticFiles(directory="cache"), name="cache")
 # CORS avec support UTF-8
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5177"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "http://localhost:5177"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -86,17 +86,14 @@ async def root():
     }
 
 @app.get("/health")
-async def health():
-    """Vérification de l'état de santé de l'API"""
+async def health_check():
+    """Endpoint de santé pour vérifier que l'API fonctionne"""
     return {
         "status": "healthy",
-        "timestamp": time.time(),
-        "pipeline": "story_coloring_api",
-        "services": {
-            "story_generator": "ready",
-            "coloring_generator": "ready",
-            "tts_service": "ready"
-        }
+        "service": "API Dessins Animés IA",
+        "version": "2.0",
+        "pipeline": "GPT-4o-mini + SD3-Turbo",
+        "timestamp": datetime.now().isoformat()
     }
 
 @app.get("/diagnostic")
@@ -398,6 +395,174 @@ async def pipeline_info():
         ]
     }
 
+# === GÉNÉRATION D'ANIMATIONS IA ===
+
+class AnimationRequest(BaseModel):
+    story: str
+    duration: Optional[int] = 60  # Durée en secondes (30-300)
+    style: Optional[str] = "cartoon"  # Style: cartoon, anime, realistic
+    theme: Optional[str] = None  # Thème optionnel
+    mode: Optional[str] = "demo"  # Mode: "demo" ou "production"
+
+@app.post("/generate_animation/")
+async def generate_animation(request: AnimationRequest):
+    """Génération de dessins animés IA avec pipeline optimisée"""
+    try:
+        # Vérifier les clés API
+        openai_key = os.getenv("OPENAI_API_KEY")
+        stability_key = os.getenv("STABILITY_API_KEY")
+        
+        if not openai_key or openai_key.startswith("sk-votre"):
+            raise HTTPException(
+                status_code=400,
+                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
+            )
+        
+        if not stability_key or stability_key.startswith("sk-votre"):
+            raise HTTPException(
+                status_code=400,
+                detail="❌ Clé API Stability AI non configurée. Veuillez configurer STABILITY_API_KEY dans le fichier .env"
+            )
+        
+        # Valider les paramètres
+        duration = max(30, min(300, request.duration))  # Entre 30s et 5min
+        story = request.story.strip()
+        
+        if len(story) < 10:
+            raise HTTPException(
+                status_code=400,
+                detail="L'histoire doit contenir au moins 10 caractères"
+            )
+        
+        print(f"🎬 Génération animation: {story[:50]}... ({duration}s, {request.style}, mode: {request.mode})")
+        
+        # Importer et utiliser le nouveau pipeline conforme à la spécification
+        from services.pipeline_dessin_anime_v2 import creer_dessin_anime
+        
+        # Générer l'animation complète avec le nouveau pipeline
+        result = await creer_dessin_anime(
+            histoire=story,
+            duree=duration,
+            openai_key=openai_key,
+            stability_key=stability_key,
+            mode=request.mode
+        )
+        
+        # Ajouter des métadonnées pour l'interface
+        result.update({
+            "theme": request.theme or "histoire",
+            "original_request": {
+                "story": story,
+                "duration": duration,
+                "style": request.style,
+                "theme": request.theme
+            },
+            "api_version": "2.0",
+            "pipeline": "GPT-4o-mini + SD3-Turbo"
+        })
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur génération animation: {e}")
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"❌ Erreur lors de la génération de l'animation: {str(e)}"
+        )
+
+# Endpoint compatible avec l'ancien système pour maintenir la compatibilité
+@app.post("/api/animations/test-duration")
+async def legacy_animation_endpoint(data: dict):
+    """Endpoint de compatibilité avec l'ancien système frontend"""
+    try:
+        # Extraire les paramètres avec plusieurs formats possibles
+        story = data.get('story', data.get('prompt', ''))
+        duration = data.get('duration', data.get('total_duration', 60))
+        style = data.get('style', data.get('visual_style', 'cartoon'))
+        theme = data.get('theme', 'histoire')
+        
+        # Créer une requête compatible
+        request = AnimationRequest(
+            story=story,
+            duration=duration,
+            style=style,
+            theme=theme
+        )
+        
+        # Utiliser l'endpoint principal
+        return await generate_animation(request)
+        
+    except Exception as e:
+        print(f"❌ Erreur endpoint legacy: {e}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "message": "Erreur lors de la génération de l'animation"
+        }
+
+# Endpoint de test pour valider les corrections frontend
+@app.post("/test_animation/")
+async def test_animation(request: AnimationRequest):
+    """Endpoint de test rapide pour valider la logique frontend"""
+    try:
+        story = request.story.strip()
+        
+        # Validation identique à celle de l'endpoint principal
+        if len(story) < 10:
+            raise HTTPException(
+                status_code=400,
+                detail="L'histoire doit contenir au moins 10 caractères"
+            )
+        
+        # Retourner un résultat de test immédiat
+        return {
+            "status": "test_success",
+            "message": "✅ Test réussi - Histoire valide",
+            "received_story": story,
+            "story_length": len(story),
+            "duration": request.duration,
+            "style": request.style,
+            "theme": request.theme,
+            "test_note": "Ceci est un test - pas de vraie génération"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur de test: {str(e)}"
+        )
+
+# ===== DÉMARRAGE DU SERVEUR =====
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    print("🚀 Démarrage du serveur FRIDAY Backend...")
+    print("📁 Répertoire de travail:", os.getcwd())
+    print("🔑 Variables d'environnement:")
+    print(f"   - OPENAI_API_KEY: {'✅ CONFIGURÉE' if os.getenv('OPENAI_API_KEY') else '❌ MANQUANTE'}")
+    print(f"   - STABILITY_API_KEY: {'✅ CONFIGURÉE' if os.getenv('STABILITY_API_KEY') else '❌ MANQUANTE'}")
+    print(f"   - TEXT_MODEL: {os.getenv('TEXT_MODEL', 'Non défini')}")
+    print(f"   - VIDEO_MODEL: {os.getenv('VIDEO_MODEL', 'Non défini')}")
+    print("\n🎬 Services disponibles:")
+    print("   - ✅ Génération d'histoires")
+    print("   - ✅ Génération de comptines")
+    print("   - ✅ Génération de coloriages")
+    print("   - ✅ Génération d'animations IA (GPT-4o-mini + SD3-Turbo)")
+    print("   - ✅ Synthèse vocale (TTS)")
+    print("   - ✅ Reconnaissance vocale (STT)")
+    print("\n🌐 API Documentation: http://localhost:8000/docs")
+    print("🔗 Frontend: http://localhost:5173")
+    print("=" * 60)
+    
+    uvicorn.run(
+        "main_new:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        log_level="info"
+    )

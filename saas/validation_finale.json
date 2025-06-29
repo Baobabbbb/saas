@@ -1,0 +1,313 @@
+{
+  "status": "success",
+  "message": "✅ Animation générée avec succès",
+  "timeline": {
+    "total_duration": 90,
+    "scenes_count": 8,
+    "clips_count": 8
+  },
+  "clips": [
+    {
+      "scene_number": 1,
+      "scene_id": 1,
+      "video_path": "cache\\animations\\clips\\scene_1_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_1_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_1_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_1_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 11,
+      "prompt": "Dans un arbre magique, Céleste, la petite fée, s'éveille. Des rayons de lumière dorée filtrent à travers les feuilles, illuminant sa chambre ornée de pétales de fleurs scintillantes. Elle étire ses ailes colorées avec grâce avant de s'envoler hors de l'arbre, laissant derrière elle un scintillement magique. La caméra effectue un léger zoom avant sur Céleste, suivi d'un traveling pour capturer l'envol dans une ambiance féerique et immersive.",
+      "metadata": {
+        "scene_id": 1,
+        "prompt": "Dans un arbre magique, Céleste, la petite fée, s'éveille. Des rayons de lumière dorée filtrent à travers les feuilles, illuminant sa chambre ornée de pétales de fleurs scintillantes. Elle étire ses ailes colorées avec grâce avant de s'envoler hors de l'arbre, laissant derrière elle un scintillement magique. La caméra effectue un léger zoom avant sur Céleste, suivi d'un traveling pour capturer l'envol dans une ambiance féerique et immersive.",
+        "duration": 11,
+        "seed": 98765,
+        "status": "demo_generated",
+        "timestamp": 1751213922.1718166
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 2,
+      "scene_id": 2,
+      "video_path": "cache\\animations\\clips\\scene_2_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_2_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_2_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_2_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 11,
+      "prompt": "Céleste, une petite fille aux cheveux colorés, pointe vers un ciel vide sans étoiles avec une expression de surprise, tandis qu'un dragon bleu s'approche d'elle, curieux. La caméra effectue un léger zoom avant sur leur visage, capturant l'émerveillement. En arrière-plan, des nuages cotonneux flottent dans un ciel peint à la main avec des textures aquarelle. L'ambiance est magique, illuminée par des effets de lumière scintillante qui accentuent la scène enchantée.",
+      "metadata": {
+        "scene_id": 2,
+        "prompt": "Céleste, une petite fille aux cheveux colorés, pointe vers un ciel vide sans étoiles avec une expression de surprise, tandis qu'un dragon bleu s'approche d'elle, curieux. La caméra effectue un léger zoom avant sur leur visage, capturant l'émerveillement. En arrière-plan, des nuages cotonneux flottent dans un ciel peint à la main avec des textures aquarelle. L'ambiance est magique, illuminée par des effets de lumière scintillante qui accentuent la scène enchantée.",
+        "duration": 11,
+        "seed": 98765,
+        "status": "demo_generated",
+        "timestamp": 1751213923.1966581
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 3,
+      "scene_id": 3,
+      "video_path": "cache\\animations\\clips\\scene_3_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_3_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_3_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_3_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 11,
+      "prompt": "Céleste et le dragon bleu s'envolent joyeusement au-dessus des nuages colorés, faisant des loopings et riant ensemble. Le ciel est rempli d'arcs-en-ciel et d'étoiles scintillantes. La caméra effectue un traveling fluide, capturant les détails des nuages et les éclats lumineux. L'ambiance est magique, avec des couleurs vives et des effets de lumière scintillante, créant une atmosphère enchanteuse et immersive.",
+      "metadata": {
+        "scene_id": 3,
+        "prompt": "Céleste et le dragon bleu s'envolent joyeusement au-dessus des nuages colorés, faisant des loopings et riant ensemble. Le ciel est rempli d'arcs-en-ciel et d'étoiles scintillantes. La caméra effectue un traveling fluide, capturant les détails des nuages et les éclats lumineux. L'ambiance est magique, avec des couleurs vives et des effets de lumière scintillante, créant une atmosphère enchanteuse et immersive.",
+        "duration": 11,
+        "seed": 98765,
+        "status": "demo_generated",
+        "timestamp": 1751213924.214426
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 4,
+      "scene_id": 4,
+      "video_path": "cache\\animations\\clips\\scene_4_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_4_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_4_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_4_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 11,
+      "prompt": "Dans un paysage enchanteur rempli de fleurs géantes et d'arbres colorés, Céleste et un dragon bleu s'approchent de créatures merveilleuses : une licorne scintillante et un oiseau multicolore. Un léger zoom sur leurs visages expressifs révèle l'émerveillement. La caméra effectue un traveling latéral pour capturer l'ensemble du décor vibrant, illuminé par des effets de lumière scintillante, créant une ambiance magique et immersive.",
+      "metadata": {
+        "scene_id": 4,
+        "prompt": "Dans un paysage enchanteur rempli de fleurs géantes et d'arbres colorés, Céleste et un dragon bleu s'approchent de créatures merveilleuses : une licorne scintillante et un oiseau multicolore. Un léger zoom sur leurs visages expressifs révèle l'émerveillement. La caméra effectue un traveling latéral pour capturer l'ensemble du décor vibrant, illuminé par des effets de lumière scintillante, créant une ambiance magique et immersive.",
+        "duration": 11,
+        "seed": 98765,
+        "status": "demo_generated",
+        "timestamp": 1751213925.2229137
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 5,
+      "scene_id": 5,
+      "video_path": "cache\\animations\\clips\\scene_5_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_5_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_5_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_5_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 11,
+      "prompt": "Dans une forêt enchantée, Céleste, une petite fille joyeuse, saute le long d'un chemin lumineux d'étoiles scintillantes, guidée par une licorne et un oiseau multicolore. Le dragon bleu vole gracieusement au-dessus, ajoutant à la magie. La caméra effectue un traveling avant, capturant les détails riches des décors peints à la main, avec des effets de lumière étincelants, créant une ambiance magique et immersive.",
+      "metadata": {
+        "scene_id": 5,
+        "prompt": "Dans une forêt enchantée, Céleste, une petite fille joyeuse, saute le long d'un chemin lumineux d'étoiles scintillantes, guidée par une licorne et un oiseau multicolore. Le dragon bleu vole gracieusement au-dessus, ajoutant à la magie. La caméra effectue un traveling avant, capturant les détails riches des décors peints à la main, avec des effets de lumière étincelants, créant une ambiance magique et immersive.",
+        "duration": 11,
+        "seed": 98765,
+        "status": "demo_generated",
+        "timestamp": 1751213926.232639
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 6,
+      "scene_id": 6,
+      "video_path": "cache\\animations\\clips\\scene_6_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_6_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_6_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_6_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 11,
+      "prompt": "Dans une grotte magique, Céleste, une jeune aventurière, s'approche d'un cristal brillant. Elle tend la main et touche le cristal, qui émet une lumière éclatante, illuminant les murs ornés de cristaux colorés. Un dragon bleu curieux l'observe, ses écailles scintillant dans la douce lumière. La caméra effectue un léger traveling vers Céleste avant de zoomer sur son visage émerveillé, capturant l'ambiance enchantée et colorée de la scène.",
+      "metadata": {
+        "scene_id": 6,
+        "prompt": "Dans une grotte magique, Céleste, une jeune aventurière, s'approche d'un cristal brillant. Elle tend la main et touche le cristal, qui émet une lumière éclatante, illuminant les murs ornés de cristaux colorés. Un dragon bleu curieux l'observe, ses écailles scintillant dans la douce lumière. La caméra effectue un léger traveling vers Céleste avant de zoomer sur son visage émerveillé, capturant l'ambiance enchantée et colorée de la scène.",
+        "duration": 11,
+        "seed": 98765,
+        "status": "demo_generated",
+        "timestamp": 1751213927.255451
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 7,
+      "scene_id": 7,
+      "video_path": "cache\\animations\\clips\\scene_7_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_7_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_7_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_7_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 11,
+      "prompt": "Dans une grotte colorée, une grande étoile magique flottante sourit, illuminant le chemin vers le ciel nocturne. Céleste et un dragon bleu s'émerveillent, leurs visages illuminés par la lumière scintillante. La caméra effectue un zoom avant sur l'étoile, capturant ses détails brillants, puis un traveling arrière révèle la grotte riche en textures. L'ambiance est magique, avec des couleurs vives et des effets aquarelle, créant une atmosphère enchantée.",
+      "metadata": {
+        "scene_id": 7,
+        "prompt": "Dans une grotte colorée, une grande étoile magique flottante sourit, illuminant le chemin vers le ciel nocturne. Céleste et un dragon bleu s'émerveillent, leurs visages illuminés par la lumière scintillante. La caméra effectue un zoom avant sur l'étoile, capturant ses détails brillants, puis un traveling arrière révèle la grotte riche en textures. L'ambiance est magique, avec des couleurs vives et des effets aquarelle, créant une atmosphère enchantée.",
+        "duration": 11,
+        "seed": 98765,
+        "status": "demo_generated",
+        "timestamp": 1751213928.26412
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 8,
+      "scene_id": 8,
+      "video_path": "cache\\animations\\clips\\scene_8_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_8_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_8_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_8_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 11,
+      "prompt": "Céleste et le dragon bleu s'élèvent majestueusement dans le ciel nocturne, entourés de nouvelles étoiles scintillantes qui émergent comme des fleurs lumineuses. La caméra effectue un traveling ascendant, capturant leur vol gracieux et les étoiles qui brillent autour d'eux. L'ambiance est magique, remplie de couleurs vives et d'effets de lumière scintillante, tandis que le fond aquarellé crée une atmosphère onirique et immersive.",
+      "metadata": {
+        "scene_id": 8,
+        "prompt": "Céleste et le dragon bleu s'élèvent majestueusement dans le ciel nocturne, entourés de nouvelles étoiles scintillantes qui émergent comme des fleurs lumineuses. La caméra effectue un traveling ascendant, capturant leur vol gracieux et les étoiles qui brillent autour d'eux. L'ambiance est magique, remplie de couleurs vives et d'effets de lumière scintillante, tandis que le fond aquarellé crée une atmosphère onirique et immersive.",
+        "duration": 11,
+        "seed": 98765,
+        "status": "demo_generated",
+        "timestamp": 1751213929.289818
+      },
+      "type": "local_image"
+    }
+  ],
+  "video_finale": {
+    "video_finale_path": "cache\\animations\\final\\playlist_1751213930.m3u8",
+    "video_url": "/cache/animations/final/playlist_1751213930.m3u8",
+    "duree_totale": 88,
+    "clips_count": 8,
+    "format": "demo_playlist"
+  },
+  "generation_time": 62.58613657951355,
+  "pipeline_version": "v2.0_specs",
+  "scenes": [
+    {
+      "id": 1,
+      "description": "Céleste, la petite fée, se réveille dans son arbre magique. Des rayons de lumière filtrent à travers les feuilles et illuminent sa chambre remplie de pétales de fleurs.",
+      "duree_estimee": 11,
+      "action_principale": "Céleste étire ses ailes et s'envole hors de l'arbre.",
+      "personnages": [
+        "Céleste"
+      ],
+      "decor": "Arbre magique avec des couleurs vives, fleurs scintillantes, et lumière douce."
+    },
+    {
+      "id": 2,
+      "description": "Céleste regarde le ciel et réalise que les étoiles ont disparu. Elle montre le ciel à son ami le dragon bleu qui s'approche.",
+      "duree_estimee": 11,
+      "action_principale": "Céleste pointe vers le ciel avec une expression de surprise.",
+      "personnages": [
+        "Céleste",
+        "dragon bleu"
+      ],
+      "decor": "Ciel vide sans étoiles, nuages cotonneux en arrière-plan."
+    },
+    {
+      "id": 3,
+      "description": "Céleste et le dragon bleu s'envolent ensemble au-dessus des nuages colorés, avec des arcs-en-ciel et des étoiles scintillantes en arrière-plan.",
+      "duree_estimee": 11,
+      "action_principale": "Ils font des loopings dans les airs, riant et s'amusant.",
+      "personnages": [
+        "Céleste",
+        "dragon bleu"
+      ],
+      "decor": "Nuages colorés, arcs-en-ciel, et un ciel bleu éclatant."
+    },
+    {
+      "id": 4,
+      "description": "Ils découvrent un monde fantastique rempli de créatures merveilleuses, comme des licornes et des oiseaux multicolores.",
+      "duree_estimee": 11,
+      "action_principale": "Céleste et le dragon bleu s'approchent des créatures curieuses.",
+      "personnages": [
+        "Céleste",
+        "dragon bleu",
+        "licorne",
+        "oiseau multicolore"
+      ],
+      "decor": "Un paysage enchanteur avec des fleurs géantes et des arbres colorés."
+    },
+    {
+      "id": 5,
+      "description": "Les créatures montrent à Céleste et au dragon bleu un chemin lumineux fait de petites étoiles brillantes sur le sol.",
+      "duree_estimee": 11,
+      "action_principale": "Céleste suit le chemin en sautillant avec joie.",
+      "personnages": [
+        "Céleste",
+        "dragon bleu",
+        "licorne",
+        "oiseau multicolore"
+      ],
+      "decor": "Un chemin scintillant menant à une grotte magique."
+    },
+    {
+      "id": 6,
+      "description": "Ils entrent dans la grotte où des cristaux brillants illuminent les murs, créant une ambiance magique.",
+      "duree_estimee": 11,
+      "action_principale": "Céleste touche un cristal qui émet une lumière éclatante.",
+      "personnages": [
+        "Céleste",
+        "dragon bleu"
+      ],
+      "decor": "Grotte avec des cristaux de différentes couleurs et une lumière douce."
+    },
+    {
+      "id": 7,
+      "description": "Une grande étoile magique apparaît devant eux, flottant dans les airs et leur souriant.",
+      "duree_estimee": 11,
+      "action_principale": "L'étoile éclaire le chemin vers le ciel nocturne.",
+      "personnages": [
+        "Céleste",
+        "dragon bleu",
+        "étoile magique"
+      ],
+      "decor": "L'intérieur de la grotte avec l'étoile brillante au centre."
+    },
+    {
+      "id": 8,
+      "description": "Céleste et le dragon bleu montent vers le ciel, ramenant les étoiles qui commencent à briller dans la nuit.",
+      "duree_estimee": 11,
+      "action_principale": "Ils volent ensemble, entourés de nouvelles étoiles scintillantes.",
+      "personnages": [
+        "Céleste",
+        "dragon bleu"
+      ],
+      "decor": "Ciel nocturne rempli d'étoiles brillantes et de nuages doux."
+    }
+  ],
+  "style": {
+    "style_global": "Un style visuel coloré et enchanteur avec des illustrations douces et arrondies. Les personnages sont stylisés avec des traits expressifs et des couleurs vives, tandis que les décors sont riches en détails et en textures, utilisant des techniques d'animation 2D avec des effets de lumière scintillante pour accentuer la magie. Les arrière-plans sont peints à la main avec un effet aquarelle, créant une ambiance rêveuse et immersive.",
+    "palette_couleurs": [
+      "#FFB3E6",
+      "#A3DFF7",
+      "#FFD700"
+    ],
+    "ambiance": "magique",
+    "seeds": {
+      "style_principal": 98765,
+      "environnement_principal": 54321
+    },
+    "qualite_tags": [
+      "high quality",
+      "detailed",
+      "colorful",
+      "child-friendly"
+    ],
+    "style_prompt_base": "Créez une scène magique avec des personnages expressifs et des décors enchanteurs, en utilisant des couleurs vives et des effets de lumière scintillante."
+  },
+  "histoire": "Il était une fois une petite fée nommée Céleste qui habitait dans un arbre magique. \n    Un matin, elle découvre que les étoiles ont disparu du ciel. Déterminée à les retrouver, \n    elle part en voyage avec son ami le dragon bleu à travers les nuages colorés. \n    Ensemble, ils explorent des mondes fantastiques et rencontrent des créatures merveilleuses \n    qui les aident dans leur quête pour ramener la magie dans le ciel nocturne.",
+  "duree_totale": 90,
+  "theme": "aventure",
+  "original_request": {
+    "story": "Il était une fois une petite fée nommée Céleste qui habitait dans un arbre magique. \n    Un matin, elle découvre que les étoiles ont disparu du ciel. Déterminée à les retrouver, \n    elle part en voyage avec son ami le dragon bleu à travers les nuages colorés. \n    Ensemble, ils explorent des mondes fantastiques et rencontrent des créatures merveilleuses \n    qui les aident dans leur quête pour ramener la magie dans le ciel nocturne.",
+    "duration": 90,
+    "style": "cartoon",
+    "theme": "aventure"
+  },
+  "api_version": "2.0",
+  "pipeline": "GPT-4o-mini + SD3-Turbo"
+}
