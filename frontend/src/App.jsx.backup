@@ -8,6 +8,7 @@ import RhymeSelector from './components/RhymeSelector';
 import AudioStorySelector from './components/AudioStorySelector';
 import AnimationSelector from './components/AnimationSelector';
 import AnimationViewer from './components/AnimationViewer';
+import TestAnimation from './components/TestAnimation';
 import CustomRequest from './components/CustomRequest';
 import GenerateButton from './components/GenerateButton';
 import History from './components/History';
@@ -47,14 +48,6 @@ const generateChildFriendlyTitle = (contentType, theme, content = '') => {
       espace: ['Voyage Spatial', 'Planètes Rigolotes', 'Astronaute en Mission', 'Étoiles et Fusées'],
       véhicules: ['Mes Voitures', 'Garage Rigolo', 'Course Automobile', 'Train et Avions'],
       default: ['Mon Coloriage', 'Dessin Rigolo', 'Art Créatif', 'Belle Image']
-    },
-    animation: {
-      aventure: ['Mon Dessin Animé', 'Animation Magique', 'Film d\'Aventure', 'Cinéma Fantastique'],
-      animaux: ['Mes Amis Animés', 'Zoo en Mouvement', 'Aventures Animales', 'Cirque des Animaux'],
-      magie: ['Monde Enchanté', 'Magie en Mouvement', 'Film de Fée', 'Animation Magique'],
-      espace: ['Voyage Animé', 'Aventure Spatiale', 'Film de l\'Espace', 'Mission Animation'],
-      nature: ['Forêt Animée', 'Jardin en Mouvement', 'Nature Vivante', 'Fleurs Dansantes'],
-      default: ['Mon Film IA', 'Dessin Animé IA', 'Animation Créative', 'Film Personnalisé']
     }
   };
 
@@ -120,9 +113,7 @@ function App() {
   const [customStory, setCustomStory] = useState('');
   const [animationResult, setAnimationResult] = useState(null);
   const [showAnimationViewer, setShowAnimationViewer] = useState(false);
-  // Nouveau: mode de génération (demo ou production)
-  const [generationMode, setGenerationMode] = useState('demo');
-
+  
   // Store the current generated title for use in UI
   const [currentTitle, setCurrentTitle] = useState(null);
 
@@ -173,7 +164,7 @@ function App() {
           custom_request: customRequest
         };
 
-        const response = await fetch('http://localhost:8000/generate_rhyme/', {
+        const response = await fetch('http://127.0.0.1:8000/generate_rhyme/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -186,7 +177,7 @@ function App() {
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
         voice: selectedVoice,
         custom_request: customRequest
-      };      const response = await fetch('http://localhost:8000/generate_audio_story/', {
+      };      const response = await fetch('http://127.0.0.1:8000/generate_audio_story/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -199,7 +190,7 @@ function App() {
         theme: selectedTheme
       };
       
-      const response = await fetch('http://localhost:8000/generate_coloring/', {
+      const response = await fetch('http://127.0.0.1:8000/generate_coloring/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -212,57 +203,33 @@ function App() {
       setColoringResult(coloringData);
       generatedContent = coloringData; // Stocker pour l'historique
     } else if (contentType === 'animation') {
-      // Déterminer le contenu de l'histoire
-      let story;
-      if (selectedAnimationTheme && selectedAnimationTheme !== 'custom') {
-        // Thème prédéfini - créer une histoire de base
-        const themeStories = {
-          'magie': 'Une histoire magique avec des créatures fantastiques dans un monde enchanté',
-          'aventure': 'Une grande aventure pleine de découvertes et de rebondissements',
-          'animaux': 'Une histoire mettant en scène des animaux adorables et leurs aventures',
-          'espace': 'Un voyage extraordinaire à travers les étoiles et les planètes',
-          'nature': 'Une exploration merveilleuse de la nature et de ses secrets',
-          'amitié': 'Une belle histoire d\'amitié et de solidarité',
-          'famille': 'Une histoire touchante sur les liens familiaux'
-        };
-        story = themeStories[selectedAnimationTheme] || `Une belle histoire sur le thème ${selectedAnimationTheme}`;
+      // Préparer l'histoire pour l'animation
+      let storyText = '';
+      if (selectedAnimationTheme === 'custom') {
+        storyText = customStory;
       } else {
-        // Histoire personnalisée
-        story = customStory;
+        // Utiliser le thème sélectionné pour générer une histoire
+        storyText = `Une histoire ${selectedAnimationTheme} pour enfants`;
       }
-      
-      // Validation de l'histoire avant envoi
-      if (!story || story.trim().length < 10) {
-        throw new Error("L'histoire doit contenir au moins 10 caractères");
-      }
-      
+
       const payload = {
-        story: story,
+        story: storyText,
         duration: selectedDuration,
         style: selectedStyle,
-        theme: selectedAnimationTheme,
-        mode: generationMode  // Nouveau: passer le mode de génération
+        theme: selectedAnimationTheme
       };
       
-      const response = await fetch('http://localhost:8000/generate_animation/', {
+      const response = await fetch('http://127.0.0.1:8000/generate_animation/', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json; charset=utf-8',
-          'Accept': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Erreur API Animation:', response.status, errorText);
-        throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
-      }
+      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       
       const animationData = await response.json();
       
       setAnimationResult(animationData);
-      setShowAnimationViewer(true); // Afficher immédiatement le viewer
       generatedContent = animationData; // Stocker pour l'historique
     }
 
@@ -284,12 +251,13 @@ function App() {
         title = generatedContent.title;
       } else {
         title = generateChildFriendlyTitle('histoire', selectedAudioStory === 'custom' ? 'default' : selectedAudioStory);
-      }    } else if (contentType === 'coloring') {
+      }    
+    } else if (contentType === 'coloring') {
       // Utiliser le titre généré par l'IA depuis l'API coloriage
       title = generatedContent?.title || generateChildFriendlyTitle('coloriage', selectedTheme);
     } else if (contentType === 'animation') {
-      // Utiliser le titre généré par l'IA depuis l'API animation
-      title = generatedContent?.title || generateChildFriendlyTitle('animation', selectedAnimationTheme || 'aventure');
+      // Utiliser le titre de l'animation ou générer un titre attractif
+      title = generatedContent?.title || `Animation ${selectedAnimationTheme === 'custom' ? 'Personnalisée' : selectedAnimationTheme}`;
     }
 
     // Stocker le titre pour l'utiliser dans l'UI
@@ -308,18 +276,6 @@ function App() {
           theme: selectedTheme,
           images: generatedContent?.images || [],
           metadata: generatedContent?.metadata || {}
-        };
-      } else if (contentType === 'animation') {
-        // Pour les animations, utiliser les données de l'animation
-        newCreation = {
-          id: Date.now().toString(),
-          type: contentType,
-          title: title,
-          createdAt: new Date().toISOString(),
-          content: generatedContent ? `Animation de ${generatedContent.actual_duration}s avec ${generatedContent.total_scenes} scènes` : 'Animation générée',
-          theme: selectedAnimationTheme,
-          clips: generatedContent?.clips || [],
-          animation_data: generatedContent || {}
         };
       } else {
         // Pour les autres types (rhyme, audio)
@@ -398,11 +354,8 @@ const handleSelectCreation = (creation) => {
     } else if (contentType === 'coloring') {
       if (!selectedTheme) return false;
     } else if (contentType === 'animation') {
-      // Pour les animations, soit un thème soit une histoire personnalisée
-      if (!selectedAnimationTheme && !customStory.trim()) return false;
+      if (!selectedAnimationTheme) return false;
       if (selectedAnimationTheme === 'custom' && !customStory.trim()) return false;
-      // Vérifier que l'histoire personnalisée fait au moins 10 caractères
-      if (selectedAnimationTheme === 'custom' && customStory.trim().length < 10) return false;
     }
     return true;
   };
@@ -582,8 +535,6 @@ const downloadPDF = async (title, content) => {
                   setSelectedStyle={setSelectedStyle}
                   customStory={customStory}
                   setCustomStory={setCustomStory}
-                  generationMode={generationMode}
-                  setGenerationMode={setGenerationMode}
                 />
               </motion.div>
             ) : null}
@@ -591,12 +542,58 @@ const downloadPDF = async (title, content) => {
             customRequest={customRequest}
             setCustomRequest={setCustomRequest}
             stepNumber={contentType === 'coloring' ? 4 : 3}
-          /><GenerateButton
+          />          <GenerateButton
             onGenerate={handleGenerate}
             isGenerating={isGenerating}
             isDisabled={!isFormValid()}
             contentType={contentType}
           />
+          
+          {/* 🧪 BOUTON DE TEST POUR DEBUG */}
+          {contentType === 'animation' && (
+            <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f0f8ff', borderRadius: '8px', border: '2px dashed #4CAF50' }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#2196F3' }}>🧪 Test Direct Animation</h4>
+              <button
+                onClick={async () => {
+                  setIsGenerating(true);
+                  try {
+                    const response = await fetch('http://localhost:8000/generate_animation/', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        story: "Un petit chat découvre un monde magique avec des papillons colorés",
+                        duration: 30,
+                        style: "cartoon"
+                      }),
+                    });
+                    const data = await response.json();
+                    console.log('🎬 Animation générée:', data);
+                    setAnimationResult(data);
+                    setShowAnimationViewer(true);
+                  } catch (error) {
+                    console.error('❌ Erreur test:', error);
+                  } finally {
+                    setIsGenerating(false);
+                  }
+                }}
+                disabled={isGenerating}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: isGenerating ? 'not-allowed' : 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                {isGenerating ? '🔄 Test en cours...' : '🚀 Test Animation Direct'}
+              </button>
+              <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#666' }}>
+                Ce bouton teste directement l'API sans passer par le formulaire
+              </p>
+            </div>
+          )}
         </motion.div>
 
         <div className="preview-column">
@@ -609,75 +606,124 @@ const downloadPDF = async (title, content) => {
             <div className="preview-container">
               <div className={`preview ${!generatedResult ? 'empty' : ''}`}>
                 <AnimatePresence mode="wait">
-  {isGenerating ? (
-    <motion.div
-      className="generating-animation"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      key="generating"
-    >
-      <div className="loading-dots">
-        <div className="dot"></div>
-        <div className="dot"></div>
-        <div className="dot"></div>
-      </div>      <p>        {contentType === 'rhyme'
-          ? 'Création de la comptine en cours...'
-          : contentType === 'audio'
-          ? 'Création de l\'histoire en cours...'
-          : contentType === 'coloring'
-          ? 'Création de vos coloriages en cours...'
-          : contentType === 'animation'
-          ? 'Création de votre dessin animé en cours...'
-          : 'Génération en cours...'}
-      </p></motion.div>
-  ) : coloringResult && contentType === 'coloring' ? (
-    <motion.div
-      className="generated-result"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      key="coloring-result"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '1rem'
-      }}
-    >
-      <button
-        onClick={() => setShowColoringPopup(true)}
-        style={{
-          padding: '0.6rem 1.4rem',
-          backgroundColor: '#6B4EFF',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '0.5rem',
+                  {isGenerating ? (
+                    <motion.div
+                      className="generating-animation"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      key="generating"
+                    >
+                      <div className="loading-dots">
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                      </div>
+                      <p>
+                        {contentType === 'rhyme'
+                          ? 'Création de la comptine en cours...'
+                          : contentType === 'audio'
+                          ? 'Création de l\'histoire en cours...'
+                          : contentType === 'coloring'
+                          ? 'Création de vos coloriages en cours...'
+                          : contentType === 'animation'
+                          ? 'Création de votre dessin animé en cours...'
+                          : 'Génération en cours...'}
+                      </p>
+                    </motion.div>
+                  ) : coloringResult && contentType === 'coloring' ? (
+                    <motion.div
+                      className="generated-result"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      key="coloring-result"
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '1rem'
+                      }}
+                    >
+                      <button
+                        onClick={() => setShowColoringPopup(true)}
+                        style={{
+                          padding: '0.6rem 1.4rem',
+                          backgroundColor: '#6B4EFF',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          cursor: 'pointer',
+                          fontWeight: '600'
+                        }}
+                      >
+                        🎨 Ouvrir le coloriage
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (coloringResult?.images) {
+                            // Utiliser le titre généré par l'IA, sinon fallback sur le thème
+                            const titleForDownload = currentTitle || (selectedTheme ? `coloriages_${selectedTheme}` : 'coloriages');
+                            downloadColoringAsPDF(coloringResult.images, titleForDownload);
+                          }
+                          }
+                        }}
+                        style={{
+                          padding: '0.6rem 1.4rem',
+                          backgroundColor: '#6B4EFF',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          cursor: 'pointer',
+                          fontWeight: '600'
+                        }}
+                      >
+                        📄 Télécharger le coloriage
+                      </button>
+                    </motion.div>
+                  ) : animationResult && contentType === 'animation' ? (
+                    <motion.div
+                      className="generated-result"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      key="animation-result"
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '1rem'
+                      }}
+                    >
+                      <div className="animation-preview">
+                        <div className="animation-icon">🎬</div>
+                        <h3>Dessin animé créé !</h3>
+                        <p>
+                          Votre animation de {Math.floor(animationResult.actual_duration / 60)}m {animationResult.actual_duration % 60}s 
+                          avec {animationResult.total_scenes} scènes est prête.
+                        </p>
+                        <div className="animation-stats">
+                          <span>✅ {animationResult.successful_clips || 0} clips réussis</span>
+                          {animationResult.fallback_clips > 0 && (
+                            <span>⚠️ {animationResult.fallback_clips} fallbacks</span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setShowAnimationViewer(true)}
+                        style={{
+                          padding: '0.6rem 1.4rem',
+                          backgroundColor: '#6B4EFF',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '0.5rem',
           cursor: 'pointer',
           fontWeight: '600'
         }}
       >
-        🎨 Ouvrir le coloriage
-      </button>      <button
-        onClick={() => {
-          if (coloringResult?.images) {
-            // Utiliser le titre généré par l'IA, sinon fallback sur le thème
-            const titleForDownload = currentTitle || (selectedTheme ? `coloriages_${selectedTheme}` : 'coloriages');
-            downloadColoringAsPDF(coloringResult.images, titleForDownload);
-          }
-        }}
-        style={{
-          padding: '0.6rem 1.4rem',
-          backgroundColor: '#6B4EFF',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '0.5rem',
-          cursor: 'pointer',
-          fontWeight: '600'
-        }}
-      >
-        📄 Télécharger le coloriage
+        🎬 Voir l'animation
       </button>
     </motion.div>
   ) : (
@@ -701,6 +747,8 @@ const downloadPDF = async (title, content) => {
         ? 'Votre histoire apparaîtra ici'
         : contentType === 'coloring'
         ? 'Vos coloriages apparaîtront ici'
+        : contentType === 'animation'
+        ? 'Votre dessin animé apparaîtra ici'
         : 'Votre création apparaîtra ici'}
     </p>
     </div>
@@ -769,10 +817,7 @@ const downloadPDF = async (title, content) => {
   </div>
 )}
 </motion.div>
-
-  )}
-</AnimatePresence>
-
+                </AnimatePresence>
               </div>
             </div>
           </motion.div>

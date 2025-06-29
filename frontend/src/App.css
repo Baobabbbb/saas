@@ -332,6 +332,54 @@ body {
   display: none; /* Cache les actions dans la preview */
 }
 
+/* Animation specific styles */
+.animation-preview {
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
+  border-radius: 12px;
+  border: 2px dashed var(--primary);
+}
+
+.animation-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.animation-preview h3 {
+  color: var(--primary);
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+}
+
+.animation-preview p {
+  color: var(--text-light);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.animation-stats {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.animation-stats span {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* Animation loading dots */
+.loading-dots .dot {
+  background: var(--primary);
+}
+
 /* Responsive pour les animations */
 @media (max-width: 768px) {
   .animation-preview-container {
@@ -340,6 +388,23 @@ body {
   
   .animation-preview-container .animation-video {
     max-height: 150px;
+  }
+  
+  .animation-preview {
+    padding: 1.5rem;
+  }
+  
+  .animation-icon {
+    font-size: 3rem;
+  }
+  
+  .animation-stats {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .animation-stats span {
+    font-size: 0.8rem;
   }
 }
 

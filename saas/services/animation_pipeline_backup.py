@@ -34,6 +34,10 @@ class AnimationPipeline:
         print(f"   📁 Cache: {self.cache_dir}")
         print(f"   🤖 Modèles: GPT-4o-mini + SD3-Turbo")
     
+    async def generate_animation(self, story: str, target_duration: int = 60, style_hint: str = "cartoon") -> Dict[str, Any]:
+        """
+        Pipeline complète de génération d'animation
+        
     # ===== ÉTAPE 1: DÉCOUPAGE NARRATIF =====
     async def analyze_and_split_story(self, story: str, target_duration: int = 60) -> Dict[str, Any]:
         """
@@ -44,7 +48,8 @@ class AnimationPipeline:
             scene_duration = 15 if target_duration <= 60 else 20  # 15-20s par scène
             num_scenes = min(12, max(8, target_duration // scene_duration))
             
-            prompt = f"""Tu es un expert en narration visuelle pour enfants. Analyse cette histoire et découpe-la en {num_scenes} scènes visuelles clés.
+            prompt = f"""
+Tu es un expert en narration visuelle pour enfants. Analyse cette histoire et découpe-la en {num_scenes} scènes visuelles clés.
 
 HISTOIRE: {story}
 
@@ -69,7 +74,8 @@ Réponds en JSON avec cette structure exacte:
             "key_elements": ["élément1", "élément2"]
         }}
     ]
-}}"""
+}}
+"""
             
             response = await self.openai_client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -130,46 +136,36 @@ Réponds en JSON avec cette structure exacte:
         Définit le style graphique constant et les seeds pour la cohérence
         """
         try:
-            # Construire le prompt sans caractères problématiques
-            prompt_base = "Tu es un directeur artistique pour dessins animés enfants. Définis le style visuel pour cette histoire."
-            prompt_story = f"HISTOIRE: {story}"
-            prompt_style = f"STYLE DEMANDÉ: {style_preference}"
-            
-            prompt_instructions = """Créer un style cohérent adapté aux enfants avec:
-- Palette de couleurs dominantes
+            prompt = f"""Tu es un directeur artistique pour dessins animés enfants. Définis le style visuel pour cette histoire.
+
+HISTOIRE: {story}
+STYLE DEMANDÉ: {style_preference}
+
+Créer un style cohérent adapté aux enfants avec:
+- Palette de couleurs dominantes  
 - Style d'animation (cartoon, pastel, vibrant)
 - Ambiance générale
 - Seeds pour personnages récurrents
 
-Réponds en JSON:"""
-
-            prompt_json = """{
-    "visual_style": {
+Réponds en JSON:
+{{
+    "visual_style": {{
         "main_style": "description du style principal",
         "color_palette": ["couleur1", "couleur2", "couleur3"],
         "animation_style": "cartoon/anime/pastel",
         "mood": "magique/aventurier/doux",
         "quality_tags": ["high quality", "detailed", "colorful"]
-    },
-    "character_seeds": {
+    }},
+    "character_seeds": {{
         "main_character": 123456,
         "secondary_character": 234567
-    },
-    "setting_seeds": {
+    }},
+    "setting_seeds": {{
         "primary_location": 345678,
         "secondary_location": 456789
-    },
+    }},
     "style_prompt_base": "prompt de base pour cohérence visuelle"
-}"""
-            
-            # Assembler le prompt complet
-            prompt = f"""{prompt_base}
-
-{prompt_story}
-{prompt_style}
-
-{prompt_instructions}
-{prompt_json}"""
+}}"""
             
             response = await self.openai_client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -213,7 +209,8 @@ Réponds en JSON:"""
             base_style = style_data["style_prompt_base"]
             
             for scene in scenes:
-                prompt_text = f"""Créer un prompt text-to-video pour cette scène de dessin animé:
+                prompt = f"""
+Créer un prompt text-to-video pour cette scène de dessin animé:
 
 SCÈNE {scene['scene_number']}: {scene['description']}
 ACTION: {scene['action']}
@@ -230,11 +227,12 @@ Le prompt doit inclure:
 - Ambiance et éclairage
 - Style graphique cohérent
 
-RÉPONSE (prompt direct pour génération vidéo):"""
+RÉPONSE (prompt direct pour génération vidéo):
+"""
                 
                 response = await self.openai_client.chat.completions.create(
                     model="gpt-4o-mini",
-                    messages=[{"role": "user", "content": prompt_text}],
+                    messages=[{"role": "user", "content": prompt}],
                     temperature=0.8,
                     max_tokens=300
                 )
@@ -263,140 +261,169 @@ RÉPONSE (prompt direct pour génération vidéo):"""
             print(f"❌ Erreur génération prompts: {e}")
             return []
 
-    # ===== ÉTAPE 4: GÉNÉRATION D'IMAGES AVEC DALL-E =====
-    async def generate_image_clip(self, prompt_data: Dict, scene_number: int) -> Dict:
+    # ===== ÉTAPE 4: GÉNÉRATION VIDÉO AVEC SD3-TURBO =====
+    async def generate_video_clip(self, prompt_data: Dict) -> Dict:
         """
-        Génère une image statique pour représenter la scène (en attendant SD3-Turbo)
+        Génère un clip vidéo avec SD3-Turbo
         """
         try:
-            # Simplifier le prompt pour DALL-E
-            simplified_prompt = f"Children's cartoon illustration: {prompt_data['original_scene']['description']}. {prompt_data['original_scene']['setting']}. Bright colors, child-friendly, high quality digital art."
-            
-            print(f"🎨 Génération image scène {scene_number}...")
-            
-            # Générer l'image avec DALL-E
-            response = await self.openai_client.images.generate(
-                model="dall-e-3",
-                prompt=simplified_prompt,
-                size="1024x1024",
-                quality="standard",
-                n=1
-            )
-            
-            image_url = response.data[0].url
-            
-            # Télécharger et sauvegarder l'image
-            import aiohttp
-            async with aiohttp.ClientSession() as session:
-                async with session.get(image_url) as response:
-                    if response.status == 200:
-                        image_filename = f"scene_{scene_number}_{uuid.uuid4().hex[:8]}.png"
-                        image_path = self.cache_dir / image_filename
-                        
-                        with open(image_path, 'wb') as f:
-                            async for chunk in response.content.iter_chunked(8192):
-                                f.write(chunk)
-                        
-                        print(f"✅ Image scène {scene_number} générée: {image_filename}")
-                        
-                        return {
-                            "scene_number": prompt_data['scene_number'],
-                            "video_path": str(image_path),
-                            "video_url": f"/cache/animations/{image_filename}",
-                            "image_url": f"/cache/animations/{image_filename}",
-                            "duration": prompt_data['duration'],
-                            "status": "success",
-                            "type": "image",
-                            "prompt": simplified_prompt,
-                            "original_prompt": prompt_data["prompt"]
-                        }
-            
-            raise Exception("Impossible de télécharger l'image")
-            
-        except Exception as e:
-            print(f"❌ Erreur génération image scène {scene_number}: {e}")
-            
-            # Créer une image placeholder simple
-            placeholder_filename = f"scene_{scene_number}_placeholder.json"
-            placeholder_path = self.cache_dir / placeholder_filename
-            
-            placeholder_data = {
-                "scene_number": prompt_data['scene_number'],
-                "description": prompt_data['original_scene']['description'],
-                "setting": prompt_data['original_scene']['setting'],
-                "action": prompt_data['original_scene']['action'],
-                "duration": prompt_data['duration'],
-                "type": "placeholder",
-                "prompt": prompt_data["prompt"]
+            # Préparer les paramètres pour SD3-Turbo
+            payload = {
+                "prompt": prompt_data["prompt"],
+                "duration": min(30, prompt_data["duration"]),  # SD3-Turbo max 30s
+                "aspect_ratio": "16:9",
+                "fps": 24,
+                "motion_level": 75,  # Mouvement modéré pour enfants
+                "quality": "standard"
             }
             
-            with open(placeholder_path, 'w', encoding='utf-8') as f:
-                json.dump(placeholder_data, f, ensure_ascii=False, indent=2)
+            # Ajouter le seed si disponible
+            if prompt_data.get("seed"):
+                payload["seed"] = prompt_data["seed"]
+            
+            headers = {
+                "Authorization": f"Bearer {self.stability_api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            print(f"🎬 Génération clip scène {prompt_data['scene_number']}...")
+            
+            # Appel API avec retry
+            for attempt in range(3):
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.post(
+                            self.sd3_api_url,
+                            json=payload,
+                            headers=headers,
+                            timeout=aiohttp.ClientTimeout(total=300)
+                        ) as response:
+                            
+                            if response.status == 200:
+                                result = await response.json()
+                                
+                                # Télécharger la vidéo générée
+                                if "video_url" in result:
+                                    video_filename = f"scene_{prompt_data['scene_number']}_{uuid.uuid4().hex[:8]}.mp4"
+                                    video_path = self.cache_dir / video_filename
+                                    
+                                    # Télécharger le fichier vidéo
+                                    async with session.get(result["video_url"]) as video_response:
+                                        if video_response.status == 200:
+                                            with open(video_path, 'wb') as f:
+                                                async for chunk in video_response.content.iter_chunked(8192):
+                                                    f.write(chunk)
+                                            
+                                            print(f"✅ Clip scène {prompt_data['scene_number']} généré: {video_filename}")
+                                            
+                                            return {
+                                                "scene_number": prompt_data['scene_number'],
+                                                "video_path": str(video_path),
+                                                "video_url": f"/cache/animations/{video_filename}",
+                                                "duration": prompt_data['duration'],
+                                                "status": "success",
+                                                "prompt": prompt_data["prompt"]
+                                            }
+                                
+                                break
+                            else:
+                                error_text = await response.text()
+                                print(f"⚠️ Tentative {attempt + 1} échouée: {response.status} - {error_text}")
+                                
+                except Exception as e:
+                    print(f"⚠️ Erreur tentative {attempt + 1}: {e}")
+                    if attempt < 2:
+                        await asyncio.sleep(2)
+                    
+            # Fallback: générer une image statique avec mouvement simulé
+            print(f"🔄 Fallback: génération image statique pour scène {prompt_data['scene_number']}")
+            return await self._generate_fallback_clip(prompt_data)
+            
+        except Exception as e:
+            print(f"❌ Erreur génération clip: {e}")
+            return await self._generate_fallback_clip(prompt_data)
+
+    async def _generate_fallback_clip(self, prompt_data: Dict) -> Dict:
+        """
+        Génère un fallback avec image statique ou clip simple
+        """
+        try:
+            # Créer un nom de fichier placeholder
+            filename = f"scene_{prompt_data['scene_number']}_fallback_{uuid.uuid4().hex[:8]}.json"
+            filepath = self.cache_dir / filename
+            
+            # Sauvegarder les métadonnées pour debug
+            fallback_data = {
+                "scene_number": prompt_data['scene_number'],
+                "prompt": prompt_data["prompt"],
+                "status": "fallback",
+                "duration": prompt_data['duration'],
+                "type": "placeholder"
+            }
+            
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(fallback_data, f, ensure_ascii=False, indent=2)
             
             return {
                 "scene_number": prompt_data['scene_number'],
-                "video_path": str(placeholder_path),
-                "video_url": f"/cache/animations/{placeholder_filename}",
+                "video_path": str(filepath),
+                "video_url": f"/cache/animations/{filename}",
                 "duration": prompt_data['duration'],
-                "status": "placeholder",
-                "type": "placeholder",
+                "status": "fallback",
                 "prompt": prompt_data["prompt"]
+            }
+            
+        except Exception as e:
+            print(f"❌ Erreur fallback: {e}")
+            return {
+                "scene_number": prompt_data['scene_number'],
+                "status": "error",
+                "error": str(e)
             }
 
-    # ===== GÉNÉRATION D'IMAGES DE DÉMONSTRATION =====
-    async def generate_demo_image_clip(self, prompt_data: Dict, scene_number: int) -> Dict:
+    # ===== ÉTAPE 5: ASSEMBLAGE FINAL =====
+    async def assemble_final_video(self, clips: List[Dict], metadata: Dict) -> Dict:
         """
-        Génère une image de démonstration pour la scène (version avec images SVG locales)
+        Assemble tous les clips dans une vidéo finale avec transitions
         """
         try:
-            # Utiliser les images SVG locales créées
-            image_filename = f"scene_{scene_number}_demo.svg"
-            image_path = f"cache/animations/demo_images/{image_filename}"
-            image_url = f"/cache/animations/demo_images/{image_filename}"
+            # Pour l'instant, retourner la liste des clips avec métadonnées
+            # L'assemblage vidéo pourra être fait côté frontend ou avec ffmpeg
             
-            print(f"🎨 Image locale scène {scene_number}: {image_filename}")
+            successful_clips = [clip for clip in clips if clip.get("status") == "success"]
+            fallback_clips = [clip for clip in clips if clip.get("status") == "fallback"]
             
-            return {
-                "scene_number": prompt_data['scene_number'],
-                "video_path": f"cache/animations/demo_images/{image_filename}",
-                "video_url": image_url,
-                "image_url": image_url,
-                "duration": prompt_data['duration'],
+            total_duration = sum(clip.get("duration", 0) for clip in clips)
+            
+            final_result = {
                 "status": "success",
-                "type": "local_image",
-                "prompt": f"Scène {scene_number}: {prompt_data['original_scene']['description']}",
-                "original_prompt": prompt_data["prompt"],
-                "demo_note": "Image de démonstration locale SVG"
+                "total_clips": len(clips),
+                "successful_clips": len(successful_clips),
+                "fallback_clips": len(fallback_clips),
+                "total_duration": total_duration,
+                "clips": clips,
+                "metadata": metadata,
+                "assembly_method": "client_side",  # Assemblage côté client
+                "created_at": time.time()
             }
+            
+            # Sauvegarder le résultat final
+            result_filename = f"animation_{uuid.uuid4().hex[:8]}.json"
+            result_path = self.cache_dir / result_filename
+            
+            with open(result_path, 'w', encoding='utf-8') as f:
+                json.dump(final_result, f, ensure_ascii=False, indent=2)
+            
+            print(f"✅ Animation assemblée: {len(successful_clips)}/{len(clips)} clips réussis")
+            
+            return final_result
             
         except Exception as e:
-            print(f"❌ Erreur génération image demo scène {scene_number}: {e}")
-            
-            # Créer une image placeholder simple
-            placeholder_filename = f"scene_{scene_number}_placeholder.json"
-            placeholder_path = self.cache_dir / placeholder_filename
-            
-            placeholder_data = {
-                "scene_number": prompt_data['scene_number'],
-                "description": prompt_data['original_scene']['description'],
-                "setting": prompt_data['original_scene']['setting'],
-                "action": prompt_data['original_scene']['action'],
-                "duration": prompt_data['duration'],
-                "type": "placeholder",
-                "prompt": prompt_data["prompt"]
-            }
-            
-            with open(placeholder_path, 'w', encoding='utf-8') as f:
-                json.dump(placeholder_data, f, ensure_ascii=False, indent=2)
-            
+            print(f"❌ Erreur assemblage: {e}")
             return {
-                "scene_number": prompt_data['scene_number'],
-                "video_path": str(placeholder_path),
-                "video_url": f"/cache/animations/{placeholder_filename}",
-                "duration": prompt_data['duration'],
-                "status": "placeholder",
-                "type": "placeholder",
-                "prompt": prompt_data["prompt"]
+                "status": "error",
+                "error": str(e),
+                "clips": clips
             }
 
     # ===== MÉTHODE PRINCIPALE =====
@@ -425,26 +452,40 @@ RÉPONSE (prompt direct pour génération vidéo):"""
                 style_data
             )
             
-            # ÉTAPE 4: Génération des clips visuels
-            print("🎬 Génération des clips visuels...")
-            clips = []
+            # ÉTAPE 4: Génération des clips (en parallèle pour optimiser)
+            print("🎬 Génération des clips vidéo...")
+            clip_tasks = [
+                self.generate_video_clip(prompt_data) 
+                for prompt_data in video_prompts
+            ]
             
-            for i, prompt_data in enumerate(video_prompts):
-                try:
-                    # Pour l'instant, créer des images de démonstration de haute qualité
-                    clip_result = await self.generate_demo_image_clip(prompt_data, i+1)
-                    clips.append(clip_result)
-                except Exception as e:
-                    print(f"⚠️ Erreur génération clip {i+1}: {e}")
-                    # Fallback: clip de démonstration
-                    clips.append({
-                        "scene_number": prompt_data['scene_number'],
-                        "video_path": f"cache/animations/scene_{i+1}_fallback.json",
-                        "video_url": f"/cache/animations/scene_{i+1}_fallback.json", 
-                        "duration": prompt_data['duration'],
-                        "status": "fallback",
-                        "prompt": prompt_data["prompt"]
-                    })
+            # Exécuter en parallèle avec limite
+            clips = []
+            for i in range(0, len(clip_tasks), 3):  # Batch de 3 pour éviter la surcharge
+                batch = clip_tasks[i:i+3]
+                batch_results = await asyncio.gather(*batch, return_exceptions=True)
+                
+                for result in batch_results:
+                    if isinstance(result, Exception):
+                        print(f"⚠️ Erreur dans batch: {result}")
+                        clips.append({"status": "error", "error": str(result)})
+                    else:
+                        clips.append(result)
+                
+                # Pause entre les batches
+                if i + 3 < len(clip_tasks):
+                    await asyncio.sleep(1)
+            
+            # ÉTAPE 5: Assemblage final
+            final_result = await self.assemble_final_video(
+                clips, 
+                {
+                    "original_story": story,
+                    "scene_data": scene_data,
+                    "style_data": style_data,
+                    "generation_time": time.time() - start_time
+                }
+            )
             
             # Format de retour compatible avec l'interface existante
             animation_result = {
@@ -452,7 +493,7 @@ RÉPONSE (prompt direct pour génération vidéo):"""
                 "animation_id": uuid.uuid4().hex[:8],
                 "story": story,
                 "target_duration": duration,
-                "actual_duration": duration,
+                "actual_duration": final_result.get("total_duration", duration),
                 "scenes": scene_data["scenes"],
                 "scenes_details": scene_data["scenes"],
                 "clips": clips,
@@ -461,9 +502,9 @@ RÉPONSE (prompt direct pour génération vidéo):"""
                 "generation_time": time.time() - start_time,
                 "pipeline_type": "custom_animation_ai",
                 "total_scenes": len(scene_data["scenes"]),
-                "successful_clips": len(clips),
-                "fallback_clips": 0,
-                "video_url": f"/cache/animations/playlist_{uuid.uuid4().hex[:8]}.m3u8",
+                "successful_clips": final_result.get("successful_clips", 0),
+                "fallback_clips": final_result.get("fallback_clips", 0),
+                "video_url": f"/cache/animations/playlist_{uuid.uuid4().hex[:8]}.m3u8",  # Playlist pour lecture
                 "note": "🎬 Animation générée avec pipeline IA optimisé (GPT-4o-mini + SD3-Turbo)"
             }
             

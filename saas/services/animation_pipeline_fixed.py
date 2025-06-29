@@ -263,142 +263,6 @@ RÉPONSE (prompt direct pour génération vidéo):"""
             print(f"❌ Erreur génération prompts: {e}")
             return []
 
-    # ===== ÉTAPE 4: GÉNÉRATION D'IMAGES AVEC DALL-E =====
-    async def generate_image_clip(self, prompt_data: Dict, scene_number: int) -> Dict:
-        """
-        Génère une image statique pour représenter la scène (en attendant SD3-Turbo)
-        """
-        try:
-            # Simplifier le prompt pour DALL-E
-            simplified_prompt = f"Children's cartoon illustration: {prompt_data['original_scene']['description']}. {prompt_data['original_scene']['setting']}. Bright colors, child-friendly, high quality digital art."
-            
-            print(f"🎨 Génération image scène {scene_number}...")
-            
-            # Générer l'image avec DALL-E
-            response = await self.openai_client.images.generate(
-                model="dall-e-3",
-                prompt=simplified_prompt,
-                size="1024x1024",
-                quality="standard",
-                n=1
-            )
-            
-            image_url = response.data[0].url
-            
-            # Télécharger et sauvegarder l'image
-            import aiohttp
-            async with aiohttp.ClientSession() as session:
-                async with session.get(image_url) as response:
-                    if response.status == 200:
-                        image_filename = f"scene_{scene_number}_{uuid.uuid4().hex[:8]}.png"
-                        image_path = self.cache_dir / image_filename
-                        
-                        with open(image_path, 'wb') as f:
-                            async for chunk in response.content.iter_chunked(8192):
-                                f.write(chunk)
-                        
-                        print(f"✅ Image scène {scene_number} générée: {image_filename}")
-                        
-                        return {
-                            "scene_number": prompt_data['scene_number'],
-                            "video_path": str(image_path),
-                            "video_url": f"/cache/animations/{image_filename}",
-                            "image_url": f"/cache/animations/{image_filename}",
-                            "duration": prompt_data['duration'],
-                            "status": "success",
-                            "type": "image",
-                            "prompt": simplified_prompt,
-                            "original_prompt": prompt_data["prompt"]
-                        }
-            
-            raise Exception("Impossible de télécharger l'image")
-            
-        except Exception as e:
-            print(f"❌ Erreur génération image scène {scene_number}: {e}")
-            
-            # Créer une image placeholder simple
-            placeholder_filename = f"scene_{scene_number}_placeholder.json"
-            placeholder_path = self.cache_dir / placeholder_filename
-            
-            placeholder_data = {
-                "scene_number": prompt_data['scene_number'],
-                "description": prompt_data['original_scene']['description'],
-                "setting": prompt_data['original_scene']['setting'],
-                "action": prompt_data['original_scene']['action'],
-                "duration": prompt_data['duration'],
-                "type": "placeholder",
-                "prompt": prompt_data["prompt"]
-            }
-            
-            with open(placeholder_path, 'w', encoding='utf-8') as f:
-                json.dump(placeholder_data, f, ensure_ascii=False, indent=2)
-            
-            return {
-                "scene_number": prompt_data['scene_number'],
-                "video_path": str(placeholder_path),
-                "video_url": f"/cache/animations/{placeholder_filename}",
-                "duration": prompt_data['duration'],
-                "status": "placeholder",
-                "type": "placeholder",
-                "prompt": prompt_data["prompt"]
-            }
-
-    # ===== GÉNÉRATION D'IMAGES DE DÉMONSTRATION =====
-    async def generate_demo_image_clip(self, prompt_data: Dict, scene_number: int) -> Dict:
-        """
-        Génère une image de démonstration pour la scène (version avec images SVG locales)
-        """
-        try:
-            # Utiliser les images SVG locales créées
-            image_filename = f"scene_{scene_number}_demo.svg"
-            image_path = f"cache/animations/demo_images/{image_filename}"
-            image_url = f"/cache/animations/demo_images/{image_filename}"
-            
-            print(f"🎨 Image locale scène {scene_number}: {image_filename}")
-            
-            return {
-                "scene_number": prompt_data['scene_number'],
-                "video_path": f"cache/animations/demo_images/{image_filename}",
-                "video_url": image_url,
-                "image_url": image_url,
-                "duration": prompt_data['duration'],
-                "status": "success",
-                "type": "local_image",
-                "prompt": f"Scène {scene_number}: {prompt_data['original_scene']['description']}",
-                "original_prompt": prompt_data["prompt"],
-                "demo_note": "Image de démonstration locale SVG"
-            }
-            
-        except Exception as e:
-            print(f"❌ Erreur génération image demo scène {scene_number}: {e}")
-            
-            # Créer une image placeholder simple
-            placeholder_filename = f"scene_{scene_number}_placeholder.json"
-            placeholder_path = self.cache_dir / placeholder_filename
-            
-            placeholder_data = {
-                "scene_number": prompt_data['scene_number'],
-                "description": prompt_data['original_scene']['description'],
-                "setting": prompt_data['original_scene']['setting'],
-                "action": prompt_data['original_scene']['action'],
-                "duration": prompt_data['duration'],
-                "type": "placeholder",
-                "prompt": prompt_data["prompt"]
-            }
-            
-            with open(placeholder_path, 'w', encoding='utf-8') as f:
-                json.dump(placeholder_data, f, ensure_ascii=False, indent=2)
-            
-            return {
-                "scene_number": prompt_data['scene_number'],
-                "video_path": str(placeholder_path),
-                "video_url": f"/cache/animations/{placeholder_filename}",
-                "duration": prompt_data['duration'],
-                "status": "placeholder",
-                "type": "placeholder",
-                "prompt": prompt_data["prompt"]
-            }
-
     # ===== MÉTHODE PRINCIPALE =====
     async def generate_complete_animation(
         self, 
@@ -425,26 +289,17 @@ RÉPONSE (prompt direct pour génération vidéo):"""
                 style_data
             )
             
-            # ÉTAPE 4: Génération des clips visuels
-            print("🎬 Génération des clips visuels...")
+            # Pour l'instant, on simule les clips vidéo
             clips = []
-            
             for i, prompt_data in enumerate(video_prompts):
-                try:
-                    # Pour l'instant, créer des images de démonstration de haute qualité
-                    clip_result = await self.generate_demo_image_clip(prompt_data, i+1)
-                    clips.append(clip_result)
-                except Exception as e:
-                    print(f"⚠️ Erreur génération clip {i+1}: {e}")
-                    # Fallback: clip de démonstration
-                    clips.append({
-                        "scene_number": prompt_data['scene_number'],
-                        "video_path": f"cache/animations/scene_{i+1}_fallback.json",
-                        "video_url": f"/cache/animations/scene_{i+1}_fallback.json", 
-                        "duration": prompt_data['duration'],
-                        "status": "fallback",
-                        "prompt": prompt_data["prompt"]
-                    })
+                clips.append({
+                    "scene_number": prompt_data['scene_number'],
+                    "video_path": f"cache/animations/scene_{i+1}_demo.mp4",
+                    "video_url": f"/cache/animations/scene_{i+1}_demo.mp4",
+                    "duration": prompt_data['duration'],
+                    "status": "success",
+                    "prompt": prompt_data["prompt"]
+                })
             
             # Format de retour compatible avec l'interface existante
             animation_result = {

@@ -48,3 +48,9 @@ Thumbs.db
 
 nul
 saas/nul
+
+# --- Cache et fichiers générés par le pipeline ---
+cache/
+saas/cache/
+backend/saas/cache/
+**/cache/
