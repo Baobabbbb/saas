@@ -100,7 +100,7 @@ const AudioStorySelector = ({
       )}
 
       <div className="voice-selector-section">
-        <h3>2.1. Choisissez une voix pour la narration (optionnel)</h3>
+        <h3>3. Choisissez une voix pour la narration (optionnel)</h3>
         
         <div className="voice-options">
           {voices.map((voice) => (
