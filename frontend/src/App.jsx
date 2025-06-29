@@ -6,7 +6,6 @@ import Header from './components/Header';
 import ContentTypeSelector from './components/ContentTypeSelector';
 import RhymeSelector from './components/RhymeSelector';
 import AudioStorySelector from './components/AudioStorySelector';
-import AnimationGenerator from './components/AnimationGenerator';
 import CustomRequest from './components/CustomRequest';
 import GenerateButton from './components/GenerateButton';
 import History from './components/History';
@@ -18,7 +17,6 @@ import useSupabaseUser from './hooks/useSupabaseUser';
 
 import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
-import { generateCompleteAnimation } from './services/animation';
 
 // Fonction pour générer des titres attractifs pour les enfants
 const generateChildFriendlyTitle = (contentType, theme, content = '') => {
@@ -47,13 +45,6 @@ const generateChildFriendlyTitle = (contentType, theme, content = '') => {
       espace: ['Voyage Spatial', 'Planètes Rigolotes', 'Astronaute en Mission', 'Étoiles et Fusées'],
       véhicules: ['Mes Voitures', 'Garage Rigolo', 'Course Automobile', 'Train et Avions'],
       default: ['Mon Coloriage', 'Dessin Rigolo', 'Art Créatif', 'Belle Image']
-    },
-    animation: {
-      aventure: ['Super Aventure', 'Mission Héroïque', 'Voyage Fantastique', 'Grande Expédition'],
-      magie: ['Monde Magique', 'Sort Enchanteur', 'Fée et Magie', 'Château Magique'],
-      animaux: ['Amis Animaux', 'Safari Rigolo', 'Zoo Animé', 'Copains de la Jungle'],
-      espace: ['Mission Spatiale', 'Voyage Galactique', 'Planète Mystère', 'Astronaute Héros'],
-      default: ['Mon Dessin Animé', 'Film Rigolo', 'Animation Magique', 'Spectacle Animé']
     }
   };
 
@@ -94,7 +85,7 @@ const getSafeFilename = (title) => {
 };
 
 function App() {
-  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'audio', 'animation' or 'coloring'
+  const [contentType, setContentType] = useState('coloring'); // 'rhyme', 'audio' or 'coloring'
   const [selectedRhyme, setSelectedRhyme] = useState(null);
   const [customRhyme, setCustomRhyme] = useState('');
   const [selectedAudioStory, setSelectedAudioStory] = useState(null);
@@ -108,11 +99,6 @@ function App() {
   const [showStoryPopup, setShowStoryPopup] = useState(false);
   const [showColoringPopup, setShowColoringPopup] = useState(false);
 
-  // Animation states (nouvelle méthode)
-  const [animationResult, setAnimationResult] = useState(null);
-  const [showAnimationPopup, setShowAnimationPopup] = useState(false);
-  const [animationSelections, setAnimationSelections] = useState({ style: '', theme: '', duration: '' });
-  
   // Coloring states
   const [selectedTheme, setSelectedTheme] = useState(null);
   const [coloringResult, setColoringResult] = useState(null);
@@ -150,84 +136,7 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
   
-  // Handle Animation Generation
-  const handleAnimationGenerate = async (generationData) => {
-    setAnimationResult(null);
-    
-    try {
-      console.log('🎬 Démarrage génération animation:', generationData);
-      
-      const animationData = await generateCompleteAnimation(generationData);
-      console.log('✅ Réponse animation reçue:', animationData);
-      
-      if (animationData.status === 'success') {
-        // Construire l'URL complète de la vidéo
-        const fullVideoUrl = animationData.video_url.startsWith('http') 
-          ? animationData.video_url 
-          : `http://127.0.0.1:8000${animationData.video_url}`;
-        
-        console.log('🎥 DEBUG - URL originale:', animationData.video_url);
-        console.log('🎥 DEBUG - URL complète:', fullVideoUrl);
-        
-        setAnimationResult({
-          id: `animation_${Date.now()}`,
-          title: generationData.title || 'Animation IA',
-          description: `Animation narrative générée par IA (${animationData.scenes_count} scènes)`,
-          videoUrl: fullVideoUrl,
-          videoPath: animationData.video_path,
-          scenesCount: animationData.scenes_count,
-          totalDuration: animationData.total_duration,
-          generationTime: animationData.generation_time,
-          scenesDetails: animationData.scenes_details || [],
-          pipelineType: 'complete_animation',
-          status: 'completed',
-          createdAt: new Date().toISOString(),
-          story: generationData.story,
-          stylePreferences: generationData.style_preferences
-        });
-        
-        // Afficher la popup de résultat
-        setShowAnimationPopup(true);
-        
-        // Sauvegarder dans l'historique
-        try {
-          await addCreation({
-            type: 'animation',
-            title: generationData.title || 'Animation IA',
-            data: {
-              ...animationData,
-              story: generationData.story,
-              stylePreferences: generationData.style_preferences
-            }
-          });
-        } catch (historyError) {
-          console.error('Erreur historique animation:', historyError);
-        }
-        
-      } else {
-        throw new Error(animationData.error || 'Erreur génération animation');
-      }
-      
-    } catch (error) {
-      console.error('❌ Erreur génération animation:', error);
-      
-      // Afficher un résultat d'erreur
-      setAnimationResult({
-        id: `animation_error_${Date.now()}`,
-        title: '⚠️ Erreur Animation IA',
-        description: `Erreur: ${error.message}`,
-        videoUrl: null,
-        status: 'failed',
-        error: error.message,
-        createdAt: new Date().toISOString()
-      });
-      
-      setShowAnimationPopup(true);
-      
-      alert(`❌ Erreur génération animation : ${error.message}\n\n💡 Vérifiez que le service d'animation est démarré et configuré.`);
-    }
-  };
-
+  // Handle Generation
   const handleGenerate = async () => {
     setIsGenerating(true);
     setGeneratedResult(null);
@@ -265,59 +174,6 @@ function App() {
       
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
-    } else if (contentType === 'animation') {
-      // Créer les données de génération à partir des sélections
-      const defaultStory = "Il était une fois un petit héros qui part dans une grande aventure pleine de surprises et d'amitié. Dans un monde magique rempli de couleurs et de merveilles, notre personnage découvre des lieux fantastiques et rencontre des amis extraordinaires qui l'aideront à grandir et à apprendre de belles leçons.";
-      
-      const themeNames = {
-        'adventure': 'Aventure',
-        'magic': 'Magie',
-        'animals': 'Animaux',
-        'friendship': 'Amitié',
-        'space': 'Espace',
-        'educational': 'Éducatif'
-      };
-      
-      const styleNames = {
-        'cartoon': 'Cartoon',
-        'watercolor': 'Aquarelle',
-        'anime': 'Anime',
-        'fairy_tale': 'Conte'
-      };
-      
-      const themeName = themeNames[animationSelections.theme] || 'Aventure';
-      const styleName = styleNames[animationSelections.style] || 'Cartoon';
-      const autoTitle = `${themeName} en ${styleName}`;
-      
-      // Utiliser l'histoire par défaut ou la demande spécifique
-      const storyToUse = customRequest.trim() || 
-        "Il était une fois un petit héros qui part dans une grande aventure pleine de surprises et d'amitié. Dans un monde magique rempli de couleurs et de merveilles, notre personnage découvre des lieux fantastiques et rencontre des amis extraordinaires qui l'aideront à grandir et à apprendre de belles leçons.";
-      
-      // Convertir la durée sélectionnée en nombre (durée totale)
-      const selectedDurationNum = parseInt(animationSelections.duration) || 30;
-      
-      const generationData = {
-        story: storyToUse,
-        style: animationSelections.style,
-        theme: animationSelections.theme,
-        duration: selectedDurationNum,
-        title: autoTitle,
-        style_preferences: {
-          visual_style: animationSelections.style,
-          theme: animationSelections.theme,
-          color_palette: 'vibrant',
-          target_audience: 'children'
-        },
-        duration_preferences: {
-          total_duration: selectedDurationNum,
-          scene_duration: Math.min(5, Math.max(2, selectedDurationNum / 6)), // Durée par scène adaptée
-          total_max_duration: selectedDurationNum
-        }
-      };
-
-      // Appeler la fonction de génération animation
-      await handleAnimationGenerate(generationData);
-      generatedContent = null; // Géré séparément
     } else if (contentType === 'coloring') {
       const payload = {
         theme: selectedTheme
@@ -355,10 +211,7 @@ function App() {
         title = generatedContent.title;
       } else {
         title = generateChildFriendlyTitle('histoire', selectedAudioStory === 'custom' ? 'default' : selectedAudioStory);
-      }    } else if (contentType === 'animation') {
-      // Utiliser le titre généré par l'IA depuis l'API animation
-      title = animationResult?.title || generateChildFriendlyTitle('animation', 'animation');
-    } else if (contentType === 'coloring') {
+      }    } else if (contentType === 'coloring') {
       // Utiliser le titre généré par l'IA depuis l'API coloriage
       title = generatedContent?.title || generateChildFriendlyTitle('coloriage', selectedTheme);
     }
@@ -366,9 +219,8 @@ function App() {
     // Stocker le titre pour l'utiliser dans l'UI
     setCurrentTitle(title);
 
-    // Créer une entrée d'historique pour tous les types sauf les animations IA
-    if (contentType !== 'animation') {
-      let newCreation;
+    // Créer une entrée d'historique
+    let newCreation;
         if (contentType === 'coloring') {
         // Pour les coloriages, utiliser les données du coloriage
         newCreation = {
@@ -402,7 +254,6 @@ function App() {
       } catch (historyError) {
         console.error('Erreur lors de l\'enregistrement dans l\'historique:', historyError);
       }
-    }
 
     // setTimeout(() => setShowConfetti(false), 3000);
   } catch (error) {
@@ -456,9 +307,6 @@ const handleSelectCreation = (creation) => {
       if (!selectedAudioStory) return false;
       if (selectedAudioStory === 'custom' && !customAudioStory.trim()) return false;
       // La voix est optionnelle
-    } else if (contentType === 'animation') {
-      // Vérifier que les sélections de style, thème ET durée sont faites
-      return animationSelections.style && animationSelections.theme && animationSelections.duration;
     } else if (contentType === 'coloring') {
       if (!selectedTheme) return false;
     }
@@ -609,19 +457,6 @@ const downloadPDF = async (title, content) => {
                   setSelectedVoice={setSelectedVoice}
                 />
               </motion.div>
-            ) : contentType === 'animation' ? (
-              <motion.div
-                key="animation-generator"
-                variants={contentVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                transition={{ duration: 0.3 }}
-              >
-                <AnimationGenerator
-                  onSelectionChange={setAnimationSelections}
-                />
-              </motion.div>
             ) : contentType === 'coloring' ? (
               <motion.div
                 key="coloring-selector"
@@ -639,7 +474,7 @@ const downloadPDF = async (title, content) => {
           </AnimatePresence>          <CustomRequest
             customRequest={customRequest}
             setCustomRequest={setCustomRequest}
-            stepNumber={contentType === 'animation' ? 4 : contentType === 'coloring' ? 4 : 3}
+            stepNumber={contentType === 'coloring' ? 4 : 3}
           /><GenerateButton
             onGenerate={handleGenerate}
             isGenerating={isGenerating}
@@ -674,95 +509,10 @@ const downloadPDF = async (title, content) => {
           ? 'Création de la comptine en cours...'
           : contentType === 'audio'
           ? 'Création de l\'histoire en cours...'
-          : contentType === 'animation'
-          ? 'Pipeline IA au travail... Analyse narrative et génération multi-scènes...'
           : contentType === 'coloring'
           ? 'Création de vos coloriages en cours...'
           : 'Génération en cours...'}
       </p></motion.div>
-  ) : animationResult && contentType === 'animation' ? (
-    <motion.div
-      className="animation-result"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      key="animation-result"
-      style={{
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '1rem',
-        padding: '1rem'
-      }}
-    >
-      <div className="animation-info" style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        padding: '1rem',
-        borderRadius: '12px',
-        textAlign: 'center',
-        width: '100%'
-      }}>
-        <h3 style={{ margin: '0 0 0.5rem 0' }}>🎬 {animationResult.title}</h3>
-        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}>{animationResult.description}</p>
-        {animationResult.status === 'completed' && (
-          <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>
-            📊 {animationResult.scenesCount} scènes • ⏱️ {animationResult.totalDuration}s • 🤖 {animationResult.generationTime}s
-          </div>
-        )}
-      </div>
-      
-      {animationResult.videoUrl ? (
-        <div className="animation-video-preview" style={{ width: '100%', maxWidth: '400px' }}>
-          <video 
-            controls 
-            style={{ width: '100%', borderRadius: '8px' }}
-            poster="/placeholder-video.png"
-          >
-            <source src={animationResult.videoUrl} type="video/mp4" />
-            Votre navigateur ne supporte pas la vidéo.
-          </video>
-        </div>
-      ) : animationResult.status === 'failed' ? (
-        <div style={{
-          background: '#fed7d7',
-          color: '#c53030',
-          padding: '1rem',
-          borderRadius: '8px',
-          textAlign: 'center'
-        }}>
-          ⚠️ {animationResult.error || 'Erreur de génération'}
-        </div>
-      ) : (
-        <div style={{
-          background: '#bee3f8',
-          color: '#2c5282',
-          padding: '1rem',
-          borderRadius: '8px',
-          textAlign: 'center'
-        }}>
-          🎭 Animation en cours de génération...
-        </div>
-      )}
-      
-      <button
-        onClick={() => setShowAnimationPopup(true)}
-        style={{
-          padding: '0.8rem 1.6rem',
-          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '25px',
-          cursor: 'pointer',
-          fontWeight: '600',
-          fontSize: '1rem'
-        }}
-      >
-        🎬 Voir les détails
-      </button>
-    </motion.div>
   ) : coloringResult && contentType === 'coloring' ? (
     <motion.div
       className="generated-result"
@@ -825,14 +575,12 @@ const downloadPDF = async (title, content) => {
     src="/cloud-logo.svg"
     alt="BDKids logo"
     className="preview-logo"
-  />*/}  {!generatedResult?.content && !animationResult && !coloringResult && (
+  />*/}  {!generatedResult?.content && !coloringResult && (
     <div className="empty-preview">    <p>
       {contentType === 'rhyme'
         ? 'Votre comptine apparaîtra ici'
         : contentType === 'audio'
         ? 'Votre histoire apparaîtra ici'
-        : contentType === 'animation'
-        ? 'Votre dessin animé apparaîtra ici'
         : contentType === 'coloring'
         ? 'Vos coloriages apparaîtront ici'
         : 'Votre création apparaîtra ici'}
@@ -942,168 +690,6 @@ const downloadPDF = async (title, content) => {
         selectedTheme={selectedTheme}
         onClose={() => setShowColoringPopup(false)}
       />
-    )}
-    
-    {showAnimationPopup && (
-      <motion.div
-        className="animation-popup-overlay"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={() => setShowAnimationPopup(false)}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          zIndex: 1000,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}
-      >
-        <motion.div
-          className="animation-popup"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.8, opacity: 0 }}
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            background: 'white',
-            borderRadius: '20px',
-            padding: '30px',
-            maxWidth: '90vw',
-            maxHeight: '90vh',
-            overflow: 'auto',
-            position: 'relative'
-          }}
-        >
-          <button
-            onClick={() => setShowAnimationPopup(false)}
-            style={{
-              position: 'absolute',
-              top: '15px',
-              right: '15px',
-              background: 'none',
-              border: 'none',
-              fontSize: '24px',
-              cursor: 'pointer',
-              color: '#666'
-            }}
-          >
-            ×
-          </button>
-          
-          <div className="animation-popup-content">
-            {animationResult && (
-              <>
-                <h2 style={{ marginBottom: '20px', color: '#2d3748' }}>
-                  🎬 {animationResult.title}
-                </h2>
-                
-                <div style={{ marginBottom: '20px' }}>
-                  <p style={{ color: '#718096', marginBottom: '10px' }}>
-                    {animationResult.description}
-                  </p>
-                  
-                  {animationResult.status === 'completed' && (
-                    <div style={{
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      color: 'white',
-                      padding: '15px',
-                      borderRadius: '12px',
-                      marginBottom: '20px'
-                    }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', fontSize: '0.9rem' }}>
-                        <div>📊 <strong>{animationResult.scenesCount}</strong> scènes</div>
-                        <div>⏱️ <strong>{animationResult.totalDuration}s</strong> durée</div>
-                        <div>🤖 <strong>{animationResult.generationTime}s</strong> génération</div>
-                        <div>🎭 <strong>Pipeline IA</strong> complète</div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                {animationResult.videoUrl ? (
-                  <div style={{ marginBottom: '20px' }}>
-                    <video 
-                      controls 
-                      style={{ 
-                        width: '100%', 
-                        maxWidth: '600px', 
-                        borderRadius: '12px',
-                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)'
-                      }}
-                    >
-                      <source src={animationResult.videoUrl} type="video/mp4" />
-                      Votre navigateur ne supporte pas la vidéo.
-                    </video>
-                  </div>
-                ) : animationResult.status === 'failed' ? (
-                  <div style={{
-                    background: '#fed7d7',
-                    color: '#c53030',
-                    padding: '20px',
-                    borderRadius: '12px',
-                    marginBottom: '20px',
-                    textAlign: 'center'
-                  }}>
-                    <h3>Erreur de génération</h3>
-                    <p>{animationResult.error}</p>
-                  </div>
-                ) : null}
-                
-                {animationResult.scenesDetails && animationResult.scenesDetails.length > 0 && (
-                  <div style={{ marginBottom: '20px' }}>
-                    <h3 style={{ marginBottom: '15px', color: '#2d3748' }}>🎭 Détails des scènes</h3>
-                    <div style={{ display: 'grid', gap: '10px' }}>
-                      {animationResult.scenesDetails.map((scene, index) => (
-                        <div key={index} style={{
-                          background: '#f7fafc',
-                          padding: '12px',
-                          borderRadius: '8px',
-                          borderLeft: '4px solid #667eea'
-                        }}>
-                          <div style={{ fontWeight: '600', marginBottom: '5px' }}>
-                            Scène {scene.scene_number || (index + 1)} ({scene.duration || '3'}s)
-                          </div>
-                          <div style={{ fontSize: '0.9rem', color: '#4a5568' }}>
-                            {scene.description}
-                          </div>
-                          {scene.action && (
-                            <div style={{ fontSize: '0.8rem', color: '#718096', marginTop: '5px' }}>
-                              Action: {scene.action}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {animationResult.story && (
-                  <div style={{ marginBottom: '20px' }}>
-                    <h3 style={{ marginBottom: '10px', color: '#2d3748' }}>📖 Histoire originale</h3>
-                    <div style={{
-                      background: '#f0fff4',
-                      padding: '15px',
-                      borderRadius: '8px',
-                      fontStyle: 'italic',
-                      color: '#2d3748',
-                      lineHeight: '1.6'
-                    }}>
-                      {animationResult.story}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </motion.div>
-      </motion.div>
     )}
   </div>
 );

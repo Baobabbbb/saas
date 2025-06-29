@@ -5,11 +5,12 @@ from datetime import datetime
 from unidecode import unidecode  # ✅ Ajout pour nettoyer les accents
 
 VOICE_MAP = {
-    "grandpa": "onyx",
-    "grandma": "fable",
-    "child": "nova",
-    "woman": "shimmer",
-    "man": "echo"
+    "grand-pere": "onyx",
+    "grand-mere": "fable", 
+    "pere": "echo",
+    "mere": "shimmer",
+    "petit-garcon": "nova",
+    "petite-fille": "alloy"
 }
 
 def generate_speech(text, voice=None, filename=None):
