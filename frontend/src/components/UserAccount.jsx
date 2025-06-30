@@ -1,19 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './UserAccount.css';
-import { signUpWithProfile, signIn, signOut } from '../services/auth'
+import { signUpWithProfile, signIn, signOut } from '../services/auth';
+import AdminPanel from './AdminPanel';
 
 const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [error, setError] = useState('');
   const [errorPopupMessage, setErrorPopupMessage] = useState('');
+  const [userFirstName, setUserFirstName] = useState('');
+
+  // Email de l'administrateur
+  const ADMIN_EMAIL = 'fredagathe77@gmail.com';
+  
+  // Vérifier si l'utilisateur connecté est l'administrateur
+  const isAdmin = () => {
+    const userEmail = localStorage.getItem('userEmail');
+    return userEmail === ADMIN_EMAIL;
+  };
+
+  // Effet pour surveiller les changements de firstName dans localStorage
+  useEffect(() => {
+    const updateUserFirstName = () => {
+      const storedFirstName = localStorage.getItem('userFirstName');
+      setUserFirstName(storedFirstName || '');
+    };
+
+    // Mise à jour initiale
+    updateUserFirstName();
+
+    // Surveiller les changements (optionnel si on veut être plus réactif)
+    const interval = setInterval(updateUserFirstName, 1000);
+    
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
     setShowLoginForm(false);
@@ -57,6 +85,13 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
       setPassword('');
       setShowLoginForm(false);
       setShowDropdown(false);
+      
+      // Mettre à jour le prénom depuis localStorage
+      setTimeout(() => {
+        const storedFirstName = localStorage.getItem('userFirstName');
+        setUserFirstName(storedFirstName || '');
+      }, 100);
+      
       // Appeler le callback de connexion pour mettre à jour l'état global
       if (onLogin) {
         onLogin();
@@ -77,6 +112,13 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
       setPassword('');
       setShowRegisterForm(false);
       setShowDropdown(false);
+      
+      // Mettre à jour le prénom depuis localStorage
+      setTimeout(() => {
+        const storedFirstName = localStorage.getItem('userFirstName');
+        setUserFirstName(storedFirstName || '');
+      }, 100);
+      
       // Appeler le callback d'inscription pour mettre à jour l'état global
       if (onRegister) {
         onRegister();
@@ -85,8 +127,10 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   };  const handleLogout = async () => {
     await signOut();
     setShowDropdown(false);
+    setShowAdminPanel(false);
     setError('');
     setShowErrorPopup(false);
+    setUserFirstName(''); // Réinitialiser le prénom
     // Appeler le callback de déconnexion pour mettre à jour l'état global
     if (onLogout) {
       onLogout();
@@ -105,6 +149,15 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
     setPassword(''); // Vider le mot de passe mais garder l'email
   };
 
+  const handleAdminPanelClick = () => {
+    setShowAdminPanel(true);
+    setShowDropdown(false);
+  };
+
+  const closeAdminPanel = () => {
+    setShowAdminPanel(false);
+  };
+
   return (
     <div className="user-account">
       <motion.div 
@@ -115,8 +168,8 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
       >
         {isLoggedIn ? (
           <div className="avatar">
-            {/* Première lettre du nom de l'utilisateur ou icône par défaut */}
-            {localStorage.getItem('userName')?.charAt(0).toUpperCase() || 'U'}
+            {/* Première lettre du prénom de l'utilisateur ou icône par défaut */}
+            {userFirstName?.charAt(0).toUpperCase() || localStorage.getItem('userFirstName')?.charAt(0).toUpperCase() || 'U'}
           </div>
         ) : (
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -137,9 +190,14 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
             {isLoggedIn ? (
               <>
                 <div className="user-info">
-                  <p>Bonjour, {localStorage.getItem('userName')}</p>
+                  <p>Bonjour, {userFirstName || localStorage.getItem('userFirstName') || 'Utilisateur'}</p>
                 </div>
                 <ul>
+                  {isAdmin() && (
+                    <li className="admin-option" onClick={handleAdminPanelClick}>
+                      Panneau administrateur
+                    </li>
+                  )}
                   <li onClick={() => { setShowDropdown(false); window.location.hash = 'historique'; }}>
                     Mon historique
                   </li>
@@ -311,6 +369,13 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
               </div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Panneau Administrateur */}
+      <AnimatePresence>
+        {showAdminPanel && (
+          <AdminPanel onClose={closeAdminPanel} />
         )}
       </AnimatePresence>
     </div>

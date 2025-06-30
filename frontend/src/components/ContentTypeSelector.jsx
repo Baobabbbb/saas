@@ -14,9 +14,9 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
           whileHover={{ y: -5 }}
           whileTap={{ scale: 0.98 }}
         >
-          <div className="content-type-icon">�</div>
+          <div className="content-type-icon">🎬</div>
           <div className="content-type-details">
-            <h4>Dessin animé IA</h4>
+            <h4>Dessin animé</h4>
             <p>Créez un véritable dessin animé fluide et cohérent avec l'IA</p>
           </div>
         </motion.div>
@@ -27,7 +27,7 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
           whileHover={{ y: -5 }}
           whileTap={{ scale: 0.98 }}
         >
-          <div className="content-type-icon">�</div>
+          <div className="content-type-icon">🎨</div>
           <div className="content-type-details">
             <h4>Coloriage</h4>
             <p>Créez des dessins à colorier personnalisés en noir et blanc</p>
