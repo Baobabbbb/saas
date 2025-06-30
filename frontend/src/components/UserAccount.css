@@ -71,6 +71,24 @@
   background-color: var(--primary-light);
 }
 
+/* Style spécial pour l'option administrateur */
+.dropdown-menu li.admin-option {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+  border-radius: 8px;
+  margin: 4px 8px;
+  border: 2px solid var(--primary);
+  position: relative;
+}
+
+.dropdown-menu li.admin-option:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateX(2px);
+  box-shadow: 0 4px 8px rgba(107, 78, 255, 0.2);
+}
+
 .auth-form-container {
   position: fixed;
   top: 0;

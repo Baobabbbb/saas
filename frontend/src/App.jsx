@@ -700,8 +700,8 @@ const downloadPDF = async (title, content) => {
         : contentType === 'audio'
         ? 'Votre histoire apparaîtra ici'
         : contentType === 'coloring'
-        ? 'Vos coloriages apparaîtront ici'
-        : 'Votre création apparaîtra ici'}
+        ? 'Votre coloriage apparaîtra ici'
+        : 'Votre dessin animé apparaîtra ici'}
     </p>
     </div>
   )}

@@ -24,6 +24,28 @@ export async function signIn({ email, password }) {
       return result;
     }
     
+    // Succès de connexion - stocker les informations utilisateur
+    if (result.data?.user) {
+      localStorage.setItem('userEmail', result.data.user.email);
+      
+      // Récupérer le profil utilisateur pour obtenir le nom
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('prenom, nom')
+        .eq('id', result.data.user.id)
+        .single();
+      
+      if (profile) {
+        localStorage.setItem('userName', `${profile.prenom} ${profile.nom}`);
+        localStorage.setItem('userFirstName', profile.prenom);
+      } else {
+        // Fallback si pas de profil
+        const fallbackName = result.data.user.email.split('@')[0];
+        localStorage.setItem('userName', fallbackName);
+        localStorage.setItem('userFirstName', fallbackName);
+      }
+    }
+    
     return result;
   } catch (err) {
     return { error: err };
@@ -31,7 +53,7 @@ export async function signIn({ email, password }) {
 }
 
 // Inscription avec création de profil
-export async function signUpWithProfile({ email, password, prenom, nom }) {
+export async function signUpWithProfile({ email, password, firstName, lastName }) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -42,13 +64,22 @@ export async function signUpWithProfile({ email, password, prenom, nom }) {
   if (user) {
     const { error: errorProfile } = await supabase
       .from('profiles')
-      .insert([{ id: user.id, prenom, nom }]);
+      .insert([{ id: user.id, prenom: firstName, nom: lastName }]);
     if (errorProfile) return { error: errorProfile };
+    
+    // Stocker les informations utilisateur après inscription réussie
+    localStorage.setItem('userEmail', email);
+    localStorage.setItem('userName', `${firstName} ${lastName}`);
+    localStorage.setItem('userFirstName', firstName);
   }
   return { data };
 }
 
 // Déconnexion
 export async function signOut() {
+  // Nettoyer le localStorage
+  localStorage.removeItem('userEmail');
+  localStorage.removeItem('userName');
+  localStorage.removeItem('userFirstName');
   return await supabase.auth.signOut();
 }
