@@ -22,7 +22,9 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) =
       : contentType === 'coloring'
       ? 'Créer mon coloriage'
       : contentType === 'animation'
-      ? 'Créer mon dessin animé IA'
+      ? 'Créer mon dessin animé'
+      : contentType === 'audio'
+      ? 'Créer mon histoire'
       : 'Créer mon contenu';
   };
 
