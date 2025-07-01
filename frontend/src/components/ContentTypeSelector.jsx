@@ -88,6 +88,22 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
             </motion.div>
           )}
 
+          {enabledFeatures.musical_rhyme && (
+            <motion.div
+              className={`content-type-option ${contentType === 'musical_rhyme' ? 'selected' : ''}`}
+              onClick={() => setContentType('musical_rhyme')}
+              whileHover={{ y: -5 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="content-type-icon">🎼</div>
+              <div className="content-type-details">
+                <h4>Comptine musicale</h4>
+                <p>Créez une comptine avec musique et mélodie personnalisées</p>
+                <div className="feature-badge">✨ Nouveau</div>
+              </div>
+            </motion.div>
+          )}
+
           {enabledFeatures.audio && (
             <motion.div
               className={`content-type-option ${contentType === 'audio' ? 'selected' : ''}`}

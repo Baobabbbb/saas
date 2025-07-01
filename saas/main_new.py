@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import traceback
 import os
 import json
@@ -146,6 +146,36 @@ class StoryRequest(BaseModel):
     story_type: str
     voice: str
     custom_request: Optional[str] = None
+
+# === MODÈLES POUR LES COMPTINES MUSICALES ===
+
+class MusicalRhymeRequest(BaseModel):
+    """Requête pour générer une comptine musicale"""
+    rhyme_type: str  # lullaby, counting, animal, seasonal, educational, movement, custom
+    custom_request: Optional[str] = None  # Demande personnalisée
+    generate_music: Optional[bool] = True  # Générer la musique ou seulement les paroles
+    custom_style: Optional[str] = None  # Style musical personnalisé
+    language: Optional[str] = "fr"  # Langue (français par défaut)
+
+class RhymeTaskStatusRequest(BaseModel):
+    """Requête pour vérifier le statut d'une tâche de comptine"""
+    task_id: str
+
+class MusicalRhymeResponse(BaseModel):
+    """Réponse pour une comptine musicale"""
+    status: str
+    title: Optional[str] = None
+    lyrics: Optional[str] = None
+    rhyme_type: Optional[str] = None
+    has_music: Optional[bool] = False
+    music_status: Optional[str] = None  # pending, completed, failed
+    music_task_id: Optional[str] = None
+    audio_url: Optional[str] = None
+    style_used: Optional[str] = None
+    generation_time: Optional[float] = None
+    error: Optional[str] = None
+    demo_message: Optional[str] = None  # Message informatif pour le mode démo
+    suggestions: Optional[list] = None  # Suggestions pour l'utilisateur
 
 @app.post("/generate_rhyme/")
 async def generate_rhyme(request: RhymeRequest):
@@ -314,6 +344,119 @@ HISTOIRE: [texte de l'histoire]"""
             status_code=500,
             detail=f"❌ Erreur lors de la génération de l'histoire: {str(e)}"
         )
+
+# === COMPTINES MUSICALES AVEC DIFFRHYTHM ===
+
+from services.musical_nursery_rhyme_service import musical_nursery_rhyme_service
+from services.diffrhythm_service import diffrhythm_service
+
+@app.post("/generate_musical_rhyme/", response_model=MusicalRhymeResponse)
+async def generate_musical_rhyme(request: MusicalRhymeRequest):
+    """Génération de comptines musicales avec DiffRhythm"""
+    try:
+        print(f"🎵 Génération comptine musicale: {request.rhyme_type}")
+        
+        # Générer la comptine complète (paroles + musique)
+        result = await musical_nursery_rhyme_service.generate_complete_nursery_rhyme(
+            rhyme_type=request.rhyme_type,
+            custom_request=request.custom_request,
+            generate_music=request.generate_music,
+            custom_style=request.custom_style
+        )
+        
+        # Ajouter des messages informatifs si la musique a échoué
+        if request.generate_music and result.get("music_status") == "failed":
+            if "demo_message" not in result:
+                result["demo_message"] = (
+                    "🎵 Mode démonstration activé ! "
+                    "La génération musicale nécessite une connexion à une API externe (GoAPI DiffRhythm) "
+                    "qui semble actuellement indisponible. "
+                    "Vos paroles de comptine ont été générées avec succès !"
+                )
+                
+            result["suggestions"] = [
+                "🎹 Utilisez un piano ou un clavier pour créer la mélodie",
+                "🎤 Chantez les paroles sur une mélodie simple",  
+                "📱 Utilisez une app de création musicale comme GarageBand",
+                "🎵 Partagez les paroles avec un musicien pour créer la musique",
+                "🔧 Vérifiez que la clé GOAPI_API_KEY est correctement configurée"
+            ]
+        
+        return MusicalRhymeResponse(**result)
+        
+    except Exception as e:
+        print(f"❌ Erreur génération comptine musicale: {e}")
+        traceback.print_exc()
+        
+        # Retourner un résultat avec message d'erreur informatif
+        error_result = {
+            "status": "error",
+            "title": "Erreur de génération",
+            "lyrics": "",
+            "rhyme_type": request.rhyme_type,
+            "has_music": False,
+            "music_status": "failed",
+            "music_task_id": None,
+            "audio_url": None,
+            "style_used": None,
+            "generation_time": 0.0,
+            "error": str(e),
+            "demo_message": (
+                "Une erreur s'est produite lors de la génération. "
+                "Cela peut être dû à un problème de connectivité ou de configuration. "
+                "Veuillez vérifier votre connexion internet et vos clés API."
+            )
+        }
+        
+        return MusicalRhymeResponse(**error_result)
+
+@app.post("/check_rhyme_task_status/")
+async def check_rhyme_task_status(request: RhymeTaskStatusRequest):
+    """Vérifier le statut d'une tâche de génération musicale"""
+    try:
+        print(f"🔍 Vérification statut tâche: {request.task_id}")
+        
+        # Vérifier le statut de la tâche DiffRhythm
+        result = await diffrhythm_service.check_task_status(request.task_id)
+        
+        return result
+        
+    except Exception as e:
+        print(f"❌ Erreur vérification statut: {e}")
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"❌ Erreur lors de la vérification du statut: {str(e)}"
+        )
+
+@app.get("/rhyme_styles/")
+async def get_available_rhyme_styles():
+    """Récupérer les styles de comptines disponibles"""
+    try:
+        from services.diffrhythm_service import NURSERY_RHYME_STYLES
+        
+        styles = {}
+        for style_key, style_info in NURSERY_RHYME_STYLES.items():
+            styles[style_key] = {
+                "name": style_key.replace("_", " ").title(),
+                "description": style_info["style"],
+                "tempo": style_info["tempo"],
+                "mood": style_info["mood"]
+            }
+        
+        return {
+            "status": "success",
+            "styles": styles,
+            "total_styles": len(styles)
+        }
+        
+    except Exception as e:
+        print(f"❌ Erreur récupération styles: {e}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "styles": {}
+        }
 
 # === GÉNÉRATEUR DE COLORIAGES ===
 

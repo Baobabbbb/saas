@@ -5,6 +5,7 @@ import './App.css';
 import Header from './components/Header';
 import ContentTypeSelector from './components/ContentTypeSelector';
 import RhymeSelector from './components/RhymeSelector';
+import MusicalRhymeSelector from './components/MusicalRhymeSelector';
 import AudioStorySelector from './components/AudioStorySelector';
 import AnimationSelector from './components/AnimationSelector';
 import AnimationViewer from './components/AnimationViewer';
@@ -95,9 +96,15 @@ const getSafeFilename = (title) => {
 };
 
 function App() {
-  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'audio', 'coloring', 'animation'
+  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'musical_rhyme', 'audio', 'coloring', 'animation'
   const [selectedRhyme, setSelectedRhyme] = useState(null);
   const [customRhyme, setCustomRhyme] = useState('');
+  
+  // Musical rhyme states (nouveau)
+  const [generateMusic, setGenerateMusic] = useState(true);
+  const [musicStyle, setMusicStyle] = useState('auto');
+  const [customMusicStyle, setCustomMusicStyle] = useState('');
+  
   const [selectedAudioStory, setSelectedAudioStory] = useState(null);
   const [customAudioStory, setCustomAudioStory] = useState('');
   const [selectedVoice, setSelectedVoice] = useState(null);
@@ -174,6 +181,22 @@ function App() {
         };
 
         const response = await fetch('http://localhost:8000/generate_rhyme/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+        generatedContent = await response.json();
+      } else if (contentType === 'musical_rhyme') {
+        const payload = {
+          rhyme_type: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
+          custom_request: customRequest,
+          generate_music: generateMusic,
+          custom_style: musicStyle === 'custom' ? customMusicStyle : null
+        };
+
+        const response = await fetch('http://localhost:8000/generate_musical_rhyme/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -277,6 +300,13 @@ function App() {
         title = generatedContent.title;
       } else {
         title = generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme);
+      }
+    } else if (contentType === 'musical_rhyme') {
+      // Utiliser le titre de l'IA pour les comptines musicales
+      if (generatedContent.title && !generatedContent.title.includes('générée')) {
+        title = generatedContent.title + (generatedContent.has_music ? ' 🎵' : '');
+      } else {
+        title = generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme) + ' 🎵';
       }
     } else if (contentType === 'audio') {
       // Utiliser le titre de l'IA ou générer un titre attractif
@@ -391,6 +421,11 @@ const handleSelectCreation = (creation) => {
     if (contentType === 'rhyme') {
       if (!selectedRhyme) return false;
       if (selectedRhyme === 'custom' && !customRhyme.trim()) return false;
+    } else if (contentType === 'musical_rhyme') {
+      if (!selectedRhyme) return false;
+      if (selectedRhyme === 'custom' && !customRhyme.trim()) return false;
+      // Validation supplémentaire pour le style musical personnalisé
+      if (generateMusic && musicStyle === 'custom' && !customMusicStyle.trim()) return false;
     } else if (contentType === 'audio') {
       if (!selectedAudioStory) return false;
       if (selectedAudioStory === 'custom' && !customAudioStory.trim()) return false;
@@ -531,6 +566,28 @@ const downloadPDF = async (title, content) => {
                   setSelectedRhyme={setSelectedRhyme}
                   customRhyme={customRhyme}
                   setCustomRhyme={setCustomRhyme}
+                />
+              </motion.div>
+            ) : contentType === 'musical_rhyme' ? (
+              <motion.div
+                key="musical-rhyme-selector"
+                variants={contentVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.3 }}
+              >
+                <MusicalRhymeSelector
+                  selectedRhyme={selectedRhyme}
+                  setSelectedRhyme={setSelectedRhyme}
+                  customRhyme={customRhyme}
+                  setCustomRhyme={setCustomRhyme}
+                  generateMusic={generateMusic}
+                  setGenerateMusic={setGenerateMusic}
+                  musicStyle={musicStyle}
+                  setMusicStyle={setMusicStyle}
+                  customMusicStyle={customMusicStyle}
+                  setCustomMusicStyle={setCustomMusicStyle}
                 />
               </motion.div>
             ) : contentType === 'audio' ? (
@@ -697,6 +754,8 @@ const downloadPDF = async (title, content) => {
     <div className="empty-preview">    <p>
       {contentType === 'rhyme'
         ? 'Votre comptine apparaîtra ici'
+        : contentType === 'musical_rhyme'
+        ? 'Votre comptine musicale apparaîtra ici'
         : contentType === 'audio'
         ? 'Votre histoire apparaîtra ici'
         : contentType === 'coloring'
