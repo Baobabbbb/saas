@@ -35,6 +35,8 @@ const History = ({ onClose, onSelect }) => {
         return '📚';
       case 'rhyme':
         return '🎵';
+      case 'musical_rhyme':
+        return '🎼';
       case 'audio':
         return '📖';
       case 'coloring':
@@ -54,6 +56,8 @@ const History = ({ onClose, onSelect }) => {
         return 'Bande dessinée';
       case 'rhyme':
         return 'Comptine';
+      case 'musical_rhyme':
+        return 'Comptine musicale';
       case 'audio':
         return 'Histoire';
       case 'coloring':
@@ -159,7 +163,7 @@ const History = ({ onClose, onSelect }) => {
                       ))}
                     </div>
                   )}<div className="creation-actions">
-                    {(creation.type === 'audio' || creation.type === 'rhyme') && (creation.content || creation.data?.content) && (
+                    {(creation.type === 'audio' || creation.type === 'rhyme' || creation.type === 'musical_rhyme') && (creation.content || creation.data?.content) && (
                       <button
                         className="btn-pdf"
                         onClick={(e) => {

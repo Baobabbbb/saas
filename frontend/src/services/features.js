@@ -6,7 +6,8 @@ const DEFAULT_FEATURES = {
   animation: { enabled: true, name: 'Dessin animé', icon: '🎬' },
   coloring: { enabled: true, name: 'Coloriage', icon: '🎨' },
   audio: { enabled: true, name: 'Histoire', icon: '📖' },
-  rhyme: { enabled: false, name: 'Comptine', icon: '🎵' } // désactivé par défaut
+  rhyme: { enabled: false, name: 'Comptine', icon: '🎵' }, // désactivé par défaut
+  musical_rhyme: { enabled: true, name: 'Comptine musicale', icon: '🎼' } // ✨ Nouveau !
 };
 
 export const getFeatures = () => {
