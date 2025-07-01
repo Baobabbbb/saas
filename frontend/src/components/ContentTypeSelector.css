@@ -67,6 +67,20 @@
   opacity: 0.8;
 }
 
+.no-features-message {
+  text-align: center;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  border: 2px dashed var(--border);
+}
+
+.no-features-message p {
+  color: var(--text-light);
+  margin: 0;
+  font-style: italic;
+}
+
 @media (max-width: 768px) {
   .content-type-options {
     flex-direction: column;

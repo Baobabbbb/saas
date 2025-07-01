@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import './AdminPanel.css';
+import FeatureManager from './FeatureManager';
 
 const AdminPanel = ({ onClose }) => {
   return (
@@ -31,8 +32,10 @@ const AdminPanel = ({ onClose }) => {
         <div className="admin-panel-content">
           <div className="admin-welcome">
             <p>Bienvenue dans le panneau administrateur !</p>
-            <p>Les fonctionnalités seront ajoutées prochainement.</p>
+            <p>Gérez les fonctionnalités et paramètres du site.</p>
           </div>
+          
+          <FeatureManager />
           
           <div className="admin-sections">
             <div className="admin-section-placeholder">
