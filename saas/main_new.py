@@ -143,6 +143,7 @@ class RhymeRequest(BaseModel):
     custom_request: Optional[str] = None
     generate_music: Optional[bool] = True  # Générer la musique ou seulement les paroles
     custom_style: Optional[str] = None  # Style musical personnalisé
+    fast_mode: Optional[bool] = True  # Mode rapide pour optimiser la vitesse
 
 class StoryRequest(BaseModel):
     story_type: str
@@ -173,7 +174,8 @@ async def generate_rhyme(request: RhymeRequest):
                 rhyme_type=request.rhyme_type,
                 custom_request=request.custom_request,
                 generate_music=request.generate_music or True,
-                custom_style=request.custom_style
+                custom_style=request.custom_style,
+                fast_mode=request.fast_mode or True
             )
             
             # Ajouter des messages informatifs si la musique a échoué
@@ -370,6 +372,25 @@ async def check_rhyme_task_status(request: RhymeTaskStatusRequest):
         
     except Exception as e:
         print(f"❌ Erreur vérification statut: {e}")
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"❌ Erreur lors de la vérification du statut: {str(e)}"
+        )
+
+@app.get("/check_task_status/{task_id}")
+async def check_task_status_get(task_id: str):
+    """Vérifier le statut d'une tâche de génération musicale via GET"""
+    try:
+        print(f"🔍 Vérification statut tâche GET: {task_id}")
+        
+        # Vérifier le statut de la tâche DiffRhythm
+        result = await diffrhythm_service.check_task_status(task_id)
+        
+        return result
+        
+    except Exception as e:
+        print(f"❌ Erreur vérification statut GET: {e}")
         traceback.print_exc()
         raise HTTPException(
             status_code=500,
