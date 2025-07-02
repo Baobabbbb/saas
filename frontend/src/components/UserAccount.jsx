@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './UserAccount.css';
-import { signUpWithProfile, signIn, signOut } from '../services/auth';
+import { signUpWithProfile, signIn, signOut, updateUserProfile, getCurrentUserProfile, deleteUserAccount } from '../services/auth';
 import AdminPanel from './AdminPanel';
 
 const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [showProfileForm, setShowProfileForm] = useState(false);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [email, setEmail] = useState('');
@@ -17,6 +18,14 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [error, setError] = useState('');
   const [errorPopupMessage, setErrorPopupMessage] = useState('');
   const [userFirstName, setUserFirstName] = useState('');
+  
+  // États pour le profil utilisateur
+  const [profileFirstName, setProfileFirstName] = useState('');
+  const [profileLastName, setProfileLastName] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [profileUpdateSuccess, setProfileUpdateSuccess] = useState(false);
 
   // Email de l'administrateur
   const ADMIN_EMAIL = 'fredagathe77@gmail.com';
@@ -46,8 +55,32 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
     setShowDropdown(!showDropdown);
     setShowLoginForm(false);
     setShowRegisterForm(false);
+    setShowProfileForm(false);
     setError('');
     setShowErrorPopup(false);
+  };
+
+  const handleProfileClick = async () => {
+    setError('');
+    setProfileUpdateSuccess(false);
+    
+    // Charger les données utilisateur depuis Supabase
+    const { data, error } = await getCurrentUserProfile();
+    
+    if (error) {
+      // Fallback vers localStorage si erreur
+      setProfileFirstName(localStorage.getItem('userFirstName') || '');
+      setProfileLastName(localStorage.getItem('userLastName') || '');
+      setProfileEmail(localStorage.getItem('userEmail') || '');
+      setError('Impossible de charger le profil depuis la base de données');
+    } else {
+      setProfileFirstName(data.firstName || '');
+      setProfileLastName(data.lastName || '');
+      setProfileEmail(data.email || '');
+    }
+    
+    setShowProfileForm(true);
+    setShowDropdown(false);
   };
 
   const handleLoginClick = () => {
@@ -60,8 +93,48 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const handleRegisterClick = () => {
     setShowRegisterForm(true);
     setShowLoginForm(false);
+    setShowProfileForm(false);
     setError('');
     setShowErrorPopup(false);
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setError('');
+    setProfileUpdateSuccess(false);
+    
+    if (!profileFirstName.trim() || !profileLastName.trim()) {
+      setError('Le prénom et le nom sont obligatoires');
+      return;
+    }
+    
+    try {
+      // Mise à jour du profil dans Supabase
+      const { data, error } = await updateUserProfile({
+        firstName: profileFirstName.trim(),
+        lastName: profileLastName.trim()
+      });
+      
+      if (error) {
+        setError('Erreur lors de la mise à jour du profil: ' + error.message);
+        return;
+      }
+      
+      // Mettre à jour l'état local
+      setUserFirstName(profileFirstName.trim());
+      
+      // Afficher le message de succès
+      setProfileUpdateSuccess(true);
+      
+      // Masquer le message de succès après 3 secondes
+      setTimeout(() => {
+        setProfileUpdateSuccess(false);
+      }, 3000);
+      
+    } catch (error) {
+      setError('Erreur lors de la mise à jour du profil');
+      console.error('Erreur mise à jour profil:', error);
+    }
   };  const handleLogin = async (e) => {
     e.preventDefault();
     const { error } = await signIn({ email, password });
@@ -158,6 +231,76 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
     setShowAdminPanel(false);
   };
 
+  const handleDeleteAccount = () => {
+    setShowDeleteConfirm(true);
+    setDeleteConfirmText('');
+    setError('');
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deleteConfirmText !== 'SUPPRIMER') {
+      setError('Veuillez saisir "SUPPRIMER" pour confirmer');
+      return;
+    }
+
+    try {
+      const { data, error } = await deleteUserAccount();
+      
+      if (error) {
+        let errorMessage = 'Erreur lors de la suppression: ' + error.message;
+        
+        // Gestion spéciale si la fonction RPC n'est pas disponible
+        if (error.requiresAdminCleanup) {
+          errorMessage = `Suppression partielle effectuée. L'utilisateur ${error.userEmail} (ID: ${error.userId}) doit être supprimé manuellement par l'administrateur dans Supabase.`;
+          
+          // Fermer les formulaires même en cas d'erreur partielle
+          setShowDeleteConfirm(false);
+          setShowProfileForm(false);
+          setShowDropdown(false);
+          
+          // Informer le parent de la déconnexion
+          if (onLogout) {
+            onLogout();
+          }
+          
+          // Afficher l'erreur mais procéder au rechargement
+          alert(errorMessage);
+          window.location.reload();
+          return;
+        }
+        
+        setError(errorMessage);
+        return;
+      }
+
+      // Fermer tous les formulaires
+      setShowDeleteConfirm(false);
+      setShowProfileForm(false);
+      setShowDropdown(false);
+
+      // Afficher un message de confirmation
+      alert(data.message || 'Votre compte a été supprimé avec succès');
+
+      // Informer le composant parent de la déconnexion
+      if (onLogout) {
+        onLogout();
+      }
+
+      // Recharger la page pour nettoyer l'état
+      window.location.reload();
+
+    } catch (error) {
+      setError('Erreur lors de la suppression du compte');
+      console.error('Erreur suppression compte:', error);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setDeleteConfirmText('');
+    setError('');
+  };
+
   return (
     <div className="user-account">
       <motion.div 
@@ -198,6 +341,9 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                       Panneau administrateur
                     </li>
                   )}
+                  <li onClick={handleProfileClick}>
+                    Mon compte
+                  </li>
                   <li onClick={() => { setShowDropdown(false); window.location.hash = 'historique'; }}>
                     Mon historique
                   </li>
@@ -325,6 +471,141 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {showProfileForm && (
+          <motion.div 
+            className="auth-form-container"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="auth-form">
+              <h3>Mon compte</h3>
+              {/* Affichage de l'erreur ou du succès */}
+              {error && <div className="error" style={{ color: "red", marginBottom: 10 }}>{error}</div>}
+              {profileUpdateSuccess && (
+                <div className="success" style={{ color: "green", marginBottom: 10 }}>
+                  Profil mis à jour avec succès !
+                </div>
+              )}
+              <form onSubmit={handleUpdateProfile}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="profile-firstName">Prénom</label>
+                    <input 
+                      type="text" 
+                      id="profile-firstName" 
+                      value={profileFirstName} 
+                      onChange={(e) => setProfileFirstName(e.target.value)} 
+                      required 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="profile-lastName">Nom</label>
+                    <input 
+                      type="text" 
+                      id="profile-lastName" 
+                      value={profileLastName} 
+                      onChange={(e) => setProfileLastName(e.target.value)} 
+                      required 
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="profile-email">Email</label>
+                  <input 
+                    type="email" 
+                    id="profile-email" 
+                    value={profileEmail} 
+                    disabled
+                    style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                    title="L'email ne peut pas être modifié"
+                  />
+                  <small style={{ color: '#666', fontSize: '0.8rem' }}>
+                    L'email ne peut pas être modifié
+                  </small>
+                </div>
+                <div className="form-actions">
+                  <button type="button" onClick={() => setShowProfileForm(false)}>Annuler</button>
+                  <button type="submit">Mettre à jour</button>
+                </div>
+                
+                {/* Bouton de suppression de compte */}
+                <div className="delete-account-section">
+                  <button 
+                    type="button" 
+                    className="delete-account-btn"
+                    onClick={handleDeleteAccount}
+                  >
+                    Supprimer mon compte
+                  </button>
+                  <p className="delete-account-warning">
+                    Attention : Cette action est irréversible. Votre compte et toutes vos données seront supprimés.
+                  </p>
+                </div>
+              </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Popup de confirmation de suppression de compte */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div 
+            className="confirm-popup-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div 
+              className="confirm-popup"
+              initial={{ opacity: 0, scale: 0.8, y: -50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: -50 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="confirm-popup-header">
+                <h4>⚠️ Confirmation de suppression</h4>
+                <button 
+                  className="confirm-popup-close"
+                  onClick={handleCancelDelete}
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="confirm-popup-content">
+                <p>Pour confirmer la suppression de votre compte, veuillez saisir le mot "SUPPRIMER" ci-dessous :</p>
+                <input 
+                  type="text" 
+                  value={deleteConfirmText} 
+                  onChange={(e) => setDeleteConfirmText(e.target.value)} 
+                  className="confirm-input"
+                />
+                {/* Affichage de l'erreur si présente */}
+                {error && <div className="error" style={{ color: "red", marginTop: 10 }}>{error}</div>}
+              </div>
+              <div className="confirm-popup-actions">
+                <button 
+                  className="confirm-popup-btn"
+                  onClick={handleConfirmDelete}
+                >
+                  Confirmer
+                </button>
+                <button 
+                  className="confirm-popup-btn confirm-popup-btn-secondary"
+                  onClick={handleCancelDelete}
+                >
+                  Annuler
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Popup d'erreur pour les mots de passe incorrects */}
       <AnimatePresence>
         {showErrorPopup && (
@@ -365,6 +646,89 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                   onClick={switchToRegisterFromPopup}
                 >
                   S'inscrire
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal de confirmation de suppression de compte */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div 
+            className="error-popup-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div 
+              className="error-popup"
+              initial={{ opacity: 0, scale: 0.8, y: -50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: -50 }}
+              transition={{ duration: 0.3 }}
+              style={{ maxWidth: '500px' }}
+            >
+              <div className="error-popup-header">
+                <h4>🗑️ Supprimer mon compte</h4>
+                <button 
+                  className="error-popup-close"
+                  onClick={handleCancelDelete}
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="error-popup-content">
+                <p style={{ marginBottom: '15px' }}>
+                  ⚠️ <strong>Cette action est irréversible !</strong>
+                </p>
+                <p style={{ marginBottom: '15px' }}>
+                  En supprimant votre compte, vous perdrez définitivement :
+                </p>
+                <ul style={{ textAlign: 'left', marginBottom: '20px', paddingLeft: '20px' }}>
+                  <li>Vos informations personnelles</li>
+                  <li>Toutes vos histoires générées</li>
+                  <li>Toutes vos animations créées</li>
+                  <li>Votre historique de génération</li>
+                  <li>Tous vos contenus sauvegardés</li>
+                </ul>
+                <p style={{ marginBottom: '15px' }}>
+                  Pour confirmer, saisissez <strong>SUPPRIMER</strong> ci-dessous :
+                </p>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder="Saisissez SUPPRIMER"
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    marginBottom: '15px'
+                  }}
+                />
+                {error && <div className="error" style={{ color: "red", marginBottom: 10 }}>{error}</div>}
+              </div>
+              <div className="error-popup-actions">
+                <button 
+                  className="error-popup-btn error-popup-btn-secondary"
+                  onClick={handleCancelDelete}
+                >
+                  Annuler
+                </button>
+                <button 
+                  className="error-popup-btn"
+                  onClick={handleConfirmDelete}
+                  style={{
+                    backgroundColor: deleteConfirmText === 'SUPPRIMER' ? '#d73a49' : '#ccc',
+                    cursor: deleteConfirmText === 'SUPPRIMER' ? 'pointer' : 'not-allowed'
+                  }}
+                  disabled={deleteConfirmText !== 'SUPPRIMER'}
+                >
+                  Supprimer définitivement
                 </button>
               </div>
             </motion.div>
