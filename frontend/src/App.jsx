@@ -104,6 +104,7 @@ function App() {
   const [generateMusic, setGenerateMusic] = useState(true);
   const [musicStyle, setMusicStyle] = useState('auto');
   const [customMusicStyle, setCustomMusicStyle] = useState('');
+  const [fastMode, setFastMode] = useState(true); // Mode rapide par défaut
   
   const [selectedAudioStory, setSelectedAudioStory] = useState(null);
   const [customAudioStory, setCustomAudioStory] = useState('');
@@ -177,10 +178,14 @@ function App() {
       if (contentType === 'rhyme') {
         const payload = {
           rhyme_type: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
-          custom_request: customRequest,
-          generate_music: generateMusic || true,
-          custom_style: musicStyle === 'custom' ? customMusicStyle : musicStyle
+          custom_request: fastMode ? `${customRequest} (version courte et simple)` : customRequest,
+          generate_music: generateMusic || false,
+          custom_style: fastMode ? 'simple et rapide' : (musicStyle === 'custom' ? customMusicStyle : null),
+          fast_mode: fastMode,
+          language: 'fr'
         };
+
+        console.log('🎵 Envoi payload comptine:', payload);
 
         const response = await fetch('http://localhost:8000/generate_rhyme/', {
           method: 'POST',
@@ -188,8 +193,10 @@ function App() {
           body: JSON.stringify(payload)
         });
 
+        console.log('🎵 Réponse status:', response.status);
         if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
         generatedContent = await response.json();
+        console.log('🎵 Contenu reçu:', generatedContent);
       } else if (contentType === 'audio') {
       const payload = {
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
@@ -276,9 +283,17 @@ function App() {
     }
 
     // 🔁 Enregistre le résultat généré pour affichage audio/texte
+    console.log('🔁 Setting generatedResult:', generatedContent);
     setGeneratedResult(generatedContent);
+    console.log('🔁 ContentType:', contentType);
     // setStoryPages(splitTextIntoPages(generatedContent.content)); // Ajoute la pagination
-    setCurrentPageIndex(0); // Reviens à la première page    // Déterminer le titre avec des noms attractifs pour les enfants
+    setCurrentPageIndex(0); // Reviens à la première page
+
+    // 🎵 Démarrer le polling automatique si c'est une comptine avec task_id
+    if (contentType === 'rhyme' && generatedContent.task_id && generateMusic) {
+      console.log('🎵 Démarrage du polling automatique pour task_id:', generatedContent.task_id);
+      pollTaskStatus(generatedContent.task_id);
+    }    // Déterminer le titre avec des noms attractifs pour les enfants
     let title;
     if (contentType === 'rhyme') {
       // Utiliser le titre de l'IA ou générer un titre attractif
@@ -504,6 +519,88 @@ const downloadPDF = async (title, content) => {
   doc.save(`${safeTitle}.pdf`);
 };
 
+ // Fonction de polling automatique pour vérifier le statut des tâches musicales (optimisée)
+  const pollTaskStatus = async (taskId, maxAttempts = 50, interval = 6000) => {
+    let attempts = 0;
+    
+    const checkStatus = async () => {
+      try {
+        console.log(`🎵 Polling ${attempts + 1}/${maxAttempts} pour task ${taskId}`);
+        const response = await fetch(`http://localhost:8000/check_task_status/${taskId}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const status = await response.json();
+        console.log(`🎵 Statut reçu:`, {
+          status: status.status,
+          task_status: status.task_status,
+          audio_url: status.audio_url,
+          audio_path: status.audio_path
+        });
+        
+        if (status.status === 'completed' || status.task_status === 'completed') {
+          // Tâche terminée avec succès
+          const audioUrl = status.audio_url || status.audio_path;
+          if (audioUrl) {
+            console.log('🎵✅ Audio prêt!', audioUrl);
+            setGeneratedResult(prev => ({
+              ...prev,
+              audio_url: audioUrl,
+              audio_path: audioUrl,
+              music_status: 'completed'
+            }));
+          } else {
+            console.warn('⚠️ Tâche terminée mais pas d\'URL audio');
+            setGeneratedResult(prev => ({
+              ...prev,
+              music_status: 'completed_no_audio'
+            }));
+          }
+          return; // Arrêter le polling
+        } else if (status.status === 'failed' || status.task_status === 'failed') {
+          // Tâche échouée
+          console.error('❌ Génération musicale échouée:', status);
+          setGeneratedResult(prev => ({
+            ...prev,
+            music_status: 'failed',
+            music_error: status.error || 'Erreur de génération musicale'
+          }));
+          return; // Arrêter le polling
+        } else if (attempts >= maxAttempts - 1) {
+          // Timeout atteint
+          console.warn('⏰ Timeout atteint pour la génération musicale après', maxAttempts, 'tentatives');
+          setGeneratedResult(prev => ({
+            ...prev,
+            music_status: 'timeout'
+          }));
+          return; // Arrêter le polling
+        }
+        
+        // Continuer le polling
+        attempts++;
+        setTimeout(checkStatus, interval);
+        
+      } catch (error) {
+        console.error('❌ Erreur lors du polling:', error);
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkStatus, interval);
+        } else {
+          console.error('❌ Erreur de polling après', maxAttempts, 'tentatives:', error);
+          setGeneratedResult(prev => ({
+            ...prev,
+            music_status: 'error',
+            music_error: `Erreur de connexion: ${error.message}`
+          }));
+        }
+      }
+    };
+    
+    await checkStatus();
+  };
+
  return (
   <div className="app-container">
     {/*{showConfetti && (
@@ -549,6 +646,8 @@ const downloadPDF = async (title, content) => {
                   setMusicStyle={setMusicStyle}
                   customMusicStyle={customMusicStyle}
                   setCustomMusicStyle={setCustomMusicStyle}
+                  fastMode={fastMode}
+                  setFastMode={setFastMode}
                 />
               </motion.div>
             ) : contentType === 'audio' ? (
@@ -711,7 +810,7 @@ const downloadPDF = async (title, content) => {
     src="/cloud-logo.svg"
     alt="BDKids logo"
     className="preview-logo"
-  />*/}  {!generatedResult?.content && !coloringResult && (
+  />*/}  {!generatedResult && !coloringResult && (
     <div className="empty-preview">    <p>
       {contentType === 'rhyme'
         ? 'Votre comptine apparaîtra ici'
@@ -723,8 +822,140 @@ const downloadPDF = async (title, content) => {
     </p>
     </div>
   )}
-  {/* 🎵 Audio présent */}
-{generatedResult?.audio_path && (
+  
+  {/* 🎵 Affichage des comptines */}
+  {contentType === 'rhyme' && generatedResult && (
+    <div
+      style={{
+        height: '300px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '1rem',
+        padding: '1rem'
+      }}
+    >
+      {/* Affichage des paroles */}
+      {(generatedResult.content || generatedResult.rhyme || generatedResult.lyrics) && (
+        <div style={{ 
+          maxHeight: '120px', 
+          overflowY: 'auto', 
+          padding: '0.8rem',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px',
+          width: '100%',
+          textAlign: 'center',
+          border: '1px solid #dee2e6'
+        }}>
+          <h4 style={{ margin: '0 0 0.5rem 0', color: '#6B4EFF' }}>
+            {generatedResult.title || 'Ma Comptine'}
+          </h4>
+          <p style={{ margin: 0, fontSize: '13px', lineHeight: '1.4' }}>
+            {generatedResult.content || generatedResult.rhyme || generatedResult.lyrics}
+          </p>
+        </div>
+      )}
+      
+      {/* Audio si disponible */}
+      {generatedResult.audio_path && (
+        <audio
+          controls
+          style={{ width: '100%', maxWidth: '300px' }}
+          src={`http://localhost:8000/${generatedResult.audio_path}`}
+        />
+      )}
+      
+      {/* Statut de génération musicale */}
+      {generatedResult.task_id && !generatedResult.audio_path && (
+        <div style={{ 
+          padding: '0.5rem 1rem',
+          backgroundColor: 
+            generatedResult.music_status === 'failed' ? '#f8d7da' : 
+            generatedResult.music_status === 'error' ? '#f8d7da' :
+            generatedResult.music_status === 'timeout' ? '#fff3cd' : '#d1ecf1',
+          borderRadius: '6px',
+          fontSize: '11px',
+          color: 
+            generatedResult.music_status === 'failed' ? '#721c24' : 
+            generatedResult.music_status === 'error' ? '#721c24' :
+            generatedResult.music_status === 'timeout' ? '#856404' : '#0c5460',
+          textAlign: 'center',
+          border: 
+            generatedResult.music_status === 'failed' ? '1px solid #f5c6cb' : 
+            generatedResult.music_status === 'error' ? '1px solid #f5c6cb' :
+            generatedResult.music_status === 'timeout' ? '1px solid #ffeaa7' : '1px solid #bee5eb'
+        }}>
+          {generatedResult.music_status === 'failed' || generatedResult.music_status === 'error' ? (
+            `❌ Génération musicale échouée: ${generatedResult.music_error || 'Erreur inconnue'}`
+          ) : generatedResult.music_status === 'timeout' ? (
+            '⏰ Génération musicale prend plus de temps que prévu (8 minutes max)...'
+          ) : generatedResult.music_status === 'completed_no_audio' ? (
+            '⚠️ Génération terminée mais audio non disponible'
+          ) : (
+            '🎵 Génération musicale en cours... Cela peut prendre quelques minutes.'
+          )}
+        </div>
+      )}
+      
+      {/* Boutons d'action */}
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+        {(generatedResult.content || generatedResult.rhyme || generatedResult.lyrics) && (
+          <button
+            onClick={() => downloadPDF(generatedResult.title || 'Comptine', generatedResult.content || generatedResult.rhyme || generatedResult.lyrics)}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#6B4EFF',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: '11px'
+            }}
+          >
+            📄 Télécharger
+          </button>
+        )}
+        
+        {generatedResult.task_id && (
+          <button
+            onClick={async () => {
+              try {
+                const response = await fetch(`http://localhost:8000/check_task_status/${generatedResult.task_id}`);
+                const status = await response.json();
+                if (status.status === 'completed' && status.audio_path) {
+                  setGeneratedResult({
+                    ...generatedResult,
+                    audio_path: status.audio_path
+                  });
+                } else {
+                  alert(`Statut: ${status.status}`);
+                }
+              } catch (error) {
+                alert('Erreur lors de la vérification du statut');
+              }
+            }}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#28a745',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: '11px'
+            }}
+          >
+            🔄 Vérifier musique
+          </button>
+        )}
+      </div>
+    </div>
+  )}
+  
+  {/* 🎵 Audio présent pour autres contenus */}
+{contentType !== 'rhyme' && generatedResult?.audio_path && (
   <div
     style={{
       height: '300px', // 👈 même hauteur que le bloc boutons

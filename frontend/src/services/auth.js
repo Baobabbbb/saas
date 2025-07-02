@@ -213,34 +213,8 @@ export async function deleteUserAccount() {
 
     console.log('🗑️ Suppression du compte utilisateur:', user.email, 'ID:', user.id);
 
-    // Étape 1: Supprimer toutes les créations de l'utilisateur (optionnel)
-    // Supprimer les histoires générées (si la table existe)
-    try {
-      const { error: storiesError } = await supabase
-        .from('stories')
-        .delete()
-        .eq('user_id', user.id);
-      
-      if (storiesError && !storiesError.message.includes('does not exist')) {
-        console.warn('Impossible de supprimer les histoires:', storiesError.message);
-      }
-    } catch (e) {
-      console.warn('Table stories non disponible:', e.message);
-    }
-
-    // Supprimer les animations générées (si la table existe)
-    try {
-      const { error: animationsError } = await supabase
-        .from('animations')
-        .delete()
-        .eq('user_id', user.id);
-      
-      if (animationsError && !animationsError.message.includes('does not exist')) {
-        console.warn('Impossible de supprimer les animations:', animationsError.message);
-      }
-    } catch (e) {
-      console.warn('Table animations non disponible:', e.message);
-    }
+    // Étape 1: Les suppressions sont maintenant gérées par la fonction RPC
+    console.log('ℹ️ Suppression des données utilisateur via fonction RPC...');
 
     // Étape 2: Utiliser la fonction RPC pour supprimer complètement l'utilisateur
     const { data: rpcResult, error: rpcError } = await supabase.rpc('delete_user_account', {

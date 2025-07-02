@@ -11,42 +11,42 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from config import GOAPI_API_KEY, DIFFRHYTHM_MODEL, DIFFRHYTHM_TASK_TYPE
 
-# Configuration par défaut pour les comptines
+# Configuration optimisée pour la vitesse des comptines
 NURSERY_RHYME_STYLES = {
     "lullaby": {
-        "style": "gentle lullaby, soft and soothing, quiet vocals, peaceful melody",
+        "style": "simple lullaby, soft voice, short melody",
         "tempo": "slow",
-        "mood": "calm and peaceful"
+        "mood": "calm"
     },
     "counting": {
-        "style": "upbeat children's song, clear vocals, educational and fun",
+        "style": "simple counting song, clear voice, basic rhythm",
         "tempo": "medium",
-        "mood": "cheerful and educational"
+        "mood": "educational"
     },
     "animal": {
-        "style": "playful children's song with animal sounds, bouncy rhythm",
-        "tempo": "medium-fast",
-        "mood": "playful and fun"
+        "style": "simple animal song, basic sounds, short tune",
+        "tempo": "medium",
+        "mood": "playful"
     },
     "seasonal": {
-        "style": "festive children's song, warm and joyful melody",
+        "style": "simple seasonal song, basic melody",
         "tempo": "medium",
-        "mood": "festive and warm"
+        "mood": "festive"
     },
     "educational": {
-        "style": "educational children's song, clear pronunciation, memorable tune",
+        "style": "simple educational song, clear voice, basic tune",
         "tempo": "medium",
-        "mood": "educational and engaging"
+        "mood": "educational"
     },
     "movement": {
-        "style": "energetic children's song with dance rhythm, upbeat and active",
+        "style": "simple dance song, basic beat, short duration",
         "tempo": "fast",
-        "mood": "energetic and active"
+        "mood": "energetic"
     },
     "custom": {
-        "style": "children's song with simple melody, clear vocals",
+        "style": "simple children's song, basic melody, short",
         "tempo": "medium",
-        "mood": "joyful and child-friendly"
+        "mood": "joyful"
     }
 }
 
@@ -61,7 +61,8 @@ class DiffRhythmService:
         self, 
         lyrics: str, 
         rhyme_type: str = "custom",
-        custom_style: Optional[str] = None
+        custom_style: Optional[str] = None,
+        fast_mode: bool = True
     ) -> Dict[str, Any]:
         """
         Génère une comptine musicale avec DiffRhythm
@@ -70,6 +71,7 @@ class DiffRhythmService:
             lyrics: Les paroles de la comptine
             rhyme_type: Type de comptine (lullaby, counting, animal, etc.)
             custom_style: Style personnalisé optionnel
+            fast_mode: Mode rapide pour optimiser la vitesse
             
         Returns:
             Dict contenant les informations de la tâche
@@ -80,19 +82,27 @@ class DiffRhythmService:
             
             # Récupérer le style prédéfini ou utiliser le style personnalisé
             style_config = NURSERY_RHYME_STYLES.get(rhyme_type, NURSERY_RHYME_STYLES["custom"])
-            style_prompt = custom_style or style_config["style"]
+            base_style = custom_style or style_config["style"]
             
-            # Préparer le payload pour l'API
+            # Adapter le style selon le mode
+            if fast_mode:
+                style_prompt = f"{base_style}, short simple song, under 30 seconds, minimal complexity"
+            else:
+                style_prompt = f"{base_style}, full children's song, up to 60 seconds"
+            
+            # Préparer le payload pour l'API avec optimisations selon le mode
             payload = {
                 "model": self.model,
                 "task_type": self.task_type,
                 "input": {
-                    "lyrics": lyrics[:10000],  # Limite de 10000 caractères
+                    "lyrics": lyrics[:1000 if fast_mode else 2000],
                     "style_prompt": style_prompt,
                     "style_audio": ""  # Pas d'audio de référence
                 },
                 "config": {
-                    "service_mode": ""
+                    "service_mode": "fast" if fast_mode else "standard",
+                    "duration": "short" if fast_mode else "medium",
+                    "quality": "fast" if fast_mode else "standard"
                 }
             }
             
@@ -181,13 +191,44 @@ class DiffRhythmService:
                         
                         if result.get("code") == 200:
                             task_data = result.get("data", {})
-                            status = task_data.get("status")
+                            task_status = task_data.get("status")
                             
-                            return {
-                                "status": "success",
-                                "task_status": status,
+                            # Mapper le statut de GoAPI vers notre format
+                            status_mapping = {
+                                "pending": "pending",
+                                "processing": "processing", 
+                                "completed": "completed",
+                                "success": "completed",
+                                "failed": "failed",
+                                "error": "failed"
+                            }
+                            
+                            mapped_status = status_mapping.get(task_status, "pending")
+                            
+                            response_data = {
+                                "status": mapped_status,
+                                "task_status": task_status,
                                 "task_data": task_data
                             }
+                            
+                            # Si la tâche est terminée, extraire l'URL audio
+                            if task_status in ["completed", "success"]:
+                                output = task_data.get("output")
+                                if output:
+                                    # Extraire l'URL audio depuis la réponse
+                                    audio_url = None
+                                    if isinstance(output, dict):
+                                        audio_url = output.get("audio_url") or output.get("url")
+                                    elif isinstance(output, str):
+                                        audio_url = output
+                                    
+                                    if audio_url:
+                                        response_data["audio_url"] = audio_url
+                                        response_data["audio_path"] = audio_url
+                                        response_data["status"] = "completed"
+                                        print(f"✅ Audio prêt: {audio_url}")
+                            
+                            return response_data
                         else:
                             raise Exception(f"Erreur API: {result}")
                     else:
