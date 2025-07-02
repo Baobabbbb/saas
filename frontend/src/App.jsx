@@ -96,7 +96,7 @@ const getSafeFilename = (title) => {
 };
 
 function App() {
-  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'musical_rhyme', 'audio', 'coloring', 'animation'
+  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'audio', 'coloring', 'animation'
   const [selectedRhyme, setSelectedRhyme] = useState(null);
   const [customRhyme, setCustomRhyme] = useState('');
   
@@ -177,26 +177,12 @@ function App() {
       if (contentType === 'rhyme') {
         const payload = {
           rhyme_type: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
-          custom_request: customRequest
+          custom_request: customRequest,
+          generate_music: generateMusic || true,
+          custom_style: musicStyle === 'custom' ? customMusicStyle : musicStyle
         };
 
         const response = await fetch('http://localhost:8000/generate_rhyme/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
-        generatedContent = await response.json();
-      } else if (contentType === 'musical_rhyme') {
-        const payload = {
-          rhyme_type: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
-          custom_request: customRequest,
-          generate_music: generateMusic,
-          custom_style: musicStyle === 'custom' ? customMusicStyle : null
-        };
-
-        const response = await fetch('http://localhost:8000/generate_musical_rhyme/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -296,17 +282,11 @@ function App() {
     let title;
     if (contentType === 'rhyme') {
       // Utiliser le titre de l'IA ou générer un titre attractif
-      if (generatedContent.title && !generatedContent.title.includes('générée')) {
-        title = generatedContent.title;
-      } else {
-        title = generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme);
-      }
-    } else if (contentType === 'musical_rhyme') {
-      // Utiliser le titre de l'IA pour les comptines musicales
+      // Utiliser le titre de l'IA pour les comptines (avec ou sans musique)
       if (generatedContent.title && !generatedContent.title.includes('générée')) {
         title = generatedContent.title + (generatedContent.has_music ? ' 🎵' : '');
       } else {
-        title = generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme) + ' 🎵';
+        title = generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme) + (generatedContent.has_music ? ' 🎵' : '');
       }
     } else if (contentType === 'audio') {
       // Utiliser le titre de l'IA ou générer un titre attractif
@@ -419,9 +399,6 @@ const handleSelectCreation = (creation) => {
   const handleDeleteCreation = (idToDelete) => {
   };  const isFormValid = () => {
     if (contentType === 'rhyme') {
-      if (!selectedRhyme) return false;
-      if (selectedRhyme === 'custom' && !customRhyme.trim()) return false;
-    } else if (contentType === 'musical_rhyme') {
       if (!selectedRhyme) return false;
       if (selectedRhyme === 'custom' && !customRhyme.trim()) return false;
       // Validation supplémentaire pour le style musical personnalisé
@@ -555,22 +532,6 @@ const downloadPDF = async (title, content) => {
             {contentType === 'rhyme' ? (
               <motion.div
                 key="rhyme-selector"
-                variants={contentVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                transition={{ duration: 0.3 }}
-              >
-                <RhymeSelector
-                  selectedRhyme={selectedRhyme}
-                  setSelectedRhyme={setSelectedRhyme}
-                  customRhyme={customRhyme}
-                  setCustomRhyme={setCustomRhyme}
-                />
-              </motion.div>
-            ) : contentType === 'musical_rhyme' ? (
-              <motion.div
-                key="musical-rhyme-selector"
                 variants={contentVariants}
                 initial="hidden"
                 animate="visible"
@@ -754,8 +715,6 @@ const downloadPDF = async (title, content) => {
     <div className="empty-preview">    <p>
       {contentType === 'rhyme'
         ? 'Votre comptine apparaîtra ici'
-        : contentType === 'musical_rhyme'
-        ? 'Votre comptine musicale apparaîtra ici'
         : contentType === 'audio'
         ? 'Votre histoire apparaîtra ici'
         : contentType === 'coloring'

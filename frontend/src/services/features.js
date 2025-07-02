@@ -6,15 +6,21 @@ const DEFAULT_FEATURES = {
   animation: { enabled: true, name: 'Dessin animé', icon: '🎬' },
   coloring: { enabled: true, name: 'Coloriage', icon: '🎨' },
   audio: { enabled: true, name: 'Histoire', icon: '📖' },
-  rhyme: { enabled: false, name: 'Comptine', icon: '🎵' }, // désactivé par défaut
-  musical_rhyme: { enabled: true, name: 'Comptine musicale', icon: '🎼' } // ✨ Nouveau !
+  rhyme: { enabled: true, name: 'Comptine', icon: '�' }
 };
 
 export const getFeatures = () => {
   const stored = localStorage.getItem(FEATURES_STORAGE_KEY);
   if (stored) {
     try {
-      return { ...DEFAULT_FEATURES, ...JSON.parse(stored) };
+      const parsedFeatures = JSON.parse(stored);
+      // Nettoyer les anciennes fonctionnalités obsolètes
+      delete parsedFeatures.musical_rhyme;
+      
+      const cleanedFeatures = { ...DEFAULT_FEATURES, ...parsedFeatures };
+      // Sauvegarder la version nettoyée
+      localStorage.setItem(FEATURES_STORAGE_KEY, JSON.stringify(cleanedFeatures));
+      return cleanedFeatures;
     } catch (error) {
       console.error('Erreur lors du parsing des fonctionnalités:', error);
     }
@@ -47,3 +53,20 @@ export const getEnabledFeatures = () => {
       return enabled;
     }, {});
 };
+
+// Fonction pour nettoyer le localStorage des anciennes fonctionnalités
+export const cleanupObsoleteFeatures = () => {
+  const stored = localStorage.getItem(FEATURES_STORAGE_KEY);
+  if (stored) {
+    try {
+      const parsedFeatures = JSON.parse(stored);
+      delete parsedFeatures.musical_rhyme;
+      localStorage.setItem(FEATURES_STORAGE_KEY, JSON.stringify(parsedFeatures));
+    } catch (error) {
+      console.error('Erreur lors du nettoyage:', error);
+    }
+  }
+};
+
+// Nettoyage automatique au chargement du module
+cleanupObsoleteFeatures();
