@@ -19,9 +19,9 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <div className="legal-section">
         <h3>Éditeur du site</h3>
         <div className="info-block">
-          <p><strong>Nom :</strong> FRIDAY - Créations pour enfants</p>
+          <p><strong>Nom :</strong> FRIDAY</p>
           <p><strong>Adresse :</strong> [À compléter selon votre situation]</p>
-          <p><strong>Email :</strong> contact@friday-kids.fr</p>
+          <p><strong>Email :</strong> contact@friday.com</p>
           <p><strong>Téléphone :</strong> [À compléter]</p>
         </div>
       </div>
@@ -95,7 +95,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
             <li><strong>Droit de portabilité :</strong> récupérer vos données</li>
             <li><strong>Droit d'opposition :</strong> vous opposer au traitement</li>
           </ul>
-          <p><strong>Pour exercer vos droits :</strong> contactez-nous à l'adresse : privacy@friday-kids.fr</p>
+          <p><strong>Pour exercer vos droits :</strong> contactez-nous à l'adresse : privacy@friday.com</p>
         </div>
       </div>
 
@@ -285,7 +285,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
 
         <div className="legal-footer">
           <p>📅 Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}</p>
-          <p>📧 Contact : <a href="mailto:legal@friday-kids.fr">legal@friday-kids.fr</a></p>
+          <p>📧 Contact : <a href="mailto:legal@friday.com">legal@friday.com</a></p>
         </div>
       </motion.div>
     </motion.div>
