@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './UserAccount.css';
-import { signUpWithProfile, signIn, signOut, updateUserProfile, getCurrentUserProfile, deleteUserAccount } from '../services/auth';
+import { signUpWithProfile, signIn, signOut, updateUserProfile, getCurrentUserProfile, deleteUserAccount, resetPassword } from '../services/auth';
 import AdminPanel from './AdminPanel';
 
 const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
@@ -26,6 +26,11 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [profileUpdateSuccess, setProfileUpdateSuccess] = useState(false);
+
+  // États pour la réinitialisation du mot de passe
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetEmailSent, setResetEmailSent] = useState(false);
 
   // Email de l'administrateur
   const ADMIN_EMAIL = 'fredagathe77@gmail.com';
@@ -56,8 +61,10 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
     setShowLoginForm(false);
     setShowRegisterForm(false);
     setShowProfileForm(false);
+    setShowForgotPassword(false);
     setError('');
     setShowErrorPopup(false);
+    setResetEmailSent(false);
   };
 
   const handleProfileClick = async () => {
@@ -301,6 +308,47 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
     setError('');
   };
 
+  // Fonctions pour la réinitialisation du mot de passe
+  const handleForgotPassword = () => {
+    setShowForgotPassword(true);
+    setShowLoginForm(false);
+    setError('');
+    setResetEmailSent(false);
+    setResetEmail(email); // Pré-remplir avec l'email de connexion si disponible
+  };
+
+  const handleSendResetEmail = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    if (!resetEmail.trim()) {
+      setError('Veuillez saisir votre adresse email');
+      return;
+    }
+
+    try {
+      const { error } = await resetPassword({ email: resetEmail });
+      
+      if (error) {
+        setError('Erreur lors de l\'envoi de l\'email: ' + error.message);
+        return;
+      }
+
+      setResetEmailSent(true);
+    } catch (error) {
+      setError('Erreur lors de l\'envoi de l\'email de réinitialisation');
+      console.error('Erreur reset password:', error);
+    }
+  };
+
+  const handleBackToLogin = () => {
+    setShowForgotPassword(false);
+    setShowLoginForm(true);
+    setResetEmailSent(false);
+    setResetEmail('');
+    setError('');
+  };
+
   return (
     <div className="user-account">
       <motion.div 
@@ -337,17 +385,64 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                 </div>
                 <ul>
                   {isAdmin() && (
-                    <li className="admin-option" onClick={handleAdminPanelClick}>
-                      Panneau administrateur
-                    </li>
+                    <motion.li 
+                      className="admin-option" 
+                      onClick={handleAdminPanelClick}
+                      whileHover={{ 
+                        scale: 1.02,
+                        x: 3,
+                        transition: { 
+                          type: "spring", 
+                          stiffness: 400, 
+                          damping: 17 
+                        }
+                      }}
+                      whileTap={{ 
+                        scale: 0.98,
+                        x: 1,
+                        transition: { 
+                          type: "spring", 
+                          stiffness: 600, 
+                          damping: 20 
+                        }
+                      }}
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ 
+                        duration: 0.3,
+                        ease: "easeOut"
+                      }}
+                    >
+                      <motion.span
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        Panneau administrateur
+                      </motion.span>
+                    </motion.li>
                   )}
-                  <li onClick={handleProfileClick}>
+                  <motion.li 
+                    onClick={handleProfileClick}
+                    whileHover={{ x: 2, transition: { type: "spring", stiffness: 300, damping: 20 } }}
+                    whileTap={{ scale: 0.98 }}
+                  >
                     Mon compte
-                  </li>
-                  <li onClick={() => { setShowDropdown(false); window.location.hash = 'historique'; }}>
+                  </motion.li>
+                  <motion.li 
+                    onClick={() => { setShowDropdown(false); window.location.hash = 'historique'; }}
+                    whileHover={{ x: 2, transition: { type: "spring", stiffness: 300, damping: 20 } }}
+                    whileTap={{ scale: 0.98 }}
+                  >
                     Mon historique
-                  </li>
-                  <li onClick={handleLogout}>Se déconnecter</li>
+                  </motion.li>
+                  <motion.li 
+                    onClick={handleLogout}
+                    whileHover={{ x: 2, transition: { type: "spring", stiffness: 300, damping: 20 } }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Se déconnecter
+                  </motion.li>
                 </ul>
               </>
             ) : (
@@ -395,6 +490,15 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                     onChange={(e) => setPassword(e.target.value)} 
                     required 
                   />
+                  <div className="forgot-password-link">
+                    <button 
+                      type="button" 
+                      className="link-button"
+                      onClick={handleForgotPassword}
+                    >
+                      Mot de passe oublié ?
+                    </button>
+                  </div>
                 </div>
                 <div className="form-actions">
                   <button type="button" onClick={() => setShowLoginForm(false)}>Annuler</button>
@@ -740,6 +844,73 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
       <AnimatePresence>
         {showAdminPanel && (
           <AdminPanel onClose={closeAdminPanel} />
+        )}
+      </AnimatePresence>
+
+      {/* Formulaire de réinitialisation du mot de passe */}
+      <AnimatePresence>
+        {showForgotPassword && (
+          <motion.div 
+            className="auth-form-container"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="auth-form">
+              <h3>Réinitialiser le mot de passe</h3>
+              {error && <div className="error" style={{ color: "red", marginBottom: 10 }}>{error}</div>}
+              
+              {!resetEmailSent ? (
+                <form onSubmit={handleSendResetEmail}>
+                  <p style={{ marginBottom: 16, color: '#666' }}>
+                    Saisissez votre adresse email pour recevoir un lien de réinitialisation.
+                  </p>
+                  <div className="form-group">
+                    <label htmlFor="reset-email">Email</label>
+                    <input 
+                      type="email" 
+                      id="reset-email" 
+                      value={resetEmail} 
+                      onChange={(e) => setResetEmail(e.target.value)} 
+                      required 
+                    />
+                  </div>
+                  <div className="form-actions">
+                    <button type="button" onClick={handleBackToLogin}>Retour</button>
+                    <button type="submit">Envoyer</button>
+                  </div>
+                </form>
+              ) : (
+                <div className="reset-success">
+                  <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
+                    <h4 style={{ color: 'green', marginBottom: '16px' }}>Email envoyé !</h4>
+                    <p style={{ marginBottom: '16px', color: '#666' }}>
+                      Un lien de réinitialisation a été envoyé à <strong>{resetEmail}</strong>
+                    </p>
+                    <p style={{ marginBottom: '20px', color: '#666', fontSize: '0.9rem' }}>
+                      Vérifiez votre boîte mail et cliquez sur le lien pour réinitialiser votre mot de passe.
+                    </p>
+                    <button 
+                      type="button" 
+                      onClick={handleBackToLogin}
+                      style={{ 
+                        background: 'var(--primary)', 
+                        color: 'white', 
+                        border: 'none', 
+                        padding: '10px 20px', 
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Retour à la connexion
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

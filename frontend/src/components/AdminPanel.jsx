@@ -30,11 +30,6 @@ const AdminPanel = ({ onClose }) => {
         </div>
         
         <div className="admin-panel-content">
-          <div className="admin-welcome">
-            <p>Bienvenue dans le panneau administrateur !</p>
-            <p>Gérez les fonctionnalités et paramètres du site.</p>
-          </div>
-          
           <FeatureManager />
           
           <div className="admin-sections">
