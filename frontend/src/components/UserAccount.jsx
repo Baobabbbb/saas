@@ -9,14 +9,12 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [showProfileForm, setShowProfileForm] = useState(false);
-  const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [error, setError] = useState('');
-  const [errorPopupMessage, setErrorPopupMessage] = useState('');
   const [userFirstName, setUserFirstName] = useState('');
   
   // États pour le profil utilisateur
@@ -63,7 +61,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
     setShowProfileForm(false);
     setShowForgotPassword(false);
     setError('');
-    setShowErrorPopup(false);
     setResetEmailSent(false);
   };
 
@@ -94,7 +91,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
     setShowLoginForm(true);
     setShowRegisterForm(false);
     setError('');
-    setShowErrorPopup(false);
   };
 
   const handleRegisterClick = () => {
@@ -102,7 +98,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
     setShowLoginForm(false);
     setShowProfileForm(false);
     setError('');
-    setShowErrorPopup(false);
   };
 
   const handleUpdateProfile = async (e) => {
@@ -147,17 +142,13 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
     const { error } = await signIn({ email, password });
     
     if (error) {
-      // Vérifier le type d'erreur selon nos codes personnalisés
+      // Afficher l'erreur directement dans le formulaire
       if (error.message === 'WRONG_PASSWORD') {
-        // Mauvais mot de passe ou email inexistant - afficher popup d'erreur avec option d'inscription
-        setErrorPopupMessage('Les identifiants saisis sont incorrects. Vérifiez votre email et mot de passe, ou inscrivez-vous si vous n\'avez pas encore de compte.');
-        setShowErrorPopup(true);
-        setError('');
-        setPassword(''); // Vider le mot de passe
+        setError('Les identifiants saisis sont incorrects. Vérifiez votre email et mot de passe.');
       } else {
-        // Autres erreurs - afficher dans le formulaire
         setError(error.originalMessage || error.message);
       }
+      setPassword(''); // Vider le mot de passe
     } else {
       setError('');
       // Succès de connexion
@@ -179,8 +170,59 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
     }
   };
 
+  // Fonction de validation d'email
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
+  // Fonction de validation de mot de passe
+  const validatePassword = (password) => {
+    // Au moins 6 caractères
+    if (password.length < 6) {
+      return "Le mot de passe doit contenir au moins 6 caractères";
+    }
+    
+    // Au moins une majuscule
+    if (!/[A-Z]/.test(password)) {
+      return "Le mot de passe doit contenir au moins une majuscule";
+    }
+    
+    // Au moins un chiffre
+    if (!/[0-9]/.test(password)) {
+      return "Le mot de passe doit contenir au moins un chiffre";
+    }
+    
+    // Au moins un caractère spécial
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      return "Le mot de passe doit contenir au moins un caractère spécial (!@#$%^&*...)";
+    }
+    
+    return null; // Pas d'erreur
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
+    
+    // Validation du format de l'email
+    if (!validateEmail(email)) {
+      setError('Veuillez saisir une adresse email valide (ex: nom@domaine.com)');
+      return;
+    }
+    
+    // Validation des champs requis
+    if (!firstName.trim() || !lastName.trim()) {
+      setError('Le prénom et le nom sont obligatoires');
+      return;
+    }
+    
+    // Validation du mot de passe
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
+    
     const { error } = await signUpWithProfile({ email, password, firstName, lastName });
     if (error) {
       setError(error.message);    } else {
@@ -209,26 +251,12 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
     setShowDropdown(false);
     setShowAdminPanel(false);
     setError('');
-    setShowErrorPopup(false);
     setUserFirstName(''); // Réinitialiser le prénom
     // Appeler le callback de déconnexion pour mettre à jour l'état global
     if (onLogout) {
       onLogout();
     }
   };
-  const closeErrorPopup = () => {
-    setShowErrorPopup(false);
-    setErrorPopupMessage('');
-  };
-
-  const switchToRegisterFromPopup = () => {
-    setShowErrorPopup(false);
-    setErrorPopupMessage('');
-    setShowLoginForm(false);
-    setShowRegisterForm(true);
-    setPassword(''); // Vider le mot de passe mais garder l'email
-  };
-
   const handleAdminPanelClick = () => {
     setShowAdminPanel(true);
     setShowDropdown(false);
@@ -490,7 +518,14 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                     onChange={(e) => setPassword(e.target.value)} 
                     required 
                   />
-                  <div className="forgot-password-link">
+                  <div className="forgot-password-section">
+                    <button 
+                      type="button" 
+                      className="link-button register-link"
+                      onClick={handleRegisterClick}
+                    >
+                      S'inscrire
+                    </button>
                     <button 
                       type="button" 
                       className="link-button"
@@ -565,6 +600,15 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                     onChange={(e) => setPassword(e.target.value)} 
                     required 
                   />
+                  <div className="login-section">
+                    <button 
+                      type="button" 
+                      className="link-button login-link"
+                      onClick={handleLoginClick}
+                    >
+                      Connexion
+                    </button>
+                  </div>
                 </div>
                 <div className="form-actions">
                   <button type="button" onClick={() => setShowRegisterForm(false)}>Annuler</button>
@@ -644,9 +688,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                   >
                     Supprimer mon compte
                   </button>
-                  <p className="delete-account-warning">
-                    Attention : Cette action est irréversible. Votre compte et toutes vos données seront supprimés.
-                  </p>
                 </div>
               </form>
             </div>
@@ -710,52 +751,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
         )}
       </AnimatePresence>
 
-      {/* Popup d'erreur pour les mots de passe incorrects */}
-      <AnimatePresence>
-        {showErrorPopup && (
-          <motion.div 
-            className="error-popup-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <motion.div 
-              className="error-popup"
-              initial={{ opacity: 0, scale: 0.8, y: -50 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: -50 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="error-popup-header">
-                <h4>⚠️ Erreur de connexion</h4>
-                <button 
-                  className="error-popup-close"
-                  onClick={closeErrorPopup}
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="error-popup-content">
-                <p>{errorPopupMessage}</p>
-              </div>              <div className="error-popup-actions">
-                <button 
-                  className="error-popup-btn"
-                  onClick={closeErrorPopup}
-                >
-                  Réessayer
-                </button>
-                <button 
-                  className="error-popup-btn error-popup-btn-secondary"
-                  onClick={switchToRegisterFromPopup}
-                >
-                  S'inscrire
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Popup d'erreur supprimée - erreurs affichées directement dans le formulaire */}
 
       {/* Modal de confirmation de suppression de compte */}
       <AnimatePresence>
