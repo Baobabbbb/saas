@@ -293,3 +293,20 @@ export async function deleteUserAccount() {
     return { error: { message: 'Erreur lors de la suppression du compte: ' + err.message } };
   }
 }
+
+// Réinitialisation du mot de passe
+export async function resetPassword({ email }) {
+  try {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      return { error };
+    }
+
+    return { data };
+  } catch (err) {
+    return { error: { message: 'Erreur lors de l\'envoi de l\'email de réinitialisation: ' + err.message } };
+  }
+}
