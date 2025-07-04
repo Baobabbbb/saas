@@ -14,37 +14,37 @@ from config import GOAPI_API_KEY, UDIO_MODEL, UDIO_TASK_TYPE
 # Configuration optimisée pour les comptines enfant avec Udio
 NURSERY_RHYME_STYLES = {
     "lullaby": {
-        "style": "gentle lullaby, soft children's voice, peaceful melody",
+        "style": "gentle French lullaby, clear French female voice, soft children's melody, articulated pronunciation",
         "tempo": "slow",
         "mood": "calm"
     },
     "counting": {
-        "style": "educational children's song, clear singing voice, basic rhythm",
+        "style": "educational French children's song, clear French singing voice, pedagogical rhythm, articulated French pronunciation",
         "tempo": "medium",
         "mood": "educational"
     },
     "animal": {
-        "style": "playful children's song with animal sounds, happy voice",
+        "style": "playful French children's song with animal sounds, happy French voice, clear articulation",
         "tempo": "medium",
         "mood": "playful"
     },
     "seasonal": {
-        "style": "festive children's song, joyful melody, seasonal theme",
+        "style": "festive French children's song, joyful French melody, clear French pronunciation",
         "tempo": "medium",
         "mood": "festive"
     },
     "educational": {
-        "style": "educational children's song, clear voice, learning melody",
+        "style": "educational French children's song, clear French voice, learning melody, articulated pronunciation",
         "tempo": "medium",
         "mood": "educational"
     },
     "movement": {
-        "style": "energetic children's dance song, upbeat rhythm",
+        "style": "energetic French children's dance song, upbeat rhythm, clear French pronunciation",
         "tempo": "fast",
         "mood": "energetic"
     },
     "custom": {
-        "style": "children's song, happy voice, simple melody",
+        "style": "French children's song, happy voice, simple melody",
         "tempo": "medium",
         "mood": "joyful"
     }
@@ -82,17 +82,17 @@ class UdioService:
             style_config = NURSERY_RHYME_STYLES.get(rhyme_type, NURSERY_RHYME_STYLES["custom"])
             base_style = custom_style or style_config["style"]
             
-            # Style description pour Udio - enfants français
-            gpt_description_prompt = f"{base_style}, children's song in French, nursery rhyme"
+            # Style description pour Udio - français clair et compréhensible
+            gpt_description_prompt = f"{base_style}, comptine française pour enfants, voix féminine française native, prononciation française impeccable, accent français parisien standard, diction claire et articulée, chanteuse française professionnelle, paroles françaises bien articulées"
             
             # Préparer le payload pour l'API Udio
             payload = {
                 "model": self.model,
                 "task_type": self.task_type,
                 "input": {
-                    "lyrics": lyrics[:1000],  # Udio a une limite de caractères
+                    "lyrics": self.format_lyrics_for_udio(lyrics)[:1000],  # Formatage optimisé pour le français
                     "gpt_description_prompt": gpt_description_prompt,
-                    "negative_tags": "adult content, explicit, violent",
+                    "negative_tags": "adult content, explicit, violent, english lyrics, unclear voice",
                     "lyrics_type": "user",  # Nous fournissons les paroles
                     "seed": -1  # Aléatoire
                 },
@@ -348,14 +348,14 @@ class UdioService:
 
     def format_lyrics_for_udio(self, lyrics: str) -> str:
         """
-        Formate les paroles pour Udio
+        Formate les paroles pour Udio avec optimisation pour la prononciation française
         Udio préfère des paroles structurées avec [Verse], [Chorus], etc.
         
         Args:
             lyrics: Paroles brutes
             
         Returns:
-            Paroles formatées pour Udio
+            Paroles formatées pour Udio avec indications de prononciation
         """
         lines = [line.strip() for line in lyrics.split('\n') if line.strip()]
         
@@ -364,13 +364,14 @@ class UdioService:
         
         # Si les paroles sont courtes (comptine), les formater simplement
         if len(lines) <= 6:
-            formatted_lyrics = "[Verse]\n" + '\n'.join(lines)
+            # Ajouter des indications pour une meilleure prononciation française
+            formatted_lyrics = f"[Verse - French pronunciation, clear articulation]\n" + '\n'.join(lines)
         else:
             # Pour des paroles plus longues, essayer de structurer
             middle = len(lines) // 2
             verse1 = '\n'.join(lines[:middle])
             verse2 = '\n'.join(lines[middle:])
-            formatted_lyrics = f"[Verse]\n{verse1}\n\n[Verse 2]\n{verse2}"
+            formatted_lyrics = f"[Verse - French pronunciation, clear articulation]\n{verse1}\n\n[Verse 2 - French pronunciation, clear articulation]\n{verse2}"
         
         return formatted_lyrics
 

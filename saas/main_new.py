@@ -173,7 +173,8 @@ async def generate_rhyme(request: RhymeRequest):
                 rhyme_type=request.rhyme_type,
                 custom_request=request.custom_request,
                 generate_music=request.generate_music or True,
-                custom_style=request.custom_style
+                custom_style=request.custom_style,
+                language=getattr(request, 'language', 'fr')
             )
             
             # Ajouter des messages informatifs si la musique a échoué
@@ -671,3 +672,27 @@ if __name__ == "__main__":
         reload=True,
         log_level="info"
     )
+
+from fastapi.responses import StreamingResponse
+import httpx
+
+@app.get("/download_audio/{filename}")
+async def download_audio_proxy(filename: str, url: str):
+    """Proxy pour télécharger des fichiers audio avec le bon nom"""
+    try:
+        print(f"🎵 Téléchargement proxy demandé: {filename} depuis {url}")
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail="Erreur de téléchargement")
+            
+            # Retourner le fichier avec le bon nom
+            return StreamingResponse(
+                iter([response.content]),
+                media_type="audio/mpeg",
+                headers={"Content-Disposition": f"attachment; filename={filename}"}
+            )
+    except Exception as e:
+        print(f"❌ Erreur téléchargement proxy: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors du téléchargement: {str(e)}")

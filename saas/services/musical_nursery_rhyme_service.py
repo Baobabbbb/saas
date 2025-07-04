@@ -21,7 +21,8 @@ class MusicalNurseryRhymeService:
         rhyme_type: str,
         custom_request: Optional[str] = None,
         generate_music: bool = True,
-        custom_style: Optional[str] = None
+        custom_style: Optional[str] = None,
+        language: str = "fr"
     ) -> Dict[str, Any]:
         """
         Génère une comptine complète avec paroles et musique
@@ -31,7 +32,7 @@ class MusicalNurseryRhymeService:
             custom_request: Demande personnalisée
             generate_music: Si True, génère aussi la musique
             custom_style: Style musical personnalisé
-            fast_mode: Si True, optimise pour la vitesse
+            language: Langue de la comptine (fr par défaut)
             
         Returns:
             Dict contenant la comptine complète
@@ -40,7 +41,7 @@ class MusicalNurseryRhymeService:
             print(f"🎵 Génération comptine complète: {rhyme_type}")
             
             # Étape 1: Générer les paroles
-            lyrics_result = await self._generate_lyrics(rhyme_type, custom_request)
+            lyrics_result = await self._generate_lyrics(rhyme_type, custom_request, language)
             
             if lyrics_result["status"] != "success":
                 return lyrics_result
@@ -97,7 +98,8 @@ class MusicalNurseryRhymeService:
     async def _generate_lyrics(
         self, 
         rhyme_type: str, 
-        custom_request: Optional[str] = None
+        custom_request: Optional[str] = None,
+        language: str = "fr"
     ) -> Dict[str, Any]:
         """
         Génère les paroles de la comptine avec OpenAI
@@ -119,7 +121,7 @@ class MusicalNurseryRhymeService:
                 messages=[
                     {
                         "role": "system", 
-                        "content": "Tu es un spécialiste des comptines pour enfants. Tu écris des paroles simples, joyeuses et faciles à retenir, adaptées à la musique."
+                        "content": "Tu es un spécialiste des comptines françaises pour enfants. Tu écris des paroles simples, joyeuses, faciles à retenir et surtout FACILES À PRONONCER CLAIREMENT en français. Utilise des mots avec des syllabes bien distinctes et évite les liaisons compliquées."
                     },
                     {"role": "user", "content": prompt}
                 ],
@@ -203,18 +205,26 @@ class MusicalNurseryRhymeService:
         
         prompt += f"""
 La comptine doit être :
-- En français, adaptée aux enfants de 3 à 8 ans  
-- Avec des rimes simples et un rythme {style_info['tempo']}
+- En français STANDARD, adaptée aux enfants de 3 à 8 ans  
+- Avec des mots TRÈS SIMPLES et une PRONONCIATION CLAIRE
+- Éviter les liaisons complexes et les mots difficiles à articuler
+- Rimes simples et un rythme {style_info['tempo']}
 - D'ambiance {style_info['mood']}
 - TRÈS COURTE : maximum 4-6 lignes total
-- Avec des mots simples et répétitifs
+- Mots très faciles à chanter clairement (ex: "chat", "bleu", "maman", "dodo")
 - Format couplet simple (pas de refrain complexe)
 
+CRITÈRES POUR UNE BONNE PRONONCIATION :
+- Syllabes bien distinctes (ex: "pa-pa", "ma-man")
+- Éviter les groupes consonantiques (ex: préférer "beau" à "trois")
+- Mots de 1-2 syllabes principalement
+- Voyelles claires (a, e, i, o, u)
+
 OPTIMISÉ POUR GÉNÉRATION RAPIDE :
-1. Titre : 2-3 mots maximum
+1. Titre : 2-3 mots maximum, très simples
 2. Paroles : 4-6 lignes courtes maximum  
-3. Mots très simples, faciles à chanter
-4. Rimes évidentes (ex: chat/là, rouge/bouge)
+3. Mots faciles à prononcer et à chanter
+4. Rimes évidentes avec voyelles claires (ex: chat/là, rouge/bouge)
 
 Format de réponse :
 TITRE: [titre court]

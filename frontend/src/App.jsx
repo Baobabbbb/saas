@@ -105,7 +105,7 @@ function App() {
   
   // Musical rhyme states (nouveau)
   const [generateMusic, setGenerateMusic] = useState(true);
-  const [musicStyle, setMusicStyle] = useState('auto');
+  const [musicStyle, setMusicStyle] = useState(''); // Aucune sélection par défaut
   const [customMusicStyle, setCustomMusicStyle] = useState('');
   
   const [selectedAudioStory, setSelectedAudioStory] = useState(null);
@@ -117,7 +117,6 @@ function App() {
   const [generatedResult, setGeneratedResult] = useState(null);
   const [showFullStory, setShowFullStory] = useState(false);
   const [showStoryPopup, setShowStoryPopup] = useState(false);
-  const [showRhymePopup, setShowRhymePopup] = useState(false);
   const [showColoringPopup, setShowColoringPopup] = useState(false);
 
   // Coloring states
@@ -176,6 +175,11 @@ function App() {
     setIsGenerating(true);
     setGeneratedResult(null);
     // setShowConfetti(true);
+    
+    // Nettoyer les données temporaires précédentes
+    if (window.tempRhymeData) {
+      delete window.tempRhymeData;
+    }
 
     if (loading) return;
 
@@ -291,24 +295,10 @@ function App() {
     // 🔁 Enregistre le résultat généré pour affichage audio/texte
     console.log('🔁 Setting generatedResult:', generatedContent);
     
-    // 🎵 Pour les comptines musicales, ne pas afficher le résultat tout de suite
-    if (contentType === 'rhyme' && generatedContent.task_id && generateMusic) {
-      console.log('🎵 Comptine musicale en cours - attente de la musique avant affichage');
-      console.log('🎵 Démarrage du polling automatique pour task_id:', generatedContent.task_id);
-      // Stocker temporairement les données pour le polling
-      window.tempRhymeData = generatedContent;
-      pollTaskStatus(generatedContent.task_id);
-      // NE PAS setGeneratedResult maintenant - ce sera fait dans le polling
-    } else {
-      // Pour les autres types de contenu, affichage immédiat
-      setGeneratedResult(generatedContent);
-    }
-    
-    console.log('🔁 ContentType:', contentType);    // Déterminer le titre avec des noms attractifs pour les enfants
+    // Déterminer le titre AVANT tout traitement
     let title;
     if (contentType === 'rhyme') {
       // Utiliser le titre de l'IA ou générer un titre attractif
-      // Utiliser le titre de l'IA pour les comptines (avec ou sans musique)
       if (generatedContent.title && !generatedContent.title.includes('générée')) {
         title = generatedContent.title + (generatedContent.has_music ? ' 🎵' : '');
       } else {
@@ -320,7 +310,8 @@ function App() {
         title = generatedContent.title;
       } else {
         title = generateChildFriendlyTitle('histoire', selectedAudioStory === 'custom' ? 'default' : selectedAudioStory);
-      }    } else if (contentType === 'coloring') {
+      }
+    } else if (contentType === 'coloring') {
       // Utiliser le titre généré par l'IA depuis l'API coloriage
       title = generatedContent?.title || generateChildFriendlyTitle('coloriage', selectedTheme);
     } else if (contentType === 'animation') {
@@ -330,6 +321,24 @@ function App() {
 
     // Stocker le titre pour l'utiliser dans l'UI
     setCurrentTitle(title);
+    
+    // 🎵 Pour les comptines musicales, ne pas afficher le résultat tout de suite
+    if (contentType === 'rhyme' && generatedContent.task_id && generateMusic) {
+      console.log('🎵 Comptine musicale en cours - attente de la musique avant affichage');
+      console.log('🎵 Démarrage du polling automatique pour task_id:', generatedContent.task_id);
+      // Stocker temporairement les données avec le titre calculé pour le polling
+      window.tempRhymeData = {
+        ...generatedContent,
+        title: title // S'assurer que le titre formaté est inclus
+      };
+      pollTaskStatus(generatedContent.task_id);
+      // NE PAS setGeneratedResult maintenant - ce sera fait dans le polling
+    } else {
+      // Pour les autres types de contenu, affichage immédiat
+      setGeneratedResult(generatedContent);
+    }
+    
+    console.log('🔁 ContentType:', contentType);
 
     // Créer une entrée d'historique
     let newCreation;
@@ -384,8 +393,17 @@ function App() {
     console.error('❌ Erreur de génération :', error);
     
     // Afficher une alerte avec plus d'informations
-    alert(`❌ Erreur lors de la génération : ${error.message}\n\n💡 Conseil : Vérifiez que les clés API sont configurées dans le fichier .env du serveur.`);  } finally {
-    setIsGenerating(false);
+    alert(`❌ Erreur lors de la génération : ${error.message}\n\n💡 Conseil : Vérifiez que les clés API sont configurées dans le fichier .env du serveur.`);
+    
+    // Pour les comptines musicales, arrêter l'animation même en cas d'erreur
+    if (contentType === 'rhyme' && generateMusic) {
+      setIsGenerating(false);
+    }
+  } finally {
+    // Ne pas arrêter l'animation pour les comptines musicales qui continuent en polling
+    if (!(contentType === 'rhyme' && generateMusic)) {
+      setIsGenerating(false);
+    }
   }
 };
 
@@ -584,8 +602,10 @@ const downloadPDF = async (title, content) => {
               };
               setGeneratedResult(completeRhyme);
               setIsGenerating(false); // Arrêter l'état de génération
-              delete window.tempRhymeData; // Nettoyer
+              // Ne pas supprimer tempRhymeData tout de suite pour le téléchargement
               console.log('🎵✅ Comptine complète affichée:', completeRhyme);
+              console.log('🎵✅ Titre sauvegardé pour téléchargement:', tempData.title);
+              console.log('🎵✅ completeRhyme.title final:', completeRhyme.title);
             } else {
               // Fallback : mise à jour simple
               setGeneratedResult(prev => ({
@@ -606,7 +626,7 @@ const downloadPDF = async (title, content) => {
               };
               setGeneratedResult(completeRhyme);
               setIsGenerating(false);
-              delete window.tempRhymeData;
+              // Ne pas supprimer tempRhymeData pour conserver le titre
             } else {
               setGeneratedResult(prev => ({
                 ...prev,
@@ -629,7 +649,7 @@ const downloadPDF = async (title, content) => {
             };
             setGeneratedResult(rhymeWithError);
             setIsGenerating(false);
-            delete window.tempRhymeData;
+            // Ne pas supprimer tempRhymeData pour conserver le titre
             console.log('🎵❌ Comptine affichée sans musique (erreur):', rhymeWithError);
           } else {
             setGeneratedResult(prev => ({
@@ -791,11 +811,11 @@ const downloadPDF = async (title, content) => {
         <div className="dot"></div>
         <div className="dot"></div>
       </div>      <p>        {contentType === 'rhyme'
-          ? 'Création de votre comptine musicale en cours... (paroles + mélodie avec Udio)'
+          ? 'Création de votre comptine en cours…'
           : contentType === 'audio'
           ? 'Création de l\'histoire en cours...'
           : contentType === 'coloring'
-          ? 'Création de vos coloriages en cours...'
+          ? 'Création de votre coloriage en cours…'
           : contentType === 'animation'
           ? 'Création de votre dessin animé en cours...'
           : 'Génération en cours...'}
@@ -889,40 +909,6 @@ const downloadPDF = async (title, content) => {
         padding: '1rem'
       }}
     >
-      {/* Carte d'affichage de la comptine - style identique aux cartes de sélection d'histoire */}
-      <div
-        style={{
-          backgroundColor: '#f5f0ff',
-          borderRadius: '16px',
-          padding: '1rem',
-          border: '2px solid #6B4EFF',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.5rem',
-          width: '100%',
-          maxWidth: '280px',
-          textAlign: 'center'
-        }}
-      >
-        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🎵</div>
-        <h4 style={{ 
-          margin: 0, 
-          color: '#6B4EFF', 
-          fontSize: '1rem',
-          fontWeight: '600'
-        }}>
-          {generatedResult.title || 'Ma Comptine'}
-        </h4>
-        <p style={{ 
-          margin: 0, 
-          fontSize: '0.8rem', 
-          color: '#666',
-          lineHeight: '1.3'
-        }}>
-          {(generatedResult.content || generatedResult.rhyme || generatedResult.lyrics)?.substring(0, 60)}...
-        </p>
-      </div>
-      
       {/* Audio si disponible */}
       {(generatedResult.audio_path || generatedResult.audio_url) && (
         <audio
@@ -935,35 +921,77 @@ const downloadPDF = async (title, content) => {
       {/* Boutons d'action dans le style des cartes */}
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         <button
-          onClick={() => setShowRhymePopup(true)}
+          onClick={() => {
+            const audioUrl = generatedResult.audio_path || generatedResult.audio_url;
+            if (!audioUrl) {
+              alert('Audio non disponible pour le téléchargement');
+              return;
+            }
+            
+            // Essayer d'obtenir le titre depuis plusieurs sources avec priorité
+            let title = 
+              generatedResult.title || 
+              currentTitle || 
+              (window.tempRhymeData && window.tempRhymeData.title) ||
+              'Ma_Comptine';
+            
+            console.log('🎵 Téléchargement - DEBUG COMPLET:');
+            console.log('  - generatedResult:', generatedResult);
+            console.log('  - generatedResult.title:', generatedResult.title);
+            console.log('  - currentTitle:', currentTitle);
+            console.log('  - window.tempRhymeData:', window.tempRhymeData);
+            console.log('  - Titre final choisi:', title);
+            
+            // Vérifier que le titre n'est pas vide ou "undefined"
+            if (!title || title === 'undefined' || title.trim() === '') {
+              title = 'Ma_Comptine_Personnalisee';
+              console.log('🎵 Titre vide détecté, utilisation du fallback:', title);
+            }
+            
+            // Enlever les émojis et nettoyer le titre pour le nom de fichier
+            const cleanTitle = title
+              .replace(/[🎵🎶🎼🎤🎧🎹🥁🎺🎸🎻]/g, '') // Enlever les émojis musicaux
+              .trim()
+              .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Retirer les accents
+              .toLowerCase()
+              .replace(/\s+/g, "_") // Remplacer les espaces par des underscores
+              .replace(/[^a-z0-9_]/g, ""); // Garder uniquement lettres, chiffres et underscores
+            
+            // Vérifier que le nom nettoyé n'est pas vide
+            const finalFileName = cleanTitle || 'ma_comptine_personnalisee';
+            
+            console.log('🎵 Téléchargement - Nom de fichier final:', `${finalFileName}.mp3`);
+            
+            // Utiliser la route proxy du backend pour le téléchargement
+            try {
+              console.log('🎵 Début du téléchargement via proxy backend');
+              const downloadUrl = `http://localhost:8000/download_audio/${finalFileName}.mp3?url=${encodeURIComponent(audioUrl)}`;
+              
+              const link = document.createElement('a');
+              link.href = downloadUrl;
+              link.download = `${finalFileName}.mp3`;
+              link.style.display = 'none';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              
+              console.log('🎵✅ Téléchargement initié avec le nom:', `${finalFileName}.mp3`);
+            } catch (error) {
+              console.error('❌ Erreur lors du téléchargement:', error);
+              alert('Erreur lors du téléchargement du fichier.');
+            }
+          }}
           style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#f5f0ff',
-            color: '#6B4EFF',
-            border: '2px solid #6B4EFF',
-            borderRadius: '16px',
+            padding: '0.6rem 1.4rem',
+            backgroundColor: '#6B4EFF',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '0.5rem',
             cursor: 'pointer',
-            fontWeight: '600',
-            fontSize: '0.8rem'
+            fontWeight: '600'
           }}
         >
-          📖 Ouvrir
-        </button>
-        
-        <button
-          onClick={() => downloadPDF(generatedResult.title || 'Comptine', generatedResult.content || generatedResult.rhyme || generatedResult.lyrics)}
-          style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#f5f0ff',
-            color: '#6B4EFF',
-            border: '2px solid #6B4EFF',
-            borderRadius: '16px',
-            cursor: 'pointer',
-            fontWeight: '600',
-            fontSize: '0.8rem'
-          }}
-        >
-          📄 Télécharger
+          💾 Télécharger la comptine
         </button>
       </div>
       
@@ -1094,13 +1122,7 @@ const downloadPDF = async (title, content) => {
   />
 )}
 
-{showRhymePopup && (
-  <StoryPopup
-    title={generatedResult.title || 'Ma Comptine'}
-    content={generatedResult.content || generatedResult.rhyme || generatedResult.lyrics}
-    onClose={() => setShowRhymePopup(false)}
-  />
-)}    {showColoringPopup && (
+    {showColoringPopup && (
       <ColoringPopup
         coloringResult={coloringResult}
         selectedTheme={selectedTheme}
