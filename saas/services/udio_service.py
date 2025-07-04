@@ -1,6 +1,6 @@
 """
-Service DiffRhythm - Génération de comptines musicales
-Utilise l'API GoAPI DiffRhythm pour créer des comptines avec de la musique
+Service Udio - Génération de comptines musicales
+Utilise l'API GoAPI Udio pour créer des comptines avec de la musique réaliste
 """
 
 import aiohttp
@@ -9,53 +9,53 @@ import os
 import json
 from datetime import datetime
 from typing import Dict, Any, Optional
-from config import GOAPI_API_KEY, DIFFRHYTHM_MODEL, DIFFRHYTHM_TASK_TYPE
+from config import GOAPI_API_KEY, UDIO_MODEL, UDIO_TASK_TYPE
 
-# Configuration optimisée pour la vitesse des comptines
+# Configuration optimisée pour les comptines enfant avec Udio
 NURSERY_RHYME_STYLES = {
     "lullaby": {
-        "style": "simple lullaby, soft voice, short melody",
+        "style": "gentle lullaby, soft children's voice, peaceful melody",
         "tempo": "slow",
         "mood": "calm"
     },
     "counting": {
-        "style": "simple counting song, clear voice, basic rhythm",
+        "style": "educational children's song, clear singing voice, basic rhythm",
         "tempo": "medium",
         "mood": "educational"
     },
     "animal": {
-        "style": "simple animal song, basic sounds, short tune",
+        "style": "playful children's song with animal sounds, happy voice",
         "tempo": "medium",
         "mood": "playful"
     },
     "seasonal": {
-        "style": "simple seasonal song, basic melody",
+        "style": "festive children's song, joyful melody, seasonal theme",
         "tempo": "medium",
         "mood": "festive"
     },
     "educational": {
-        "style": "simple educational song, clear voice, basic tune",
+        "style": "educational children's song, clear voice, learning melody",
         "tempo": "medium",
         "mood": "educational"
     },
     "movement": {
-        "style": "simple dance song, basic beat, short duration",
+        "style": "energetic children's dance song, upbeat rhythm",
         "tempo": "fast",
         "mood": "energetic"
     },
     "custom": {
-        "style": "simple children's song, basic melody, short",
+        "style": "children's song, happy voice, simple melody",
         "tempo": "medium",
         "mood": "joyful"
     }
 }
 
-class DiffRhythmService:
+class UdioService:
     def __init__(self):
         self.api_key = GOAPI_API_KEY
         self.base_url = "https://api.goapi.ai/api/v1/task"
-        self.model = DIFFRHYTHM_MODEL
-        self.task_type = DIFFRHYTHM_TASK_TYPE
+        self.model = UDIO_MODEL
+        self.task_type = UDIO_TASK_TYPE
         
     async def generate_musical_nursery_rhyme(
         self, 
@@ -64,13 +64,12 @@ class DiffRhythmService:
         custom_style: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Génère une comptine musicale avec DiffRhythm
+        Génère une comptine musicale avec Udio
         
         Args:
             lyrics: Les paroles de la comptine
             rhyme_type: Type de comptine (lullaby, counting, animal, etc.)
             custom_style: Style personnalisé optionnel
-            fast_mode: Mode rapide pour optimiser la vitesse
             
         Returns:
             Dict contenant les informations de la tâche
@@ -82,21 +81,23 @@ class DiffRhythmService:
             # Récupérer le style prédéfini ou utiliser le style personnalisé
             style_config = NURSERY_RHYME_STYLES.get(rhyme_type, NURSERY_RHYME_STYLES["custom"])
             base_style = custom_style or style_config["style"]
-            style_prompt = f"{base_style}, children's song, simple and engaging"
             
-            # Préparer le payload pour l'API
+            # Style description pour Udio - enfants français
+            gpt_description_prompt = f"{base_style}, children's song in French, nursery rhyme"
+            
+            # Préparer le payload pour l'API Udio
             payload = {
                 "model": self.model,
                 "task_type": self.task_type,
                 "input": {
-                    "lyrics": lyrics[:1500],
-                    "style_prompt": style_prompt,
-                    "style_audio": ""  # Pas d'audio de référence
+                    "lyrics": lyrics[:1000],  # Udio a une limite de caractères
+                    "gpt_description_prompt": gpt_description_prompt,
+                    "negative_tags": "adult content, explicit, violent",
+                    "lyrics_type": "user",  # Nous fournissons les paroles
+                    "seed": -1  # Aléatoire
                 },
                 "config": {
-                    "service_mode": "standard",
-                    "duration": "short", 
-                    "quality": "standard"
+                    "service_mode": "public"
                 }
             }
             
@@ -106,17 +107,16 @@ class DiffRhythmService:
                 "x-api-key": self.api_key
             }
             
-            print(f"🎵 Génération comptine musicale...")
+            print(f"🎵 Génération comptine musicale avec Udio...")
             print(f"   📝 Paroles: {lyrics[:100]}...")
-            print(f"   🎨 Style: {style_prompt}")
+            print(f"   🎨 Style: {gpt_description_prompt}")
             
-            # Appel à l'API DiffRhythm
+            # Appel à l'API Udio
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     self.base_url,
                     json=payload,
-                    headers=headers,
-                    timeout=aiohttp.ClientTimeout(total=30)
+                    headers=headers
                 ) as response:
                     
                     if response.status == 200:
@@ -126,7 +126,7 @@ class DiffRhythmService:
                             task_data = result.get("data", {})
                             task_id = task_data.get("task_id")
                             
-                            print(f"✅ Tâche créée: {task_id}")
+                            print(f"✅ Tâche Udio créée: {task_id}")
                             print(f"   📊 Statut: {task_data.get('status')}")
                             
                             return {
@@ -134,17 +134,17 @@ class DiffRhythmService:
                                 "task_id": task_id,
                                 "task_data": task_data,
                                 "rhyme_type": rhyme_type,
-                                "style_used": style_prompt,
+                                "style_used": gpt_description_prompt,
                                 "lyrics": lyrics
                             }
                         else:
-                            raise Exception(f"Erreur API: {result}")
+                            raise Exception(f"Erreur API Udio: {result}")
                     else:
                         error_text = await response.text()
                         raise Exception(f"Erreur HTTP {response.status}: {error_text}")
                         
         except Exception as e:
-            print(f"❌ Erreur génération comptine musicale: {e}")
+            print(f"❌ Erreur génération comptine musicale Udio: {e}")
             return {
                 "status": "error",
                 "error": str(e),
@@ -154,7 +154,7 @@ class DiffRhythmService:
     
     async def check_task_status(self, task_id: str) -> Dict[str, Any]:
         """
-        Vérifie le statut d'une tâche DiffRhythm
+        Vérifie le statut d'une tâche Udio
         
         Args:
             task_id: ID de la tâche à vérifier
@@ -176,8 +176,7 @@ class DiffRhythmService:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
                     status_url,
-                    headers=headers,
-                    timeout=aiohttp.ClientTimeout(total=10)
+                    headers=headers
                 ) as response:
                     
                     if response.status == 200:
@@ -190,9 +189,10 @@ class DiffRhythmService:
                             # Mapper le statut de GoAPI vers notre format
                             status_mapping = {
                                 "pending": "pending",
+                                "starting": "processing",
                                 "processing": "processing", 
-                                "completed": "completed",
                                 "success": "completed",
+                                "completed": "completed",
                                 "failed": "failed",
                                 "error": "failed"
                             }
@@ -207,53 +207,65 @@ class DiffRhythmService:
                             
                             # Si la tâche est terminée, extraire l'URL audio
                             if task_status in ["completed", "success"]:
-                                output = task_data.get("output")
-                                print(f"🔍 DEBUG - Output reçu: {output}")
-                                print(f"🔍 DEBUG - Type output: {type(output)}")
+                                # Pour Udio, chercher dans task_result puis output
+                                output = task_data.get("output", {})
                                 
-                                if output:
-                                    # Extraire l'URL audio depuis la réponse
-                                    audio_url = None
-                                    if isinstance(output, dict):
-                                        audio_url = output.get("audio_url") or output.get("url") or output.get("audio") or output.get("file_url")
-                                        print(f"🔍 DEBUG - Clés disponibles dans output: {list(output.keys())}")
-                                    elif isinstance(output, str):
-                                        audio_url = output
-                                        print(f"🔍 DEBUG - Output est string: {audio_url}")
-                                    elif isinstance(output, list) and len(output) > 0:
-                                        # Parfois GoAPI retourne une liste
-                                        first_item = output[0]
-                                        if isinstance(first_item, dict):
-                                            audio_url = first_item.get("audio_url") or first_item.get("url") or first_item.get("audio")
-                                        elif isinstance(first_item, str):
-                                            audio_url = first_item
-                                        print(f"🔍 DEBUG - Output est liste, premier élément: {first_item}")
-                                    
-                                    print(f"🔍 DEBUG - URL audio extraite: {audio_url}")
-                                    
-                                    if audio_url:
-                                        response_data["audio_url"] = audio_url
-                                        response_data["audio_path"] = audio_url
-                                        response_data["status"] = "completed"
-                                        print(f"✅ Audio prêt: {audio_url}")
-                                    else:
-                                        print(f"⚠️ Aucune URL audio trouvée dans output: {output}")
-                                        response_data["status"] = "completed"
-                                        response_data["warning"] = "Audio généré mais URL introuvable"
-                                else:
-                                    print(f"⚠️ Pas d'output dans task_data: {task_data}")
+                                print(f"🔍 DEBUG Udio - Output structure: {json.dumps(output, indent=2) if output else 'None'}")
+                                
+                                audio_url = None
+                                
+                                # Udio retourne les chansons dans output.songs[]
+                                if output and "songs" in output:
+                                    songs = output["songs"]
+                                    if songs and len(songs) > 0:
+                                        # Prendre la première chanson
+                                        first_song = songs[0]
+                                        audio_url = first_song.get("song_path")
+                                        print(f"🔍 DEBUG Udio - Première chanson: {first_song.get('title')}")
+                                        print(f"🔍 DEBUG Udio - URL audio: {audio_url}")
+                                
+                                # Fallback sur d'autres formats possibles
+                                if not audio_url and output:
+                                    audio_url = (
+                                        output.get("audio_url") or 
+                                        output.get("url") or 
+                                        output.get("music_url") or
+                                        output.get("song_url") or
+                                        output.get("file_url")
+                                    )
+                                
+                                # Legacy fallback
+                                if not audio_url:
+                                    legacy_output = task_data.get("task_result", {}).get("task_output", {})
+                                    if legacy_output:
+                                        audio_url = (
+                                            legacy_output.get("audio_url") or 
+                                            legacy_output.get("url") or
+                                            legacy_output.get("music_url")
+                                        )
+                                
+                                print(f"🔍 DEBUG Udio - URL audio extraite: {audio_url}")
+                                
+                                if audio_url:
+                                    response_data["audio_url"] = audio_url
+                                    response_data["audio_path"] = audio_url
                                     response_data["status"] = "completed"
-                                    response_data["warning"] = "Pas d'output dans la réponse"
+                                    print(f"✅ Comptine Udio prête: {audio_url}")
+                                else:
+                                    print(f"⚠️ Aucune URL audio Udio trouvée")
+                                    print(f"   Task data complet: {json.dumps(task_data, indent=2)}")
+                                    response_data["status"] = "completed"
+                                    response_data["warning"] = "Audio généré mais URL introuvable"
                             
                             return response_data
                         else:
-                            raise Exception(f"Erreur API: {result}")
+                            raise Exception(f"Erreur API Udio: {result}")
                     else:
                         error_text = await response.text()
                         raise Exception(f"Erreur HTTP {response.status}: {error_text}")
                         
         except Exception as e:
-            print(f"❌ Erreur vérification statut: {e}")
+            print(f"❌ Erreur vérification statut Udio: {e}")
             return {
                 "status": "error",
                 "error": str(e)
@@ -262,11 +274,11 @@ class DiffRhythmService:
     async def wait_for_completion(
         self, 
         task_id: str, 
-        max_wait_time: int = 300,
-        poll_interval: int = 5
+        max_wait_time: int = None,  # Pas de limite
+        poll_interval: int = 10
     ) -> Dict[str, Any]:
         """
-        Attend la completion d'une tâche DiffRhythm
+        Attend la completion d'une tâche Udio
         
         Args:
             task_id: ID de la tâche
@@ -288,72 +300,79 @@ class DiffRhythmService:
             task_status = status_result.get("task_status")
             task_data = status_result.get("task_data", {})
             
-            print(f"🔄 Statut tâche {task_id}: {task_status}")
+            print(f"🔄 Statut tâche Udio {task_id}: {task_status}")
             
             # Si la tâche est terminée
             if task_status in ["completed", "success"]:
-                output = task_data.get("output")
-                if output:
-                    print(f"✅ Comptine musicale générée!")
+                audio_url = status_result.get("audio_url")
+                if audio_url:
+                    print(f"✅ Comptine musicale Udio générée!")
                     return {
                         "status": "completed",
                         "task_data": task_data,
-                        "audio_url": output.get("audio_url") if isinstance(output, dict) else None,
-                        "output": output
+                        "audio_url": audio_url,
+                        "audio_path": audio_url
+                    }
+                else:
+                    print(f"⚠️ Udio terminé mais pas d'URL audio")
+                    return {
+                        "status": "completed",
+                        "task_data": task_data,
+                        "warning": "Pas d'URL audio dans la réponse"
                     }
             
             # Si la tâche a échoué
             elif task_status in ["failed", "error"]:
-                error_info = task_data.get("error", {})
+                task_result = task_data.get("task_result", {})
+                error_messages = task_result.get("error_messages", [])
+                error_msg = ", ".join(error_messages) if error_messages else "Génération Udio échouée"
+                
                 return {
                     "status": "failed",
-                    "error": error_info.get("message", "Génération échouée"),
+                    "error": error_msg,
                     "task_data": task_data
                 }
             
-            # Vérifier le timeout
-            elapsed = (datetime.now() - start_time).total_seconds()
-            if elapsed > max_wait_time:
-                return {
-                    "status": "timeout",
-                    "error": f"Timeout après {max_wait_time} secondes",
-                    "task_data": task_data
-                }
+            # Vérifier le timeout seulement si max_wait_time est défini
+            if max_wait_time:
+                elapsed = (datetime.now() - start_time).total_seconds()
+                if elapsed > max_wait_time:
+                    return {
+                        "status": "timeout",
+                        "error": f"Timeout après {max_wait_time} secondes",
+                        "task_data": task_data
+                    }
             
-            # Attendre avant le prochain poll
+            # Attendre avant le prochain poll (Udio prend plus de temps)
             await asyncio.sleep(poll_interval)
 
-    def format_lyrics_with_timing(self, lyrics: str, estimated_duration: int = 30) -> str:
+    def format_lyrics_for_udio(self, lyrics: str) -> str:
         """
-        Formate les paroles avec des timestamps pour DiffRhythm
+        Formate les paroles pour Udio
+        Udio préfère des paroles structurées avec [Verse], [Chorus], etc.
         
         Args:
             lyrics: Paroles brutes
-            estimated_duration: Durée estimée en secondes
             
         Returns:
-            Paroles formatées avec timestamps
+            Paroles formatées pour Udio
         """
         lines = [line.strip() for line in lyrics.split('\n') if line.strip()]
         
         if not lines:
             return lyrics
         
-        # Calculer les intervalles de temps
-        time_per_line = estimated_duration / len(lines)
-        formatted_lyrics = []
+        # Si les paroles sont courtes (comptine), les formater simplement
+        if len(lines) <= 6:
+            formatted_lyrics = "[Verse]\n" + '\n'.join(lines)
+        else:
+            # Pour des paroles plus longues, essayer de structurer
+            middle = len(lines) // 2
+            verse1 = '\n'.join(lines[:middle])
+            verse2 = '\n'.join(lines[middle:])
+            formatted_lyrics = f"[Verse]\n{verse1}\n\n[Verse 2]\n{verse2}"
         
-        current_time = 0
-        for line in lines:
-            # Format timestamp [MM:SS.ss]
-            minutes = int(current_time // 60)
-            seconds = current_time % 60
-            timestamp = f"[{minutes:02d}:{seconds:05.2f}]"
-            
-            formatted_lyrics.append(f"{timestamp} {line}")
-            current_time += time_per_line
-        
-        return '\n'.join(formatted_lyrics)
+        return formatted_lyrics
 
 # Instance globale du service
-diffrhythm_service = DiffRhythmService()
+udio_service = UdioService()

@@ -65,9 +65,7 @@ const MusicalRhymeSelector = ({
   musicStyle,
   setMusicStyle,
   customMusicStyle,
-  setCustomMusicStyle,
-  fastMode,
-  setFastMode
+  setCustomMusicStyle
 }) => {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [showMusicOptions, setShowMusicOptions] = useState(false);
@@ -195,7 +193,7 @@ const MusicalRhymeSelector = ({
             <span className="toggle-icon">🎵</span>
             <div className="toggle-content">
               <strong>Comptine musicale</strong>
-              <small>Paroles + mélodie avec IA DiffRhythm</small>
+              <small>Paroles + mélodie avec IA Udio</small>
             </div>
           </motion.button>
         </div>
@@ -272,78 +270,17 @@ const MusicalRhymeSelector = ({
             >
               <div className="info-item">
                 <span className="info-icon">🤖</span>
-                <span>Powered by DiffRhythm AI</span>
+                <span>Powered by Udio AI</span>
               </div>
               <div className="info-item">
                 <span className="info-icon">⏱️</span>
-                <span>~30-60 secondes de génération</span>
+                <span>~1-3 minutes de génération</span>
               </div>
               <div className="info-item">
                 <span className="info-icon">🎯</span>
-                <span>Optimisé pour les enfants</span>
+                <span>Comptines réalistes chantées</span>
               </div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Fast Mode Option (visible quand generateMusic est actif) */}
-      <AnimatePresence>
-        {generateMusic && (
-          <motion.div
-            className="fast-mode-section"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            style={{
-              marginTop: '1rem',
-              padding: '0.75rem',
-              borderRadius: '8px',
-              background: 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%)',
-              border: '1px solid #e1bee7'
-            }}
-          >
-            <h5>⚡ Mode de génération</h5>
-            <div className="fast-mode-toggle" style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-              <motion.button
-                className={`mode-button ${fastMode ? 'active' : ''}`}
-                onClick={() => setFastMode(true)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                style={{
-                  flex: 1,
-                  padding: '0.5rem',
-                  borderRadius: '6px',
-                  border: fastMode ? '2px solid #7b1fa2' : '1px solid #ddd',
-                  background: fastMode ? '#f3e5f5' : '#fff',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-              >
-                <div>⚡ <strong>Rapide</strong></div>
-                <small>Comptine courte, génération plus rapide</small>
-              </motion.button>
-              
-              <motion.button
-                className={`mode-button ${!fastMode ? 'active' : ''}`}
-                onClick={() => setFastMode(false)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                style={{
-                  flex: 1,
-                  padding: '0.5rem',
-                  borderRadius: '6px',
-                  border: !fastMode ? '2px solid #7b1fa2' : '1px solid #ddd',
-                  background: !fastMode ? '#f3e5f5' : '#fff',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-              >
-                <div>🎭 <strong>Complet</strong></div>
-                <small>Comptine élaborée, plus longue</small>
-              </motion.button>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>

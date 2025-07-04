@@ -14,14 +14,14 @@ STT_MODEL = os.getenv("STT_MODEL", "gpt-4o-mini-transcribe")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
 
-# --- GoAPI DiffRhythm (Comptines musicales) ---
+# --- GoAPI Udio (Comptines musicales) ---
 GOAPI_API_KEY = os.getenv("GOAPI_API_KEY")
-DIFFRHYTHM_MODEL = os.getenv("DIFFRHYTHM_MODEL", "Qubico/diffrhythm")
-DIFFRHYTHM_TASK_TYPE = os.getenv("DIFFRHYTHM_TASK_TYPE", "txt2audio-base")
+UDIO_MODEL = os.getenv("UDIO_MODEL", "music-u")
+UDIO_TASK_TYPE = os.getenv("UDIO_TASK_TYPE", "generate_music")
 
 # Export all variables
 __all__ = [
     'TEXT_MODEL', 'IMAGE_MODEL', 'TTS_MODEL', 'STT_MODEL',
     'OPENAI_API_KEY', 'STABILITY_API_KEY',
-    'GOAPI_API_KEY', 'DIFFRHYTHM_MODEL', 'DIFFRHYTHM_TASK_TYPE'
+    'GOAPI_API_KEY', 'UDIO_MODEL', 'UDIO_TASK_TYPE'
 ]
