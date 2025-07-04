@@ -106,7 +106,7 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
               <div className="content-type-icon">🎵</div>
               <div className="content-type-details">
                 <h4>Comptine</h4>
-                <p>Créez une comptine avec musique et mélodie personnalisées</p>
+                <p>Créez une comptine personnalisée</p>
               </div>
             </motion.div>
           )}
