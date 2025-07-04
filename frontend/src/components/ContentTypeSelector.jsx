@@ -31,8 +31,16 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
     };
   }, [contentType, setContentType]);
 
-  // Vérifier si on a des fonctionnalités actives
+  const handleContentTypeSelect = (type) => {
+    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
+    if (contentType === type) {
+      setContentType('');
+    } else {
+      setContentType(type);
+    }
+  };
   const hasEnabledFeatures = Object.keys(enabledFeatures).length > 0;
+  
   return (
     <div className="content-type-selector">
       <h3>1. Choisissez le type de contenu</h3>
@@ -46,7 +54,7 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
           {enabledFeatures.animation && (
             <motion.div
               className={`content-type-option ${contentType === 'animation' ? 'selected' : ''}`}
-              onClick={() => setContentType('animation')}
+              onClick={() => handleContentTypeSelect('animation')}
               whileHover={{ y: -5 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -61,7 +69,7 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
           {enabledFeatures.audio && (
             <motion.div
               className={`content-type-option ${contentType === 'audio' ? 'selected' : ''}`}
-              onClick={() => setContentType('audio')}
+              onClick={() => handleContentTypeSelect('audio')}
               whileHover={{ y: -5 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -76,7 +84,7 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
           {enabledFeatures.coloring && (
             <motion.div
               className={`content-type-option ${contentType === 'coloring' ? 'selected' : ''}`}
-              onClick={() => setContentType('coloring')}
+              onClick={() => handleContentTypeSelect('coloring')}
               whileHover={{ y: -5 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -91,7 +99,7 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
           {enabledFeatures.rhyme && (
             <motion.div
               className={`content-type-option ${contentType === 'rhyme' ? 'selected' : ''}`}
-              onClick={() => setContentType('rhyme')}
+              onClick={() => handleContentTypeSelect('rhyme')}
               whileHover={{ y: -5 }}
               whileTap={{ scale: 0.98 }}
             >

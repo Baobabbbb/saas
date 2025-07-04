@@ -30,15 +30,27 @@ const AudioStorySelector = ({
   const [showCustomInput, setShowCustomInput] = useState(false);
   const handleAudioStorySelect = (storyId) => {
     console.log('🎵 Sélection histoire audio:', storyId);
-    setSelectedAudioStory(storyId);
-    if (storyId !== 'custom') {
+    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
+    if (selectedAudioStory === storyId) {
+      setSelectedAudioStory('');
       setShowCustomInput(false);
+    } else {
+      setSelectedAudioStory(storyId);
+      if (storyId !== 'custom') {
+        setShowCustomInput(false);
+      }
     }
   };
 
   const handleCustomSelect = () => {
-    setSelectedAudioStory('custom');
-    setShowCustomInput(true);
+    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
+    if (selectedAudioStory === 'custom') {
+      setSelectedAudioStory('');
+      setShowCustomInput(false);
+    } else {
+      setSelectedAudioStory('custom');
+      setShowCustomInput(true);
+    }
   };
 
   const handleCustomAudioStoryChange = (e) => {

@@ -15,15 +15,27 @@ const RhymeSelector = ({ selectedRhyme, setSelectedRhyme, customRhyme, setCustom
   const [showCustomInput, setShowCustomInput] = useState(false);
 
   const handleRhymeSelect = (rhymeId) => {
-    setSelectedRhyme(rhymeId);
-    if (rhymeId !== 'custom') {
+    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
+    if (selectedRhyme === rhymeId) {
+      setSelectedRhyme('');
       setShowCustomInput(false);
+    } else {
+      setSelectedRhyme(rhymeId);
+      if (rhymeId !== 'custom') {
+        setShowCustomInput(false);
+      }
     }
   };
 
   const handleCustomSelect = () => {
-    setSelectedRhyme('custom');
-    setShowCustomInput(true);
+    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
+    if (selectedRhyme === 'custom') {
+      setSelectedRhyme('');
+      setShowCustomInput(false);
+    } else {
+      setSelectedRhyme('custom');
+      setShowCustomInput(true);
+    }
   };
 
   const handleCustomRhymeChange = (e) => {

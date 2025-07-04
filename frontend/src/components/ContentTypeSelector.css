@@ -59,7 +59,8 @@
 .content-type-details h4 {
   margin: 0 0 0.5rem 0;
   font-size: 1rem;
-  color: var(--text-primary);
+  color: var(--primary);
+  font-weight: bold;
 }
 
 .content-type-details p {

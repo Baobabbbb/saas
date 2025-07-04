@@ -65,6 +65,7 @@
   font-size: 1rem;
   margin: 0;
   color: var(--primary);
+  font-weight: bold;
 }
 
 .audio-story-card p {

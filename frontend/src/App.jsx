@@ -117,6 +117,7 @@ function App() {
   const [generatedResult, setGeneratedResult] = useState(null);
   const [showFullStory, setShowFullStory] = useState(false);
   const [showStoryPopup, setShowStoryPopup] = useState(false);
+  const [showRhymePopup, setShowRhymePopup] = useState(false);
   const [showColoringPopup, setShowColoringPopup] = useState(false);
 
   // Coloring states
@@ -185,7 +186,7 @@ function App() {
         const payload = {
           rhyme_type: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
           custom_request: customRequest,
-          generate_music: generateMusic || false,
+          generate_music: true, // Always generate music for rhymes
           custom_style: musicStyle === 'custom' ? customMusicStyle : null,
           language: 'fr'
         };
@@ -289,16 +290,21 @@ function App() {
 
     // 🔁 Enregistre le résultat généré pour affichage audio/texte
     console.log('🔁 Setting generatedResult:', generatedContent);
-    setGeneratedResult(generatedContent);
-    console.log('🔁 ContentType:', contentType);
-    // setStoryPages(splitTextIntoPages(generatedContent.content)); // Ajoute la pagination
-    setCurrentPageIndex(0); // Reviens à la première page
-
-    // 🎵 Démarrer le polling automatique si c'est une comptine avec task_id
+    
+    // 🎵 Pour les comptines musicales, ne pas afficher le résultat tout de suite
     if (contentType === 'rhyme' && generatedContent.task_id && generateMusic) {
+      console.log('🎵 Comptine musicale en cours - attente de la musique avant affichage');
       console.log('🎵 Démarrage du polling automatique pour task_id:', generatedContent.task_id);
+      // Stocker temporairement les données pour le polling
+      window.tempRhymeData = generatedContent;
       pollTaskStatus(generatedContent.task_id);
-    }    // Déterminer le titre avec des noms attractifs pour les enfants
+      // NE PAS setGeneratedResult maintenant - ce sera fait dans le polling
+    } else {
+      // Pour les autres types de contenu, affichage immédiat
+      setGeneratedResult(generatedContent);
+    }
+    
+    console.log('🔁 ContentType:', contentType);    // Déterminer le titre avec des noms attractifs pour les enfants
     let title;
     if (contentType === 'rhyme') {
       // Utiliser le titre de l'IA ou générer un titre attractif
@@ -433,8 +439,10 @@ const handleSelectCreation = (creation) => {
     if (contentType === 'rhyme') {
       if (!selectedRhyme) return false;
       if (selectedRhyme === 'custom' && !customRhyme.trim()) return false;
+      // Style musical obligatoire pour toutes les comptines
+      if (!musicStyle) return false;
       // Validation supplémentaire pour le style musical personnalisé
-      if (generateMusic && musicStyle === 'custom' && !customMusicStyle.trim()) return false;
+      if (musicStyle === 'custom' && !customMusicStyle.trim()) return false;
     } else if (contentType === 'audio') {
       if (!selectedAudioStory) return false;
       if (selectedAudioStory === 'custom' && !customAudioStory.trim()) return false;
@@ -563,28 +571,74 @@ const downloadPDF = async (title, content) => {
           const audioUrl = status.audio_url || status.audio_path;
           if (audioUrl) {
             console.log('🎵✅ Audio prêt!', audioUrl);
-            setGeneratedResult(prev => ({
-              ...prev,
-              audio_url: audioUrl,
-              audio_path: audioUrl,
-              music_status: 'completed'
-            }));
+            
+            // Récupérer les données de comptine stockées temporairement
+            const tempData = window.tempRhymeData;
+            if (tempData) {
+              // Afficher la comptine complète (paroles + audio)
+              const completeRhyme = {
+                ...tempData,
+                audio_url: audioUrl,
+                audio_path: audioUrl,
+                music_status: 'completed'
+              };
+              setGeneratedResult(completeRhyme);
+              setIsGenerating(false); // Arrêter l'état de génération
+              delete window.tempRhymeData; // Nettoyer
+              console.log('🎵✅ Comptine complète affichée:', completeRhyme);
+            } else {
+              // Fallback : mise à jour simple
+              setGeneratedResult(prev => ({
+                ...prev,
+                audio_url: audioUrl,
+                audio_path: audioUrl,
+                music_status: 'completed'
+              }));
+              setIsGenerating(false);
+            }
           } else {
             console.warn('⚠️ Tâche terminée mais pas d\'URL audio');
-            setGeneratedResult(prev => ({
-              ...prev,
-              music_status: 'completed_no_audio'
-            }));
+            const tempData = window.tempRhymeData;
+            if (tempData) {
+              const completeRhyme = {
+                ...tempData,
+                music_status: 'completed_no_audio'
+              };
+              setGeneratedResult(completeRhyme);
+              setIsGenerating(false);
+              delete window.tempRhymeData;
+            } else {
+              setGeneratedResult(prev => ({
+                ...prev,
+                music_status: 'completed_no_audio'
+              }));
+              setIsGenerating(false);
+            }
           }
           return; // Arrêter le polling
         } else if (status.status === 'failed' || status.task_status === 'failed') {
           // Tâche échouée
           console.error('❌ Génération musicale échouée:', status);
-          setGeneratedResult(prev => ({
-            ...prev,
-            music_status: 'failed',
-            music_error: status.error || 'Erreur de génération musicale'
-          }));
+          const tempData = window.tempRhymeData;
+          if (tempData) {
+            // Afficher quand même les paroles même si la musique a échoué
+            const rhymeWithError = {
+              ...tempData,
+              music_status: 'failed',
+              music_error: status.error || 'Erreur de génération musicale'
+            };
+            setGeneratedResult(rhymeWithError);
+            setIsGenerating(false);
+            delete window.tempRhymeData;
+            console.log('🎵❌ Comptine affichée sans musique (erreur):', rhymeWithError);
+          } else {
+            setGeneratedResult(prev => ({
+              ...prev,
+              music_status: 'failed',
+              music_error: status.error || 'Erreur de génération musicale'
+            }));
+            setIsGenerating(false);
+          }
           return; // Arrêter le polling
         }
         
@@ -737,7 +791,7 @@ const downloadPDF = async (title, content) => {
         <div className="dot"></div>
         <div className="dot"></div>
       </div>      <p>        {contentType === 'rhyme'
-          ? 'Création de la comptine en cours...'
+          ? 'Création de votre comptine musicale en cours... (paroles + mélodie avec Udio)'
           : contentType === 'audio'
           ? 'Création de l\'histoire en cours...'
           : contentType === 'coloring'
@@ -826,124 +880,115 @@ const downloadPDF = async (title, content) => {
     <div
       style={{
         height: '300px',
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
         alignItems: 'center',
+        justifyContent: 'center',
         gap: '1rem',
         padding: '1rem'
       }}
     >
-      {/* Affichage des paroles */}
-      {(generatedResult.content || generatedResult.rhyme || generatedResult.lyrics) && (
-        <div style={{ 
-          maxHeight: '120px', 
-          overflowY: 'auto', 
-          padding: '0.8rem',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
+      {/* Carte d'affichage de la comptine - style identique aux cartes de sélection d'histoire */}
+      <div
+        style={{
+          backgroundColor: '#f5f0ff',
+          borderRadius: '16px',
+          padding: '1rem',
+          border: '2px solid #6B4EFF',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
           width: '100%',
-          textAlign: 'center',
-          border: '1px solid #dee2e6'
+          maxWidth: '280px',
+          textAlign: 'center'
+        }}
+      >
+        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🎵</div>
+        <h4 style={{ 
+          margin: 0, 
+          color: '#6B4EFF', 
+          fontSize: '1rem',
+          fontWeight: '600'
         }}>
-          <h4 style={{ margin: '0 0 0.5rem 0', color: '#6B4EFF' }}>
-            {generatedResult.title || 'Ma Comptine'}
-          </h4>
-          <p style={{ margin: 0, fontSize: '13px', lineHeight: '1.4' }}>
-            {generatedResult.content || generatedResult.rhyme || generatedResult.lyrics}
-          </p>
-        </div>
-      )}
+          {generatedResult.title || 'Ma Comptine'}
+        </h4>
+        <p style={{ 
+          margin: 0, 
+          fontSize: '0.8rem', 
+          color: '#666',
+          lineHeight: '1.3'
+        }}>
+          {(generatedResult.content || generatedResult.rhyme || generatedResult.lyrics)?.substring(0, 60)}...
+        </p>
+      </div>
       
       {/* Audio si disponible */}
       {(generatedResult.audio_path || generatedResult.audio_url) && (
         <audio
           controls
-          style={{ width: '100%', maxWidth: '300px' }}
+          style={{ width: '100%', maxWidth: '280px' }}
           src={generatedResult.audio_path || generatedResult.audio_url}
         />
       )}
+
+      {/* Boutons d'action dans le style des cartes */}
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <button
+          onClick={() => setShowRhymePopup(true)}
+          style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: '#f5f0ff',
+            color: '#6B4EFF',
+            border: '2px solid #6B4EFF',
+            borderRadius: '16px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            fontSize: '0.8rem'
+          }}
+        >
+          📖 Ouvrir
+        </button>
+        
+        <button
+          onClick={() => downloadPDF(generatedResult.title || 'Comptine', generatedResult.content || generatedResult.rhyme || generatedResult.lyrics)}
+          style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: '#f5f0ff',
+            color: '#6B4EFF',
+            border: '2px solid #6B4EFF',
+            borderRadius: '16px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            fontSize: '0.8rem'
+          }}
+        >
+          📄 Télécharger
+        </button>
+      </div>
       
       {/* Statut de génération musicale */}
       {generatedResult.task_id && !generatedResult.audio_path && (
-        <div style={{ 
+        <div style={{
           padding: '0.5rem 1rem',
-          backgroundColor: 
-            generatedResult.music_status === 'failed' ? '#f8d7da' : 
-            generatedResult.music_status === 'error' ? '#f8d7da' : '#d1ecf1',
-          borderRadius: '6px',
-          fontSize: '11px',
-          color: 
-            generatedResult.music_status === 'failed' ? '#721c24' : 
-            generatedResult.music_status === 'error' ? '#721c24' : '#0c5460',
+          backgroundColor: generatedResult.music_status === 'failed' || generatedResult.music_status === 'error' ? '#ffe5eb' : '#fff5e0',
+          color: generatedResult.music_status === 'failed' || generatedResult.music_status === 'error' ? '#FF85A1' : '#FFD166',
+          border: `2px solid ${generatedResult.music_status === 'failed' || generatedResult.music_status === 'error' ? '#FF85A1' : '#FFD166'}`,
+          borderRadius: '16px',
+          fontWeight: '600',
           textAlign: 'center',
-          border: 
-            generatedResult.music_status === 'failed' ? '1px solid #f5c6cb' : 
-            generatedResult.music_status === 'error' ? '1px solid #f5c6cb' : '1px solid #bee5eb'
+          fontSize: '0.8rem',
+          maxWidth: '280px'
         }}>
           {generatedResult.music_status === 'failed' || generatedResult.music_status === 'error' ? (
-            `❌ Génération musicale échouée: ${generatedResult.music_error || 'Erreur inconnue'}`
+            `❌ Génération échouée`
           ) : generatedResult.music_status === 'completed_no_audio' ? (
-            '⚠️ Génération terminée mais audio non disponible'
+            '⚠️ Audio non disponible'
           ) : (
-            '🎵 Génération musicale en cours avec Udio... Cela peut prendre plusieurs minutes.'
+            '🎵 Génération en cours...'
           )}
         </div>
       )}
-      
-      {/* Boutons d'action */}
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-        {(generatedResult.content || generatedResult.rhyme || generatedResult.lyrics) && (
-          <button
-            onClick={() => downloadPDF(generatedResult.title || 'Comptine', generatedResult.content || generatedResult.rhyme || generatedResult.lyrics)}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#6B4EFF',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '0.5rem',
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '11px'
-            }}
-          >
-            📄 Télécharger
-          </button>
-        )}
-        
-        {generatedResult.task_id && (
-          <button
-            onClick={async () => {
-              try {
-                const response = await fetch(`http://localhost:8000/check_task_status/${generatedResult.task_id}`);
-                const status = await response.json();
-                if (status.status === 'completed' && status.audio_path) {
-                  setGeneratedResult({
-                    ...generatedResult,
-                    audio_path: status.audio_path
-                  });
-                } else {
-                  alert(`Statut: ${status.status}`);
-                }
-              } catch (error) {
-                alert('Erreur lors de la vérification du statut');
-              }
-            }}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#28a745',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '0.5rem',
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '11px'
-            }}
-          >
-            🔄 Vérifier musique
-          </button>
-        )}
-      </div>
     </div>
   )}
   
@@ -1046,6 +1091,14 @@ const downloadPDF = async (title, content) => {
     title={generatedResult.title}
     content={generatedResult.content}
     onClose={() => setShowStoryPopup(false)}
+  />
+)}
+
+{showRhymePopup && (
+  <StoryPopup
+    title={generatedResult.title || 'Ma Comptine'}
+    content={generatedResult.content || generatedResult.rhyme || generatedResult.lyrics}
+    onClose={() => setShowRhymePopup(false)}
   />
 )}    {showColoringPopup && (
       <ColoringPopup

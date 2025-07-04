@@ -1,149 +1,123 @@
 /* Musical Rhyme Selector Styles */
 .musical-rhyme-selector {
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%);
-  border-radius: 16px;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-top: 0.5rem;
 }
 
 .musical-rhyme-selector h3 {
-  color: #2d3748;
-  margin-bottom: 1.5rem;
-  font-size: 1.3rem;
-  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--primary);
+  margin: 0;
 }
 
 .musical-rhyme-selector h4 {
-  color: #4a5568;
+  color: var(--primary);
   margin-bottom: 1rem;
   font-size: 1.1rem;
-  font-weight: 500;
+  font-weight: bold;
 }
 
 /* Rhyme Grid */
 .rhyme-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
-  margin-bottom: 2rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.rhyme-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rhyme-grid::-webkit-scrollbar-track {
+  background: #f5f0ff;
+  border-radius: 10px;
+}
+
+.rhyme-grid::-webkit-scrollbar-thumb {
+  background: #c4b5ff;
+  border-radius: 10px;
 }
 
 .rhyme-card {
-  background: white;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 1.5rem;
+  background-color: #f5f0ff;
+  border-radius: 16px;
+  padding: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .rhyme-card:hover {
-  border-color: #667eea;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
-  transform: translateY(-2px);
+  background-color: #ede5ff;
 }
 
 .rhyme-card.selected {
-  border-color: #667eea;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  border-color: var(--primary);
+  background-color: #ede5ff;
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
 }
 
 .rhyme-card.custom-rhyme {
-  border-style: dashed;
-  border-color: #a0aec0;
-}
-
-.rhyme-card.custom-rhyme:hover,
-.rhyme-card.custom-rhyme.selected {
-  border-color: #f093fb;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border: 2px dashed #c4b5ff;
 }
 
 .rhyme-emoji {
-  font-size: 2.5rem;
+  font-size: 2rem;
   margin-bottom: 0.5rem;
-  text-align: center;
 }
 
 .rhyme-card h4 {
-  margin: 0.5rem 0;
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1rem;
+  margin: 0;
+  color: #6B4EFF;
+  font-weight: bold;
 }
 
 .rhyme-card p {
-  margin: 0;
-  font-size: 0.9rem;
-  opacity: 0.9;
-  line-height: 1.4;
-}
-
-.rhyme-card.selected p {
-  opacity: 1;
-}
-
-/* Music Indicator */
-.music-indicator {
-  margin-top: 0.75rem;
-  padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  text-align: center;
-}
-
-.music-icon {
-  display: block;
-  font-size: 1.2rem;
-  margin-bottom: 0.25rem;
-}
-
-.music-indicator small {
   font-size: 0.8rem;
-  opacity: 0.9;
-  font-style: italic;
+  margin: 0;
+  color: var(--text);
+  opacity: 0.8;
 }
 
 /* Custom Input */
-.custom-rhyme-input,
-.custom-music-style-input {
+.custom-rhyme-input {
   margin-top: 1rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 12px;
-  border: 2px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: hidden;
 }
 
-.custom-rhyme-input label,
-.custom-music-style-input label {
-  display: block;
-  margin-bottom: 0.5rem;
+.custom-rhyme-input label {
   font-weight: 500;
-  color: #4a5568;
+  font-size: 0.9rem;
+  color: var(--text);
 }
 
-.custom-rhyme-input textarea,
-.custom-music-style-input textarea {
-  width: 100%;
+.custom-rhyme-input textarea {
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: 2px solid #e0d6ff;
+  font-size: 0.9rem;
   min-height: 80px;
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 0.95rem;
   resize: vertical;
-  transition: all 0.3s ease;
+  font-family: inherit;
+  transition: all 0.2s ease;
 }
 
-.custom-rhyme-input textarea:focus,
-.custom-music-style-input textarea:focus {
+.custom-rhyme-input textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.2);
 }
 
 /* Music Toggle Section */
@@ -206,66 +180,74 @@
 /* Music Style Section */
 .music-style-section {
   margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 12px;
-  border: 2px solid #e2e8f0;
 }
 
 .music-style-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.75rem;
-  margin-top: 1rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.music-style-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.music-style-grid::-webkit-scrollbar-track {
+  background: #f5f0ff;
+  border-radius: 10px;
+}
+
+.music-style-grid::-webkit-scrollbar-thumb {
+  background: #c4b5ff;
+  border-radius: 10px;
 }
 
 .music-style-card {
-  background: white;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
+  background-color: #f5f0ff;
+  border-radius: 16px;
   padding: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .music-style-card:hover {
-  border-color: #a78bfa;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(167, 139, 250, 0.15);
+  background-color: #ede5ff;
 }
 
 .music-style-card.selected {
-  border-color: #a78bfa;
-  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(167, 139, 250, 0.3);
+  border-color: var(--primary);
+  background-color: #ede5ff;
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
 }
 
 .music-style-card.custom-style {
-  border-style: dashed;
+  border: 2px dashed #c4b5ff;
 }
 
 .style-icon {
-  font-size: 1.8rem;
+  font-size: 2rem;
   margin-bottom: 0.5rem;
 }
 
-.music-style-card h5 {
-  margin: 0.5rem 0 0.25rem 0;
-  font-size: 0.95rem;
-  font-weight: 600;
+.music-style-card h4 {
+  font-size: 1rem;
+  margin: 0;
+  color: #6B4EFF;
+  font-weight: bold;
 }
 
 .music-style-card p {
-  margin: 0;
   font-size: 0.8rem;
-  opacity: 0.9;
-  line-height: 1.3;
-}
-
-.music-style-card.selected p {
-  opacity: 1;
+  margin: 0;
+  color: var(--text);
+  opacity: 0.8;
 }
 
 /* Music Info */
@@ -298,29 +280,11 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .musical-rhyme-selector {
-    padding: 1rem;
-  }
-  
   .rhyme-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-  
-  .music-toggle {
     grid-template-columns: 1fr;
   }
   
   .music-style-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 0.5rem;
-  }
-  
-  .toggle-button {
-    padding: 0.75rem;
-  }
-  
-  .rhyme-card {
-    padding: 1rem;
+    grid-template-columns: 1fr;
   }
 }

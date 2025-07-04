@@ -17,6 +17,15 @@ const ColoringSelector = ({
     { value: 'dinosaurs', label: 'Dinosaures', icon: '🦕', description: 'T-Rex, Triceratops, volcans...' }
   ];
 
+  const handleThemeSelect = (themeValue) => {
+    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
+    if (selectedTheme === themeValue) {
+      setSelectedTheme('');
+    } else {
+      setSelectedTheme(themeValue);
+    }
+  };
+
   return (
     <div className="coloring-selector">
       <h3>2. Choisissez un thème pour vos coloriages</h3>
@@ -25,7 +34,7 @@ const ColoringSelector = ({
           <motion.div
             key={theme.value}
             className={`theme-option ${selectedTheme === theme.value ? 'selected' : ''}`}
-            onClick={() => setSelectedTheme(theme.value)}
+            onClick={() => handleThemeSelect(theme.value)}
             whileHover={{ y: -5 }}
             whileTap={{ scale: 0.98 }}
           >

@@ -49,6 +49,15 @@ const styles = [
 ];
 
 const StyleSelector = ({ selectedStyle, setSelectedStyle }) => {
+  const handleStyleSelect = (styleId) => {
+    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
+    if (selectedStyle === styleId) {
+      setSelectedStyle('');
+    } else {
+      setSelectedStyle(styleId);
+    }
+  };
+
   return (
     <div className="style-selector">
       <h3>2. Choisissez un style visuel</h3>
@@ -58,7 +67,7 @@ const StyleSelector = ({ selectedStyle, setSelectedStyle }) => {
           <motion.div
             key={style.id}
             className={`style-option ${selectedStyle === style.id ? 'selected' : ''}`}
-            onClick={() => setSelectedStyle(style.id)}
+            onClick={() => handleStyleSelect(style.id)}
             whileHover={{ y: -5 }}
             whileTap={{ scale: 0.98 }}
           >
