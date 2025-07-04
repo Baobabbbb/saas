@@ -68,40 +68,41 @@ const MusicalRhymeSelector = ({
   setCustomMusicStyle
 }) => {
   const [showCustomInput, setShowCustomInput] = useState(false);
-  const [showMusicOptions, setShowMusicOptions] = useState(false);
 
   const handleRhymeSelect = (rhymeId) => {
-    setSelectedRhyme(rhymeId);
-    if (rhymeId !== 'custom') {
+    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
+    if (selectedRhyme === rhymeId) {
+      setSelectedRhyme('');
       setShowCustomInput(false);
-    }
-    // Montrer automatiquement les options musicales si activé
-    if (generateMusic) {
-      setShowMusicOptions(true);
+    } else {
+      setSelectedRhyme(rhymeId);
+      if (rhymeId !== 'custom') {
+        setShowCustomInput(false);
+      }
     }
   };
 
   const handleCustomSelect = () => {
-    setSelectedRhyme('custom');
-    setShowCustomInput(true);
-    if (generateMusic) {
-      setShowMusicOptions(true);
-    }
-  };
-
-  const handleMusicToggle = (enabled) => {
-    setGenerateMusic(enabled);
-    setShowMusicOptions(enabled);
-    if (!enabled) {
-      setMusicStyle('auto');
-      setCustomMusicStyle('');
+    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
+    if (selectedRhyme === 'custom') {
+      setSelectedRhyme('');
+      setShowCustomInput(false);
+    } else {
+      setSelectedRhyme('custom');
+      setShowCustomInput(true);
     }
   };
 
   const handleMusicStyleSelect = (styleId) => {
-    setMusicStyle(styleId);
-    if (styleId !== 'custom') {
+    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
+    if (musicStyle === styleId) {
+      setMusicStyle('');
       setCustomMusicStyle('');
+    } else {
+      setMusicStyle(styleId);
+      if (styleId !== 'custom') {
+        setCustomMusicStyle('');
+      }
     }
   };
 
@@ -134,12 +135,6 @@ const MusicalRhymeSelector = ({
             <div className="rhyme-emoji">{rhyme.emoji}</div>
             <h4>{rhyme.title}</h4>
             <p>{rhyme.description}</p>
-            {generateMusic && (
-              <div className="music-indicator">
-                <span className="music-icon">🎵</span>
-                <small>{rhyme.musicStyle}</small>
-              </div>
-            )}
           </motion.div>
         ))}
       </div>
@@ -167,123 +162,66 @@ const MusicalRhymeSelector = ({
         )}
       </AnimatePresence>
 
-      {/* Musical options toggle */}
-      <div className="music-toggle-section">
-        <h4>🎵 Options musicales</h4>
-        <div className="music-toggle">
-          <motion.button
-            className={`toggle-button ${!generateMusic ? 'active' : ''}`}
-            onClick={() => handleMusicToggle(false)}
-            whileHover={{ scale: 1.02 }}
+      {/* Musical style options - Always shown since all rhymes are musical */}
+      <motion.div 
+        className="music-style-section"
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: 'auto' }}
+        transition={{ duration: 0.4 }}
+      >
+        <h4>3. Choisissez un style musical</h4>
+        <div className="music-style-grid">
+          {/* Custom style option first */}
+          <motion.div
+            className={`music-style-card custom-style ${musicStyle === 'custom' ? 'selected' : ''}`}
+            onClick={() => handleMusicStyleSelect('custom')}
+            whileHover={{ y: -3 }}
             whileTap={{ scale: 0.98 }}
           >
-            <span className="toggle-icon">📝</span>
-            <div className="toggle-content">
-              <strong>Paroles seulement</strong>
-              <small>Génération rapide, texte uniquement</small>
-            </div>
-          </motion.button>
-          
-          <motion.button
-            className={`toggle-button ${generateMusic ? 'active' : ''}`}
-            onClick={() => handleMusicToggle(true)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <span className="toggle-icon">🎵</span>
-            <div className="toggle-content">
-              <strong>Comptine musicale</strong>
-              <small>Paroles + mélodie avec IA Udio</small>
-            </div>
-          </motion.button>
-        </div>
-      </div>
-
-      {/* Musical style options */}
-      <AnimatePresence>
-        {showMusicOptions && generateMusic && (
-          <motion.div 
-            className="music-style-section"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <h4>🎨 Style musical</h4>
-            <div className="music-style-grid">
-              {musicStyles.map((style) => (
-                <motion.div
-                  key={style.id}
-                  className={`music-style-card ${musicStyle === style.id ? 'selected' : ''}`}
-                  onClick={() => handleMusicStyleSelect(style.id)}
-                  whileHover={{ y: -3 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="style-icon">{style.icon}</div>
-                  <h5>{style.name}</h5>
-                  <p>{style.description}</p>
-                </motion.div>
-              ))}
-              
-              {/* Custom style option */}
-              <motion.div
-                className={`music-style-card custom-style ${musicStyle === 'custom' ? 'selected' : ''}`}
-                onClick={() => handleMusicStyleSelect('custom')}
-                whileHover={{ y: -3 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div className="style-icon">🎛️</div>
-                <h5>Style personnalisé</h5>
-                <p>Décrivez votre style musical</p>
-              </motion.div>
-            </div>
-
-            {/* Custom music style input */}
-            <AnimatePresence>
-              {musicStyle === 'custom' && (
-                <motion.div 
-                  className="custom-music-style-input"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <label htmlFor="customMusicStyle">Décrivez le style musical souhaité</label>
-                  <motion.textarea
-                    id="customMusicStyle"
-                    value={customMusicStyle}
-                    onChange={(e) => setCustomMusicStyle(e.target.value)}
-                    placeholder="Ex: Style jazz doux avec piano, tempo lent, ambiance chaleureuse..."
-                    whileFocus={{ scale: 1.02 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 10 }}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Music generation info */}
-            <motion.div 
-              className="music-info"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              <div className="info-item">
-                <span className="info-icon">🤖</span>
-                <span>Powered by Udio AI</span>
-              </div>
-              <div className="info-item">
-                <span className="info-icon">⏱️</span>
-                <span>~1-3 minutes de génération</span>
-              </div>
-              <div className="info-item">
-                <span className="info-icon">🎯</span>
-                <span>Comptines réalistes chantées</span>
-              </div>
-            </motion.div>
+            <div className="style-icon">✏️</div>
+            <h4>Style personnalisé</h4>
+            <p>Décrivez votre style musical</p>
           </motion.div>
-        )}
-      </AnimatePresence>
+          
+          {/* Predefined styles */}
+          {musicStyles.map((style) => (
+            <motion.div
+              key={style.id}
+              className={`music-style-card ${musicStyle === style.id ? 'selected' : ''}`}
+              onClick={() => handleMusicStyleSelect(style.id)}
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="style-icon">{style.icon}</div>
+              <h4>{style.name}</h4>
+              <p>{style.description}</p>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Custom music style input */}
+        <AnimatePresence>
+          {musicStyle === 'custom' && (
+            <motion.div 
+              className="custom-music-style-input"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <label htmlFor="customMusicStyle">Décrivez le style musical souhaité</label>
+              <motion.textarea
+                id="customMusicStyle"
+                value={customMusicStyle}
+                onChange={(e) => setCustomMusicStyle(e.target.value)}
+                placeholder="Ex: Style jazz doux avec piano, tempo lent, ambiance chaleureuse..."
+                whileFocus={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300, damping: 10 }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 };

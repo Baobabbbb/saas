@@ -46,6 +46,33 @@ const AnimationSelector = ({
     { id: 'pastel', name: 'Pastel', description: 'Couleurs douces et tendres', emoji: '🌸' }
   ];
 
+  const handleThemeSelect = (themeId) => {
+    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
+    if (selectedTheme === themeId) {
+      setSelectedTheme('');
+    } else {
+      setSelectedTheme(themeId);
+    }
+  };
+
+  const handleDurationSelect = (durationValue) => {
+    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
+    if (selectedDuration === durationValue) {
+      setSelectedDuration('');
+    } else {
+      setSelectedDuration(durationValue);
+    }
+  };
+
+  const handleStyleSelect = (styleId) => {
+    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
+    if (selectedStyle === styleId) {
+      setSelectedStyle('');
+    } else {
+      setSelectedStyle(styleId);
+    }
+  };
+
   return (
     <div className="animation-selector">
       <h3>🎬 Créer un dessin animé IA</h3>
@@ -58,7 +85,7 @@ const AnimationSelector = ({
             <motion.div
               key={theme.id}
               className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''}`}
-              onClick={() => setSelectedTheme(theme.id)}
+              onClick={() => handleThemeSelect(theme.id)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 300, damping: 10 }}
@@ -106,7 +133,7 @@ const AnimationSelector = ({
             <motion.div
               key={duration.value}
               className={`duration-option ${selectedDuration === duration.value ? 'selected' : ''}`}
-              onClick={() => setSelectedDuration(duration.value)}
+              onClick={() => handleDurationSelect(duration.value)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 300, damping: 10 }}
@@ -126,7 +153,7 @@ const AnimationSelector = ({
             <motion.div
               key={style.id}
               className={`style-option ${selectedStyle === style.id ? 'selected' : ''}`}
-              onClick={() => setSelectedStyle(style.id)}
+              onClick={() => handleStyleSelect(style.id)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 300, damping: 10 }}
