@@ -63,7 +63,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # CORS avec support UTF-8
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5177"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "http://localhost:5177", "http://localhost:5178", "http://localhost:5179", "http://localhost:5180"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -1200,3 +1200,7 @@ async def serve_placeholder_video():
         path=str(placeholder_path),
         media_type="image/png"
     )
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
