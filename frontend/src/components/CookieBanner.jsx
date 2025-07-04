@@ -104,7 +104,7 @@ const CookieBanner = ({ onLegalClick }) => {
               className="cookie-btn primary"
               onClick={handleAcceptAll}
             >
-              Accepter tous
+              Accepter tout
             </button>
           </div>
         </div>

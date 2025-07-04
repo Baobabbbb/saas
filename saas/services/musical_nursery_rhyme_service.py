@@ -1,6 +1,6 @@
 """
 Service de Comptines Musicales
-Combine la génération de paroles (OpenAI) avec la génération musicale (DiffRhythm)
+Combine la génération de paroles (OpenAI) avec la génération musicale (Udio)
 """
 
 import asyncio
@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from openai import AsyncOpenAI
 from config import OPENAI_API_KEY, TEXT_MODEL
-from services.diffrhythm_service import diffrhythm_service, NURSERY_RHYME_STYLES
+from services.udio_service import udio_service, NURSERY_RHYME_STYLES
 
 class MusicalNurseryRhymeService:
     def __init__(self):
@@ -21,8 +21,7 @@ class MusicalNurseryRhymeService:
         rhyme_type: str,
         custom_request: Optional[str] = None,
         generate_music: bool = True,
-        custom_style: Optional[str] = None,
-        fast_mode: bool = True
+        custom_style: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Génère une comptine complète avec paroles et musique
@@ -38,10 +37,10 @@ class MusicalNurseryRhymeService:
             Dict contenant la comptine complète
         """
         try:
-            print(f"🎵 Génération comptine complète: {rhyme_type} (mode {'rapide' if fast_mode else 'complet'})")
+            print(f"🎵 Génération comptine complète: {rhyme_type}")
             
-            # Étape 1: Générer les paroles (avec optimisation pour le mode rapide)
-            lyrics_result = await self._generate_lyrics(rhyme_type, custom_request, fast_mode)
+            # Étape 1: Générer les paroles
+            lyrics_result = await self._generate_lyrics(rhyme_type, custom_request)
             
             if lyrics_result["status"] != "success":
                 return lyrics_result
@@ -60,10 +59,10 @@ class MusicalNurseryRhymeService:
             
             # Étape 2: Générer la musique (si demandé)
             if generate_music:
-                print(f"🎼 Génération musique pour: {title} (mode {'rapide' if fast_mode else 'complet'})")
+                print(f"🎼 Génération musique pour: {title}")
                 
                 music_result = await self._generate_music(
-                    lyrics, rhyme_type, custom_style, fast_mode
+                    lyrics, rhyme_type, custom_style
                 )
                 
                 if music_result["status"] == "success":
@@ -98,8 +97,7 @@ class MusicalNurseryRhymeService:
     async def _generate_lyrics(
         self, 
         rhyme_type: str, 
-        custom_request: Optional[str] = None,
-        fast_mode: bool = True
+        custom_request: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Génère les paroles de la comptine avec OpenAI
@@ -111,7 +109,7 @@ class MusicalNurseryRhymeService:
             # Construire le prompt selon le type et le mode
             style_info = NURSERY_RHYME_STYLES.get(rhyme_type, NURSERY_RHYME_STYLES["custom"])
             
-            prompt = self._build_lyrics_prompt(rhyme_type, custom_request, style_info, fast_mode)
+            prompt = self._build_lyrics_prompt(rhyme_type, custom_request, style_info)
             
             client = AsyncOpenAI(api_key=self.openai_key)
             
@@ -121,14 +119,12 @@ class MusicalNurseryRhymeService:
                 messages=[
                     {
                         "role": "system", 
-                        "content": "Tu es un spécialiste des comptines pour enfants. Tu écris des paroles simples, joyeuses et faciles à retenir, adaptées à la musique." + (
-                            " PRIORITÉ: Comptines très courtes et simples pour génération rapide." if fast_mode else ""
-                        )
+                        "content": "Tu es un spécialiste des comptines pour enfants. Tu écris des paroles simples, joyeuses et faciles à retenir, adaptées à la musique."
                     },
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=200 if fast_mode else 400,  # Réduire les tokens en mode rapide
-                temperature=0.7 if fast_mode else 0.8  # Moins de créativité = plus rapide
+                max_tokens=400,
+                temperature=0.8
             )
             generation_time = (datetime.now() - start_time).total_seconds()
             
@@ -155,20 +151,18 @@ class MusicalNurseryRhymeService:
         self, 
         lyrics: str, 
         rhyme_type: str, 
-        custom_style: Optional[str] = None,
-        fast_mode: bool = True
+        custom_style: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Génère la musique avec DiffRhythm
         """
         try:
-            # Formater les paroles avec timing (plus court en mode rapide)
-            duration = 20 if fast_mode else 30
-            formatted_lyrics = diffrhythm_service.format_lyrics_with_timing(lyrics, duration)
+            # Formater les paroles pour Udio
+            formatted_lyrics = udio_service.format_lyrics_for_udio(lyrics)
             
-            # Générer la musique avec le mode rapide
-            result = await diffrhythm_service.generate_musical_nursery_rhyme(
-                formatted_lyrics, rhyme_type, custom_style, fast_mode
+            # Générer la musique avec Udio
+            result = await udio_service.generate_musical_nursery_rhyme(
+                formatted_lyrics, rhyme_type, custom_style
             )
             
             return result
@@ -184,34 +178,21 @@ class MusicalNurseryRhymeService:
         self, 
         rhyme_type: str, 
         custom_request: Optional[str], 
-        style_info: Dict[str, str],
-        fast_mode: bool = True
+        style_info: Dict[str, str]
     ) -> str:
         """
         Construit le prompt pour la génération de paroles
         """
-        if fast_mode:
-            # Prompts optimisés pour la vitesse
-            base_prompts = {
-                "lullaby": "Écris une berceuse très courte (4 lignes max) pour endormir",
-                "counting": "Écris une comptine courte (4 lignes max) pour compter jusqu'à 5",
-                "animal": "Écris une comptine courte (4 lignes max) sur 2-3 animaux",
-                "seasonal": "Écris une comptine courte (4 lignes max) sur une saison",
-                "educational": "Écris une comptine courte (4 lignes max) éducative simple",
-                "movement": "Écris une comptine courte (4 lignes max) pour bouger",
-                "custom": "Écris une comptine très courte (4 lignes max)"
-            }
-        else:
-            # Prompts complets
-            base_prompts = {
-                "lullaby": "Écris une berceuse douce et apaisante pour endormir un enfant",
-                "counting": "Écris une comptine amusante pour apprendre à compter de 1 à 10",
-                "animal": "Écris une comptine sur les animaux avec leurs cris et leurs caractéristiques",
-                "seasonal": "Écris une comptine sur une saison ou une fête de l'année",
-                "educational": "Écris une comptine éducative pour apprendre quelque chose d'important",
-                "movement": "Écris une comptine avec des gestes et des mouvements pour bouger",
-                "custom": "Écris une comptine joyeuse et rythmée pour enfants"
-            }
+        # Prompts standard
+        base_prompts = {
+            "lullaby": "Écris une berceuse douce et apaisante pour endormir un enfant",
+            "counting": "Écris une comptine amusante pour apprendre à compter de 1 à 10",
+            "animal": "Écris une comptine sur les animaux avec leurs cris et leurs caractéristiques",
+            "seasonal": "Écris une comptine sur une saison ou une fête de l'année",
+            "educational": "Écris une comptine éducative pour apprendre quelque chose d'important",
+            "movement": "Écris une comptine avec des gestes et des mouvements pour bouger",
+            "custom": "Écris une comptine joyeuse et rythmée pour enfants"
+        }
         
         base_prompt = base_prompts.get(rhyme_type, base_prompts["custom"])
         

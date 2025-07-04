@@ -107,7 +107,6 @@ function App() {
   const [generateMusic, setGenerateMusic] = useState(true);
   const [musicStyle, setMusicStyle] = useState('auto');
   const [customMusicStyle, setCustomMusicStyle] = useState('');
-  const [fastMode, setFastMode] = useState(true); // Mode rapide par défaut
   
   const [selectedAudioStory, setSelectedAudioStory] = useState(null);
   const [customAudioStory, setCustomAudioStory] = useState('');
@@ -185,10 +184,9 @@ function App() {
       if (contentType === 'rhyme') {
         const payload = {
           rhyme_type: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
-          custom_request: fastMode ? `${customRequest} (version courte et simple)` : customRequest,
+          custom_request: customRequest,
           generate_music: generateMusic || false,
-          custom_style: fastMode ? 'simple et rapide' : (musicStyle === 'custom' ? customMusicStyle : null),
-          fast_mode: fastMode,
+          custom_style: musicStyle === 'custom' ? customMusicStyle : null,
           language: 'fr'
         };
 
@@ -538,13 +536,14 @@ const downloadPDF = async (title, content) => {
   doc.save(`${safeTitle}.pdf`);
 };
 
- // Fonction de polling automatique pour vérifier le statut des tâches musicales (optimisée)
-  const pollTaskStatus = async (taskId, maxAttempts = 50, interval = 6000) => {
+ // Fonction de polling automatique pour vérifier le statut des tâches musicales (sans timeout)
+  const pollTaskStatus = async (taskId, interval = 10000) => {
     let attempts = 0;
     
     const checkStatus = async () => {
       try {
-        console.log(`🎵 Polling ${attempts + 1}/${maxAttempts} pour task ${taskId}`);
+        attempts++;
+        console.log(`🎵 Polling ${attempts} pour task ${taskId}`);
         const response = await fetch(`http://localhost:8000/check_task_status/${taskId}`);
         
         if (!response.ok) {
@@ -587,33 +586,15 @@ const downloadPDF = async (title, content) => {
             music_error: status.error || 'Erreur de génération musicale'
           }));
           return; // Arrêter le polling
-        } else if (attempts >= maxAttempts - 1) {
-          // Timeout atteint
-          console.warn('⏰ Timeout atteint pour la génération musicale après', maxAttempts, 'tentatives');
-          setGeneratedResult(prev => ({
-            ...prev,
-            music_status: 'timeout'
-          }));
-          return; // Arrêter le polling
         }
         
-        // Continuer le polling
-        attempts++;
+        // Continuer le polling sans limite de temps
         setTimeout(checkStatus, interval);
         
       } catch (error) {
         console.error('❌ Erreur lors du polling:', error);
-        attempts++;
-        if (attempts < maxAttempts) {
-          setTimeout(checkStatus, interval);
-        } else {
-          console.error('❌ Erreur de polling après', maxAttempts, 'tentatives:', error);
-          setGeneratedResult(prev => ({
-            ...prev,
-            music_status: 'error',
-            music_error: `Erreur de connexion: ${error.message}`
-          }));
-        }
+        // En cas d'erreur, on continue quand même le polling
+        setTimeout(checkStatus, interval);
       }
     };
     
@@ -665,8 +646,6 @@ const downloadPDF = async (title, content) => {
                   setMusicStyle={setMusicStyle}
                   customMusicStyle={customMusicStyle}
                   setCustomMusicStyle={setCustomMusicStyle}
-                  fastMode={fastMode}
-                  setFastMode={setFastMode}
                 />
               </motion.div>
             ) : contentType === 'audio' ? (
@@ -877,11 +856,11 @@ const downloadPDF = async (title, content) => {
       )}
       
       {/* Audio si disponible */}
-      {generatedResult.audio_path && (
+      {(generatedResult.audio_path || generatedResult.audio_url) && (
         <audio
           controls
           style={{ width: '100%', maxWidth: '300px' }}
-          src={`http://localhost:8000/${generatedResult.audio_path}`}
+          src={generatedResult.audio_path || generatedResult.audio_url}
         />
       )}
       
@@ -891,28 +870,23 @@ const downloadPDF = async (title, content) => {
           padding: '0.5rem 1rem',
           backgroundColor: 
             generatedResult.music_status === 'failed' ? '#f8d7da' : 
-            generatedResult.music_status === 'error' ? '#f8d7da' :
-            generatedResult.music_status === 'timeout' ? '#fff3cd' : '#d1ecf1',
+            generatedResult.music_status === 'error' ? '#f8d7da' : '#d1ecf1',
           borderRadius: '6px',
           fontSize: '11px',
           color: 
             generatedResult.music_status === 'failed' ? '#721c24' : 
-            generatedResult.music_status === 'error' ? '#721c24' :
-            generatedResult.music_status === 'timeout' ? '#856404' : '#0c5460',
+            generatedResult.music_status === 'error' ? '#721c24' : '#0c5460',
           textAlign: 'center',
           border: 
             generatedResult.music_status === 'failed' ? '1px solid #f5c6cb' : 
-            generatedResult.music_status === 'error' ? '1px solid #f5c6cb' :
-            generatedResult.music_status === 'timeout' ? '1px solid #ffeaa7' : '1px solid #bee5eb'
+            generatedResult.music_status === 'error' ? '1px solid #f5c6cb' : '1px solid #bee5eb'
         }}>
           {generatedResult.music_status === 'failed' || generatedResult.music_status === 'error' ? (
             `❌ Génération musicale échouée: ${generatedResult.music_error || 'Erreur inconnue'}`
-          ) : generatedResult.music_status === 'timeout' ? (
-            '⏰ Génération musicale prend plus de temps que prévu (8 minutes max)...'
           ) : generatedResult.music_status === 'completed_no_audio' ? (
             '⚠️ Génération terminée mais audio non disponible'
           ) : (
-            '🎵 Génération musicale en cours... Cela peut prendre quelques minutes.'
+            '🎵 Génération musicale en cours avec Udio... Cela peut prendre plusieurs minutes.'
           )}
         </div>
       )}
@@ -974,7 +948,7 @@ const downloadPDF = async (title, content) => {
   )}
   
   {/* 🎵 Audio présent pour autres contenus */}
-{contentType !== 'rhyme' && generatedResult?.audio_path && (
+{contentType !== 'rhyme' && (generatedResult?.audio_path || generatedResult?.audio_url) && (
   <div
     style={{
       height: '300px', // 👈 même hauteur que le bloc boutons
@@ -987,8 +961,8 @@ const downloadPDF = async (title, content) => {
     <audio
       controls
       style={{ width: '100%', maxWidth: '360px' }} // 👈 limite la largeur pour l’esthétique
-      src={`http://localhost:8000/${generatedResult.audio_path}`}
-      download={generatedResult.audio_path.split('/').pop()}
+      src={generatedResult.audio_path || generatedResult.audio_url}
+      download={(generatedResult.audio_path || generatedResult.audio_url)?.split('/').pop()}
     />
   </div>
 )}

@@ -143,7 +143,6 @@ class RhymeRequest(BaseModel):
     custom_request: Optional[str] = None
     generate_music: Optional[bool] = True  # Générer la musique ou seulement les paroles
     custom_style: Optional[str] = None  # Style musical personnalisé
-    fast_mode: Optional[bool] = True  # Mode rapide pour optimiser la vitesse
 
 class StoryRequest(BaseModel):
     story_type: str
@@ -174,8 +173,7 @@ async def generate_rhyme(request: RhymeRequest):
                 rhyme_type=request.rhyme_type,
                 custom_request=request.custom_request,
                 generate_music=request.generate_music or True,
-                custom_style=request.custom_style,
-                fast_mode=request.fast_mode or True
+                custom_style=request.custom_style
             )
             
             # Ajouter des messages informatifs si la musique a échoué
@@ -354,10 +352,10 @@ HISTOIRE: [texte de l'histoire]"""
             detail=f"❌ Erreur lors de la génération de l'histoire: {str(e)}"
         )
 
-# === COMPTINES MUSICALES AVEC DIFFRHYTHM ===
+# === COMPTINES MUSICALES AVEC UDIO ===
 
 from services.musical_nursery_rhyme_service import musical_nursery_rhyme_service
-from services.diffrhythm_service import diffrhythm_service
+from services.udio_service import udio_service
 
 @app.post("/check_rhyme_task_status/")
 async def check_rhyme_task_status(request: RhymeTaskStatusRequest):
@@ -365,8 +363,8 @@ async def check_rhyme_task_status(request: RhymeTaskStatusRequest):
     try:
         print(f"🔍 Vérification statut tâche: {request.task_id}")
         
-        # Vérifier le statut de la tâche DiffRhythm
-        result = await diffrhythm_service.check_task_status(request.task_id)
+        # Vérifier le statut de la tâche Udio
+        result = await udio_service.check_task_status(request.task_id)
         
         return result
         
@@ -384,8 +382,8 @@ async def check_task_status_get(task_id: str):
     try:
         print(f"🔍 Vérification statut tâche GET: {task_id}")
         
-        # Vérifier le statut de la tâche DiffRhythm
-        result = await diffrhythm_service.check_task_status(task_id)
+        # Vérifier le statut de la tâche Udio
+        result = await udio_service.check_task_status(task_id)
         
         return result
         
@@ -401,7 +399,7 @@ async def check_task_status_get(task_id: str):
 async def get_available_rhyme_styles():
     """Récupérer les styles de comptines disponibles"""
     try:
-        from services.diffrhythm_service import NURSERY_RHYME_STYLES
+        from services.udio_service import NURSERY_RHYME_STYLES
         
         styles = {}
         for style_key, style_info in NURSERY_RHYME_STYLES.items():
@@ -412,11 +410,7 @@ async def get_available_rhyme_styles():
                 "mood": style_info["mood"]
             }
         
-        return {
-            "status": "success",
-            "styles": styles,
-            "total_styles": len(styles)
-        }
+        return styles
         
     except Exception as e:
         print(f"❌ Erreur récupération styles: {e}")
