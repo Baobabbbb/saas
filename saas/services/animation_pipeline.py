@@ -263,7 +263,82 @@ RÉPONSE (prompt direct pour génération vidéo):"""
             print(f"❌ Erreur génération prompts: {e}")
             return []
 
-    # ===== ÉTAPE 4: GÉNÉRATION D'IMAGES AVEC DALL-E =====
+    # ===== ÉTAPE 4: GÉNÉRATION D'IMAGES AVEC STABILITY AI =====
+    async def generate_image_clip_with_stability(self, prompt_data: Dict, scene_number: int) -> Dict:
+        """
+        Génère une image avec Stability AI en utilisant les seeds pour la cohérence
+        """
+        try:
+            # Récupérer la seed appropriée selon le contenu de la scène
+            seed = prompt_data.get('seed')
+            if not seed:
+                # Fallback : générer une seed basée sur le numéro de scène
+                seed = 100000 + scene_number * 1000
+            
+            print(f"🎨 Génération Stability AI scène {scene_number} avec seed {seed}...")
+            
+            # Traduire et optimiser le prompt pour Stability AI
+            optimized_prompt = f"High quality digital illustration for children's animation: {prompt_data['original_scene']['description']}. {prompt_data['original_scene']['setting']}. Bright cheerful colors, cartoon style, smooth animation-ready art, professional children's book illustration style, 16:9 aspect ratio"
+            
+            if not self.stability_api_key:
+                raise Exception("Stability API key non configurée")
+            
+            # API Stability AI SD3
+            headers = {
+                "Authorization": f"Bearer {self.stability_api_key}",
+                "Accept": "image/*"
+            }
+            
+            files = {
+                "prompt": (None, optimized_prompt),
+                "model": (None, "sd3-medium"),
+                "aspect_ratio": (None, "16:9"),
+                "seed": (None, str(seed)),  # ✅ SEED POUR COHÉRENCE
+                "output_format": (None, "png")
+            }
+            
+            response = requests.post(
+                "https://api.stability.ai/v2beta/stable-image/generate/sd3",
+                headers=headers,
+                files=files,
+                timeout=60
+            )
+            
+            if response.status_code == 200:
+                image_data = response.content
+                
+                if len(image_data) > 1000:
+                    image_filename = f"scene_{scene_number}_stability_{uuid.uuid4().hex[:8]}.png"
+                    image_path = self.cache_dir / image_filename
+                    
+                    with open(image_path, 'wb') as f:
+                        f.write(image_data)
+                    
+                    print(f"✅ Image Stability AI scène {scene_number} générée: {image_filename}")
+                    
+                    return {
+                        "scene_number": prompt_data['scene_number'],
+                        "video_path": str(image_path),
+                        "video_url": f"/cache/animations/{image_filename}",
+                        "image_url": f"/cache/animations/{image_filename}",
+                        "duration": prompt_data['duration'],
+                        "status": "success",
+                        "type": "image"
+                    }
+                else:
+                    raise Exception("Image générée trop petite")
+            else:
+                raise Exception(f"Erreur API Stability: {response.status_code} - {response.text}")
+            
+        except Exception as e:
+            print(f"❌ Erreur génération Stability AI scène {scene_number}: {e}")
+            # PLUS DE FALLBACK DALL-E - Relancer avec Stability AI
+            print(f"🔄 Nouvelle tentative Stability AI pour scène {scene_number}...")
+            # Réessayer avec un seed différent pour éviter les erreurs reproductibles
+            fallback_seed = (seed + 50000) % 999999 if seed else 50000 + scene_number * 1000
+            return await self._retry_stability_generation(prompt_data, scene_number, fallback_seed)
+
+    # ===== ÉTAPE 4b: GÉNÉRATION D'IMAGES AVEC DALL-E (FALLBACK) =====
     async def generate_image_clip(self, prompt_data: Dict, scene_number: int) -> Dict:
         """
         Génère une image statique pour représenter la scène (en attendant SD3-Turbo)
@@ -306,9 +381,7 @@ RÉPONSE (prompt direct pour génération vidéo):"""
                             "image_url": f"/cache/animations/{image_filename}",
                             "duration": prompt_data['duration'],
                             "status": "success",
-                            "type": "image",
-                            "prompt": simplified_prompt,
-                            "original_prompt": prompt_data["prompt"]
+                            "type": "image"
                         }
             
             raise Exception("Impossible de télécharger l'image")

@@ -10,6 +10,8 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) =
         ? 'Création de la comptine en cours...'
         : contentType === 'coloring'
         ? 'Création du coloriage en cours...'
+        : contentType === 'comic'
+        ? 'Création de la BD en cours...'
         : contentType === 'animation'
         ? 'Création du dessin animé en cours...'
         : 'Création du contenu en cours...';
@@ -21,6 +23,8 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) =
       ? 'Créer ma comptine'
       : contentType === 'coloring'
       ? 'Créer mon coloriage'
+      : contentType === 'comic'
+      ? 'Créer ma bande dessinée'
       : contentType === 'animation'
       ? 'Créer mon dessin animé'
       : contentType === 'audio'
@@ -63,6 +67,8 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) =
             ? 'Veuillez sélectionner un type de comptine pour continuer'
             : contentType === 'coloring'
             ? 'Veuillez sélectionner un thème de coloriage pour continuer'
+            : contentType === 'comic'
+            ? 'Veuillez sélectionner un thème, style et longueur pour votre BD'
             : contentType === 'animation'
             ? 'Veuillez sélectionner un thème et configurer votre animation'
             : 'Veuillez sélectionner un type d\'histoire (et une voix) pour continuer'}

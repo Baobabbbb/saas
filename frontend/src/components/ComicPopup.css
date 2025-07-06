@@ -1,0 +1,141 @@
+/* Comic Popup Styles */
+.comic-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.comic-popup-content {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.comic-popup-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #6B4EFF, #9333EA);
+  color: white;
+  border-radius: 1rem 1rem 0 0;
+}
+
+.comic-popup-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.comic-popup-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.comic-popup-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.comic-popup-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  min-height: 0;
+}
+
+/* Adaptation du ComicViewer dans la popup */
+.comic-popup-body .comic-viewer {
+  max-width: none;
+  margin: 0;
+}
+
+.comic-popup-body .comic-title {
+  display: none; /* Le titre est déjà dans le header */
+}
+
+.comic-popup-body .comic-panels-grid {
+  margin: 1rem 0;
+}
+
+.comic-popup-body .comic-panel-image {
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.comic-popup-body .comic-navigation {
+  margin: 2rem 0 1rem 0;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+}
+
+.comic-popup-body .comic-controls {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f1f5f9;
+  border-radius: 0.5rem;
+}
+
+.comic-popup-body .comic-download {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .comic-popup-overlay {
+    padding: 0.5rem;
+  }
+  
+  .comic-popup-content {
+    max-height: 95vh;
+  }
+  
+  .comic-popup-header {
+    padding: 1rem;
+  }
+  
+  .comic-popup-header h2 {
+    font-size: 1.1rem;
+  }
+  
+  .comic-popup-body {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .comic-popup-content {
+    border-radius: 0.5rem;
+  }
+  
+  .comic-popup-header {
+    border-radius: 0.5rem 0.5rem 0 0;
+  }
+}

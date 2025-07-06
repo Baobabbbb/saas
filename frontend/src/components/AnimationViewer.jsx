@@ -153,9 +153,9 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                               mediaUrl = `http://localhost:8000${clip.video_url}`;
                               isVideo = true;
                             } else if (clip.demo_image_url) {
-                              mediaUrl = `http://localhost:8000${clip.demo_image_url}`;
+                              mediaUrl = `http://localhost:8006${clip.demo_image_url}`;
                             } else if (clip.image_url) {
-                              mediaUrl = `http://localhost:8000${clip.image_url}`;
+                              mediaUrl = `http://localhost:8006${clip.image_url}`;
                             } else if (clip.video_url) {
                               mediaUrl = `http://localhost:8000${clip.video_url}`;
                             }
@@ -301,10 +301,6 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
                           >
-                            <div className="prompt-section">
-                              <h5>Prompt généré:</h5>
-                              <p className="prompt-text">{clip.prompt}</p>
-                            </div>
                             {clip.video_url && (
                               <div className="clip-preview">
                                 <span>📁 Fichier: {clip.video_url}</span>

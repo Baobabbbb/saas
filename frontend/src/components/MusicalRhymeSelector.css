@@ -2,14 +2,15 @@
 .musical-rhyme-selector {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding-top: 0.5rem;
+  gap: 1rem;
+  padding: 0;
 }
 
 .musical-rhyme-selector h3 {
   font-size: 1.2rem;
   color: var(--primary);
   margin: 0;
+  margin-bottom: 1rem;
 }
 
 .musical-rhyme-selector h4 {
