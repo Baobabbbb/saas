@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from unidecode import unidecode
 import traceback
 import os
@@ -16,12 +16,12 @@ from dotenv import load_dotenv
 import openai
 from openai import AsyncOpenAI
 
-from schemas.animation import AnimationRequest, AnimationResponse, AnimationStatusResponse, AnimationStatus
+from .schemas.animation import AnimationRequest, AnimationResponse, AnimationStatusResponse, AnimationStatus
 from datetime import datetime
-from services.tts import generate_speech
-from services.stt import transcribe_audio
+from .services.tts import generate_speech
+from .services.stt import transcribe_audio
 # Pipeline d'animation moderne et modulaire (sans CrewAI)
-from services.complete_animation_pipeline import CompletAnimationPipeline
+from .services.complete_animation_pipeline import CompletAnimationPipeline
 
 # Instance globale de la pipeline
 animation_pipeline_instance = CompletAnimationPipeline()
@@ -34,8 +34,9 @@ async def complete_animation_pipeline(story: str, total_duration: int = 30, styl
         target_duration=total_duration,
         style=style
     )
-from services.coloring_generator import ColoringGenerator
-from utils.translate import translate_text
+from .services.coloring_generator import ColoringGenerator
+from .services.comic_generator import ComicGenerator
+from .utils.translate import translate_text
 
 # --- Chargement .env ---
 load_dotenv()
@@ -288,6 +289,87 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
 class ColoringRequest(BaseModel):
     theme: str
 
+# --- Bandes Dessinées ---
+
+# Modèles pour les BD
+from typing import List, Dict, Any
+from pydantic import BaseModel
+
+class ComicRequest(BaseModel):
+    """Requête pour générer une bande dessinée"""
+    theme: str  # adventure, animals, space, magic, friendship, etc.
+    story_length: Optional[str] = "short"  # short, medium, long (4-6, 8-10, 12-16 pages)
+    art_style: Optional[str] = "cartoon"  # cartoon, realistic, manga, comics, watercolor
+    custom_request: Optional[str] = None  # Demande personnalisée
+    characters: Optional[List[str]] = None  # Personnages principaux
+    setting: Optional[str] = None  # Lieu de l'action
+    
+class ComicPage(BaseModel):
+    """Modèle pour une page de bande dessinée"""
+    page_number: int
+    image_url: str
+    description: str
+    dialogues: List[dict]  # [{"character": "nom", "text": "dialogue", "bubble_type": "normal"}]
+    panels: Optional[List[dict]] = None  # Informations sur les cases
+    
+class ComicResponse(BaseModel):
+    """Réponse pour une bande dessinée générée"""
+    status: str
+    comic_id: str
+    title: str
+    pages: List[ComicPage]
+    total_pages: int
+    theme: str
+    art_style: str
+    generation_time: Optional[float] = None
+    comic_metadata: Optional[dict] = None
+    error: Optional[str] = None
+
+# Instance globale du générateur de BD
+comic_generator_instance = ComicGenerator()
+
+@app.post("/generate_comic/", response_model=ComicResponse)
+async def generate_comic(request: ComicRequest):
+    """
+    Génère une bande dessinée complète avec IA
+    """
+    try:
+        print(f"📚 Génération BD: {request.theme} / {request.art_style} / {request.story_length}")
+        
+        # Vérifier la clé API
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key or openai_key.startswith("sk-votre"):
+            raise HTTPException(
+                status_code=400, 
+                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
+            )
+        
+        # Convertir la requête en dictionnaire
+        request_data = {
+            "theme": request.theme,
+            "story_length": request.story_length,
+            "art_style": request.art_style,
+            "custom_request": request.custom_request,
+            "characters": request.characters,
+            "setting": request.setting
+        }
+        
+        # Générer la BD complète
+        result = await comic_generator_instance.create_complete_comic(request_data)
+        
+        if result["status"] == "success":
+            return ComicResponse(**result)
+        else:
+            raise HTTPException(status_code=500, detail=result.get("error", "Erreur inconnue"))
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur génération BD: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération de la BD : {str(e)}")
+
 # --- Animation Cohérente CrewAI ---
 class AnimationCohesiveRequest(BaseModel):
     story: str
@@ -453,7 +535,7 @@ async def generate_animation_fast(request: AnimationRequest):
         print(f"⚡ Génération animation RAPIDE: {request.style} / {request.theme}")
         
         # Importer le service rapide
-        from services.fast_animation_service import fast_animation_service
+        from .services.fast_animation_service import fast_animation_service
         
         # Utiliser le service rapide qui génère des vraies vidéos
         style_str = request.style.value
@@ -1203,4 +1285,4 @@ async def serve_placeholder_video():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8006)

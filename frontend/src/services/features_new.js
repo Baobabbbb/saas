@@ -4,8 +4,8 @@ const FEATURES_STORAGE_KEY = 'fridayFeatures';
 // Configuration par défaut des fonctionnalités
 const DEFAULT_FEATURES = {
   animation: { enabled: true, name: 'Dessin animé', icon: '🎬' },
-  comic: { enabled: true, name: 'Bande dessinée', icon: '📚' },
   coloring: { enabled: true, name: 'Coloriage', icon: '🎨' },
+  comic: { enabled: true, name: 'Bande dessinée', icon: '📚' },
   audio: { enabled: true, name: 'Histoire', icon: '📖' },
   rhyme: { enabled: true, name: 'Comptine', icon: '🎵' }
 };

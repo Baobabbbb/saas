@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Validation finale de la pipeline
+Script de validation finale pour l'application FRIDAY BD
+Vérifie que toutes les fonctionnalités fonctionnent correctement
 """
 
 import json

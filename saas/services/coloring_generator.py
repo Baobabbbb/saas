@@ -44,7 +44,6 @@ class ColoringGenerator:
                 if image_path:
                     images.append({
                         "image_url": f"http://localhost:8000/static/coloring/coloriage_{clean_theme}.png",
-                        "prompt": prompt,
                         "theme": theme
                     })
             except Exception as e:
@@ -55,7 +54,6 @@ class ColoringGenerator:
                 "theme": theme,
                 "created_at": datetime.now().isoformat(),
                 "total_images": len(images),
-                "prompt": prompt,
                 "filename": f"coloriage_{clean_theme}.png"
             }
             
@@ -166,21 +164,48 @@ class ColoringGenerator:
         
         # Obtenir le prompt de base pour le thème (avec fallback)
         base_prompt = theme_prompts.get(theme.lower(), f"A cute {theme} scene for children")
-          # Créer le prompt optimisé pour Stable Diffusion line art
+        
+        # Créer le prompt optimisé pour Stable Diffusion line art
         coloring_prompt = f"Black and white line drawing coloring book page, {base_prompt}, simple clean outlines, no shading, no gradients, no fill, thick black lines, white background, cartoon style, suitable for children ages 4-10, high contrast, clear details"
         
         return coloring_prompt
     
+    def _get_theme_seed(self, theme: str) -> int:
+        """Générer une seed déterministe basée sur le thème pour la cohérence"""
+        
+        # Seeds fixes par thème pour garantir la cohérence
+        theme_seeds = {
+            'animaux': 123456,
+            'dinosaures': 234567,
+            'espace': 345678,
+            'fees': 456789,
+            'super-heros': 567890,
+            'nature': 678901,
+            'vehicules': 789012,
+            'princesse': 890123,
+            'licorne': 901234,
+            'ocean': 012345,
+            'ferme': 112233
+        }
+        
+        # Utiliser seed prédéfinie ou générer à partir du hash du thème
+        seed = theme_seeds.get(theme.lower(), abs(hash(theme.lower())) % 999999)
+        print(f"🎲 Seed coloriage pour thème '{theme}': {seed}")
+        return seed
+    
     async def _generate_coloring_image(self, prompt: str, coloring_dir: Path, theme_name: str) -> Optional[Path]:
-        """Générer une image de coloriage avec Stable Diffusion"""
+        """Générer une image de coloriage avec Stable Diffusion et seed pour cohérence"""
         
         try:
             print(f"🎨 Génération coloriage pour '{theme_name}' avec prompt: {prompt[:100]}...")
             
+            # Obtenir la seed pour le thème
+            theme_seed = self._get_theme_seed(theme_name)
+            
             # Utiliser Stability AI si disponible
             if self.stability_key and self.stability_key != "your_stability_key_here":
-                print("🔑 Utilisation de Stability AI...")
-                image_path = await self._generate_with_stability(prompt, coloring_dir, theme_name)
+                print(f"🔑 Utilisation de Stability AI avec seed {theme_seed}...")
+                image_path = await self._generate_with_stability(prompt, coloring_dir, theme_name, theme_seed)
                 if image_path:
                     print("✅ Génération Stability AI réussie")
                     return await self._convert_to_line_art(image_path, coloring_dir, theme_name)
@@ -188,15 +213,16 @@ class ColoringGenerator:
                     print("❌ Échec Stability AI, passage au fallback")
             else:
                 print("⚠️ Clé Stability AI manquante ou invalide, utilisation du fallback")
-              # Fallback vers une image générée localement
+            
+            # Fallback vers une image générée localement
             return await self._create_fallback_coloring(coloring_dir, theme_name, prompt)
             
         except Exception as e:
             print(f"❌ Erreur génération image {theme_name}: {e}")
             return await self._create_fallback_coloring(coloring_dir, theme_name, prompt)
     
-    async def _generate_with_stability(self, prompt: str, coloring_dir: Path, theme_name: str) -> Optional[Path]:
-        """Générer avec l'API Stability AI"""
+    async def _generate_with_stability(self, prompt: str, coloring_dir: Path, theme_name: str, seed: int) -> Optional[Path]:
+        """Générer avec l'API Stability AI avec seed pour cohérence"""
         
         try:
             headers = {
@@ -214,6 +240,7 @@ class ColoringGenerator:
                 "width": 1024,
                 "samples": 1,
                 "steps": 30,
+                "seed": seed,  # ✅ AJOUT DE LA SEED POUR COHÉRENCE
                 "style_preset": "line-art",  # Style spécialement pour le line art
                 "sampler": "K_DPM_2_ANCESTRAL"
             }

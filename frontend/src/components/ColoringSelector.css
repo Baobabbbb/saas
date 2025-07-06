@@ -6,13 +6,14 @@
 
 .coloring-selector {
   width: 100%;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .coloring-selector h3 {
   font-size: 1.2rem;
   color: var(--primary);
   margin: 0;
+  margin-bottom: 1rem;
 }
 
 .coloring-selector h4 {

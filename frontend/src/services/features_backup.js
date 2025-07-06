@@ -4,10 +4,12 @@ const FEATURES_STORAGE_KEY = 'fridayFeatures';
 // Configuration par défaut des fonctionnalités
 const DEFAULT_FEATURES = {
   animation: { enabled: true, name: 'Dessin animé', icon: '🎬' },
-  comic: { enabled: true, name: 'Bande dessinée', icon: '📚' },
   coloring: { enabled: true, name: 'Coloriage', icon: '🎨' },
+  comic: { enabled: true, name: 'Bande dessinée', icon: '📚' },
   audio: { enabled: true, name: 'Histoire', icon: '📖' },
   rhyme: { enabled: true, name: 'Comptine', icon: '🎵' }
+};
+  rhyme: { enabled: true, name: 'Comptine', icon: '�' }
 };
 
 export const getFeatures = () => {
@@ -55,29 +57,19 @@ export const getEnabledFeatures = () => {
     }, {});
 };
 
-export const resetFeatures = () => {
-  localStorage.setItem(FEATURES_STORAGE_KEY, JSON.stringify(DEFAULT_FEATURES));
-  window.dispatchEvent(new CustomEvent('featuresUpdated', { detail: DEFAULT_FEATURES }));
-  return DEFAULT_FEATURES;
+// Fonction pour nettoyer le localStorage des anciennes fonctionnalités
+export const cleanupObsoleteFeatures = () => {
+  const stored = localStorage.getItem(FEATURES_STORAGE_KEY);
+  if (stored) {
+    try {
+      const parsedFeatures = JSON.parse(stored);
+      delete parsedFeatures.musical_rhyme;
+      localStorage.setItem(FEATURES_STORAGE_KEY, JSON.stringify(parsedFeatures));
+    } catch (error) {
+      console.error('Erreur lors du nettoyage:', error);
+    }
+  }
 };
 
-export const getAllFeatures = () => {
-  return { ...DEFAULT_FEATURES };
-};
-
-// Fonction utilitaire pour vérifier si toutes les fonctionnalités requises sont activées
-export const areRequiredFeaturesEnabled = (requiredFeatures = []) => {
-  const enabledFeatures = getEnabledFeatures();
-  return requiredFeatures.every(feature => enabledFeatures[feature]);
-};
-
-// Export par défaut pour compatibilité
-export default {
-  getFeatures,
-  updateFeature,
-  isFeatureEnabled,
-  getEnabledFeatures,
-  resetFeatures,
-  getAllFeatures,
-  areRequiredFeaturesEnabled
-};
+// Nettoyage automatique au chargement du module
+cleanupObsoleteFeatures();

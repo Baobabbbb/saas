@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion }            <motion.div
+              className={`content-type-option ${contentType === 'comic' ? 'selected' : ''}`}
+              onClick={() => handleContentTypeSelect('comic')}
+              whileHover={{ y: -5 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="content-type-icon">💬</div>
+              <div className="content-type-details">
+                <h4>Bande dessinée</h4>
+                <p>Créez une vraie BD avec histoire cohérente et bulles de dialogue</p>
+              </div>
+            </motion.div>r-motion';
 import './ContentTypeSelector.css';
 import { getEnabledFeatures } from '../services/features';
 
@@ -32,8 +43,12 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
   }, [contentType, setContentType]);
 
   const handleContentTypeSelect = (type) => {
-    // Ne pas permettre la désélection - toujours sélectionner le type choisi
-    setContentType(type);
+    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
+    if (contentType === type) {
+      setContentType('');
+    } else {
+      setContentType(type);
+    }
   };
   
   const hasEnabledFeatures = Object.keys(enabledFeatures).length > 0;
@@ -70,7 +85,7 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
               whileHover={{ y: -5 }}
               whileTap={{ scale: 0.98 }}
             >
-              <div className="content-type-icon">💬</div>
+              <div className="content-type-icon">�</div>
               <div className="content-type-details">
                 <h4>Bande dessinée</h4>
                 <p>Créez une vraie BD avec histoire cohérente et bulles de dialogue</p>
