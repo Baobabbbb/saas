@@ -380,8 +380,11 @@ class StableDiffusionGenerator:
         return await self._generate_enhanced_local_image("Simple comic page", comic_dir, page_number, style)
     
     def _create_page_dialogues(self, chapter: Dict[str, Any], spec, page_number: int) -> List[Dict[str, Any]]:
-        """Crée des dialogues pour une page"""
+        """Crée des dialogues variés pour une page avec différents types de bulles"""
         dialogues = []
+        
+        # Types de dialogues possibles
+        dialogue_types = ["speech", "thought", "shout", "whisper"]
         
         # Extraire les dialogues du chapitre si disponibles
         if isinstance(chapter, dict) and "dialogues" in chapter:
@@ -389,68 +392,162 @@ class StableDiffusionGenerator:
                 dialogues.append({
                     "character": dialogue.get("character", spec.hero_name),
                     "text": dialogue.get("text", f"Dialogue page {page_number}"),
-                    "type": "speech",
-                    "position": {"x": 0.1, "y": 0.1}
+                    "type": dialogue.get("type", "speech"),
+                    "position": dialogue.get("position", {"x": 0.1, "y": 0.1})
                 })
         else:
-            # Dialogue par défaut
-            dialogues.append({
-                "character": spec.hero_name,
-                "text": f"Voici ma première aventure sur la page {page_number}!",
-                "type": "speech",
-                "position": {"x": 0.1, "y": 0.1}
-            })
+            # Créer des dialogues variés selon le numéro de page
+            if page_number == 1:
+                # Page d'ouverture - dialogue d'introduction
+                dialogues.append({
+                    "character": spec.hero_name,
+                    "text": "Bonjour ! Je m'appelle " + spec.hero_name + " et voici mon histoire !",
+                    "type": "speech",
+                    "position": {"x": 0.15, "y": 0.10}
+                })
+                if len(spec.characters) > 1:
+                    dialogues.append({
+                        "character": spec.characters[1] if len(spec.characters) > 1 else "Ami",
+                        "text": "Quelle aventure nous attend ?",
+                        "type": "speech",
+                        "position": {"x": 0.60, "y": 0.70}
+                    })
+            elif page_number == 2:
+                # Page d'action - dialogue plus dynamique
+                dialogues.append({
+                    "character": spec.hero_name,
+                    "text": "Wow ! C'est incroyable !",
+                    "type": "shout",
+                    "position": {"x": 0.20, "y": 0.15}
+                })
+                dialogues.append({
+                    "character": spec.hero_name,
+                    "text": "Je me demande ce qui va se passer...",
+                    "type": "thought",
+                    "position": {"x": 0.55, "y": 0.65}
+                })
+            elif page_number == 3:
+                # Page de mystère - chuchotement
+                dialogues.append({
+                    "character": spec.hero_name,
+                    "text": "Chut... Il faut être discret...",
+                    "type": "whisper",
+                    "position": {"x": 0.10, "y": 0.60}
+                })
+                dialogues.append({
+                    "character": "Narrateur",
+                    "text": "L'aventure devient mystérieuse...",
+                    "type": "thought",
+                    "position": {"x": 0.50, "y": 0.20}
+                })
+            elif page_number >= 4:
+                # Pages suivantes - mélange de types
+                import random
+                
+                # Dialogue principal
+                main_texts = [
+                    "Cette aventure est fantastique !",
+                    "Je n'ai jamais vu quelque chose comme ça !",
+                    "Il faut que je raconte ça à mes amis !",
+                    "Quelle découverte extraordinaire !",
+                    "C'est le plus beau jour de ma vie !",
+                    "Je me sens comme un vrai héros !",
+                    "Cette histoire va être légendaire !",
+                    "J'ai hâte de voir la suite !",
+                ]
+                
+                dialogues.append({
+                    "character": spec.hero_name,
+                    "text": random.choice(main_texts),
+                    "type": random.choice(["speech", "shout"]),
+                    "position": {"x": 0.15, "y": 0.10}
+                })
+                
+                # Dialogue de pensée
+                thought_texts = [
+                    "Qu'est-ce qui m'attend maintenant ?",
+                    "J'espère que tout va bien se passer...",
+                    "Cette aventure me rappelle mes rêves...",
+                    "Je me sens plus fort qu'avant !",
+                    "Il faut que je reste courageux !",
+                ]
+                
+                dialogues.append({
+                    "character": spec.hero_name,
+                    "text": random.choice(thought_texts),
+                    "type": "thought",
+                    "position": {"x": 0.55, "y": 0.65}
+                })
         
-        return dialogues
+        # Limiter à 2-3 dialogues par page pour éviter la surcharge
+        return dialogues[:3]
     
     async def _add_dialogue_bubbles(self, image_path: Path, dialogues: List[Dict[str, Any]], 
                                   comic_dir: Path, page_number: int) -> Path:
-        """Ajoute les bulles de dialogue à l'image"""
+        """Ajoute les bulles de dialogue à l'image avec un style BD réaliste"""
         try:
             # Charger l'image
             img = Image.open(image_path)
             draw = ImageDraw.Draw(img)
             
+            # Positions prédéfinies pour les bulles (éviter les chevauchements)
+            bubble_positions = [
+                (0.15, 0.10),  # Haut gauche
+                (0.60, 0.15),  # Haut droite
+                (0.10, 0.60),  # Bas gauche
+                (0.65, 0.65),  # Bas droite
+                (0.35, 0.25),  # Centre haut
+                (0.25, 0.80),  # Centre bas
+            ]
+            
             # Ajouter chaque bulle de dialogue
             for i, dialogue in enumerate(dialogues):
                 text = dialogue.get("text", "")
-                if text:
-                    # Position de la bulle (simplifiée)
-                    x = int(img.width * (0.1 + i * 0.3))
-                    y = int(img.height * 0.1)
+                if not text:
+                    continue
                     
-                    # Taille de la bulle
-                    bubble_width = min(200, len(text) * 8)
-                    bubble_height = 60
-                    
-                    # Dessiner la bulle
-                    draw.ellipse([x, y, x + bubble_width, y + bubble_height], 
-                               fill="white", outline="black", width=2)
-                    
-                    # Ajouter le texte
-                    try:
-                        font = ImageFont.load_default()
-                    except:
-                        font = None
-                    
-                    # Diviser le texte en lignes
-                    words = text.split()
-                    lines = []
-                    current_line = ""
-                    
-                    for word in words:
-                        if len(current_line + word) < 20:  # Max caractères par ligne
-                            current_line += word + " "
-                        else:
-                            lines.append(current_line.strip())
-                            current_line = word + " "
-                    if current_line:
-                        lines.append(current_line.strip())
-                    
-                    # Dessiner chaque ligne
-                    for j, line in enumerate(lines[:3]):  # Max 3 lignes
-                        text_y = y + 15 + j * 15
-                        draw.text((x + 10, text_y), line, fill="black", font=font)
+                # Déterminer le type de bulle
+                dialogue_type = dialogue.get("type", "speech")
+                character = dialogue.get("character", "")
+                
+                # Position de la bulle
+                pos_index = i % len(bubble_positions)
+                x_ratio, y_ratio = bubble_positions[pos_index]
+                
+                # Calculer la taille de la bulle basée sur le texte
+                words = text.split()
+                char_count = len(text)
+                
+                # Taille dynamique
+                bubble_width = min(max(200, char_count * 6), int(img.width * 0.35))
+                bubble_height = min(max(80, len(words) * 12), int(img.height * 0.25))
+                
+                # Position finale
+                x = int(img.width * x_ratio)
+                y = int(img.height * y_ratio)
+                
+                # S'assurer que la bulle reste dans l'image
+                if x + bubble_width > img.width:
+                    x = img.width - bubble_width - 10
+                if y + bubble_height > img.height:
+                    y = img.height - bubble_height - 10
+                
+                # Dessiner la bulle selon le type
+                if dialogue_type == "thought":
+                    # Bulle de pensée (nuage avec des petites bulles)
+                    self._draw_thought_bubble(draw, x, y, bubble_width, bubble_height)
+                elif dialogue_type == "shout":
+                    # Bulle de cri (forme explosive)
+                    self._draw_shout_bubble(draw, x, y, bubble_width, bubble_height)
+                elif dialogue_type == "whisper":
+                    # Bulle de chuchotement (pointillés)
+                    self._draw_whisper_bubble(draw, x, y, bubble_width, bubble_height)
+                else:
+                    # Bulle de dialogue normale
+                    self._draw_speech_bubble(draw, x, y, bubble_width, bubble_height)
+                
+                # Ajouter le texte
+                self._draw_bubble_text(draw, x, y, bubble_width, bubble_height, text)
             
             # Sauvegarder l'image finale
             final_path = comic_dir / f"page_{page_number}_final.png"
@@ -466,7 +563,172 @@ class StableDiffusionGenerator:
             import shutil
             shutil.copy2(image_path, final_path)
             return final_path
-
-
-# Instance globale
-stable_diffusion_generator = StableDiffusionGenerator()
+    
+    def _draw_speech_bubble(self, draw, x, y, width, height):
+        """Dessine une bulle de dialogue classique avec queue"""
+        # Bulle principale (ellipse)
+        draw.ellipse([x, y, x + width, y + height], fill="white", outline="black", width=3)
+        
+        # Queue de la bulle (triangle pointant vers le personnage)
+        queue_x = x + width // 4
+        queue_y = y + height
+        points = [
+            (queue_x, queue_y),
+            (queue_x + 15, queue_y + 20),
+            (queue_x + 30, queue_y),
+        ]
+        draw.polygon(points, fill="white", outline="black")
+        
+        # Ligne pour fermer la queue
+        draw.line([(queue_x, queue_y), (queue_x + 30, queue_y)], fill="white", width=2)
+    
+    def _draw_thought_bubble(self, draw, x, y, width, height):
+        """Dessine une bulle de pensée avec des petites bulles"""
+        # Bulle principale (forme nuage avec des cercles)
+        # Créer plusieurs cercles qui se chevauchent pour former un nuage
+        circles = [
+            (x + 10, y + 10, 25),
+            (x + 35, y + 5, 30),
+            (x + 65, y + 8, 28),
+            (x + 90, y + 12, 25),
+            (x + 15, y + 35, 30),
+            (x + 45, y + 30, 35),
+            (x + 75, y + 32, 30),
+            (x + 20, y + 60, 25),
+            (x + 50, y + 58, 28),
+            (x + 80, y + 55, 25),
+        ]
+        
+        # Ajuster les cercles à la taille de la bulle
+        scale_x = width / 120
+        scale_y = height / 80
+        
+        for cx, cy, radius in circles:
+            scaled_cx = x + int((cx - x) * scale_x)
+            scaled_cy = y + int((cy - y) * scale_y)
+            scaled_radius = int(radius * min(scale_x, scale_y))
+            
+            if scaled_cx + scaled_radius <= x + width and scaled_cy + scaled_radius <= y + height:
+                draw.ellipse([scaled_cx - scaled_radius, scaled_cy - scaled_radius,
+                             scaled_cx + scaled_radius, scaled_cy + scaled_radius], 
+                           fill="white", outline="black", width=2)
+        
+        # Petites bulles de pensée
+        small_bubbles = [
+            (x + width // 4, y + height + 10, 8),
+            (x + width // 4 - 10, y + height + 25, 5),
+            (x + width // 4 - 15, y + height + 35, 3),
+        ]
+        
+        for bx, by, radius in small_bubbles:
+            draw.ellipse([bx - radius, by - radius, bx + radius, by + radius], 
+                       fill="white", outline="black", width=2)
+    
+    def _draw_shout_bubble(self, draw, x, y, width, height):
+        """Dessine une bulle de cri avec des bords explosifs"""
+        # Créer une forme en étoile/explosion
+        center_x = x + width // 2
+        center_y = y + height // 2
+        
+        # Points pour créer une forme explosive
+        points = []
+        import math
+        
+        for i in range(16):  # 16 points pour une forme complexe
+            angle = i * math.pi / 8
+            if i % 2 == 0:
+                # Points extérieurs (pics)
+                radius = min(width, height) // 2 + 15
+            else:
+                # Points intérieurs (creux)
+                radius = min(width, height) // 2 - 5
+            
+            px = center_x + radius * math.cos(angle)
+            py = center_y + radius * math.sin(angle)
+            points.append((px, py))
+        
+        # Dessiner la forme explosive
+        draw.polygon(points, fill="white", outline="black", width=4)
+    
+    def _draw_whisper_bubble(self, draw, x, y, width, height):
+        """Dessine une bulle de chuchotement avec des pointillés"""
+        # Bulle principale avec contour en pointillés
+        # Simuler les pointillés avec des petites lignes
+        import math
+        
+        # Ellipse en pointillés
+        for angle in range(0, 360, 10):
+            angle_rad = math.radians(angle)
+            x1 = x + width // 2 + (width // 2) * math.cos(angle_rad)
+            y1 = y + height // 2 + (height // 2) * math.sin(angle_rad)
+            x2 = x + width // 2 + (width // 2 + 5) * math.cos(angle_rad)
+            y2 = y + height // 2 + (height // 2 + 5) * math.sin(angle_rad)
+            
+            if angle % 20 == 0:  # Créer l'effet pointillé
+                draw.line([(x1, y1), (x2, y2)], fill="black", width=2)
+        
+        # Remplir l'intérieur
+        draw.ellipse([x + 3, y + 3, x + width - 3, y + height - 3], fill="white")
+        
+        # Queue en pointillés
+        queue_x = x + width // 4
+        queue_y = y + height
+        for i in range(0, 20, 4):
+            draw.line([(queue_x + i, queue_y + i), (queue_x + i + 2, queue_y + i + 2)], 
+                     fill="black", width=2)
+    
+    def _draw_bubble_text(self, draw, x, y, width, height, text):
+        """Dessine le texte dans la bulle avec un meilleur formatting"""
+        try:
+            # Essayer de charger une police plus grande
+            font = ImageFont.load_default()
+            # Si on a PIL avec truetype, on peut essayer une police système
+            try:
+                font = ImageFont.truetype("arial.ttf", 14)
+            except:
+                try:
+                    font = ImageFont.truetype("DejaVuSans.ttf", 14)
+                except:
+                    pass  # Garder la police par défaut
+        except:
+            font = None
+        
+        # Diviser le texte en lignes intelligemment
+        words = text.split()
+        lines = []
+        current_line = ""
+        max_chars_per_line = max(12, width // 10)  # Ajuster selon la largeur
+        
+        for word in words:
+            if len(current_line + word) < max_chars_per_line:
+                current_line += word + " "
+            else:
+                if current_line:
+                    lines.append(current_line.strip())
+                current_line = word + " "
+        if current_line:
+            lines.append(current_line.strip())
+        
+        # Centrer le texte dans la bulle
+        line_height = 16
+        total_text_height = len(lines) * line_height
+        start_y = y + (height - total_text_height) // 2
+        
+        # Dessiner chaque ligne centrée
+        for i, line in enumerate(lines[:4]):  # Max 4 lignes
+            # Calculer la largeur du texte pour le centrer
+            if font:
+                try:
+                    bbox = draw.textbbox((0, 0), line, font=font)
+                    text_width = bbox[2] - bbox[0]
+                except:
+                    text_width = len(line) * 8
+            else:
+                text_width = len(line) * 8
+            
+            text_x = x + (width - text_width) // 2
+            text_y = start_y + i * line_height
+            
+            # Dessiner le texte avec une petite ombre pour plus de lisibilité
+            draw.text((text_x + 1, text_y + 1), line, fill="gray", font=font)
+            draw.text((text_x, text_y), line, fill="black", font=font)
