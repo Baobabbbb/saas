@@ -16,12 +16,12 @@ from dotenv import load_dotenv
 import openai
 from openai import AsyncOpenAI
 
-from .schemas.animation import AnimationRequest, AnimationResponse, AnimationStatusResponse, AnimationStatus
+from schemas.animation import AnimationRequest, AnimationResponse, AnimationStatusResponse, AnimationStatus
 from datetime import datetime
-from .services.tts import generate_speech
-from .services.stt import transcribe_audio
+from services.tts import generate_speech
+from services.stt import transcribe_audio
 # Pipeline d'animation moderne et modulaire (sans CrewAI)
-from .services.complete_animation_pipeline import CompletAnimationPipeline
+from services.complete_animation_pipeline import CompletAnimationPipeline
 
 # Instance globale de la pipeline
 animation_pipeline_instance = CompletAnimationPipeline()
@@ -34,9 +34,9 @@ async def complete_animation_pipeline(story: str, total_duration: int = 30, styl
         target_duration=total_duration,
         style=style
     )
-from .services.coloring_generator import ColoringGenerator
-from .services.comic_generator import ComicGenerator
-from .utils.translate import translate_text
+from services.coloring_generator import ColoringGenerator
+from services.comic_generator import ComicGenerator
+from utils.translate import translate_text
 
 # --- Chargement .env ---
 load_dotenv()
@@ -535,7 +535,7 @@ async def generate_animation_fast(request: AnimationRequest):
         print(f"⚡ Génération animation RAPIDE: {request.style} / {request.theme}")
         
         # Importer le service rapide
-        from .services.fast_animation_service import fast_animation_service
+        from services.fast_animation_service import fast_animation_service
         
         # Utiliser le service rapide qui génère des vraies vidéos
         style_str = request.style.value

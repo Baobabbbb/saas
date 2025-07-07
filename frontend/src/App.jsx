@@ -1057,7 +1057,7 @@ const downloadPDF = async (title, content) => {
         }}
         className="rhyme-button"
       >
-        📄 Télécharger la BD ({comicResult.pages?.length || 0} images)
+        📄 Télécharger la BD
       </button>
     </motion.div>
   ) : (

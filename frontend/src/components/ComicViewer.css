@@ -194,7 +194,7 @@
 }
 
 .download-pdf-button-b {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  background: var(--primary, #6B4EFF);
   border: none;
   color: white;
   padding: 1rem 2rem;
@@ -206,13 +206,13 @@
   align-items: center;
   gap: 0.5rem;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  box-shadow: 0 4px 15px rgba(107, 78, 255, 0.3);
 }
 
 .download-pdf-button-b:hover {
-  background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+  background: #5a3de8;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+  box-shadow: 0 6px 20px rgba(107, 78, 255, 0.4);
 }
 
 /* Loading state */
@@ -313,6 +313,109 @@
   box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.2);
 }
 
+/* Styles pour les bulles de dialogue */
+.comic-panel-dialogue-info {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(107, 78, 255, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+}
+
+.comic-panel:hover .comic-panel-dialogue-info {
+  opacity: 1;
+}
+
+.comic-panel-dialogue-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  max-width: 200px;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+  margin-bottom: 5px;
+}
+
+.comic-panel-dialogue-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+.comic-panel:hover .comic-panel-dialogue-tooltip {
+  opacity: 1;
+}
+
+/* Animation pour les bulles */
+.comic-panel-with-dialogue {
+  position: relative;
+}
+
+.comic-panel-with-dialogue::before {
+  content: '💬';
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #FFD166;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  z-index: 3;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Amélioration de l'affichage des images avec bulles */
+.comic-panel-image-with-dialogue {
+  position: relative;
+  cursor: pointer;
+}
+
+.comic-panel-image-with-dialogue::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, 
+    transparent 0%, 
+    rgba(107, 78, 255, 0.1) 50%, 
+    transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.comic-panel:hover .comic-panel-image-with-dialogue::after {
+  opacity: 1;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .comic-viewer {
@@ -386,7 +489,7 @@
 }
 
 .download-pdf-button-b:focus {
-  outline: 3px solid rgba(40, 167, 69, 0.5);
+  outline: 3px solid rgba(107, 78, 255, 0.5);
   outline-offset: 2px;
 }
 
