@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './UserAccount.css';
 import { signUpWithProfile, signIn, signOut, updateUserProfile, getCurrentUserProfile, deleteUserAccount, resetPassword } from '../services/auth';
@@ -16,6 +16,9 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [lastName, setLastName] = useState('');
   const [error, setError] = useState('');
   const [userFirstName, setUserFirstName] = useState('');
+  
+  // Référence pour le composant user-account afin de détecter les clics en dehors
+  const userAccountRef = useRef(null);
   
   // États pour le profil utilisateur
   const [profileFirstName, setProfileFirstName] = useState('');
@@ -54,6 +57,53 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
     
     return () => clearInterval(interval);
   }, [isLoggedIn]);
+
+  // useEffect pour fermer le dropdown quand on clique en dehors
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Pour le dropdown du profil, on vérifie si le clic est en dehors du composant principal
+      if (userAccountRef.current && !userAccountRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+      
+      // Pour les popups (modales), on vérifie si le clic est sur l'overlay ou en dehors du formulaire
+      const clickedElement = event.target;
+      
+      // Si on clique sur l'overlay (auth-form-container) mais pas sur le formulaire (auth-form)
+      if (clickedElement.classList.contains('auth-form-container') || 
+          clickedElement.classList.contains('error-popup-overlay')) {
+        setShowLoginForm(false);
+        setShowRegisterForm(false);
+        setShowProfileForm(false);
+        setShowForgotPassword(false);
+        setShowDeleteConfirm(false);
+      }
+      
+      // Si on clique complètement en dehors de toute popup
+      const isOutsideAllPopups = !clickedElement.closest('.auth-form-container') && 
+                                 !clickedElement.closest('.error-popup-overlay') &&
+                                 !clickedElement.closest('.user-account');
+      
+      if (isOutsideAllPopups) {
+        setShowLoginForm(false);
+        setShowRegisterForm(false);
+        setShowProfileForm(false);
+        setShowForgotPassword(false);
+        setShowDeleteConfirm(false);
+        setShowDropdown(false);
+      }
+    };
+
+    // Ajouter l'event listener si n'importe quelle popup est ouverte
+    if (showDropdown || showLoginForm || showRegisterForm || showProfileForm || showForgotPassword || showDeleteConfirm) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // Nettoyer l'event listener
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDropdown, showLoginForm, showRegisterForm, showProfileForm, showForgotPassword, showDeleteConfirm]);
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
     setShowLoginForm(false);
@@ -378,7 +428,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   };
 
   return (
-    <div className="user-account">
+    <div className="user-account" ref={userAccountRef}>
       <motion.div 
         className="user-icon"
         whileHover={{ scale: 1.1 }}
@@ -493,6 +543,12 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2 }}
+            onClick={(e) => {
+              // Fermer la popup si on clique sur l'overlay (pas sur le formulaire)
+              if (e.target === e.currentTarget) {
+                setShowLoginForm(false);
+              }
+            }}
           >
             <div className="auth-form">
               <h3>Connexion</h3>
@@ -553,6 +609,12 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2 }}
+            onClick={(e) => {
+              // Fermer la popup si on clique sur l'overlay (pas sur le formulaire)
+              if (e.target === e.currentTarget) {
+                setShowRegisterForm(false);
+              }
+            }}
           >
             <div className="auth-form">
               <h3>Inscription</h3>
@@ -627,6 +689,12 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2 }}
+            onClick={(e) => {
+              // Fermer la popup si on clique sur l'overlay (pas sur le formulaire)
+              if (e.target === e.currentTarget) {
+                setShowProfileForm(false);
+              }
+            }}
           >
             <div className="auth-form">
               <h3>Mon compte</h3>
@@ -762,6 +830,12 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
+            onClick={(e) => {
+              // Fermer la popup si on clique sur l'overlay (pas sur le formulaire)
+              if (e.target === e.currentTarget) {
+                setShowDeleteConfirm(false);
+              }
+            }}
           >
             <motion.div 
               className="error-popup"
@@ -852,6 +926,12 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2 }}
+            onClick={(e) => {
+              // Fermer la popup si on clique sur l'overlay (pas sur le formulaire)
+              if (e.target === e.currentTarget) {
+                setShowForgotPassword(false);
+              }
+            }}
           >
             <div className="auth-form">
               <h3>Réinitialiser le mot de passe</h3>

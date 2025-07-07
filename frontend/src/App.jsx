@@ -127,6 +127,7 @@ function App() {
 
   // Coloring states
   const [selectedTheme, setSelectedTheme] = useState(null);
+  const [customColoringTheme, setCustomColoringTheme] = useState('');
   const [coloringResult, setColoringResult] = useState(null);
   
   // Comic states
@@ -136,6 +137,7 @@ function App() {
   const [selectedComicStoryLength, setSelectedComicStoryLength] = useState(null);
   const [comicResult, setComicResult] = useState(null);
   const [customCharacter, setCustomCharacter] = useState('');
+  const [customComicTheme, setCustomComicTheme] = useState('');
   
   // Animation states
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
@@ -237,8 +239,9 @@ function App() {
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
     } else if (contentType === 'coloring') {
+      const finalTheme = selectedTheme === 'custom' ? customColoringTheme : selectedTheme;
       const payload = {
-        theme: selectedTheme
+        theme: finalTheme
       };
       
       const response = await fetch(API_ENDPOINTS.generateColoring, {
@@ -263,13 +266,25 @@ function App() {
       }
       
       // Construire la requête personnalisée avec le personnage custom si applicable
-      let finalCustomRequest = selectedComicTheme === 'custom' ? customRequest : null;
+      let finalCustomRequest = selectedComicTheme === 'custom' ? customComicTheme : null;
+      
+      // Ajouter le personnage personnalisé si applicable
       if (selectedComicCharacter === 'custom' && customCharacter) {
         const characterDesc = `Personnage principal: ${customCharacter}`;
         if (finalCustomRequest) {
           finalCustomRequest = `${finalCustomRequest}. ${characterDesc}`;
         } else {
           finalCustomRequest = characterDesc;
+        }
+      }
+      
+      // Ajouter les demandes spécifiques si elles sont renseignées (optionnelles)
+      if (customRequest && customRequest.trim()) {
+        const specificRequests = `Demandes spécifiques: ${customRequest.trim()}`;
+        if (finalCustomRequest) {
+          finalCustomRequest = `${finalCustomRequest}. ${specificRequests}`;
+        } else {
+          finalCustomRequest = specificRequests;
         }
       }
       
@@ -544,6 +559,10 @@ const handleSelectCreation = (creation) => {
       // La voix est optionnelle
     } else if (contentType === 'coloring') {
       if (!selectedTheme) return false;
+      if (selectedTheme === 'custom' && !customColoringTheme.trim()) {
+        console.log('❌ Thème de coloriage personnalisé manquant');
+        return false;
+      }
     } else if (contentType === 'comic') {
       console.log('🎯 Debug validation BD:', {
         selectedComicTheme,
@@ -558,8 +577,8 @@ const handleSelectCreation = (creation) => {
         console.log('❌ Thème BD manquant');
         return false;
       }
-      if (selectedComicTheme === 'custom' && !customRequest.trim()) {
-        console.log('❌ Requête personnalisée manquante');
+      if (selectedComicTheme === 'custom' && !customComicTheme.trim()) {
+        console.log('❌ Thème personnalisé manquant');
         return false;
       }
       if (!selectedComicArtStyle) {
@@ -863,6 +882,8 @@ const downloadPDF = async (title, content) => {
               >                <ColoringSelector
                   selectedTheme={selectedTheme}
                   setSelectedTheme={setSelectedTheme}
+                  customColoringTheme={customColoringTheme}
+                  setCustomColoringTheme={setCustomColoringTheme}
                 />
               </motion.div>
             ) : contentType === 'comic' ? (
@@ -887,6 +908,8 @@ const downloadPDF = async (title, content) => {
                   setCustomRequest={setCustomRequest}
                   customCharacter={customCharacter}
                   setCustomCharacter={setCustomCharacter}
+                  customComicTheme={customComicTheme}
+                  setCustomComicTheme={setCustomComicTheme}
                 />
               </motion.div>
             ) : contentType === 'animation' ? (

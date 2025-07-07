@@ -1,20 +1,27 @@
+/* Variables pour cohérence avec les autres composants */
+:root {
+  --primary: #6B4EFF;
+  --text: #333;
+}
+
 .story-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding-top: 0.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0;
 }
 
 .story-selector h3 {
   font-size: 1.2rem;
   color: var(--primary);
   margin: 0;
+  margin-bottom: 1rem;
 }
 
 .story-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
+  margin-bottom: 1rem;
   max-height: 300px;
   overflow-y: auto;
   padding-right: 0.5rem;
@@ -48,12 +55,14 @@
 
 .story-card:hover {
   background-color: #ede5ff;
+  transform: translateY(-2px);
 }
 
 .story-card.selected {
   border-color: var(--primary);
   background-color: #ede5ff;
   box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
+  animation: pulseGlow 2s ease-in-out infinite;
 }
 
 .story-emoji {
@@ -65,6 +74,7 @@
   font-size: 1rem;
   margin: 0;
   color: var(--primary);
+  font-weight: bold;
 }
 
 .story-card p {
@@ -74,6 +84,7 @@
   opacity: 0.8;
 }
 
+/* Style pour l'option personnalisée avec contour en pointillés */
 .custom-story {
   border: 2px dashed #c4b5ff;
 }
@@ -93,18 +104,60 @@
 }
 
 .custom-story-input textarea {
-  padding: 0.8rem 1rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border: 2px solid #e1e5f0;
   border-radius: 12px;
-  border: 2px solid #e0d6ff;
-  font-size: 0.9rem;
+  font-size: 1rem;
   min-height: 80px;
   resize: vertical;
-  font-family: inherit;
+  font-family: 'Nunito', sans-serif;
   transition: all 0.2s ease;
+  background: white;
 }
 
 .custom-story-input textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.2);
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+}
+
+.custom-story-input textarea::placeholder {
+  color: #999;
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(107, 78, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(107, 78, 255, 0.5);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .story-selector {
+    padding: 0 15px;
+  }
+  
+  .story-grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+  
+  .story-card {
+    padding: 1rem;
+  }
+  
+  .story-emoji {
+    font-size: 2rem;
+    min-width: 2.5rem;
+  }
+  
+  .custom-story-input textarea {
+    font-size: 0.9rem;
+    padding: 0.8rem 1rem;
+  }
 }
