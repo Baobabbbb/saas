@@ -184,7 +184,7 @@ class ColoringGenerator:
             'vehicules': 789012,
             'princesse': 890123,
             'licorne': 901234,
-            'ocean': 012345,
+            'ocean': 12345,
             'ferme': 112233
         }
         
@@ -287,10 +287,17 @@ class ColoringGenerator:
                 # Ajuster le contraste pour avoir des lignes plus nettes
                 edges = ImageOps.autocontrast(edges)
                 
-                # Convertir en noir et blanc pur
+                # Convertir en noir et blanc pur avec seuillage
                 threshold = 200
-                edges = edges.point(lambda x: 255 if x > threshold else 0, mode='1')
-                  # Sauvegarder le line art
+                lut = []
+                for i in range(256):
+                    if i > threshold:
+                        lut.append(255)
+                    else:
+                        lut.append(0)
+                edges = edges.point(lut, mode='1')
+                
+                # Sauvegarder le line art
                 lineart_path = coloring_dir / f"coloriage_{theme_name}.png"
                 edges.save(lineart_path)
                 

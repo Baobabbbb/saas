@@ -32,38 +32,40 @@ const AnimationSelector = ({
   ];
 
   const durations = [
-    { value: 10, label: '10 secondes', description: 'Ultra court' },
-    { value: 30, label: '30 secondes', description: 'Court et dynamique' },
-    { value: 60, label: '1 minute', description: 'Format idéal' },
-    { value: 120, label: '2 minutes', description: 'Histoire développée' },
-    { value: 180, label: '3 minutes', description: 'Récit complet' },
-    { value: 300, label: '5 minutes', description: 'Long métrage' }
+    { id: '30s', name: '30 secondes', description: 'Animation courte' },
+    { id: '1min', name: '1 minute', description: 'Animation standard' },
+    { id: '2min', name: '2 minutes', description: 'Animation longue' }
   ];
 
   const visualStyles = [
-    { id: 'cartoon', name: 'Cartoon', description: 'Style dessin animé coloré', emoji: '🎨' },
-    { id: 'anime', name: 'Anime', description: 'Style manga japonais', emoji: '🇯🇵' },
-    { id: 'realistic', name: 'Réaliste', description: 'Style cinématographique', emoji: '🎬' },
-    { id: 'pastel', name: 'Pastel', description: 'Couleurs douces et tendres', emoji: '🌸' }
+    { id: 'cartoon', name: 'Cartoon', description: 'Style dessin animé coloré' },
+    { id: 'realistic', name: 'Réaliste', description: 'Style photo-réaliste' },
+    { id: 'anime', name: 'Anime', description: 'Style manga japonais' },
+    { id: 'disney', name: 'Disney', description: 'Style Disney classique' }
+  ];
+
+  const generationModes = [
+    { id: 'simple', name: 'Simple', description: 'Génération rapide' },
+    { id: 'advanced', name: 'Avancé', description: 'Plus de détails et d\'options' }
   ];
 
   return (
     <div className="animation-selector">
       {/* Section 2: Sélection du thème */}
-      <div className="selector-section">
-        <h4>2. Choisissez un thème pour votre dessin animé</h4>
-        <div className="themes-grid">
+      <div className="section">
+        <h3>2. Choisissez un thème pour votre dessin animé</h3>
+        <div className="theme-grid">
           {animationThemes.map((theme) => (
             <motion.div
               key={theme.id}
               className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''} ${theme.id === 'custom' ? 'custom-animation' : ''}`}
               onClick={() => setSelectedTheme(theme.id)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <div className="theme-emoji">{theme.emoji}</div>
               <div className="theme-content">
-                <h5>{theme.name}</h5>
+                <h4>{theme.name}</h4>
                 <p>{theme.description}</p>
               </div>
             </motion.div>
@@ -72,62 +74,74 @@ const AnimationSelector = ({
 
         {selectedTheme === 'custom' && (
           <motion.div 
-            className="custom-story-section"
+            className="custom-story-input"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <h4>Écrivez votre histoire</h4>
+            <label>Décrivez votre histoire personnalisée :</label>
             <textarea
-              className="custom-story-textarea"
               value={customStory}
               onChange={(e) => setCustomStory(e.target.value)}
-              placeholder="Il était une fois... Racontez votre histoire ici. Plus elle est détaillée, plus l'animation sera riche et personnalisée !"
+              placeholder="Ex: Un petit robot qui découvre la magie dans un jardin secret..."
               rows={4}
             />
-            <div className="character-count">
-              {customStory.length}/500 caractères
-            </div>
           </motion.div>
         )}
       </div>
 
       {/* Section 3: Durée */}
-      <div className="selector-section">
-        <h4>3. Durée de l'animation</h4>
+      <div className="section">
+        <h3>3. Durée de l'animation</h3>
         <div className="duration-options">
           {durations.map((duration) => (
             <motion.div
-              key={duration.value}
-              className={`duration-option ${selectedDuration === duration.value ? 'selected' : ''}`}
-              onClick={() => setSelectedDuration(duration.value)}
+              key={duration.id}
+              className={`duration-card ${selectedDuration === duration.id ? 'selected' : ''}`}
+              onClick={() => setSelectedDuration(duration.id)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <div className="duration-label">{duration.label}</div>
-              <div className="duration-description">{duration.description}</div>
+              <h4>{duration.name}</h4>
+              <p>{duration.description}</p>
             </motion.div>
           ))}
         </div>
       </div>
 
       {/* Section 4: Style visuel */}
-      <div className="selector-section">
-        <h4>4. Style visuel</h4>
+      <div className="section">
+        <h3>4. Style visuel</h3>
         <div className="style-options">
           {visualStyles.map((style) => (
             <motion.div
               key={style.id}
-              className={`style-option ${selectedStyle === style.id ? 'selected' : ''}`}
+              className={`style-card ${selectedStyle === style.id ? 'selected' : ''}`}
               onClick={() => setSelectedStyle(style.id)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <div className="style-emoji">{style.emoji}</div>
-              <div className="style-content">
-                <h5>{style.name}</h5>
-                <p>{style.description}</p>
-              </div>
+              <h4>{style.name}</h4>
+              <p>{style.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Section 5: Mode de génération */}
+      <div className="section">
+        <h3>5. Mode de génération</h3>
+        <div className="generation-options">
+          {generationModes.map((mode) => (
+            <motion.div
+              key={mode.id}
+              className={`generation-card ${generationMode === mode.id ? 'selected' : ''}`}
+              onClick={() => setGenerationMode(mode.id)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <h4>{mode.name}</h4>
+              <p>{mode.description}</p>
             </motion.div>
           ))}
         </div>

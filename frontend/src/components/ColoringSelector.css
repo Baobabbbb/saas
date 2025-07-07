@@ -117,3 +117,35 @@
   color: #999;
   opacity: 1;
 }
+
+/* Style pour l'option personnalisée avec contour en pointillés */
+.custom-coloring {
+  border: 2px dashed #c4b5ff;
+}
+
+/* Custom theme input */
+.custom-theme-input {
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.custom-input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border: 2px solid #e1e5f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: 'Nunito', sans-serif;
+  transition: border-color 0.3s ease;
+  background: white;
+}
+
+.custom-input:focus {
+  outline: none;
+  border-color: #6b4eff;
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+}
+
+.custom-input::placeholder {
+  color: #999;
+}

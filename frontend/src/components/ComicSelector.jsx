@@ -3,13 +3,13 @@ import { motion } from 'framer-motion';
 import './ComicSelector.css';
 
 const comicThemes = [
-  { id: 'custom', name: 'Personnalisée', description: 'Créez votre propre thème', emoji: '✏️' },
+  { id: 'custom', name: 'Bande dessinée personnalisée', description: 'Créez votre propre thème', emoji: '✏️' },
+  { id: 'space', name: 'Espace', description: 'Voyages spatiaux', emoji: '🚀' },
+  { id: 'ocean', name: 'Océan', description: 'Aventures sous-marines', emoji: '🌊' },
   { id: 'adventure', name: 'Aventure', description: 'Exploration et découvertes', emoji: '🗺️' },
   { id: 'animals', name: 'Animaux', description: 'Animaux et leurs aventures', emoji: '🦁' },
-  { id: 'space', name: 'Espace', description: 'Voyages spatiaux', emoji: '🚀' },
   { id: 'magic', name: 'Magie', description: 'Monde magique et sortilèges', emoji: '✨' },
   { id: 'friendship', name: 'Amitié', description: 'Histoires d\'amitié', emoji: '👫' },
-  { id: 'ocean', name: 'Océan', description: 'Aventures sous-marines', emoji: '🌊' },
   { id: 'forest', name: 'Forêt', description: 'Mystères de la forêt', emoji: '🌲' },
   { id: 'pirates', name: 'Pirates', description: 'Aventures de pirates', emoji: '🏴‍☠️' },
   { id: 'dinosaurs', name: 'Dinosaures', description: 'L\'époque des dinosaures', emoji: '🦕' },
@@ -43,7 +43,9 @@ const ComicSelector = ({
   customRequest,
   setCustomRequest,
   customCharacter,
-  setCustomCharacter
+  setCustomCharacter,
+  customComicTheme,
+  setCustomComicTheme
 }) => {
   const [showCustomTheme, setShowCustomTheme] = useState(false);
   const [showCustomCharacter, setShowCustomCharacter] = useState(false);
@@ -102,7 +104,7 @@ const ComicSelector = ({
           {comicThemes.map((theme) => (
             <motion.div
               key={theme.id}
-              className={`option-card ${selectedTheme === theme.id ? 'selected' : ''}`}
+              className={`option-card ${theme.id === 'custom' ? 'custom-comic' : ''} ${selectedTheme === theme.id ? 'selected' : ''}`}
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => handleThemeSelect(theme.id)}
@@ -127,8 +129,8 @@ const ComicSelector = ({
             <input
               type="text"
               placeholder="Décrivez votre thème personnalisé..."
-              value={customRequest}
-              onChange={(e) => setCustomRequest(e.target.value)}
+              value={customComicTheme}
+              onChange={(e) => setCustomComicTheme(e.target.value)}
               className="custom-input"
             />
           </motion.div>

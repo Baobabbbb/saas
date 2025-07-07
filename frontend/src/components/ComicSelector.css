@@ -162,6 +162,16 @@
   gap: 0.3rem;
 }
 
+/* Style pour l'option personnalisée avec contour en pointillés */
+.option-card[data-theme="custom"] {
+  border: 2px dashed #c4b5ff;
+}
+
+/* Alternative: si l'attribut data-theme n'est pas disponible, utiliser une classe CSS */
+.custom-comic {
+  border: 2px dashed #c4b5ff;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .comic-selector {
