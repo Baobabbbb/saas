@@ -1272,6 +1272,7 @@ const downloadPDF = async (title, content) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
+          onClick={handleCloseHistory}
         >
           <History
             onClose={handleCloseHistory}
