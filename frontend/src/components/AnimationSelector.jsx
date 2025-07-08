@@ -10,10 +10,7 @@ const AnimationSelector = ({
   selectedStyle,
   setSelectedStyle,
   customStory,
-  setCustomStory,
-  // Nouveau: mode de génération
-  generationMode,
-  setGenerationMode
+  setCustomStory
 }) => {
   
   const animationThemes = [
@@ -32,20 +29,45 @@ const AnimationSelector = ({
   ];
 
   const durations = [
-    { value: 10, label: '10 secondes', description: 'Ultra court' },
-    { value: 30, label: '30 secondes', description: 'Court et dynamique' },
-    { value: 60, label: '1 minute', description: 'Format idéal' },
-    { value: 120, label: '2 minutes', description: 'Histoire développée' },
-    { value: 180, label: '3 minutes', description: 'Récit complet' },
-    { value: 300, label: '5 minutes', description: 'Long métrage' }
+    { value: 10, label: '10 secondes' },
+    { value: 30, label: '30 secondes' },
+    { value: 60, label: '1 minute' },
+    { value: 120, label: '2 minutes' },
+    { value: 180, label: '3 minutes' },
+    { value: 300, label: '5 minutes' }
   ];
 
   const visualStyles = [
     { id: 'cartoon', name: 'Cartoon', description: 'Style dessin animé coloré', emoji: '🎨' },
-    { id: 'anime', name: 'Anime', description: 'Style manga japonais', emoji: '🇯🇵' },
+    { id: 'anime', name: 'Anime', description: 'Style manga japonais', emoji: '🇯🇵', useImage: true, imagePath: '/assets/japan-flag.png' },
     { id: 'realistic', name: 'Réaliste', description: 'Style cinématographique', emoji: '🎬' },
     { id: 'pastel', name: 'Pastel', description: 'Couleurs douces et tendres', emoji: '🌸' }
   ];
+
+  // Fonctions de toggle pour désélectionner en recliquant
+  const handleThemeSelect = (themeId) => {
+    if (selectedTheme === themeId) {
+      setSelectedTheme(null); // Désélectionner si déjà sélectionné
+    } else {
+      setSelectedTheme(themeId); // Sélectionner si pas encore sélectionné
+    }
+  };
+
+  const handleDurationSelect = (durationValue) => {
+    if (selectedDuration === durationValue) {
+      setSelectedDuration(null); // Désélectionner si déjà sélectionné
+    } else {
+      setSelectedDuration(durationValue); // Sélectionner si pas encore sélectionné
+    }
+  };
+
+  const handleStyleSelect = (styleId) => {
+    if (selectedStyle === styleId) {
+      setSelectedStyle(null); // Désélectionner si déjà sélectionné
+    } else {
+      setSelectedStyle(styleId); // Sélectionner si pas encore sélectionné
+    }
+  };
 
   return (
     <div className="animation-selector">
@@ -57,7 +79,7 @@ const AnimationSelector = ({
             <motion.div
               key={theme.id}
               className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''} ${theme.id === 'custom' ? 'custom-animation' : ''}`}
-              onClick={() => setSelectedTheme(theme.id)}
+              onClick={() => handleThemeSelect(theme.id)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -94,18 +116,17 @@ const AnimationSelector = ({
 
       {/* Section 3: Durée */}
       <div className="selector-section">
-        <h4>3. Durée de l'animation</h4>
+        <h4>3. Choisissez la durée de l'animation</h4>
         <div className="duration-options">
           {durations.map((duration) => (
             <motion.div
               key={duration.value}
               className={`duration-option ${selectedDuration === duration.value ? 'selected' : ''}`}
-              onClick={() => setSelectedDuration(duration.value)}
+              onClick={() => handleDurationSelect(duration.value)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <div className="duration-label">{duration.label}</div>
-              <div className="duration-description">{duration.description}</div>
             </motion.div>
           ))}
         </div>
@@ -113,17 +134,32 @@ const AnimationSelector = ({
 
       {/* Section 4: Style visuel */}
       <div className="selector-section">
-        <h4>4. Style visuel</h4>
+        <h4>4. Choisissez un style visuel</h4>
         <div className="style-options">
           {visualStyles.map((style) => (
             <motion.div
               key={style.id}
               className={`style-option ${selectedStyle === style.id ? 'selected' : ''}`}
-              onClick={() => setSelectedStyle(style.id)}
+              onClick={() => handleStyleSelect(style.id)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <div className="style-emoji">{style.emoji}</div>
+              <div className="style-emoji">
+                {style.useImage ? (
+                  <img 
+                    src={style.imagePath} 
+                    alt={style.name} 
+                    className="style-flag-image"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'block';
+                    }}
+                  />
+                ) : null}
+                <span style={{ display: style.useImage ? 'none' : 'block' }}>
+                  {style.emoji}
+                </span>
+              </div>
               <div className="style-content">
                 <h5>{style.name}</h5>
                 <p>{style.description}</p>
