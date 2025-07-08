@@ -141,13 +141,11 @@ function App() {
   
   // Animation states
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
-  const [selectedDuration, setSelectedDuration] = useState(60);
-  const [selectedStyle, setSelectedStyle] = useState('cartoon');
+  const [selectedDuration, setSelectedDuration] = useState(null);
+  const [selectedStyle, setSelectedStyle] = useState(null);
   const [customStory, setCustomStory] = useState('');
   const [animationResult, setAnimationResult] = useState(null);
   const [showAnimationViewer, setShowAnimationViewer] = useState(false);
-  // Nouveau: mode de génération (demo ou production)
-  const [generationMode, setGenerationMode] = useState('demo');
 
   // Store the current generated title for use in UI
   const [currentTitle, setCurrentTitle] = useState(null);
@@ -345,7 +343,7 @@ function App() {
         duration: selectedDuration,
         style: selectedStyle,
         theme: selectedAnimationTheme,
-        mode: generationMode  // Nouveau: passer le mode de génération
+        mode: 'production'  // Toujours en mode production
       };
       
       const response = await fetch(API_ENDPOINTS.generateAnimation, {
@@ -599,11 +597,12 @@ const handleSelectCreation = (creation) => {
       }
       console.log('✅ Validation BD réussie');
     } else if (contentType === 'animation') {
-      // Pour les animations, soit un thème soit une histoire personnalisée
-      if (!selectedAnimationTheme && !customStory.trim()) return false;
+      // Pour les animations, au minimum un thème doit être sélectionné
+      if (!selectedAnimationTheme) return false;
       if (selectedAnimationTheme === 'custom' && !customStory.trim()) return false;
       // Vérifier que l'histoire personnalisée fait au moins 10 caractères
       if (selectedAnimationTheme === 'custom' && customStory.trim().length < 10) return false;
+      // Durée, style et mode de génération sont optionnels mais recommandés
     }
     return true;
   };
@@ -930,8 +929,6 @@ const downloadPDF = async (title, content) => {
                   setSelectedStyle={setSelectedStyle}
                   customStory={customStory}
                   setCustomStory={setCustomStory}
-                  generationMode={generationMode}
-                  setGenerationMode={setGenerationMode}
                 />
               </motion.div>
             ) : null}

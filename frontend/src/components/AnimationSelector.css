@@ -157,14 +157,15 @@
 .duration-option {
   background-color: #f5f0ff;
   border-radius: 16px;
-  padding: 1rem;
+  padding: 0.8rem 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
   border: 2px solid transparent;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
   text-align: center;
+  min-height: 3rem;
 }
 
 .duration-option:hover {
@@ -184,13 +185,6 @@
   margin: 0;
   color: var(--primary);
   font-weight: bold;
-}
-
-.duration-description {
-  font-size: 0.8rem;
-  margin: 0;
-  color: var(--text);
-  opacity: 0.8;
 }
 
 /* Options de style - style harmonisé */
@@ -228,6 +222,18 @@
 .style-emoji {
   font-size: 2rem;
   margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.style-flag-image {
+  width: 2rem;
+  height: 2rem;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  display: block;
 }
 
 .style-content h5 {
