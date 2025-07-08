@@ -13,6 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 import base64
 from dotenv import load_dotenv
+from .comic_ai_enhancer import ComicAIEnhancer
 
 load_dotenv()
 
@@ -28,12 +29,20 @@ class StableDiffusionGenerator:
         self.stability_key = os.getenv("STABILITY_API_KEY")
         self.replicate_token = os.getenv("REPLICATE_API_TOKEN")
         
+        # Initialiser l'enhancer IA pour les bulles
+        self.ai_enhancer = ComicAIEnhancer() if os.getenv("ENABLE_AI_BUBBLES", "false").lower() == "true" else None
+        
     async def generate_comic_images(self, comic_data: Dict[str, Any], spec) -> List[Dict[str, Any]]:
         """
         Génère des images réalistes pour une BD et sauvegarde les fichiers
         """
         try:
             print("🎨 Génération d'images RÉALISTES pour la BD avec Stable Diffusion...")
+            
+            # Stocker les informations du spec pour l'IA
+            self.hero_name = spec.hero_name
+            self.story_type = spec.story_type
+            self.style = spec.style
             
             # Créer un dossier pour cette BD
             comic_id = f"comic_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -202,8 +211,8 @@ class StableDiffusionGenerator:
             "parameters": {
                 "num_inference_steps": 20,
                 "guidance_scale": 7.5,
-                "width": 768,
-                "height": 512
+                "width": 1024,
+                "height": 1024
             }
         }
         
@@ -236,8 +245,8 @@ class StableDiffusionGenerator:
         payload = {
             "text_prompts": [{"text": prompt}],
             "cfg_scale": 7,
-            "height": 512,
-            "width": 768,
+            "height": 1024,
+            "width": 1024,
             "steps": 20,
             "samples": 1
         }
@@ -484,7 +493,48 @@ class StableDiffusionGenerator:
     
     async def _add_dialogue_bubbles(self, image_path: Path, dialogues: List[Dict[str, Any]], 
                                   comic_dir: Path, page_number: int) -> Path:
-        """Ajoute les bulles de dialogue à l'image avec un style BD réaliste"""
+        """Ajoute les bulles de dialogue à l'image avec IA ou fallback classique"""
+        try:
+            # Si l'enhancer IA est activé, l'utiliser
+            if self.ai_enhancer:
+                print(f"🤖 Utilisation de l'IA pour les bulles de la page {page_number}")
+                
+                # Créer le contexte de l'histoire pour l'IA
+                story_context = {
+                    "page_number": page_number,
+                    "hero_name": getattr(self, 'hero_name', 'Héros'),
+                    "story_type": getattr(self, 'story_type', 'adventure'),
+                    "style": getattr(self, 'style', 'cartoon')
+                }
+                
+                # Utiliser l'IA pour analyser et améliorer l'image
+                final_image_path = await self.ai_enhancer.enhance_comic_page(
+                    image_path, 
+                    story_context, 
+                    comic_dir, 
+                    page_number
+                )
+                
+                if final_image_path:
+                    print(f"✅ Bulles IA ajoutées avec succès: {final_image_path}")
+                    return final_image_path
+                else:
+                    print("⚠️ Fallback vers la méthode classique")
+            
+            # Fallback classique si IA désactivée ou en erreur
+            return await self._add_dialogue_bubbles_classic(image_path, dialogues, comic_dir, page_number)
+            
+        except Exception as e:
+            print(f"❌ Erreur ajout bulles: {e}")
+            # En cas d'erreur, retourner l'image originale
+            final_path = comic_dir / f"page_{page_number}_final.png"
+            img = Image.open(image_path)
+            img.save(final_path, 'PNG')
+            return final_path
+    
+    async def _add_dialogue_bubbles_classic(self, image_path: Path, dialogues: List[Dict[str, Any]], 
+                                          comic_dir: Path, page_number: int) -> Path:
+        """Méthode classique pour ajouter les bulles de dialogue"""
         try:
             # Charger l'image
             img = Image.open(image_path)

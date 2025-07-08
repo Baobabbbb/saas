@@ -12,10 +12,14 @@ import requests
 import asyncio
 from dotenv import load_dotenv
 
+# Importer notre nouveau générateur avec IA
+from .stable_diffusion_generator import StableDiffusionGenerator
+from .comic_ai_enhancer import ComicAIEnhancer
+
 load_dotenv()
 
 class ComicGenerator:
-    """Générateur de bandes dessinées réalistes avec IA"""
+    """Générateur de bandes dessinées moderne avec IA intégrée"""
     
     def __init__(self):
         self.openai_key = os.getenv("OPENAI_API_KEY")
@@ -24,6 +28,12 @@ class ComicGenerator:
         self.image_model = os.getenv("IMAGE_MODEL", "stability-ai")
         self.video_model = os.getenv("VIDEO_MODEL", "sd3-large-turbo")
         self.client = AsyncOpenAI(api_key=self.openai_key)
+        
+        # Utiliser le nouveau générateur avec IA
+        self.sd_generator = StableDiffusionGenerator()
+        self.ai_enhancer = ComicAIEnhancer() if os.getenv("ENABLE_AI_BUBBLES", "true").lower() == "true" else None
+        
+        print(f"🎨 ComicGenerator initialisé avec {'IA activée' if self.ai_enhancer else 'IA désactivée'}")
         
         # Configuration des styles artistiques avec mots-clés de cohérence
         self.art_styles = {
@@ -784,12 +794,14 @@ English translation (visual description only, no extra text):"""
         return final_path
     
     async def create_complete_comic(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Crée une bande dessinée complète"""
+        """Crée une bande dessinée complète avec IA intégrée"""
         
         start_time = datetime.now()
         
         try:
-            # 1. Générer le script
+            print("🎨 Génération BD avec IA intégrée...")
+            
+            # 1. Générer le script avec notre système existant
             print("📝 Génération du scénario...")
             script_data = await self.generate_comic_script(
                 theme=request_data["theme"],
@@ -797,36 +809,105 @@ English translation (visual description only, no extra text):"""
                 custom_request=request_data.get("custom_request")
             )
             
-            # 2. Générer les images
-            print("🎨 Génération des images...")
-            pages, comic_id = await self.generate_comic_images(
-                script_data, 
-                request_data.get("art_style", "cartoon")
-            )
+            # 2. Préparer les données pour le générateur Stable Diffusion
+            print("🔧 Préparation des données pour le générateur...")
             
-            # 3. Sauvegarder les métadonnées
+            # Créer un objet spec compatible
+            class ComicSpec:
+                def __init__(self, data):
+                    # Extraire le nom du héros correctement
+                    characters = data.get("characters", ["Héros"])
+                    if isinstance(characters, list) and len(characters) > 0:
+                        first_char = characters[0]
+                        if isinstance(first_char, dict):
+                            self.hero_name = first_char.get("name", "Héros")
+                        else:
+                            self.hero_name = str(first_char)
+                    else:
+                        self.hero_name = "Héros"
+                    
+                    self.story_type = data.get("theme", "adventure")
+                    self.style = data.get("art_style", "cartoon")
+                    self.num_images = len(data.get("scenes", []))
+                    if self.num_images == 0:
+                        self.num_images = 4  # Valeur par défaut
+            
+            spec = ComicSpec({
+                "characters": script_data.get("main_characters", ["Héros"]),
+                "theme": request_data["theme"],
+                "art_style": request_data.get("art_style", "cartoon"),
+                "scenes": script_data.get("scenes", [])
+            })
+            
+            # Convertir le script en format compatible avec le générateur SD
+            comic_data = {
+                "chapters": []
+            }
+            
+            scenes = script_data.get("scenes", [])
+            for i, scene in enumerate(scenes):
+                chapter = {
+                    "scene": i + 1,
+                    "description": scene.get("description", f"Scène {i+1}"),
+                    "action_description": scene.get("action_description", scene.get("description", ""))
+                }
+                comic_data["chapters"].append(chapter)
+            
+            # Si pas de scènes, créer des scènes génériques
+            if not comic_data["chapters"]:
+                for i in range(4):
+                    comic_data["chapters"].append({
+                        "scene": i + 1,
+                        "description": f"Aventure de {spec.hero_name} - Scène {i+1}",
+                        "action_description": f"Une aventure passionnante avec {spec.hero_name}"
+                    })
+            
+            # 3. Générer les images avec notre nouveau système IA
+            print("🎨 Génération des images avec IA...")
+            pages = await self.sd_generator.generate_comic_images(comic_data, spec)
+            
+            # 4. Créer l'ID de la BD
+            comic_id = f"comic_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            
+            # 5. Adapter le format des pages pour l'API
+            formatted_pages = []
+            for page in pages:
+                formatted_page = {
+                    "page_number": page["page_number"],
+                    "description": page["description"],
+                    "image_url": page["image_url"],
+                    "image_path": page["image_path"],
+                    "dialogues": page.get("dialogues", []),
+                    "metadata": page.get("metadata", {})
+                }
+                formatted_pages.append(formatted_page)
+            
+            # 6. Sauvegarder les métadonnées
             metadata = {
                 "comic_id": comic_id,
-                "title": script_data["title"],
-                "synopsis": script_data["synopsis"],
-                "characters": script_data["main_characters"],
+                "title": script_data.get("title", "Aventure BD"),
+                "synopsis": script_data.get("synopsis", "Une aventure passionnante"),
+                "characters": script_data.get("main_characters", [spec.hero_name]),
                 "theme": request_data["theme"],
                 "art_style": request_data.get("art_style", "cartoon"),
                 "story_length": request_data.get("story_length", "short"),
                 "creation_date": datetime.now().isoformat(),
-                "generation_time": (datetime.now() - start_time).total_seconds()
+                "generation_time": (datetime.now() - start_time).total_seconds(),
+                "ai_bubbles_enabled": self.ai_enhancer is not None,
+                "ai_models_used": {
+                    "vision": os.getenv("COMIC_VISION_MODEL", "gpt-4o"),
+                    "text": os.getenv("COMIC_TEXT_MODEL", "gpt-4o-mini")
+                }
             }
             
-            comic_dir = Path(f"static/generated_comics/{comic_id}")
-            with open(comic_dir / "metadata.json", 'w', encoding='utf-8') as f:
-                json.dump(metadata, f, indent=2, ensure_ascii=False)
+            print(f"✅ BD générée avec succès: {len(formatted_pages)} pages")
             
             return {
                 "status": "success",
                 "comic_id": comic_id,
-                "title": script_data["title"],
-                "pages": pages,
-                "total_pages": len(pages),
+                "title": script_data.get("title", "Aventure BD"),
+                "pages": formatted_pages,
+                "total_pages": len(formatted_pages),
                 "theme": request_data["theme"],
                 "art_style": request_data.get("art_style", "cartoon"),
                 "generation_time": (datetime.now() - start_time).total_seconds(),
@@ -835,6 +916,8 @@ English translation (visual description only, no extra text):"""
             
         except Exception as e:
             print(f"❌ Erreur création BD: {e}")
+            import traceback
+            traceback.print_exc()
             return {
                 "status": "error",
                 "error": str(e),
