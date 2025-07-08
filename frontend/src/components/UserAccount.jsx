@@ -45,17 +45,27 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   // Effet pour surveiller les changements de firstName dans localStorage
   useEffect(() => {
     const updateUserFirstName = () => {
-      const storedFirstName = localStorage.getItem('userFirstName');
-      setUserFirstName(storedFirstName || '');
+      if (isLoggedIn) {
+        const storedFirstName = localStorage.getItem('userFirstName');
+        setUserFirstName(storedFirstName || '');
+      } else {
+        // Si pas connecté, vider le firstName
+        setUserFirstName('');
+      }
     };
 
     // Mise à jour initiale
     updateUserFirstName();
 
-    // Surveiller les changements (optionnel si on veut être plus réactif)
-    const interval = setInterval(updateUserFirstName, 1000);
+    // Surveiller les changements seulement si connecté
+    let interval;
+    if (isLoggedIn) {
+      interval = setInterval(updateUserFirstName, 1000);
+    }
     
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [isLoggedIn]);
 
   // useEffect pour fermer le dropdown quand on clique en dehors
@@ -296,16 +306,9 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
         onRegister();
       }
     }
-  };  const handleLogout = async () => {
-    await signOut();
-    setShowDropdown(false);
-    setShowAdminPanel(false);
-    setError('');
-    setUserFirstName(''); // Réinitialiser le prénom
-    // Appeler le callback de déconnexion pour mettre à jour l'état global
-    if (onLogout) {
-      onLogout();
-    }
+  };  const handleLogout = () => {
+    localStorage.clear();
+    window.location.reload();
   };
   const handleAdminPanelClick = () => {
     setShowAdminPanel(true);
@@ -459,7 +462,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
             {isLoggedIn ? (
               <>
                 <div className="user-info">
-                  <p>Bonjour, {userFirstName || localStorage.getItem('userFirstName') || 'Utilisateur'}</p>
+                  <p>Bonjour, {userFirstName || 'Visiteur'}</p>
                 </div>
                 <ul>
                   {isAdmin() && (

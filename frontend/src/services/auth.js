@@ -86,12 +86,15 @@ export async function signUpWithProfile({ email, password, firstName, lastName }
 
 // Déconnexion
 export async function signOut() {
-  // Nettoyer le localStorage
-  localStorage.removeItem('userEmail');
-  localStorage.removeItem('userName');
-  localStorage.removeItem('userFirstName');
-  localStorage.removeItem('userLastName');
-  return await supabase.auth.signOut();
+  try {
+    await supabase.auth.signOut();
+    localStorage.clear();
+    window.location.href = '/';
+  } catch (err) {
+    console.error('Erreur lors de la déconnexion:', err);
+    localStorage.clear();
+    window.location.href = '/';
+  }
 }
 
 // Mise à jour du profil utilisateur
