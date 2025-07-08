@@ -228,18 +228,75 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <h2>📧 Contact & Support</h2>
       
       <div className="legal-section">
+        <h3>Nous contacter</h3>
+        <div className="info-block">
+          <form className="contact-form" onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const subject = formData.get('subject');
+            const message = formData.get('message');
+            const firstName = formData.get('firstName');
+            const lastName = formData.get('lastName');
+            const email = formData.get('email');
+            
+            const mailtoLink = `mailto:contact@friday.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+              `Prénom: ${firstName}\nNom: ${lastName}\nEmail: ${email}\n\nMessage:\n${message}`
+            )}`;
+            
+            window.location.href = mailtoLink;
+          }}>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="firstName">Prénom *</label>
+                <input type="text" id="firstName" name="firstName" required />
+              </div>
+              <div className="form-group">
+                <label htmlFor="lastName">Nom *</label>
+                <input type="text" id="lastName" name="lastName" required />
+              </div>
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="email">Email *</label>
+              <input type="email" id="email" name="email" required />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="subject">Sujet *</label>
+              <select id="subject" name="subject" required>
+                <option value="">Choisissez un sujet</option>
+                <option value="Support technique">🔧 Support technique</option>
+                <option value="Question de facturation">💰 Question de facturation</option>
+                <option value="Suggestion d'amélioration">💡 Suggestion d'amélioration</option>
+                <option value="Partenariat">🤝 Partenariat</option>
+                <option value="Question générale">❓ Question générale</option>
+                <option value="Autre">📋 Autre</option>
+              </select>
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="message">Message *</label>
+              <textarea 
+                id="message" 
+                name="message" 
+                rows="5" 
+                placeholder="Décrivez votre demande en détail..."
+                required
+              ></textarea>
+            </div>
+            
+            <button type="submit" className="contact-submit-btn">
+              📧 Envoyer le message
+            </button>
+          </form>
+        </div>
+      </div>
+      
+      <div className="legal-section">
         <h3>Besoin d'aide ?</h3>
         <div className="info-block">
           <p>Notre équipe de support est là pour vous aider avec toutes vos questions concernant FRIDAY.</p>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>Coordonnées</h3>
-        <div className="info-block">
-          <p><strong>📧 Email :</strong> <a href="mailto:support@friday.com">support@friday.com</a></p>
-          <p><strong>⏰ Horaires :</strong> Lundi - Vendredi, 9h - 18h (CET)</p>
-          <p><strong>📞 Téléphone :</strong> [À compléter selon vos besoins]</p>
+          <p><strong>📧 Email :</strong> <a href="mailto:contact@friday.com">contact@friday.com</a></p>
         </div>
       </div>
 
@@ -266,15 +323,6 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
             <li>Partenariats</li>
             <li>Questions commerciales</li>
           </ul>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>Délais de réponse</h3>
-        <div className="info-block">
-          <p><strong>🚨 Urgent :</strong> Problèmes techniques critiques - 24h</p>
-          <p><strong>⚡ Normal :</strong> Questions générales - 2-3 jours ouvrés</p>
-          <p><strong>📝 Suggestions :</strong> Retours et améliorations - 1 semaine</p>
         </div>
       </div>
 
@@ -358,8 +406,6 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
         </div>
 
         <div className="legal-footer">
-          <p>📅 Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}</p>
-          <p>📧 Contact : <a href="mailto:legal@friday.com">legal@friday.com</a></p>
         </div>
       </motion.div>
     </motion.div>
