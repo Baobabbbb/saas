@@ -9,7 +9,8 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
     { id: 'mentions', title: 'Mentions Légales', icon: '📄' },
     { id: 'privacy', title: 'Confidentialité', icon: '🔒' },
     { id: 'cookies', title: 'Cookies', icon: '🍪' },
-    { id: 'terms', title: 'Conditions d\'utilisation', icon: '📜' }
+    { id: 'terms', title: 'Conditions d\'utilisation', icon: '📜' },
+    { id: 'contact', title: 'Contact', icon: '📧' }
   ];
 
   const renderMentionsLegales = () => (
@@ -222,12 +223,83 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
     </div>
   );
 
+  const renderContact = () => (
+    <div className="legal-content">
+      <h2>📧 Contact & Support</h2>
+      
+      <div className="legal-section">
+        <h3>Besoin d'aide ?</h3>
+        <div className="info-block">
+          <p>Notre équipe de support est là pour vous aider avec toutes vos questions concernant FRIDAY.</p>
+        </div>
+      </div>
+
+      <div className="legal-section">
+        <h3>Coordonnées</h3>
+        <div className="info-block">
+          <p><strong>📧 Email :</strong> <a href="mailto:support@friday.com">support@friday.com</a></p>
+          <p><strong>⏰ Horaires :</strong> Lundi - Vendredi, 9h - 18h (CET)</p>
+          <p><strong>📞 Téléphone :</strong> [À compléter selon vos besoins]</p>
+        </div>
+      </div>
+
+      <div className="legal-section">
+        <h3>Types de demandes</h3>
+        <div className="info-block">
+          <p><strong>🔧 Support technique :</strong></p>
+          <ul>
+            <li>Problèmes de génération de contenu</li>
+            <li>Bugs ou erreurs techniques</li>
+            <li>Questions sur les fonctionnalités</li>
+          </ul>
+          
+          <p><strong>💰 Questions de facturation :</strong></p>
+          <ul>
+            <li>Gestion des crédits</li>
+            <li>Problèmes de paiement</li>
+            <li>Demandes de remboursement</li>
+          </ul>
+          
+          <p><strong>📋 Demandes générales :</strong></p>
+          <ul>
+            <li>Suggestions d'amélioration</li>
+            <li>Partenariats</li>
+            <li>Questions commerciales</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="legal-section">
+        <h3>Délais de réponse</h3>
+        <div className="info-block">
+          <p><strong>🚨 Urgent :</strong> Problèmes techniques critiques - 24h</p>
+          <p><strong>⚡ Normal :</strong> Questions générales - 2-3 jours ouvrés</p>
+          <p><strong>📝 Suggestions :</strong> Retours et améliorations - 1 semaine</p>
+        </div>
+      </div>
+
+      <div className="legal-section">
+        <h3>Informations utiles</h3>
+        <div className="info-block">
+          <p>Pour nous aider à mieux vous assister, veuillez inclure dans votre message :</p>
+          <ul>
+            <li>Description détaillée du problème</li>
+            <li>Captures d'écran si nécessaire</li>
+            <li>Votre navigateur et système d'exploitation</li>
+            <li>Étapes pour reproduire le problème</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeSection) {
       case 'mentions': return renderMentionsLegales();
       case 'privacy': return renderPrivacyPolicy();
       case 'cookies': return renderCookiesPolicy();
       case 'terms': return renderTermsOfService();
+      case 'contact': return renderContact();
       default: return renderMentionsLegales();
     }
   };
@@ -239,6 +311,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
+      onClick={onClose}
     >
       <motion.div
         className="legal-modal"
@@ -246,6 +319,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ duration: 0.3 }}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="legal-header">
           <h1>⚖️ Informations Légales</h1>

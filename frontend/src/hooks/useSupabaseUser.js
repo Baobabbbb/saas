@@ -59,10 +59,11 @@ export default function useSupabaseUser() {
             }
           }
         } else {
-          // Utilisateur déconnecté - nettoyer localStorage
+          // Utilisateur déconnecté - nettoyer complètement localStorage
           localStorage.removeItem('userEmail');
           localStorage.removeItem('userName');
           localStorage.removeItem('userFirstName');
+          localStorage.removeItem('userLastName');
         }
       } catch (error) {
         console.warn('Supabase user sync error (non-critical):', error);
@@ -95,7 +96,7 @@ export default function useSupabaseUser() {
     // Listener pour les changements d'authentification avec gestion d'erreur
     let authListener;
     try {
-      const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
         try {
           const currentUser = session?.user || null;
           setUser(currentUser);

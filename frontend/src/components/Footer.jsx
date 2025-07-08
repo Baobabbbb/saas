@@ -33,6 +33,13 @@ const Footer = ({ onLegalClick }) => {
           >
             CGU
           </button>
+          <span className="separator">•</span>
+          <button 
+            className="footer-link"
+            onClick={() => onLegalClick('contact')}
+          >
+            Contact
+          </button>
         </div>
         
         <div className="footer-info">

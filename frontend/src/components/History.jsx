@@ -6,17 +6,19 @@ import jsPDF from 'jspdf';
 
 const History = ({ onClose, onSelect }) => {
   const [creations, setCreations] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchCreations();
   }, []);
 
   const fetchCreations = async () => {
-    setLoading(true);
-    const data = await getUserCreations();
-    setCreations(data || []);
-    setLoading(false);
+    try {
+      const data = await getUserCreations();
+      setCreations(data || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement des créations:', error);
+      setCreations([]);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -91,9 +93,6 @@ const History = ({ onClose, onSelect }) => {
     }
     fetchCreations(); // Rafraîchir la liste après suppression
   };
-
-  if (loading) return <div>Chargement...</div>;
-
   return (
     <motion.div 
       className="history-panel"
@@ -101,20 +100,21 @@ const History = ({ onClose, onSelect }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.3 }}
+      onClick={(e) => e.stopPropagation()}
     >
       <div className="history-header">
         <h2>Historique de vos créations</h2>
         <button className="close-button" onClick={onClose}>×</button>
       </div>
-      
-      <div className="history-content">
-        {creations.length === 0 ? (
-          <div className="empty-history">
-            <p>Vous n'avez pas encore de créations</p>
-            <p className="empty-subtext">Vos créations apparaîtront ici une fois générées</p>
-          </div>
-        ) : (
-          <div className="creations-list">            {creations.map((creation) => (              <motion.div 
+        
+        <div className="history-content">
+          {creations.length === 0 ? (
+            <div className="empty-history">
+              <p>Vous n'avez pas encore de créations</p>
+              <p className="empty-subtext">Vos créations apparaîtront ici une fois générées</p>
+            </div>
+          ) : (
+            <div className="creations-list">{creations.map((creation) => (              <motion.div 
                 key={creation.id}
                 className="creation-item"
                 onClick={() => onSelect({
@@ -207,9 +207,9 @@ const History = ({ onClose, onSelect }) => {
                 </div>
               </motion.div>
             ))}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
     </motion.div>
   );
 };
