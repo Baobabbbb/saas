@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import './ComicSelector.css';
 
 const comicThemes = [
-  { id: 'custom', name: 'Bande dessinée personnalisée', description: 'Créez votre propre thème', emoji: '✏️' },
+  { id: 'custom', name: 'BD personnalisée', description: 'Créez votre propre thème', emoji: '✏️' },
   { id: 'space', name: 'Espace', description: 'Voyages spatiaux', emoji: '🚀' },
   { id: 'ocean', name: 'Océan', description: 'Aventures sous-marines', emoji: '🌊' },
   { id: 'adventure', name: 'Aventure', description: 'Exploration et découvertes', emoji: '🗺️' },

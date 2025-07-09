@@ -14,6 +14,7 @@ import io
 import base64
 from dotenv import load_dotenv
 from .comic_ai_enhancer import ComicAIEnhancer
+from .sd3_bubble_integrator_pro import SD3BubbleIntegratorPro
 
 load_dotenv()
 
@@ -31,6 +32,9 @@ class StableDiffusionGenerator:
         
         # Initialiser l'enhancer IA pour les bulles
         self.ai_enhancer = ComicAIEnhancer() if os.getenv("ENABLE_AI_BUBBLES", "false").lower() == "true" else None
+        
+        # Nouveau système SD3 PRO pour intégration de bulles ultra-réalistes
+        self.sd3_integrator_pro = SD3BubbleIntegratorPro() if os.getenv("ENABLE_SD3_BUBBLES", "true").lower() == "true" else None
         
     async def generate_comic_images(self, comic_data: Dict[str, Any], spec) -> List[Dict[str, Any]]:
         """
@@ -68,27 +72,44 @@ class StableDiffusionGenerator:
                     prompt = self._create_detailed_prompt(chapter, spec, i)
                     print(f"🎯 Prompt: {prompt[:100]}...")
                     
-                    # Générer l'image avec Stable Diffusion
-                    image_path = await self._generate_sd_image(prompt, comic_dir, i+1, spec.style)
+                    # Générer l'image SANS bulles avec Stable Diffusion
+                    base_image_path = await self._generate_sd_image(prompt, comic_dir, i+1, spec.style)
                     
                     # Créer les spécifications de dialogue
                     dialogues = self._create_page_dialogues(chapter, spec, i+1)
                     
-                    # Appliquer les bulles de dialogue
-                    final_image_path = await self._add_dialogue_bubbles(image_path, dialogues, comic_dir, i+1)
-                    
-                    # Créer les données de la page
-                    page_data = {
+                    # Créer les données temporaires de la page pour le traitement SD3
+                    temp_page_data = {
                         "page_number": i + 1,
-                        "description": f"Page {i+1} - {prompt[:100]}...",
-                        "image_path": str(final_image_path),
-                        "image_url": f"/static/generated_comics/{comic_id}/page_{i+1}_final.png",
+                        "description": self._extract_scene_description(chapter, prompt),
+                        "image_path": str(base_image_path),
                         "dialogues": dialogues,
                         "metadata": {
                             "prompt": prompt,
                             "style": spec.style,
                             "generation_time": datetime.now().isoformat()
                         }
+                    }
+                    
+                    # NOUVEAU SYSTÈME PRO : Intégrer les bulles avec SD3 Ultra-Réalistes
+                    if self.sd3_integrator_pro and dialogues:
+                        print(f"🚀 Application du système SD3 PRO pour bulles ultra-réalistes - page {i+1}")
+                        enhanced_page = await self.sd3_integrator_pro._process_page_professional(temp_page_data)
+                        final_image_path = Path(enhanced_page["image_path"])
+                    else:
+                        # Fallback vers l'ancien système si SD3 PRO non disponible
+                        print(f"⚠️ Fallback vers l'ancien système de bulles pour la page {i+1}")
+                        final_image_path = await self._add_dialogue_bubbles(base_image_path, dialogues, comic_dir, i+1)
+                    
+                    # Créer les données finales de la page
+                    page_data = {
+                        "page_number": i + 1,
+                        "description": temp_page_data["description"],
+                        "image_path": str(final_image_path),
+                        "image_url": f"/static/generated_comics/{comic_id}/{final_image_path.name}",
+                        "dialogues": dialogues,
+                        "bubble_system": "sd3_professional_integrated" if self.sd3_integrator_pro and dialogues else "classic_overlay",
+                        "metadata": temp_page_data["metadata"]
                     }
                     
                     pages.append(page_data)
@@ -161,7 +182,7 @@ class StableDiffusionGenerator:
         else:
             prompt += f" in a {spec.story_type} adventure, page {page_number-1}"
         
-        prompt += f", {style_desc}, vibrant colors, professional comic book art, dynamic composition, space for dialogue bubbles"
+        prompt += f", {style_desc}, vibrant colors, professional comic book art, dynamic composition, clear background areas"
         
         # Ajouter des mots-clés selon le type d'histoire
         story_keywords = {
@@ -782,3 +803,34 @@ class StableDiffusionGenerator:
             # Dessiner le texte avec une petite ombre pour plus de lisibilité
             draw.text((text_x + 1, text_y + 1), line, fill="gray", font=font)
             draw.text((text_x, text_y), line, fill="black", font=font)
+        
+    def _extract_scene_description(self, chapter: Dict[str, Any], prompt: str) -> str:
+        """Extrait une description claire de la scène pour l'analyse SD3"""
+        
+        # Essayer d'extraire depuis le chapitre d'abord
+        if isinstance(chapter, dict):
+            # Recherche dans différents champs possibles
+            description_fields = ["description", "scene_description", "action_description", "scene", "summary"]
+            
+            for field in description_fields:
+                if field in chapter and chapter[field]:
+                    desc = str(chapter[field])
+                    if len(desc) > 20:  # Description suffisamment détaillée
+                        return desc
+        
+        # Fallback : extraire depuis le prompt
+        # Supprimer les éléments techniques du prompt
+        clean_prompt = prompt.replace("Comic book illustration featuring", "")
+        clean_prompt = clean_prompt.replace("cartoon style", "").replace("vibrant colors", "")
+        clean_prompt = clean_prompt.replace("professional comic book art", "")
+        clean_prompt = clean_prompt.replace("dynamic composition", "")
+        clean_prompt = clean_prompt.replace("clear background areas", "")
+        
+        # Nettoyer et retourner
+        clean_prompt = clean_prompt.strip().rstrip(",").strip()
+        
+        # Si la description est encore trop technique, créer une description générique
+        if len(clean_prompt) < 20 or "illustration" in clean_prompt.lower():
+            return f"Scène d'aventure avec {getattr(self, 'hero_name', 'le héros')} dans un environnement {getattr(self, 'style', 'cartoon')}"
+        
+        return clean_prompt
