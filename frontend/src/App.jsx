@@ -153,7 +153,7 @@ function App() {
   const [selectedSeedanceTheme, setSelectedSeedanceTheme] = useState(null);
   const [selectedSeedanceDuration, setSelectedSeedanceDuration] = useState(null);
   const [selectedSeedanceAgeTarget, setSelectedSeedanceAgeTarget] = useState(null);
-  const [customSeedanceStory, setCustomSeedanceStory] = useState('');
+  const [selectedSeedanceStoryTitle, setSelectedSeedanceStoryTitle] = useState(null);
   const [seedanceResult, setSeedanceResult] = useState(null);
   const [showSeedanceViewer, setShowSeedanceViewer] = useState(false);
 
@@ -379,7 +379,7 @@ function App() {
     } else if (contentType === 'seedance') {
       // Génération SEEDANCE avec l'API dédiée
       const payload = {
-        story: customSeedanceStory,
+        story_title: selectedSeedanceStoryTitle,
         theme: selectedSeedanceTheme,
         age_target: selectedSeedanceAgeTarget,
         duration: selectedSeedanceDuration
@@ -661,8 +661,7 @@ const handleSelectCreation = (creation) => {
       // Durée, style et mode de génération sont optionnels mais recommandés
     } else if (contentType === 'seedance') {
       // Pour SEEDANCE, vérifier tous les champs obligatoires
-      if (!customSeedanceStory.trim()) return false;
-      if (customSeedanceStory.trim().length < 50) return false; // Minimum 50 caractères
+      if (!selectedSeedanceStoryTitle) return false;
       if (!selectedSeedanceTheme) return false;
       if (!selectedSeedanceAgeTarget) return false;
       if (!selectedSeedanceDuration) return false;
@@ -1010,8 +1009,8 @@ const downloadPDF = async (title, content) => {
                   setSelectedDuration={setSelectedSeedanceDuration}
                   selectedAgeTarget={selectedSeedanceAgeTarget}
                   setSelectedAgeTarget={setSelectedSeedanceAgeTarget}
-                  customStory={customSeedanceStory}
-                  setCustomStory={setCustomSeedanceStory}
+                  selectedStoryTitle={selectedSeedanceStoryTitle}
+                  setSelectedStoryTitle={setSelectedSeedanceStoryTitle}
                 />
               </motion.div>
             ) : null}

@@ -478,11 +478,11 @@ class SeedanceService:
                                     print(f"   📹 Vidéo générée: {video_url[:100]}...")
                                     # Télécharger et sauvegarder le clip
                                     local_path = await self._download_clip(video_url, animation_id, scene["scene_number"])
-                                          return {
-                                    "scene_number": scene["scene_number"],
-                                    "description": scene["description"],
-                                    "video_url": f"/cache/seedance/{local_path.name}" if local_path else video_url,
-                                    "video_path": str(local_path) if local_path else None,
+                                    return {
+                                        "scene_number": scene["scene_number"],
+                                        "description": scene["description"],
+                                        "video_url": f"/cache/seedance/{local_path.name}" if local_path else video_url,
+                                        "video_path": str(local_path) if local_path else None,
                                     "wavespeed_url": video_url,  # Garder l'URL originale pour l'audio
                                     "duration": scene["duration"],
                                     "status": "success",

@@ -1297,17 +1297,17 @@ async def generate_seedance_animation(request: dict):
         print(f"🎭 Génération SEEDANCE demandée")
         
         # Extraire les paramètres
-        story = request.get('story', '').strip()
+        story_title = request.get('story_title', '').strip()
         theme = request.get('theme', 'adventure')
-        age_target = request.get('age_target', '3-6 ans')
+        age_target = request.get('age_target', '3-5 ans')
         duration = request.get('duration', 45)
         style = request.get('style', 'cartoon')
         
         # Validation
-        if len(story) < 20:
+        if not story_title:
             raise HTTPException(
                 status_code=400,
-                detail="L'histoire doit contenir au moins 20 caractères pour SEEDANCE"
+                detail="Le titre de l'histoire est obligatoire pour SEEDANCE"
             )
         
         if duration < 30 or duration > 180:
@@ -1316,7 +1316,17 @@ async def generate_seedance_animation(request: dict):
                 detail="La durée doit être entre 30 et 180 secondes pour SEEDANCE"
             )
         
-        print(f"📖 Histoire: {story[:100]}...")
+        # Récupérer l'histoire complète depuis la configuration
+        story_data = get_story_by_theme_and_title(theme, story_title)
+        if not story_data:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Histoire '{story_title}' introuvable dans le thème '{theme}'"
+            )
+        
+        story = story_data['story']
+        print(f"📖 Histoire sélectionnée: {story_title}")
+        print(f"📝 Contenu: {story[:100]}...")
         print(f"🎨 Paramètres: {theme}, {age_target}, {duration}s, {style}")
         
         # Générer l'animation SEEDANCE avec les vraies APIs
@@ -1373,10 +1383,45 @@ async def get_seedance_status():
             "error": str(e)
         }
 
+from config.seedance_stories import SEEDANCE_STORIES, get_story_by_theme_and_title
 
+@app.get("/api/seedance/stories")
+async def get_seedance_stories():
+    """
+    Récupère toutes les histoires disponibles organisées par thème
+    """
+    try:
+        return {
+            "status": "success",
+            "stories": SEEDANCE_STORIES
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
 
-# === FIN SEEDANCE INTEGRATION ===
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8006)
+@app.get("/api/seedance/stories/{theme}")
+async def get_stories_by_theme(theme: str):
+    """
+    Récupère les histoires d'un thème spécifique
+    """
+    try:
+        if theme in SEEDANCE_STORIES:
+            return {
+                "status": "success",
+                "theme": theme,
+                "stories": SEEDANCE_STORIES[theme]
+            }
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Thème '{theme}' non trouvé"
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }

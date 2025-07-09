@@ -76,3 +76,48 @@ class AnimationListResponse(BaseModel):
     page: int
     limit: int
     total_pages: int
+
+# SEEDANCE specific schemas
+class SeedanceTheme(str, Enum):
+    SPACE = "space"
+    NATURE = "nature"
+    ANIMALS = "animals"
+    FRIENDSHIP = "friendship"
+    EDUCATION = "education"
+    ADVENTURE = "adventure"
+    MAGIC = "magic"
+    OCEAN = "ocean"
+    FOREST = "forest"
+    MUSIC = "music"
+
+class SeedanceAgeTarget(str, Enum):
+    TODDLER = "2-3 ans"
+    PRESCHOOL = "3-5 ans"
+    KINDERGARTEN = "5-7 ans"
+    PRIMARY = "7-10 ans"
+
+class SeedanceRequest(BaseModel):
+    theme: SeedanceTheme
+    story_title: str  # Titre de l'histoire sélectionnée
+    age_target: Optional[SeedanceAgeTarget] = None  # Optionnel, déduit de l'histoire
+    duration: int = 45  # Durée en secondes
+    style: str = "cartoon"
+    
+    @validator('duration')
+    def validate_duration(cls, v):
+        if v < 30 or v > 180:
+            raise ValueError('La durée doit être entre 30 et 180 secondes')
+        return v
+
+class SeedanceResponse(BaseModel):
+    status: str
+    animation_id: str
+    video_url: Optional[str] = None
+    video_path: Optional[str] = None
+    total_duration: int
+    actual_duration: int
+    scenes_count: int
+    generation_time: float
+    pipeline_type: str
+    scenes: List[dict] = []
+    metadata: dict = {}
