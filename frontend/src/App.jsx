@@ -20,6 +20,8 @@ import ColoringPopup from './components/ColoringPopup';
 import ComicSelector from './components/ComicSelector';
 import ComicViewer from './components/ComicViewer';
 import ComicPopup from './components/ComicPopup';
+import SeedanceSelector from './components/SeedanceSelector';
+import SeedanceViewer from './components/SeedanceViewer';
 import LegalPages from './components/LegalPages';
 import CookieBanner from './components/CookieBanner';
 import Footer from './components/Footer';
@@ -146,6 +148,14 @@ function App() {
   const [customStory, setCustomStory] = useState('');
   const [animationResult, setAnimationResult] = useState(null);
   const [showAnimationViewer, setShowAnimationViewer] = useState(false);
+
+  // SEEDANCE states
+  const [selectedSeedanceTheme, setSelectedSeedanceTheme] = useState(null);
+  const [selectedSeedanceDuration, setSelectedSeedanceDuration] = useState(null);
+  const [selectedSeedanceAgeTarget, setSelectedSeedanceAgeTarget] = useState(null);
+  const [customSeedanceStory, setCustomSeedanceStory] = useState('');
+  const [seedanceResult, setSeedanceResult] = useState(null);
+  const [showSeedanceViewer, setShowSeedanceViewer] = useState(false);
 
   // Store the current generated title for use in UI
   const [currentTitle, setCurrentTitle] = useState(null);
@@ -366,6 +376,37 @@ function App() {
       setAnimationResult(animationData);
       setShowAnimationViewer(true); // Afficher immédiatement le viewer
       generatedContent = animationData; // Stocker pour l'historique
+    } else if (contentType === 'seedance') {
+      // Génération SEEDANCE avec l'API dédiée
+      const payload = {
+        story: customSeedanceStory,
+        theme: selectedSeedanceTheme,
+        age_target: selectedSeedanceAgeTarget,
+        duration: selectedSeedanceDuration
+      };
+      
+      console.log('🚀 Payload SEEDANCE:', payload);
+      
+      const response = await fetch(`${API_BASE_URL}/api/seedance/generate`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Erreur API SEEDANCE:', response.status, errorText);
+        throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
+      }
+      
+      const seedanceData = await response.json();
+      
+      setSeedanceResult(seedanceData);
+      setShowSeedanceViewer(true); // Afficher immédiatement le viewer
+      generatedContent = seedanceData; // Stocker pour l'historique
     }
 
     // 🔁 Enregistre le résultat généré pour affichage audio/texte
@@ -393,6 +434,9 @@ function App() {
     } else if (contentType === 'animation') {
       // Utiliser le titre généré par l'IA depuis l'API animation
       title = generatedContent?.title || generateChildFriendlyTitle('animation', selectedAnimationTheme || 'aventure');
+    } else if (contentType === 'seedance') {
+      // Utiliser le titre généré par l'IA depuis l'API SEEDANCE
+      title = generatedContent?.title || `Animation SEEDANCE ${selectedSeedanceTheme || 'éducative'}`;
     }
 
     // Stocker le titre pour l'utiliser dans l'UI
@@ -453,6 +497,18 @@ function App() {
           theme: selectedComicTheme,
           pages: generatedContent?.pages || [],
           comic_data: generatedContent || {}
+        };
+      } else if (contentType === 'seedance') {
+        // Pour les animations SEEDANCE, utiliser les données de l'animation
+        newCreation = {
+          id: Date.now().toString(),
+          type: contentType,
+          title: title,
+          createdAt: new Date().toISOString(),
+          content: generatedContent ? `Animation SEEDANCE de ${generatedContent.total_duration}s avec ${generatedContent.scenes_count} scènes` : 'Animation SEEDANCE générée',
+          theme: selectedSeedanceTheme,
+          scenes: generatedContent?.scenes || [],
+          seedance_data: generatedContent || {}
         };
       } else {
         // Pour les autres types (rhyme, audio)
@@ -603,6 +659,13 @@ const handleSelectCreation = (creation) => {
       // Vérifier que l'histoire personnalisée fait au moins 10 caractères
       if (selectedAnimationTheme === 'custom' && customStory.trim().length < 10) return false;
       // Durée, style et mode de génération sont optionnels mais recommandés
+    } else if (contentType === 'seedance') {
+      // Pour SEEDANCE, vérifier tous les champs obligatoires
+      if (!customSeedanceStory.trim()) return false;
+      if (customSeedanceStory.trim().length < 50) return false; // Minimum 50 caractères
+      if (!selectedSeedanceTheme) return false;
+      if (!selectedSeedanceAgeTarget) return false;
+      if (!selectedSeedanceDuration) return false;
     }
     return true;
   };
@@ -931,6 +994,26 @@ const downloadPDF = async (title, content) => {
                   setCustomStory={setCustomStory}
                 />
               </motion.div>
+            ) : contentType === 'seedance' ? (
+              <motion.div
+                key="seedance-selector"
+                variants={contentVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.3 }}
+              >
+                <SeedanceSelector
+                  selectedTheme={selectedSeedanceTheme}
+                  setSelectedTheme={setSelectedSeedanceTheme}
+                  selectedDuration={selectedSeedanceDuration}
+                  setSelectedDuration={setSelectedSeedanceDuration}
+                  selectedAgeTarget={selectedSeedanceAgeTarget}
+                  setSelectedAgeTarget={setSelectedSeedanceAgeTarget}
+                  customStory={customSeedanceStory}
+                  setCustomStory={setCustomSeedanceStory}
+                />
+              </motion.div>
             ) : null}
           </AnimatePresence>          <CustomRequest
             customRequest={customRequest}
@@ -974,6 +1057,8 @@ const downloadPDF = async (title, content) => {
           ? 'Création de votre coloriage en cours…'
           : contentType === 'animation'
           ? 'Création de votre dessin animé en cours...'
+          : contentType === 'seedance'
+          ? 'Création de votre animation SEEDANCE en cours...'
           : contentType === 'comic'
           ? 'Création de votre bande dessinée en cours...'
           : 'Génération en cours...'}
@@ -1080,6 +1165,8 @@ const downloadPDF = async (title, content) => {
         ? 'Votre coloriage apparaîtra ici'
         : contentType === 'comic'
         ? 'Votre bande dessinée apparaîtra ici'
+        : contentType === 'seedance'
+        ? 'Votre animation SEEDANCE apparaîtra ici'
         : 'Votre dessin animé apparaîtra ici'}
     </p>
     </div>
@@ -1308,6 +1395,13 @@ const downloadPDF = async (title, content) => {
       <AnimationViewer
         animationResult={animationResult}
         onClose={() => setShowAnimationViewer(false)}
+      />
+    )}
+
+    {showSeedanceViewer && (
+      <SeedanceViewer
+        seedanceResult={seedanceResult}
+        onClose={() => setShowSeedanceViewer(false)}
       />
     )}
     

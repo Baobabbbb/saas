@@ -21,7 +21,7 @@ class StableDiffusionGenerator:
     """Générateur d'images réalistes avec l'API Stable Diffusion"""
     
     def __init__(self):
-        self.output_dir = Path("C:/Users/freda/Desktop/backend/saas/static/generated_comics")
+        self.output_dir = Path("static/generated_comics")
         self.output_dir.mkdir(parents=True, exist_ok=True)
         
         # Configuration pour différents services d'IA

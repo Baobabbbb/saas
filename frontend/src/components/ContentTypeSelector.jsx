@@ -63,6 +63,21 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
             </motion.div>
           )}
 
+          {enabledFeatures.seedance && (
+            <motion.div
+              className={`content-type-option ${contentType === 'seedance' ? 'selected' : ''}`}
+              onClick={() => handleContentTypeSelect('seedance')}
+              whileHover={{ y: -5 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="content-type-icon">🚀</div>
+              <div className="content-type-details">
+                <h4>Animation SEEDANCE</h4>
+                <p>Créez une animation éducative automatisée avec narration et sons</p>
+              </div>
+            </motion.div>
+          )}
+
           {enabledFeatures.comic && (
             <motion.div
               className={`content-type-option ${contentType === 'comic' ? 'selected' : ''}`}

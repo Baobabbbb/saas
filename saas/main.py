@@ -1283,6 +1283,100 @@ async def serve_placeholder_video():
         media_type="image/png"
     )
 
+# === SEEDANCE INTEGRATION ===
+
+from services.seedance_service import seedance_service
+
+@app.post("/api/seedance/generate")
+async def generate_seedance_animation(request: dict):
+    """
+    Génère un dessin animé avec le système SEEDANCE automatisé
+    Pipeline: OpenAI → Wavespeed AI → Fal AI → Assemblage FFmpeg
+    """
+    try:
+        print(f"🎭 Génération SEEDANCE demandée")
+        
+        # Extraire les paramètres
+        story = request.get('story', '').strip()
+        theme = request.get('theme', 'adventure')
+        age_target = request.get('age_target', '3-6 ans')
+        duration = request.get('duration', 45)
+        style = request.get('style', 'cartoon')
+        
+        # Validation
+        if len(story) < 20:
+            raise HTTPException(
+                status_code=400,
+                detail="L'histoire doit contenir au moins 20 caractères pour SEEDANCE"
+            )
+        
+        if duration < 30 or duration > 180:
+            raise HTTPException(
+                status_code=400,
+                detail="La durée doit être entre 30 et 180 secondes pour SEEDANCE"
+            )
+        
+        print(f"📖 Histoire: {story[:100]}...")
+        print(f"🎨 Paramètres: {theme}, {age_target}, {duration}s, {style}")
+        
+        # Générer l'animation SEEDANCE avec les vraies APIs
+        print("🚀 Mode production SEEDANCE activé")
+        result = await seedance_service.generate_seedance_animation(
+            story=story,
+            theme=theme,
+            age_target=age_target,
+            duration=duration,
+            style=style
+        )
+        
+        if result.get('status') == 'success':
+            return {
+                "status": "success",
+                "message": "Animation SEEDANCE générée avec succès !",
+                "animation": result,
+                "type": "seedance",
+                "pipeline": "OpenAI + Wavespeed + Fal AI",
+                "scenes_count": result.get("scenes_count", 3),
+                "total_duration": result.get("total_duration", duration),
+                "video_url": result.get("video_url"),
+                "generation_time": result.get("generation_time")
+            }
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Erreur SEEDANCE: {result.get('error', 'Erreur inconnue')}"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur endpoint SEEDANCE: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur serveur SEEDANCE: {str(e)}"
+        )
+
+@app.get("/api/seedance/status")
+async def get_seedance_status():
+    """
+    Récupère le statut du service SEEDANCE
+    """
+    try:
+        status = await seedance_service.get_seedance_status()
+        return status
+    except Exception as e:
+        return {
+            "service": "seedance",
+            "status": "error",
+            "error": str(e)
+        }
+
+
+
+# === FIN SEEDANCE INTEGRATION ===
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8006)
