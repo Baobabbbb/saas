@@ -9,6 +9,7 @@ import time
 import uuid
 import asyncio
 import aiohttp
+import subprocess
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 from dotenv import load_dotenv
@@ -33,13 +34,19 @@ class SeedanceService:
         
         # Configuration cartoon spécifique
         self.cartoon_aspect_ratio = os.getenv("CARTOON_ASPECT_RATIO", "16:9")
-        self.cartoon_duration = int(os.getenv("CARTOON_DURATION", "15"))
+        self.cartoon_duration = int(os.getenv("CARTOON_DURATION", "10"))  # Max 10s pour Wavespeed
         self.cartoon_style = os.getenv("CARTOON_STYLE", "2D cartoon animation, Disney style")
         self.cartoon_quality = os.getenv("CARTOON_QUALITY", "high quality animation, smooth movement")
+        
+        # Limite de durée pour Wavespeed (max 10 secondes)
+        self.max_clip_duration = 10
         
         # Configuration des répertoires
         self.cache_dir = Path("cache/seedance")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Détection de FFmpeg
+        self.ffmpeg_path = self._find_ffmpeg()
         
         # Validation des clés API
         self._validate_api_keys()
@@ -65,7 +72,7 @@ class SeedanceService:
         story: str,
         theme: str = "adventure",
         age_target: str = "3-6 ans",
-        duration: int = 45,
+        duration: int = 30,  # Durée totale réduite à 30s (3 clips de 10s max)
         style: str = "cartoon"
     ) -> Dict[str, Any]:
         """
@@ -113,24 +120,21 @@ class SeedanceService:
             print("🔊 Étape 4: Génération des sons...")
             audio_clips = await self._generate_audio_clips(video_clips, idea_result)
             
-            # ÉTAPE 5: Assemblage final (utilisation du premier clip si pas d'assemblage)
+            # ÉTAPE 5: Assemblage final
             print("🎞️ Étape 5: Assemblage final...")
-            final_video = None
             
-            # Utiliser le premier clip réussi comme vidéo finale
-            for clip in video_clips:
-                if clip.get("video_url") and clip["status"] == "success":
-                    final_video = {
-                        "video_url": clip["video_url"],
-                        "video_path": clip.get("video_path"),
-                        "status": "single_clip"
-                    }
-                    break
+            # Essayer d'abord l'assemblage local avec FFmpeg
+            final_video = await self._assemble_local_video(video_clips, animation_id)
+            
+            # Si l'assemblage local échoue, essayer avec Fal AI
+            if not final_video or final_video.get("status") in ["no_ffmpeg_fallback", "ffmpeg_error_fallback"]:
+                print("   🔄 Assemblage local échoué, tentative Fal AI...")
+                final_video = await self._assemble_final_video(video_clips, audio_clips, animation_id)
             
             # Calculer le temps total
             generation_time = time.time() - start_time
             
-            # Même si l'assemblage final échoue, on peut retourner les clips individuels
+            # Si l'assemblage échoue, utiliser le premier clip réussi comme fallback
             if not final_video and video_clips:
                 print("⚠️ Assemblage final échoué, utilisation du premier clip")
                 # Utiliser le premier clip réussi comme fallback
@@ -145,37 +149,48 @@ class SeedanceService:
                 
                 # Si vraiment aucun clip n'est disponible, créer un placeholder
                 if not final_video:
+                    placeholder_url = self._create_placeholder_video(animation_id, duration)
                     final_video = {
-                        "video_url": f"/cache/seedance/placeholder_{animation_id}.mp4",
+                        "video_url": placeholder_url,
                         "video_path": None,
                         "status": "placeholder"
                     }
-            
             # S'assurer qu'on a un résultat à retourner
             if not final_video:
+                error_placeholder_url = self._create_placeholder_video(f"error_{animation_id}")
                 final_video = {
-                    "video_url": f"/cache/seedance/error_{animation_id}.mp4",
+                    "video_url": error_placeholder_url,
                     "video_path": None,
                     "status": "error"
                 }
             
             # Préparation du résultat
+            actual_duration = self._calculate_actual_duration(video_clips)
+            
+            # Si on a une vidéo assemblée, la durée réelle est la somme des clips
+            if final_video and final_video.get("status") == "assembled":
+                print(f"   ✅ Vidéo assemblée: {actual_duration}s total")
+            elif final_video and "single" in final_video.get("status", ""):
+                actual_duration = video_clips[0].get("duration", 10) if video_clips else 10
+                print(f"   ⚠️ Clip unique utilisé: {actual_duration}s au lieu de {self._calculate_actual_duration(video_clips)}s")
+            
             result = {
                 "status": "success",
                 "animation_id": animation_id,
                 "video_url": final_video["video_url"],
                 "video_path": final_video["video_path"],
                 "total_duration": duration,
-                "actual_duration": self._calculate_actual_duration(video_clips),
+                "actual_duration": actual_duration,
                 "scenes_count": len(video_clips),
                 "generation_time": round(generation_time, 2),
                 "pipeline_type": "seedance",
+                "assembly_status": final_video.get("status", "unknown"),
                 "scenes": [
                     {
                         "scene_number": i + 1,
                         "description": clip.get("description", ""),
                         "video_url": clip.get("video_url", ""),
-                        "duration": clip.get("duration", 15),
+                        "duration": clip.get("duration", 10),
                         "status": "success"
                     }
                     for i, clip in enumerate(video_clips)
@@ -282,40 +297,78 @@ class SeedanceService:
         
         except Exception as e:
             print(f"❌ Erreur génération idées: {e}")
-            # Fallback avec des idées génériques
-            return {
+            print(f"   📊 Thème détecté: {theme}")
+            print(f"   📖 Histoire: {story[:100]}...")
+            # Fallback spécifique au thème
+            fallback_ideas = {
+                "space": {
+                    "Caption": "🚀 Aventure spatiale éducative",
+                    "Idea": f"Une animation éducative spatiale pour enfants de {age_target} suivant l'histoire: {story[:100]}...",
+                    "Environment": "Espace coloré avec planètes, étoiles et vaisseaux spatiaux",
+                    "Sound": "Musique spatiale douce et effets cosmiques",
+                    "Educational_Value": f"Apprentissage de l'espace et de l'astronomie pour {age_target}",
+                    "Characters": "Astronautes enfants, aliens amicaux, robots spatiaux"
+                },
+                "nature": {
+                    "Caption": "🌿 Merveilles de la nature",
+                    "Idea": f"Une animation éducative nature pour enfants de {age_target} suivant l'histoire: {story[:100]}...",
+                    "Environment": "Forêt magique, jardin coloré, paysages naturels",
+                    "Sound": "Sons de la nature, musique douce forestière",
+                    "Educational_Value": f"Apprentissage de l'écologie et de la nature pour {age_target}",
+                    "Characters": "Animaux de la forêt, fleurs parlantes, gardiens de la nature"
+                },
+                "animals": {
+                    "Caption": "🦁 Royaume des animaux",
+                    "Idea": f"Une animation éducative animaux pour enfants de {age_target} suivant l'histoire: {story[:100]}...",
+                    "Environment": "Savane colorée, jungle amicale, ferme magique",
+                    "Sound": "Cris d'animaux mélodieux, musique joyeuse",
+                    "Educational_Value": f"Apprentissage des animaux et de leur habitat pour {age_target}",
+                    "Characters": "Animaux domestiques et sauvages, familles d'animaux"
+                }
+            }
+            
+            fallback_result = fallback_ideas.get(theme, {
                 "Caption": f"🎨 Animation éducative: {story[:50]}...",
                 "Idea": f"Une animation éducative {style} sur le thème {theme} pour enfants de {age_target}",
                 "Environment": "Environnement coloré et accueillant",
                 "Sound": "Musique douce et effets sonores adaptés",
                 "Educational_Value": f"Apprentissage du thème: {theme}",
                 "Characters": "Personnages éducatifs et attachants"
-            }
+            })
+            
+            print(f"   🎯 Fallback utilisé: {fallback_result.get('Environment', 'N/A')}")
+            return fallback_result
     
     async def _generate_scene_prompts(self, idea_result: Dict[str, Any], total_duration: int) -> List[Dict[str, Any]]:
         """Génère les prompts pour 3 scènes (équivalent du nœud Prompts AI Agent)"""
         try:
             import openai
             
-            # Calculer la durée par scène
-            scene_duration = total_duration // 3
+            # Calculer la durée par scène (max 10s pour Wavespeed)
+            scene_duration = min(total_duration // 3, self.max_clip_duration)
             
             system_prompt = f"""
-            Rôle: Tu es un expert en direction artistique pour dessins animés.
+            Rôle: Tu es un expert en direction artistique pour dessins animés éducatifs.
             
-            CONTEXTE:
+            CONTEXTE OBLIGATOIRE:
             - Idée générale: {idea_result.get('Idea', '')}
-            - Environnement: {idea_result.get('Environment', '')}
+            - Environnement spécifique: {idea_result.get('Environment', '')}
             - Valeur éducative: {idea_result.get('Educational_Value', '')}
-            - Personnages: {idea_result.get('Characters', '')}
+            - Personnages principaux: {idea_result.get('Characters', '')}
+            
+            CONTRAINTES IMPORTANTES:
+            - RESPECTER ABSOLUMENT l'environnement et les personnages décrits
+            - Éviter tout élément qui ne correspond pas au thème (pas de princesses si c'est spatial, pas de châteaux si c'est nature, etc.)
+            - Chaque scène doit refléter fidèlement l'univers décrit
             
             OBJECTIF:
-            Crée 3 scènes visuelles détaillées pour l'animation.
+            Crée 3 scènes visuelles COHÉRENTES avec le contexte ci-dessus.
             
-            STYLE VISUEL:
+            STYLE VISUEL OBLIGATOIRE:
             - {self.cartoon_style}
             - {self.cartoon_quality}
             - Couleurs vives et attrayantes
+            - Adaptation parfaite à l'environnement décrit
             - Mouvements fluides
             
             FORMAT DE SORTIE (JSON):
@@ -381,30 +434,35 @@ class SeedanceService:
         
         except Exception as e:
             print(f"❌ Erreur génération scènes: {e}")
+            print(f"   📊 Idée reçue: {idea_result.get('Idea', 'N/A')[:100]}...")
+            print(f"   🌍 Environnement: {idea_result.get('Environment', 'N/A')}")
+            print(f"   👥 Personnages: {idea_result.get('Characters', 'N/A')}")
             return self._create_fallback_scenes(idea_result, total_duration // 3)
     
     def _create_fallback_scenes(self, idea_result: Dict[str, Any], scene_duration: int) -> List[Dict[str, Any]]:
         """Crée des scènes de fallback en cas d'erreur"""
         idea = idea_result.get('Idea', 'Animation éducative')
+        environment = idea_result.get('Environment', 'Environnement coloré')
+        characters = idea_result.get('Characters', 'Personnages attachants')
         
         return [
             {
                 "scene_number": 1,
-                "description": f"Introduction: {idea[:50]}...",
+                "description": f"Introduction: {characters} dans {environment}",
                 "duration": scene_duration,
-                "prompt": f"STYLE: {self.cartoon_style} | SCENE: Introduction to the story | QUALITY: {self.cartoon_quality}"
+                "prompt": f"STYLE: {self.cartoon_style} | SCENE: {characters} in {environment}, introduction scene with {idea} | QUALITY: {self.cartoon_quality}"
             },
             {
                 "scene_number": 2,
-                "description": f"Développement: Action principale",
+                "description": f"Développement: Action principale avec {characters}",
                 "duration": scene_duration,
-                "prompt": f"STYLE: {self.cartoon_style} | SCENE: Main action sequence | QUALITY: {self.cartoon_quality}"
+                "prompt": f"STYLE: {self.cartoon_style} | SCENE: {characters} in main action sequence, {idea} adventure | QUALITY: {self.cartoon_quality}"
             },
             {
                 "scene_number": 3,
-                "description": f"Conclusion: Résolution",
+                "description": f"Conclusion: Résolution heureuse",
                 "duration": scene_duration,
-                "prompt": f"STYLE: {self.cartoon_style} | SCENE: Happy ending resolution | QUALITY: {self.cartoon_quality}"
+                "prompt": f"STYLE: {self.cartoon_style} | SCENE: Happy ending with {characters} in {environment}, {idea} conclusion | QUALITY: {self.cartoon_quality}"
             }
         ]
     
@@ -439,12 +497,15 @@ class SeedanceService:
         """Crée un seul clip vidéo avec Wavespeed AI"""
         try:
             async with aiohttp.ClientSession() as session:
-                # Données pour la génération
+                # Données pour la génération (s'assurer que la durée <= 10s)
+                clip_duration = min(scene.get("duration", 10), self.max_clip_duration)
                 payload = {
                     "aspect_ratio": self.cartoon_aspect_ratio,
-                    "duration": scene["duration"],
+                    "duration": clip_duration,
                     "prompt": scene["prompt"]
                 }
+                
+                print(f"   ⏱️ Durée du clip: {clip_duration}s (max: {self.max_clip_duration}s)")
                 
                 headers = {
                     "Authorization": f"Bearer {self.wavespeed_api_key}",
@@ -769,7 +830,7 @@ class SeedanceService:
                     }
                 return None
             
-            # Si un seul clip, pas besoin d'assemblage
+            # Si un seul clip, pas d'assemblage
             if len(valid_clips) == 1:
                 print("   📹 Un seul clip valide, pas d'assemblage nécessaire")
                 clip = valid_clips[0]
@@ -956,6 +1017,197 @@ class SeedanceService:
             }
         }
     
+    def _create_placeholder_video(self, animation_id: str, duration: int = 5) -> str:
+        """Crée un fichier placeholder vidéo réel"""
+        try:
+            filename = f"placeholder_{animation_id}.mp4"
+            placeholder_path = self.cache_dir / filename
+            
+            # Créer un fichier placeholder avec FFmpeg si disponible
+            # Sinon, créer un fichier vide pour éviter les 404
+            if not placeholder_path.exists():
+                try:
+                    # Essayer de créer une vraie vidéo placeholder avec FFmpeg
+                    cmd = [
+                        "ffmpeg", "-f", "lavfi", "-i", f"color=c=blue:size=640x360:duration={duration}",
+                        "-c:v", "libx264", "-t", str(duration), "-pix_fmt", "yuv420p",
+                        str(placeholder_path), "-y"
+                    ]
+                    subprocess.run(cmd, check=True, capture_output=True)
+                    print(f"   ✅ Placeholder vidéo créé: {filename}")
+                except (subprocess.CalledProcessError, FileNotFoundError):
+                    # Si FFmpeg n'est pas disponible, créer un fichier vide
+                    with open(placeholder_path, 'wb') as f:
+                        # Créer un header MP4 minimal
+                        f.write(b'\x00\x00\x00\x1cftypisom\x00\x00\x02\x00isomiso2mp41')
+                    print(f"   ⚠️ Placeholder fichier vide créé: {filename}")
+            
+            return f"/cache/seedance/{filename}"
+            
+        except Exception as e:
+            print(f"   ❌ Erreur création placeholder: {e}")
+            return f"/cache/seedance/error_{animation_id}.mp4"
+    
+    async def _assemble_local_video(self, video_clips: List[Dict[str, Any]], animation_id: str) -> Optional[Dict[str, Any]]:
+        """Assemble la vidéo finale localement avec FFmpeg"""
+        try:
+            print("   🎞️ Assemblage local avec FFmpeg...")
+            
+            # Filtrer les clips valides avec des chemins locaux
+            valid_clips = []
+            for clip in video_clips:
+                if clip.get("video_path") and clip["status"] == "success":
+                    video_path = Path(clip["video_path"])
+                    if video_path.exists():
+                        valid_clips.append(clip)
+                        print(f"   ✅ Clip local: {video_path.name}")
+                    else:
+                        print(f"   ❌ Fichier manquant: {video_path}")
+                else:
+                    print(f"   ⚠️ Clip ignoré: {clip.get('status', 'no_status')}")
+            
+            if not valid_clips:
+                print("   ⚠️ Aucun clip local valide pour l'assemblage")
+                return None
+            
+            # Si un seul clip, pas d'assemblage nécessaire
+            if len(valid_clips) == 1:
+                print("   📹 Un seul clip, pas d'assemblage nécessaire")
+                clip = valid_clips[0]
+                return {
+                    "video_url": clip["video_url"],
+                    "video_path": clip.get("video_path"),
+                    "status": "single_clip"
+                }
+            
+            # Préparer le fichier de sortie
+            output_filename = f"seedance_{animation_id}_assembled.mp4"
+            output_path = self.cache_dir / output_filename
+            
+            # Créer le fichier de liste pour FFmpeg
+            filelist_path = self.cache_dir / f"filelist_{animation_id}.txt"
+            
+            try:
+                with open(filelist_path, 'w') as f:
+                    for clip in valid_clips:
+                        video_path = Path(clip["video_path"])
+                        # FFmpeg nécessite des chemins absolus et échappés
+                        abs_path = video_path.resolve()
+                        f.write(f"file '{abs_path}'\n")
+                        print(f"   📎 Ajouté: {abs_path.name}")
+                
+                # Commande FFmpeg pour concaténer les vidéos
+                if not self.ffmpeg_path:
+                    print("   ❌ FFmpeg non disponible")
+                    # Fallback: utiliser le premier clip
+                    first_clip = valid_clips[0]
+                    return {
+                        "video_url": first_clip["video_url"],
+                        "video_path": first_clip.get("video_path"),
+                        "status": "no_ffmpeg_fallback"
+                    }
+                
+                cmd = [
+                    self.ffmpeg_path, '-f', 'concat', '-safe', '0', 
+                    '-i', str(filelist_path.resolve()),
+                    '-c', 'copy',  # Copie sans réencodage pour être plus rapide
+                    str(output_path.resolve()),
+                    '-y'  # Overwrite output file
+                ]
+                
+                print(f"   🔧 Exécution FFmpeg: {' '.join(cmd[:6])}...")
+                
+                # Exécuter FFmpeg
+                result = subprocess.run(
+                    cmd, 
+                    capture_output=True, 
+                    text=True, 
+                    timeout=120
+                )
+                
+                if result.returncode == 0:
+                    print(f"   ✅ Assemblage réussi: {output_filename}")
+                    
+                    # Nettoyage
+                    try:
+                        filelist_path.unlink()
+                    except:
+                        pass
+                    
+                    return {
+                        "video_url": f"/cache/seedance/{output_filename}",
+                        "video_path": str(output_path),
+                        "status": "assembled"
+                    }
+                else:
+                    print(f"   ❌ Erreur FFmpeg: {result.stderr}")
+                    # Fallback: utiliser le premier clip
+                    first_clip = valid_clips[0]
+                    return {
+                        "video_url": first_clip["video_url"],
+                        "video_path": first_clip.get("video_path"),
+                        "status": "ffmpeg_error_fallback"
+                    }
+                    
+            except subprocess.TimeoutExpired:
+                print("   ⏰ Timeout FFmpeg")
+                # Fallback: utiliser le premier clip
+                first_clip = valid_clips[0]
+                return {
+                    "video_url": first_clip["video_url"],
+                    "video_path": first_clip.get("video_path"),
+                    "status": "timeout_fallback"
+                }
+            except FileNotFoundError:
+                print("   ❌ FFmpeg non trouvé, assemblage impossible")
+                # Fallback: utiliser le premier clip
+                first_clip = valid_clips[0]
+                return {
+                    "video_url": first_clip["video_url"],
+                    "video_path": first_clip.get("video_path"),
+                    "status": "no_ffmpeg_fallback"
+                }
+            finally:
+                # Nettoyage du fichier temporaire
+                try:
+                    if filelist_path.exists():
+                        filelist_path.unlink()
+                except:
+                    pass
+                
+        except Exception as e:
+            print(f"   ❌ Erreur assemblage local: {e}")
+            # Fallback: utiliser le premier clip valide
+            if video_clips:
+                for clip in video_clips:
+                    if clip.get("video_url") and clip["status"] == "success":
+                        return {
+                            "video_url": clip["video_url"],
+                            "video_path": clip.get("video_path"),
+                            "status": "exception_fallback"
+                        }
+            return None
+
+    def _find_ffmpeg(self) -> Optional[str]:
+        """Trouve le chemin vers FFmpeg"""
+        ffmpeg_paths = [
+            "ffmpeg",  # Dans le PATH
+            "C:\\ProgramData\\chocolatey\\bin\\ffmpeg.exe",
+            "C:\\Program Files\\FFmpeg\\bin\\ffmpeg.exe",
+            "C:\\Users\\Admin\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-7.1.1-full_build\\bin\\ffmpeg.exe"
+        ]
+        
+        for path in ffmpeg_paths:
+            try:
+                result = subprocess.run([path, "-version"], capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    print(f"✅ FFmpeg trouvé: {path}")
+                    return path
+            except:
+                continue
+        
+        print("⚠️ FFmpeg non trouvé - l'assemblage local sera désactivé")
+        return None
 
 
 # Instance globale

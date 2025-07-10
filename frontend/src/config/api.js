@@ -1,5 +1,5 @@
 // Configuration de l'API
-export const API_BASE_URL = 'http://localhost:8010';
+export const API_BASE_URL = 'http://localhost:8000';
 
 // Endpoints de l'API
 export const API_ENDPOINTS = {

@@ -129,7 +129,6 @@ const SeedanceViewer = ({ seedanceResult, onClose }) => {
                         autoPlay
                         muted
                         className="seedance-video"
-                        poster="/placeholder-video.png"
                       >
                         Votre navigateur ne supporte pas la lecture vidéo.
                       </video>

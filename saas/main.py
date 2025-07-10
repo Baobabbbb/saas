@@ -50,6 +50,11 @@ from pathlib import Path
 animations_cache_dir = Path("cache/animations")
 animations_cache_dir.mkdir(parents=True, exist_ok=True)
 
+# Configuration des répertoires de cache SEEDANCE
+seedance_cache_dir = Path("cache/seedance")
+seedance_cache_dir.mkdir(parents=True, exist_ok=True)
+animations_cache_dir.mkdir(parents=True, exist_ok=True)
+
 # Garder l'ancien répertoire pour compatibilité
 old_cache_dir = Path("cache/crewai_animations")
 old_cache_dir.mkdir(parents=True, exist_ok=True)
@@ -57,8 +62,9 @@ old_cache_dir.mkdir(parents=True, exist_ok=True)
 static_dir = Path("static")
 static_dir.mkdir(exist_ok=True)
 
-# Monter seulement le répertoire static
+# Monter les répertoires statiques
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/cache", StaticFiles(directory="cache"), name="cache")
 # Note: /cache/animations est géré par un endpoint personnalisé pour le support Range
 
 # CORS avec support UTF-8

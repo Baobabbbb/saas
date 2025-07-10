@@ -21,7 +21,7 @@ const SeedanceSelector = ({
     const fetchStories = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:8000/api/seedance/stories');
+        const response = await fetch('/api/seedance/stories');
         if (!response.ok) {
           throw new Error('Erreur lors du chargement des histoires');
         }
