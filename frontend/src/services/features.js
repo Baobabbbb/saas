@@ -3,8 +3,7 @@ const FEATURES_STORAGE_KEY = 'fridayFeatures';
 
 // Configuration par défaut des fonctionnalités
 const DEFAULT_FEATURES = {
-  animation: { enabled: true, name: 'Dessin animé', icon: '🎬' },
-  seedance: { enabled: true, name: 'Animation SEEDANCE', icon: '🚀' },
+  seedance: { enabled: true, name: 'Dessin animé', icon: '🎬' },
   comic: { enabled: true, name: 'Bande dessinée', icon: '📚' },
   coloring: { enabled: true, name: 'Coloriage', icon: '🎨' },
   audio: { enabled: true, name: 'Histoire', icon: '📖' },
@@ -18,6 +17,7 @@ export const getFeatures = () => {
       const parsedFeatures = JSON.parse(stored);
       // Nettoyer les anciennes fonctionnalités obsolètes
       delete parsedFeatures.musical_rhyme;
+      delete parsedFeatures.animation; // Supprimer l'ancienne animation
       
       const cleanedFeatures = { ...DEFAULT_FEATURES, ...parsedFeatures };
       // Sauvegarder la version nettoyée

@@ -68,21 +68,41 @@ const SeedanceSelector = ({
   ];
 
   const handleThemeSelect = (themeId) => {
-    setSelectedTheme(themeId);
-    // Reset la sélection d'histoire quand le thème change
-    setSelectedStoryTitle(null);
+    // Permettre la désélection si on clique sur le thème déjà sélectionné
+    if (selectedTheme === themeId) {
+      setSelectedTheme(null);
+      setSelectedStoryTitle(null); // Reset aussi l'histoire
+    } else {
+      setSelectedTheme(themeId);
+      setSelectedStoryTitle(null); // Reset la sélection d'histoire quand le thème change
+    }
   };
 
   const handleAgeTargetSelect = (ageId) => {
-    setSelectedAgeTarget(ageId);
+    // Permettre la désélection si on clique sur l'âge déjà sélectionné
+    if (selectedAgeTarget === ageId) {
+      setSelectedAgeTarget(null);
+    } else {
+      setSelectedAgeTarget(ageId);
+    }
   };
 
   const handleDurationSelect = (durationId) => {
-    setSelectedDuration(durationId);
+    // Permettre la désélection si on clique sur la durée déjà sélectionnée
+    if (selectedDuration === durationId) {
+      setSelectedDuration(null);
+    } else {
+      setSelectedDuration(durationId);
+    }
   };
 
   const handleStorySelect = (storyTitle) => {
-    setSelectedStoryTitle(storyTitle);
+    // Permettre la désélection si on clique sur l'histoire déjà sélectionnée
+    if (selectedStoryTitle === storyTitle) {
+      setSelectedStoryTitle(null);
+    } else {
+      setSelectedStoryTitle(storyTitle);
+    }
   };
 
   // Obtenir les histoires du thème sélectionné

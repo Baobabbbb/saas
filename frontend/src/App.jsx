@@ -8,8 +8,6 @@ import ContentTypeSelector from './components/ContentTypeSelector';
 import RhymeSelector from './components/RhymeSelector';
 import MusicalRhymeSelector from './components/MusicalRhymeSelector';
 import AudioStorySelector from './components/AudioStorySelector';
-import AnimationSelector from './components/AnimationSelector';
-import AnimationViewer from './components/AnimationViewer';
 import CustomRequest from './components/CustomRequest';
 import GenerateButton from './components/GenerateButton';
 import History from './components/History';
@@ -60,11 +58,12 @@ const generateChildFriendlyTitle = (contentType, theme, content = '') => {
       default: ['Mon Coloriage', 'Dessin Rigolo', 'Art Créatif', 'Belle Image']
     },
     animation: {
-      aventure: ['Mon Dessin Animé', 'Animation Magique', 'Film d\'Aventure', 'Cinéma Fantastique'],
-      animaux: ['Mes Amis Animés', 'Zoo en Mouvement', 'Aventures Animales', 'Cirque des Animaux'],
-      magie: ['Monde Enchanté', 'Magie en Mouvement', 'Film de Fée', 'Animation Magique'],
-      espace: ['Voyage Animé', 'Aventure Spatiale', 'Film de l\'Espace', 'Mission Animation'],
+      space: ['Voyage dans les Étoiles', 'L\'Aventure Spatiale', 'Les Amis de l\'Espace', 'Mission sur la Lune'],
       nature: ['Forêt Animée', 'Jardin en Mouvement', 'Nature Vivante', 'Fleurs Dansantes'],
+      animals: ['Mes Amis Animés', 'Zoo en Mouvement', 'Aventures Animales', 'Cirque des Animaux'],
+      ocean: ['Voyage Sous-Marin', 'Aventure Océanique', 'Amis des Profondeurs', 'Mission Aquatique'],
+      friendship: ['Mes Meilleurs Amis', 'Aventure d\'Amitié', 'Copains pour Toujours', 'L\'Amitié Magique'],
+      education: ['Apprendre en S\'Amusant', 'École Magique', 'Aventure Éducative', 'Découverte Fantastique'],
       default: ['Mon Film IA', 'Dessin Animé IA', 'Animation Créative', 'Film Personnalisé']
     }
   };
@@ -106,7 +105,7 @@ const getSafeFilename = (title) => {
 };
 
 function App() {
-  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'audio', 'coloring', 'animation'
+  const [contentType, setContentType] = useState('seedance'); // 'rhyme', 'audio', 'coloring', 'seedance'
   const [selectedRhyme, setSelectedRhyme] = useState(null);
   const [customRhyme, setCustomRhyme] = useState('');
   
@@ -141,14 +140,6 @@ function App() {
   const [customCharacter, setCustomCharacter] = useState('');
   const [customComicTheme, setCustomComicTheme] = useState('');
   
-  // Animation states
-  const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
-  const [selectedDuration, setSelectedDuration] = useState(null);
-  const [selectedStyle, setSelectedStyle] = useState(null);
-  const [customStory, setCustomStory] = useState('');
-  const [animationResult, setAnimationResult] = useState(null);
-  const [showAnimationViewer, setShowAnimationViewer] = useState(false);
-
   // SEEDANCE states
   const [selectedSeedanceTheme, setSelectedSeedanceTheme] = useState(null);
   const [selectedSeedanceDuration, setSelectedSeedanceDuration] = useState(null);
@@ -323,59 +314,6 @@ function App() {
       console.log('✅ Données BD reçues:', comicData);
       setComicResult(comicData);
       generatedContent = comicData; // Stocker pour l'historique
-    } else if (contentType === 'animation') {
-      // Déterminer le contenu de l'histoire
-      let story;
-      if (selectedAnimationTheme && selectedAnimationTheme !== 'custom') {
-        // Thème prédéfini - créer une histoire de base
-        const themeStories = {
-          'magie': 'Une histoire magique avec des créatures fantastiques dans un monde enchanté',
-          'aventure': 'Une grande aventure pleine de découvertes et de rebondissements',
-          'animaux': 'Une histoire mettant en scène des animaux adorables et leurs aventures',
-          'espace': 'Un voyage extraordinaire à travers les étoiles et les planètes',
-          'nature': 'Une exploration merveilleuse de la nature et de ses secrets',
-          'amitié': 'Une belle histoire d\'amitié et de solidarité',
-          'famille': 'Une histoire touchante sur les liens familiaux'
-        };
-        story = themeStories[selectedAnimationTheme] || `Une belle histoire sur le thème ${selectedAnimationTheme}`;
-      } else {
-        // Histoire personnalisée
-        story = customStory;
-      }
-      
-      // Validation de l'histoire avant envoi
-      if (!story || story.trim().length < 10) {
-        throw new Error("L'histoire doit contenir au moins 10 caractères");
-      }
-      
-      const payload = {
-        story: story,
-        duration: selectedDuration,
-        style: selectedStyle,
-        theme: selectedAnimationTheme,
-        mode: 'production'  // Toujours en mode production
-      };
-      
-      const response = await fetch(API_ENDPOINTS.generateAnimation, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json; charset=utf-8',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Erreur API Animation:', response.status, errorText);
-        throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
-      }
-      
-      const animationData = await response.json();
-      
-      setAnimationResult(animationData);
-      setShowAnimationViewer(true); // Afficher immédiatement le viewer
-      generatedContent = animationData; // Stocker pour l'historique
     } else if (contentType === 'seedance') {
       // Génération SEEDANCE avec l'API dédiée
       const payload = {
@@ -431,12 +369,9 @@ function App() {
     } else if (contentType === 'coloring') {
       // Utiliser le titre généré par l'IA depuis l'API coloriage
       title = generatedContent?.title || generateChildFriendlyTitle('coloriage', selectedTheme);
-    } else if (contentType === 'animation') {
-      // Utiliser le titre généré par l'IA depuis l'API animation
-      title = generatedContent?.title || generateChildFriendlyTitle('animation', selectedAnimationTheme || 'aventure');
     } else if (contentType === 'seedance') {
-      // Utiliser le titre généré par l'IA depuis l'API SEEDANCE
-      title = generatedContent?.title || `Animation SEEDANCE ${selectedSeedanceTheme || 'éducative'}`;
+      // Utiliser le titre généré par l'IA depuis l'API SEEDANCE, ou générer un titre attractif
+      title = generatedContent?.title || generateChildFriendlyTitle('animation', selectedSeedanceTheme || 'default');
     }
 
     // Stocker le titre pour l'utiliser dans l'UI
@@ -474,18 +409,6 @@ function App() {
           images: generatedContent?.images || [],
           metadata: generatedContent?.metadata || {}
         };
-      } else if (contentType === 'animation') {
-        // Pour les animations, utiliser les données de l'animation
-        newCreation = {
-          id: Date.now().toString(),
-          type: contentType,
-          title: title,
-          createdAt: new Date().toISOString(),
-          content: generatedContent ? `Animation de ${generatedContent.actual_duration}s avec ${generatedContent.total_scenes} scènes` : 'Animation générée',
-          theme: selectedAnimationTheme,
-          clips: generatedContent?.clips || [],
-          animation_data: generatedContent || {}
-        };
       } else if (contentType === 'comic') {
         // Pour les BD, utiliser les données de la BD
         newCreation = {
@@ -502,10 +425,10 @@ function App() {
         // Pour les animations SEEDANCE, utiliser les données de l'animation
         newCreation = {
           id: Date.now().toString(),
-          type: contentType,
+          type: 'animation', // Utiliser 'animation' pour l'historique
           title: title,
           createdAt: new Date().toISOString(),
-          content: generatedContent ? `Animation SEEDANCE de ${generatedContent.total_duration}s avec ${generatedContent.scenes_count} scènes` : 'Animation SEEDANCE générée',
+          content: generatedContent ? `Animation de ${generatedContent.total_duration}s avec ${generatedContent.scenes_count} scènes` : 'Animation générée',
           theme: selectedSeedanceTheme,
           scenes: generatedContent?.scenes || [],
           seedance_data: generatedContent || {}
@@ -652,13 +575,6 @@ const handleSelectCreation = (creation) => {
         return false;
       }
       console.log('✅ Validation BD réussie');
-    } else if (contentType === 'animation') {
-      // Pour les animations, au minimum un thème doit être sélectionné
-      if (!selectedAnimationTheme) return false;
-      if (selectedAnimationTheme === 'custom' && !customStory.trim()) return false;
-      // Vérifier que l'histoire personnalisée fait au moins 10 caractères
-      if (selectedAnimationTheme === 'custom' && customStory.trim().length < 10) return false;
-      // Durée, style et mode de génération sont optionnels mais recommandés
     } else if (contentType === 'seedance') {
       // Pour SEEDANCE, vérifier tous les champs obligatoires
       if (!selectedSeedanceStoryTitle) return false;
@@ -971,26 +887,6 @@ const downloadPDF = async (title, content) => {
                   setCustomCharacter={setCustomCharacter}
                   customComicTheme={customComicTheme}
                   setCustomComicTheme={setCustomComicTheme}
-                />
-              </motion.div>
-            ) : contentType === 'animation' ? (
-              <motion.div
-                key="animation-selector"
-                variants={contentVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                transition={{ duration: 0.3 }}
-              >
-                <AnimationSelector
-                  selectedTheme={selectedAnimationTheme}
-                  setSelectedTheme={setSelectedAnimationTheme}
-                  selectedDuration={selectedDuration}
-                  setSelectedDuration={setSelectedDuration}
-                  selectedStyle={selectedStyle}
-                  setSelectedStyle={setSelectedStyle}
-                  customStory={customStory}
-                  setCustomStory={setCustomStory}
                 />
               </motion.div>
             ) : contentType === 'seedance' ? (
@@ -1387,13 +1283,6 @@ const downloadPDF = async (title, content) => {
       <ComicPopup
         comicResult={comicResult}
         onClose={() => setShowComicPopup(false)}
-      />
-    )}
-
-    {showAnimationViewer && (
-      <AnimationViewer
-        animationResult={animationResult}
-        onClose={() => setShowAnimationViewer(false)}
       />
     )}
 

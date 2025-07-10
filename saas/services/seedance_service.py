@@ -340,7 +340,7 @@ class SeedanceService:
             return fallback_result
     
     async def _generate_scene_prompts(self, idea_result: Dict[str, Any], total_duration: int) -> List[Dict[str, Any]]:
-        """Génère les prompts pour 3 scènes (équivalent du nœud Prompts AI Agent)"""
+        """Génère les prompts pour 3 scènes avec progression narrative structurée"""
         try:
             import openai
             
@@ -348,7 +348,7 @@ class SeedanceService:
             scene_duration = min(total_duration // 3, self.max_clip_duration)
             
             system_prompt = f"""
-            Rôle: Tu es un expert en direction artistique pour dessins animés éducatifs.
+            Rôle: Tu es un expert en narration et direction artistique pour dessins animés éducatifs.
             
             CONTEXTE OBLIGATOIRE:
             - Idée générale: {idea_result.get('Idea', '')}
@@ -356,38 +356,60 @@ class SeedanceService:
             - Valeur éducative: {idea_result.get('Educational_Value', '')}
             - Personnages principaux: {idea_result.get('Characters', '')}
             
-            CONTRAINTES IMPORTANTES:
+            STRUCTURE NARRATIVE OBLIGATOIRE:
+            Tu DOIS créer exactement 3 scènes qui suivent cette progression narrative classique:
+            
+            SCÈNE 1 - EXPOSITION/INTRODUCTION (Début):
+            - Présenter les personnages et l'environnement
+            - Établir la situation initiale
+            - Introduire le problème ou l'objectif éducatif
+            - Ton: Découverte, curiosité, mise en place
+            
+            SCÈNE 2 - DÉVELOPPEMENT/CONFLIT (Milieu):
+            - Les personnages font face à un défi ou explorent
+            - Action principale de l'apprentissage
+            - Moment d'effort, de recherche ou de difficulté
+            - Ton: Action, exploration, apprentissage actif
+            
+            SCÈNE 3 - RÉSOLUTION/CONCLUSION (Fin):
+            - Résolution du défi ou accomplissement de l'objectif
+            - Leçon apprise, succès, célébration
+            - Récapitulatif de la valeur éducative
+            - Ton: Satisfaction, accomplissement, joie
+            
+            CONTRAINTES VISUELLES:
             - RESPECTER ABSOLUMENT l'environnement et les personnages décrits
-            - Éviter tout élément qui ne correspond pas au thème (pas de princesses si c'est spatial, pas de châteaux si c'est nature, etc.)
-            - Chaque scène doit refléter fidèlement l'univers décrit
-            
-            OBJECTIF:
-            Crée 3 scènes visuelles COHÉRENTES avec le contexte ci-dessus.
-            
-            STYLE VISUEL OBLIGATOIRE:
-            - {self.cartoon_style}
-            - {self.cartoon_quality}
-            - Couleurs vives et attrayantes
-            - Adaptation parfaite à l'environnement décrit
-            - Mouvements fluides
+            - Éviter tout élément incohérent avec le thème
+            - Chaque scène doit être VISUELLEMENT DISTINCTE
+            - Progression logique et fluide entre les scènes
+            - Style: {self.cartoon_style}, {self.cartoon_quality}
             
             FORMAT DE SORTIE (JSON):
             {{
-                "Scene1": "Description détaillée de la première scène",
-                "Scene2": "Description détaillée de la deuxième scène", 
-                "Scene3": "Description détaillée de la troisième scène"
+                "Scene1_Introduction": "Description détaillée de la scène d'introduction",
+                "Scene2_Development": "Description détaillée de la scène de développement", 
+                "Scene3_Resolution": "Description détaillée de la scène de résolution"
             }}
             """
             
             user_prompt = f"""
-            Crée 3 scènes cohérentes basées sur l'idée: {idea_result.get('Idea', '')}
+            Crée une histoire complète en 3 actes basée sur l'idée: {idea_result.get('Idea', '')}
             
-            Chaque scène doit:
-            - Être visuellement distincte
-            - Raconter une partie de l'histoire
-            - Inclure les personnages principaux
-            - Être adaptée aux enfants
-            - Durée: {scene_duration} secondes chacune
+            EXIGENCES NARRATIVES:
+            - Scène 1: Introduction des {idea_result.get('Characters', 'personnages')} dans {idea_result.get('Environment', 'l\'environnement')}
+            - Scène 2: Défi ou exploration liée à {idea_result.get('Educational_Value', 'la valeur éducative')}
+            - Scène 3: Résolution heureuse avec leçon apprise
+            
+            EXIGENCES VISUELLES:
+            - Chaque scène doit être unique visuellement
+            - Mouvements et actions différents dans chaque scène
+            - Évolution de l'émotion et de l'ambiance
+            - Durée: {scene_duration} secondes par scène
+            
+            INTERDICTIONS:
+            - Pas de répétition de la même action
+            - Pas de descriptions identiques
+            - Pas d'éléments incohérents avec le thème
             """
             
             async with aiohttp.ClientSession() as session:
@@ -403,33 +425,67 @@ class SeedanceService:
                             {"role": "system", "content": system_prompt},
                             {"role": "user", "content": user_prompt}
                         ],
-                        "temperature": 0.7,
-                        "max_tokens": 600
+                        "temperature": 0.6,  # Réduit pour plus de cohérence
+                        "max_tokens": 800  # Augmenté pour des descriptions plus détaillées
                     }
                 ) as response:
                     if response.status == 200:
                         result = await response.json()
                         content = result["choices"][0]["message"]["content"]
                         
+                        print(f"   📝 Réponse OpenAI pour scènes: {content[:200]}...")
+                        
                         try:
-                            scenes_data = json.loads(content)
+                            # Nettoyer le contenu de la réponse OpenAI
+                            cleaned_content = content.strip()
                             
-                            # Transformer en format attendu
+                            # Supprimer les marqueurs markdown s'ils existent
+                            if cleaned_content.startswith('```json'):
+                                cleaned_content = cleaned_content[7:]  # Supprimer '```json'
+                            if cleaned_content.endswith('```'):
+                                cleaned_content = cleaned_content[:-3]  # Supprimer '```'
+                            
+                            cleaned_content = cleaned_content.strip()
+                            
+                            print(f"   🧹 Contenu nettoyé pour parsing: {cleaned_content[:100]}...")
+                            
+                            scenes_data = json.loads(cleaned_content)
+                            
+                            # Transformer en format attendu avec structure narrative
                             scenes = []
+                            scene_types = ["Introduction", "Development", "Resolution"]
+                            
                             for i, (key, description) in enumerate(scenes_data.items()):
+                                scene_type = scene_types[i] if i < len(scene_types) else f"Scene{i+1}"
+                                
+                                # Enrichir le prompt avec le type de scène
+                                enhanced_prompt = self._create_enhanced_prompt(
+                                    description, 
+                                    scene_type, 
+                                    idea_result, 
+                                    i + 1
+                                )
+                                
                                 scenes.append({
                                     "scene_number": i + 1,
+                                    "scene_type": scene_type,
                                     "description": description,
                                     "duration": scene_duration,
-                                    "prompt": f"STYLE: {self.cartoon_style} | SCENE: {description} | QUALITY: {self.cartoon_quality}"
+                                    "prompt": enhanced_prompt
                                 })
+                                
+                                print(f"   📋 Scène {i+1} ({scene_type}): {description[:80]}...")
                             
                             return scenes
                             
-                        except json.JSONDecodeError:
-                            # Fallback avec scènes génériques
-                            return self._create_fallback_scenes(idea_result, scene_duration)
+                        except json.JSONDecodeError as je:
+                            print(f"   ⚠️ Erreur parsing JSON: {je}")
+                            print(f"   📝 Contenu brut: {content}")
+                            # Fallback avec scènes structurées
+                            return self._create_structured_fallback_scenes(idea_result, scene_duration)
                     else:
+                        response_text = await response.text()
+                        print(f"   ❌ Erreur API OpenAI: {response.status} - {response_text}")
                         raise Exception(f"Erreur OpenAI scenes: {response.status}")
         
         except Exception as e:
@@ -437,32 +493,172 @@ class SeedanceService:
             print(f"   📊 Idée reçue: {idea_result.get('Idea', 'N/A')[:100]}...")
             print(f"   🌍 Environnement: {idea_result.get('Environment', 'N/A')}")
             print(f"   👥 Personnages: {idea_result.get('Characters', 'N/A')}")
-            return self._create_fallback_scenes(idea_result, total_duration // 3)
+            return self._create_structured_fallback_scenes(idea_result, total_duration // 3)
     
-    def _create_fallback_scenes(self, idea_result: Dict[str, Any], scene_duration: int) -> List[Dict[str, Any]]:
-        """Crée des scènes de fallback en cas d'erreur"""
+    def _create_enhanced_prompt(self, description: str, scene_type: str, idea_result: Dict[str, Any], scene_number: int) -> str:
+        """Crée un prompt enrichi pour Wavespeed avec contexte narratif"""
+        base_style = f"{self.cartoon_style}, {self.cartoon_quality}"
+        environment = idea_result.get('Environment', 'colorful environment')
+        characters = idea_result.get('Characters', 'friendly characters')
+        
+        # Ajouter des éléments spécifiques selon le type de scène
+        scene_specific = {
+            "Introduction": f"establishing shot, character introduction, peaceful beginning, {characters} appearing in {environment}",
+            "Development": f"dynamic action, main challenge, movement and exploration, {characters} actively engaged in adventure",
+            "Resolution": f"happy conclusion, problem solved, celebration, {characters} successful and joyful in {environment}"
+        }
+        
+        specific_elements = scene_specific.get(scene_type, "engaging animation sequence")
+        
+        return f"STYLE: {base_style} | SCENE {scene_number} ({scene_type}): {description} | ELEMENTS: {specific_elements} | ENVIRONMENT: {environment} | CHARACTERS: {characters}"
+    
+    def _create_structured_fallback_scenes(self, idea_result: Dict[str, Any], scene_duration: int) -> List[Dict[str, Any]]:
+        """Crée des scènes de fallback avec structure narrative claire"""
         idea = idea_result.get('Idea', 'Animation éducative')
         environment = idea_result.get('Environment', 'Environnement coloré')
         characters = idea_result.get('Characters', 'Personnages attachants')
+        education = idea_result.get('Educational_Value', 'Valeur éducative')
+        
+        print(f"   🎯 Fallback structuré - Environnement: {environment}")
+        print(f"   👥 Personnages: {characters}")
+        print(f"   📚 Valeur éducative: {education}")
         
         return [
             {
                 "scene_number": 1,
-                "description": f"Introduction: {characters} dans {environment}",
+                "scene_type": "Introduction",
+                "description": f"Introduction: {characters} découvrent {environment} et se préparent à apprendre",
                 "duration": scene_duration,
-                "prompt": f"STYLE: {self.cartoon_style} | SCENE: {characters} in {environment}, introduction scene with {idea} | QUALITY: {self.cartoon_quality}"
+                "prompt": self._create_enhanced_prompt(
+                    f"{characters} découvrent {environment} et se préparent à apprendre",
+                    "Introduction",
+                    idea_result,
+                    1
+                )
             },
             {
                 "scene_number": 2,
-                "description": f"Développement: Action principale avec {characters}",
+                "scene_type": "Development", 
+                "description": f"Exploration: {characters} explorent activement et font face à un défi éducatif",
                 "duration": scene_duration,
-                "prompt": f"STYLE: {self.cartoon_style} | SCENE: {characters} in main action sequence, {idea} adventure | QUALITY: {self.cartoon_quality}"
+                "prompt": self._create_enhanced_prompt(
+                    f"{characters} explorent activement et font face à un défi éducatif",
+                    "Development", 
+                    idea_result,
+                    2
+                )
             },
             {
                 "scene_number": 3,
-                "description": f"Conclusion: Résolution heureuse",
+                "scene_type": "Resolution",
+                "description": f"Succès: {characters} réussissent leur apprentissage et célèbrent dans {environment}",
                 "duration": scene_duration,
-                "prompt": f"STYLE: {self.cartoon_style} | SCENE: Happy ending with {characters} in {environment}, {idea} conclusion | QUALITY: {self.cartoon_quality}"
+                "prompt": self._create_enhanced_prompt(
+                    f"{characters} réussissent leur apprentissage et célèbrent dans {environment}",
+                    "Resolution",
+                    idea_result, 
+                    3
+                )
+            }
+        ]
+    
+    def _create_fallback_scenes(self, idea_result: Dict[str, Any], scene_duration: int) -> List[Dict[str, Any]]:
+        """Crée des scènes de fallback en cas d'erreur - redirige vers la version structurée"""
+        return self._create_structured_fallback_scenes(idea_result, scene_duration)
+    
+    def _get_narrative_template(self, theme: str, characters: str, environment: str) -> Dict[str, str]:
+        """Retourne un template narratif spécifique au thème pour garantir la cohérence"""
+        
+        templates = {
+            "space": {
+                "introduction": f"{characters} préparent leur vaisseau spatial dans {environment}, vérifient les instruments et se préparent pour le décollage vers une mission d'exploration",
+                "development": f"{characters} voyagent dans l'espace, rencontrent des phénomènes cosmiques fascinants, explorent une nouvelle planète avec des découvertes surprenantes",
+                "resolution": f"{characters} réussissent leur mission spatiale, partagent leurs découvertes avec joie et contemplent les merveilles de l'univers depuis leur vaisseau"
+            },
+            "nature": {
+                "introduction": f"{characters} découvrent {environment}, observent la beauté de la nature et remarquent quelque chose d'intéressant à explorer",
+                "development": f"{characters} explorent activement la nature, interagissent avec les plantes et animaux, apprennent les secrets de l'écosystème",
+                "resolution": f"{characters} comprennent l'importance de protéger la nature, plantent de nouvelles graines et célèbrent la beauté de {environment}"
+            },
+            "animals": {
+                "introduction": f"{characters} rencontrent différents animaux dans {environment}, observent leurs comportements et s'approchent avec curiosité",
+                "development": f"{characters} interagissent avec les animaux, apprennent leurs habitudes de vie, participent à leurs activités quotidiennes",
+                "resolution": f"{characters} deviennent amis avec les animaux, comprennent leurs besoins et célèbrent l'amitié inter-espèces dans {environment}"
+            },
+            "ocean": {
+                "introduction": f"{characters} plongent dans {environment}, découvrent le monde sous-marin et rencontrent les premières créatures marines",
+                "development": f"{characters} explorent les profondeurs océaniques, nagent avec les poissons colorés, découvrent des coraux et des trésors marins",
+                "resolution": f"{characters} comprennent l'importance de protéger l'océan, nagent joyeusement avec tous leurs nouveaux amis marins"
+            },
+            "friendship": {
+                "introduction": f"{characters} se rencontrent dans {environment}, font connaissance et découvrent leurs différences",
+                "development": f"{characters} font face à un défi ensemble, apprennent à se faire confiance et à s'entraider malgré leurs différences",
+                "resolution": f"{characters} deviennent de vrais amis, célèbrent leur amitié et jouent ensemble dans {environment}"
+            },
+            "education": {
+                "introduction": f"{characters} arrivent dans {environment} avec curiosité, découvrent de nouveaux concepts à apprendre",
+                "development": f"{characters} explorent activement, posent des questions, expérimentent et font des découvertes éducatives fascinantes",
+                "resolution": f"{characters} maîtrisent leurs nouveaux apprentissages, partagent leurs connaissances et célèbrent leurs progrès"
+            }
+        }
+        
+        # Template générique si le thème n'est pas trouvé
+        default_template = {
+            "introduction": f"{characters} découvrent {environment} et se préparent à vivre une aventure éducative",
+            "development": f"{characters} explorent activement, rencontrent des défis intéressants et apprennent de nouvelles choses",
+            "resolution": f"{characters} réussissent leur aventure, célèbrent leurs apprentissages dans {environment}"
+        }
+        
+        return templates.get(theme, default_template)
+
+    def _create_thematic_fallback_scenes(self, idea_result: Dict[str, Any], scene_duration: int, theme: str) -> List[Dict[str, Any]]:
+        """Crée des scènes de fallback spécifiques au thème avec progression narrative garantie"""
+        characters = idea_result.get('Characters', 'Personnages éducatifs')
+        environment = idea_result.get('Environment', 'Environnement coloré')
+        
+        # Obtenir le template narratif pour ce thème
+        template = self._get_narrative_template(theme, characters, environment)
+        
+        print(f"   🎭 Template thématique '{theme}' utilisé")
+        print(f"   👥 Personnages: {characters}")
+        print(f"   🌍 Environnement: {environment}")
+        
+        return [
+            {
+                "scene_number": 1,
+                "scene_type": "Introduction",
+                "description": f"Introduction: {template['introduction']}",
+                "duration": scene_duration,
+                "prompt": self._create_enhanced_prompt(
+                    template['introduction'],
+                    "Introduction",
+                    idea_result,
+                    1
+                )
+            },
+            {
+                "scene_number": 2,
+                "scene_type": "Development",
+                "description": f"Développement: {template['development']}",
+                "duration": scene_duration,
+                "prompt": self._create_enhanced_prompt(
+                    template['development'],
+                    "Development",
+                    idea_result,
+                    2
+                )
+            },
+            {
+                "scene_number": 3,
+                "scene_type": "Resolution",
+                "description": f"Résolution: {template['resolution']}",
+                "duration": scene_duration,
+                "prompt": self._create_enhanced_prompt(
+                    template['resolution'],
+                    "Resolution",
+                    idea_result,
+                    3
+                )
             }
         ]
     
