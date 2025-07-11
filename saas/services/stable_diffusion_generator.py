@@ -14,7 +14,7 @@ import io
 import base64
 from dotenv import load_dotenv
 from .comic_ai_enhancer import ComicAIEnhancer
-from .sd3_bubble_integrator_pro import SD3BubbleIntegratorPro
+from .sd3_bubble_integrator_v2 import SD3BubbleIntegratorAdvanced
 
 load_dotenv()
 
@@ -33,8 +33,8 @@ class StableDiffusionGenerator:
         # Initialiser l'enhancer IA pour les bulles
         self.ai_enhancer = ComicAIEnhancer() if os.getenv("ENABLE_AI_BUBBLES", "false").lower() == "true" else None
         
-        # Nouveau système SD3 PRO pour intégration de bulles ultra-réalistes
-        self.sd3_integrator_pro = SD3BubbleIntegratorPro() if os.getenv("ENABLE_SD3_BUBBLES", "true").lower() == "true" else None
+        # Nouveau système SD3 V2.0 pour intégration de bulles ultra-réalistes
+        self.sd3_integrator = SD3BubbleIntegratorAdvanced() if os.getenv("ENABLE_SD3_BUBBLES", "true").lower() == "true" else None
         
     async def generate_comic_images(self, comic_data: Dict[str, Any], spec) -> List[Dict[str, Any]]:
         """
@@ -91,13 +91,13 @@ class StableDiffusionGenerator:
                         }
                     }
                     
-                    # NOUVEAU SYSTÈME PRO : Intégrer les bulles avec SD3 Ultra-Réalistes
-                    if self.sd3_integrator_pro and dialogues:
-                        print(f"🚀 Application du système SD3 PRO pour bulles ultra-réalistes - page {i+1}")
-                        enhanced_page = await self.sd3_integrator_pro._process_page_professional(temp_page_data)
+                    # NOUVEAU SYSTÈME V2.0 : Intégrer les bulles avec SD3 Ultra-Réalistes
+                    if self.sd3_integrator and dialogues:
+                        print(f"🚀 Application du système SD3 V2.0 pour bulles ultra-réalistes - page {i+1}")
+                        enhanced_page = await self.sd3_integrator._process_single_page_advanced(temp_page_data, i+1)
                         final_image_path = Path(enhanced_page["image_path"])
                     else:
-                        # Fallback vers l'ancien système si SD3 PRO non disponible
+                        # Fallback vers l'ancien système si SD3 V2.0 non disponible
                         print(f"⚠️ Fallback vers l'ancien système de bulles pour la page {i+1}")
                         final_image_path = await self._add_dialogue_bubbles(base_image_path, dialogues, comic_dir, i+1)
                     
@@ -108,7 +108,7 @@ class StableDiffusionGenerator:
                         "image_path": str(final_image_path),
                         "image_url": f"/static/generated_comics/{comic_id}/{final_image_path.name}",
                         "dialogues": dialogues,
-                        "bubble_system": "sd3_professional_integrated" if self.sd3_integrator_pro and dialogues else "classic_overlay",
+                        "bubble_system": "sd3_advanced_integrated_v2" if self.sd3_integrator and dialogues else "classic_overlay",
                         "metadata": temp_page_data["metadata"]
                     }
                     

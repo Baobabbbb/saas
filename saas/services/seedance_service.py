@@ -396,7 +396,7 @@ class SeedanceService:
             Crée une histoire complète en 3 actes basée sur l'idée: {idea_result.get('Idea', '')}
             
             EXIGENCES NARRATIVES:
-            - Scène 1: Introduction des {idea_result.get('Characters', 'personnages')} dans {idea_result.get('Environment', 'l\'environnement')}
+            - Scène 1: Introduction des {idea_result.get('Characters', 'personnages')} dans {idea_result.get('Environment', "l'environnement")}
             - Scène 2: Défi ou exploration liée à {idea_result.get('Educational_Value', 'la valeur éducative')}
             - Scène 3: Résolution heureuse avec leçon apprise
             
@@ -1289,7 +1289,8 @@ class SeedanceService:
                         video_path = Path(clip["video_path"])
                         # FFmpeg nécessite des chemins absolus et échappés
                         abs_path = video_path.resolve()
-                        f.write(f"file '{abs_path}'\n")
+                        abs_path_str = str(abs_path)
+                        f.write(f"file '{abs_path_str}'\n")
                         print(f"   📎 Ajouté: {abs_path.name}")
                 
                 # Commande FFmpeg pour concaténer les vidéos

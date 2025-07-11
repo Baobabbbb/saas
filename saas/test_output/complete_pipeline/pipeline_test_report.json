@@ -1,0 +1,17 @@
+{
+  "test_date": "2025-07-11T15:55:39.675070",
+  "pipeline": "complete_with_sd3_bubbles",
+  "pages_generated": 3,
+  "generation_time_seconds": 45.757734,
+  "bubble_statistics": {
+    "sd3_integrations": 0,
+    "fallback_integrations": 0,
+    "classic_overlays": 3
+  },
+  "quality_checks": {
+    "all_images_exist": true,
+    "has_dialogues": true,
+    "advanced_bubbles_enabled": true
+  },
+  "test_result": "SUCCESS"
+}

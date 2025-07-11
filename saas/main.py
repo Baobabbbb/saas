@@ -22,6 +22,10 @@ from services.tts import generate_speech
 from services.stt import transcribe_audio
 # Pipeline d'animation moderne et modulaire (sans CrewAI)
 from services.complete_animation_pipeline import CompletAnimationPipeline
+from services.coloring_generator import ColoringGenerator
+from services.comic_generator import ComicGenerator
+from utils.translate import translate_text
+from config.seedance_stories import SEEDANCE_STORIES, get_story_by_theme_and_title
 
 # Instance globale de la pipeline
 animation_pipeline_instance = CompletAnimationPipeline()
@@ -34,9 +38,6 @@ async def complete_animation_pipeline(story: str, total_duration: int = 30, styl
         target_duration=total_duration,
         style=style
     )
-from services.coloring_generator import ColoringGenerator
-from services.comic_generator import ComicGenerator
-from utils.translate import translate_text
 
 # --- Chargement .env ---
 load_dotenv()
@@ -1388,8 +1389,6 @@ async def get_seedance_status():
             "status": "error",
             "error": str(e)
         }
-
-from config.seedance_stories import SEEDANCE_STORIES, get_story_by_theme_and_title
 
 @app.get("/api/seedance/stories")
 async def get_seedance_stories():

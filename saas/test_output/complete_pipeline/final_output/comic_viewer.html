@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BD avec Bulles Intégrées SD3</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .comic-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .page {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .page img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #333;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .page-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .stats {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .integration-status {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            color: white;
+        }
+        .sd3 { background-color: #4CAF50; }
+        .fallback { background-color: #FF9800; }
+        .failed { background-color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="comic-container">
+        <h1>BD avec Bulles Intégrées SD3</h1>
+        
+        <div class="stats">
+            <h3>📊 Statistiques</h3>
+            <p><strong>Pages totales:</strong> 3</p>
+            <p><strong>Intégrations SD3:</strong> 3</p>
+            <p><strong>Fallbacks PIL:</strong> 0</p>
+            <p><strong>Système:</strong> sd3_advanced_v2</p>
+            <p><strong>Généré le:</strong> 2025-07-11T15:55:35.709804</p>
+        </div>
+        
+        <div class="pages">
+            <div class="page">
+                <h3>Page 1</h3>
+                <img src="images/page_01.png" alt="Page 1">
+                <div class="page-info">
+                    <span class="integration-status sd3">
+                        sd3_complete_success
+                    </span>
+                    <br>
+                    Notre héros Alex rencontre un mystérieux allié dans une forêt enchantée....
+                </div>
+            </div>
+            <div class="page">
+                <h3>Page 2</h3>
+                <img src="images/page_02.png" alt="Page 2">
+                <div class="page-info">
+                    <span class="integration-status sd3">
+                        sd3_complete_success
+                    </span>
+                    <br>
+                    Alex doit prouver sa valeur dans un combat épique contre un dragon....
+                </div>
+            </div>
+            <div class="page">
+                <h3>Page 3</h3>
+                <img src="images/page_03.png" alt="Page 3">
+                <div class="page-info">
+                    <span class="integration-status sd3">
+                        sd3_complete_success
+                    </span>
+                    <br>
+                    Alex triomphe et devient un héros légendaire....
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

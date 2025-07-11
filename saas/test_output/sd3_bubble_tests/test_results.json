@@ -1,0 +1,104 @@
+{
+  "test_start_time": "2025-07-11T15:49:51.029010",
+  "tests_passed": 7,
+  "tests_failed": 1,
+  "test_details": [
+    {
+      "test_name": "Test 1: Initialisation du module",
+      "passed": true,
+      "duration": 0.0,
+      "details": {
+        "templates_count": 2,
+        "zones_count": 8,
+        "model": "sd3-large-turbo"
+      },
+      "error": null
+    },
+    {
+      "test_name": "Test 2: Analyse de scène basique",
+      "passed": true,
+      "duration": 0.001508,
+      "details": {
+        "bubbles_detected": 2,
+        "characters_detected": 4,
+        "art_style": "professional comic book art style",
+        "zones_used": [
+          "upper_right",
+          "upper_left"
+        ]
+      },
+      "error": null
+    },
+    {
+      "test_name": "Test 3: Analyse de scène complexe",
+      "passed": true,
+      "duration": 0.0,
+      "details": {
+        "complex_scene": true,
+        "characters_detected": 3,
+        "zones_distribution": 4,
+        "priority_range": "13-20"
+      },
+      "error": null
+    },
+    {
+      "test_name": "Test 4: Génération de prompts SD3",
+      "passed": true,
+      "duration": 0.0,
+      "details": {
+        "prompt_length": 548,
+        "multi_bubble_support": true,
+        "contains_requirements": true
+      },
+      "error": null
+    },
+    {
+      "test_name": "Test 5: Intégration de bulles (image test)",
+      "passed": true,
+      "duration": 1.696944,
+      "details": {
+        "integration_status": "fallback_complete",
+        "original_size": 4539,
+        "result_size": 8581,
+        "output_path": "test_output\\sd3_bubble_tests\\page_1_bubble_2_pil_advanced.png"
+      },
+      "error": null
+    },
+    {
+      "test_name": "Test 6: Traitement BD complète",
+      "passed": true,
+      "duration": 3.407809,
+      "details": {
+        "pages_processed": 3,
+        "bubble_system": "sd3_advanced_integrated_v2",
+        "stats": {
+          "total_pages": 3,
+          "success_count": 0,
+          "sd3_success": 0,
+          "fallback_count": 3,
+          "error_count": 0
+        }
+      },
+      "error": null
+    },
+    {
+      "test_name": "Test 7: Gestion des erreurs",
+      "passed": false,
+      "duration": 0.0,
+      "details": {},
+      "error": "Erreur non rapportée"
+    },
+    {
+      "test_name": "Test 8: Performance et cache",
+      "passed": true,
+      "duration": 0.0,
+      "details": {
+        "analysis_time": 0.0,
+        "performance_ok": true,
+        "advanced_features": true
+      },
+      "error": null
+    }
+  ],
+  "test_end_time": "2025-07-11T15:49:56.140829"
+}

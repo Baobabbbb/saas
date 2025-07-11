@@ -1,0 +1,44 @@
+{
+  "title": "BD avec Bulles Intégrées SD3",
+  "total_pages": 3,
+  "assembly_time": "2025-07-11T15:55:35.709804",
+  "bubble_system": "sd3_advanced_v2",
+  "pages": [
+    {
+      "page_number": 1,
+      "image_name": "page_01.png",
+      "image_path": "test_output\\complete_pipeline\\final_output\\images\\page_01.png",
+      "image_url": "/static/generated_comics/final/page_01.png",
+      "bubble_integration": "sd3_complete_success",
+      "dialogues_count": 2,
+      "description": "Notre héros Alex rencontre un mystérieux allié dans une forêt enchantée....",
+      "ready_for_display": true
+    },
+    {
+      "page_number": 2,
+      "image_name": "page_02.png",
+      "image_path": "test_output\\complete_pipeline\\final_output\\images\\page_02.png",
+      "image_url": "/static/generated_comics/final/page_02.png",
+      "bubble_integration": "sd3_complete_success",
+      "dialogues_count": 2,
+      "description": "Alex doit prouver sa valeur dans un combat épique contre un dragon....",
+      "ready_for_display": true
+    },
+    {
+      "page_number": 3,
+      "image_name": "page_03.png",
+      "image_path": "test_output\\complete_pipeline\\final_output\\images\\page_03.png",
+      "image_url": "/static/generated_comics/final/page_03.png",
+      "bubble_integration": "sd3_complete_success",
+      "dialogues_count": 2,
+      "description": "Alex triomphe et devient un héros légendaire....",
+      "ready_for_display": true
+    }
+  ],
+  "export_formats": [],
+  "quality_stats": {
+    "sd3_integrations": 3,
+    "pil_fallbacks": 0,
+    "failed_pages": 0
+  }
+}
