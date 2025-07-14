@@ -1304,36 +1304,33 @@ async def generate_seedance_animation(request: dict):
         print(f"🎭 Génération SEEDANCE demandée")
         
         # Extraire les paramètres
-        story_title = request.get('story_title', '').strip()
         theme = request.get('theme', 'adventure')
-        age_target = request.get('age_target', '3-5 ans')
         duration = request.get('duration', 45)
+        custom_request = request.get('custom_request', '').strip()
         style = request.get('style', 'cartoon')
         
+        # Âge par défaut adapté aux enfants (3-8 ans)
+        age_target = "3-8 ans"
+        
         # Validation
-        if not story_title:
+        if not theme:
             raise HTTPException(
                 status_code=400,
-                detail="Le titre de l'histoire est obligatoire pour SEEDANCE"
+                detail="Le thème est obligatoire pour SEEDANCE"
             )
         
-        if duration < 30 or duration > 180:
+        if duration < 30 or duration > 300:
             raise HTTPException(
                 status_code=400,
-                detail="La durée doit être entre 30 et 180 secondes pour SEEDANCE"
+                detail="La durée doit être entre 30 secondes et 5 minutes pour SEEDANCE"
             )
         
-        # Récupérer l'histoire complète depuis la configuration
-        story_data = get_story_by_theme_and_title(theme, story_title)
-        if not story_data:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Histoire '{story_title}' introuvable dans le thème '{theme}'"
-            )
-        
-        story = story_data['story']
-        print(f"📖 Histoire sélectionnée: {story_title}")
-        print(f"📝 Contenu: {story[:100]}...")
+        # Générer automatiquement une histoire unique basée sur le thème et demandes spécifiques
+        print(f"🎨 Génération automatique d'histoire pour le thème: {theme}")
+        if custom_request:
+            print(f"🎯 Demandes spécifiques: {custom_request}")
+        story = await seedance_service.generate_story_for_theme(theme, age_target, custom_request)
+        print(f"📝 Histoire générée: {story[:100]}...")
         print(f"🎨 Paramètres: {theme}, {age_target}, {duration}s, {style}")
         
         # Générer l'animation SEEDANCE avec les vraies APIs

@@ -6,8 +6,9 @@
 
 /* SEEDANCE Selector Styles */
 .seedance-selector {
-  padding: 0 15px;
+  padding: 0;
   max-width: 100%;
+  margin: 0;
 }
 
 .selector-section {
@@ -18,10 +19,22 @@
   color: var(--primary);
   font-size: 1.2rem;
   margin-bottom: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+/* Alignement cohérent des titres */
+.seedance-selector .selector-section {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.seedance-selector .selector-section h4 {
+  margin-left: 0;
+  padding-left: 0;
+  text-align: left;
 }
 
 /* Story Input */
@@ -198,48 +211,41 @@
 /* Durations Grid */
 .durations-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
 }
 
 .duration-card {
-  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+  background-color: #f5f0ff;
   border: 2px solid transparent;
   border-radius: 12px;
-  padding: 1rem;
+  padding: 0.75rem;
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .duration-card:hover {
-  background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+  background-color: #ede5ff;
   transform: translateY(-2px);
 }
 
 .duration-card.selected {
-  border-color: #f59e0b;
-  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
-}
-
-.duration-emoji {
-  font-size: 1.8rem;
-  margin-bottom: 0.5rem;
-  display: block;
+  border-color: var(--primary);
+  background-color: #ede5ff;
+  box-shadow: 0 4px 15px rgba(107, 78, 255, 0.2);
 }
 
 .duration-card h5 {
-  color: #d97706;
+  color: var(--primary);
   font-size: 0.9rem;
   font-weight: 600;
-  margin: 0 0 0.25rem 0;
-}
-
-.duration-card p {
-  color: #b45309;
-  font-size: 0.8rem;
   margin: 0;
+  line-height: 1.2;
 }
 
 /* SEEDANCE Info */
@@ -443,6 +449,32 @@
   grid-column: 1 / -1;
 }
 
+/* Information sur les optimisations */
+.optimization-info {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: 1px solid #2196f3;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.optimization-info h5 {
+  color: #1976d2;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.optimization-info p {
+  color: #1565c0;
+  font-size: 0.8rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .seedance-selector {
@@ -550,22 +582,4 @@
 .story-card.selected:hover {
   opacity: 0.8;
   transform: scale(0.98);
-}
-
-.theme-card.selected:hover::after,
-.age-card.selected:hover::after,
-.duration-card.selected:hover::after,
-.story-card.selected:hover::after {
-  content: '× Désélectionner';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  text-align: center;
-  padding: 0.3rem;
-  font-size: 0.7rem;
-  font-weight: 500;
-  border-radius: 0 0 16px 16px;
 }

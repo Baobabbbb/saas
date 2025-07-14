@@ -27,6 +27,8 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) =
       ? 'Créer ma bande dessinée'
       : contentType === 'animation'
       ? 'Créer mon dessin animé'
+      : contentType === 'seedance'
+      ? 'Créer mon dessin animé'
       : contentType === 'audio'
       ? 'Créer mon histoire'
       : 'Créer mon contenu';
@@ -71,6 +73,8 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) =
             ? 'Veuillez sélectionner un thème, style et longueur pour votre BD'
             : contentType === 'animation'
             ? 'Veuillez sélectionner un thème et configurer votre animation'
+            : contentType === 'seedance'
+            ? 'Veuillez sélectionner un thème et une durée pour votre dessin animé'
             : 'Veuillez sélectionner un type d\'histoire (et une voix) pour continuer'}
         </p>
       )}

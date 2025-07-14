@@ -143,8 +143,6 @@ function App() {
   // SEEDANCE states
   const [selectedSeedanceTheme, setSelectedSeedanceTheme] = useState(null);
   const [selectedSeedanceDuration, setSelectedSeedanceDuration] = useState(null);
-  const [selectedSeedanceAgeTarget, setSelectedSeedanceAgeTarget] = useState(null);
-  const [selectedSeedanceStoryTitle, setSelectedSeedanceStoryTitle] = useState(null);
   const [seedanceResult, setSeedanceResult] = useState(null);
   const [showSeedanceViewer, setShowSeedanceViewer] = useState(false);
 
@@ -315,12 +313,11 @@ function App() {
       setComicResult(comicData);
       generatedContent = comicData; // Stocker pour l'historique
     } else if (contentType === 'seedance') {
-      // Génération SEEDANCE avec l'API dédiée
+      // Génération SEEDANCE avec l'API dédiée (histoire et âge adaptés automatiquement)
       const payload = {
-        story_title: selectedSeedanceStoryTitle,
         theme: selectedSeedanceTheme,
-        age_target: selectedSeedanceAgeTarget,
-        duration: selectedSeedanceDuration
+        duration: selectedSeedanceDuration,
+        custom_request: customRequest || ""
       };
       
       console.log('🚀 Payload SEEDANCE:', payload);
@@ -576,10 +573,8 @@ const handleSelectCreation = (creation) => {
       }
       console.log('✅ Validation BD réussie');
     } else if (contentType === 'seedance') {
-      // Pour SEEDANCE, vérifier tous les champs obligatoires
-      if (!selectedSeedanceStoryTitle) return false;
+      // Pour SEEDANCE, vérifier tous les champs obligatoires (histoire et âge générés automatiquement)
       if (!selectedSeedanceTheme) return false;
-      if (!selectedSeedanceAgeTarget) return false;
       if (!selectedSeedanceDuration) return false;
     }
     return true;
@@ -903,10 +898,6 @@ const downloadPDF = async (title, content) => {
                   setSelectedTheme={setSelectedSeedanceTheme}
                   selectedDuration={selectedSeedanceDuration}
                   setSelectedDuration={setSelectedSeedanceDuration}
-                  selectedAgeTarget={selectedSeedanceAgeTarget}
-                  setSelectedAgeTarget={setSelectedSeedanceAgeTarget}
-                  selectedStoryTitle={selectedSeedanceStoryTitle}
-                  setSelectedStoryTitle={setSelectedSeedanceStoryTitle}
                 />
               </motion.div>
             ) : null}
@@ -953,7 +944,7 @@ const downloadPDF = async (title, content) => {
           : contentType === 'animation'
           ? 'Création de votre dessin animé en cours...'
           : contentType === 'seedance'
-          ? 'Création de votre animation SEEDANCE en cours...'
+          ? 'Création de votre dessin animé en cours…'
           : contentType === 'comic'
           ? 'Création de votre bande dessinée en cours...'
           : 'Génération en cours...'}
@@ -1061,7 +1052,7 @@ const downloadPDF = async (title, content) => {
         : contentType === 'comic'
         ? 'Votre bande dessinée apparaîtra ici'
         : contentType === 'seedance'
-        ? 'Votre animation SEEDANCE apparaîtra ici'
+        ? 'Votre dessin animé apparaîtra ici'
         : 'Votre dessin animé apparaîtra ici'}
     </p>
     </div>

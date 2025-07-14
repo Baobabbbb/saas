@@ -38,8 +38,13 @@ class SeedanceService:
         self.cartoon_style = os.getenv("CARTOON_STYLE", "2D cartoon animation, Disney style")
         self.cartoon_quality = os.getenv("CARTOON_QUALITY", "high quality animation, smooth movement")
         
-        # Limite de durée pour Wavespeed (max 10 secondes)
-        self.max_clip_duration = 10
+        # Limite de durée pour Wavespeed (max 10 secondes) - OPTIMISÉE
+        self.max_clip_duration = 6  # Réduit de 10s à 6s pour accélérer la génération
+        
+        # Timeouts optimisés pour réduire les temps d'attente
+        self.max_clip_wait = 90  # Réduit de 140s à 90s
+        self.max_audio_wait = 45  # Réduit de 60s à 45s
+        self.max_final_wait = 30  # Réduit de 60s à 30s
         
         # Configuration des répertoires
         self.cache_dir = Path("cache/seedance")
@@ -116,7 +121,8 @@ class SeedanceService:
             if not video_clips:
                 raise Exception("Échec de la génération des clips")
             
-            # ÉTAPE 4: Génération des sons
+            # ÉTAPE 4: Génération des sons (TOUJOURS)
+            audio_clips = []
             print("🔊 Étape 4: Génération des sons...")
             audio_clips = await self._generate_audio_clips(video_clips, idea_result)
             
@@ -214,6 +220,111 @@ class SeedanceService:
                 "error": str(e),
                 "message": f"Erreur lors de la génération SEEDANCE: {str(e)}"
             }
+    
+    async def generate_story_for_theme(self, theme: str, age_target: str = "3-8 ans", custom_request: str = "") -> str:
+        """
+        Génère automatiquement une histoire unique basée sur le thème choisi et les demandes spécifiques
+        
+        Args:
+            theme: Thème choisi (space, ocean, nature, etc.)
+            age_target: Tranche d'âge ciblée
+            custom_request: Demandes spécifiques de l'utilisateur
+            
+        Returns:
+            Histoire générée par l'IA
+        """
+        try:
+            print(f"📚 Génération d'histoire pour thème: {theme}, âge: {age_target}")
+            if custom_request:
+                print(f"🎯 Avec demandes spécifiques: {custom_request}")
+            
+            # Prompts adaptés selon le thème
+            theme_prompts = {
+                'space': "une aventure spatiale avec des astronautes, des planètes colorées et des aliens amicaux",
+                'ocean': "une aventure sous-marine avec des poissons, des coraux et des créatures marines fascinantes",
+                'nature': "une histoire dans la nature avec des animaux, des arbres et la protection de l'environnement",
+                'animals': "une histoire d'animaux mignons qui apprennent des leçons importantes",
+                'friendship': "une histoire sur l'amitié, l'entraide et la bienveillance entre enfants",
+                'adventure': "une grande aventure pleine de découvertes et de courage",
+                'magic': "un monde magique avec des sorts, des créatures fantastiques et de la magie",
+                'learning': "une histoire éducative qui enseigne tout en divertissant"
+            }
+            
+            theme_description = theme_prompts.get(theme, "une aventure passionnante et éducative")
+            
+            # Construire le prompt avec les demandes spécifiques
+            prompt = f"""Créé une histoire courte et originale pour enfants de {age_target} sur le thème de {theme_description}.
+
+L'histoire doit être:
+- Simple, colorée et adaptée aux enfants
+- Éducative et positive
+- Adaptée pour être transformée en dessin animé de 30-90 secondes
+- Entre 100 et 200 mots
+- Avec un début, un développement et une fin satisfaisante
+- Incluant des personnages attachants
+- Avec une morale ou leçon positive"""
+
+            # Ajouter les demandes spécifiques si elles existent
+            if custom_request:
+                prompt += f"\n\nIMPORTANT: L'histoire doit absolument inclure ces éléments spécifiques demandés par l'utilisateur: {custom_request}"
+                prompt += f"\nIntègre ces éléments de manière naturelle dans l'histoire."
+
+            prompt += f"\n\nRaconte l'histoire à la troisième personne, de manière fluide et engageante."
+
+            # Appel à OpenAI
+            async with aiohttp.ClientSession() as session:
+                headers = {
+                    "Authorization": f"Bearer {self.openai_api_key}",
+                    "Content-Type": "application/json"
+                }
+                
+                data = {
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {
+                            "role": "system", 
+                            "content": "Tu es un expert en création d'histoires pour enfants. Tu crées des histoires originales, engageantes et éducatives."
+                        },
+                        {
+                            "role": "user", 
+                            "content": prompt
+                        }
+                    ],
+                    "max_tokens": 400,
+                    "temperature": 0.8  # Plus de créativité pour des histoires variées
+                }
+                
+                async with session.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers=headers,
+                    json=data
+                ) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        raise Exception(f"Erreur OpenAI: {response.status} - {error_text}")
+                    
+                    result = await response.json()
+                    story = result['choices'][0]['message']['content'].strip()
+                    
+                    print(f"✅ Histoire générée: {len(story)} caractères")
+                    return story
+                    
+        except Exception as e:
+            print(f"❌ Erreur génération histoire: {e}")
+            # Histoire de fallback basique avec demandes spécifiques si possible
+            fallback_stories = {
+                'space': "Luna est une petite astronaute qui découvre une planète magique. Elle rencontre des aliens colorés qui lui montrent leurs merveilles. Ensemble, ils apprennent que l'amitié traverse toutes les galaxies.",
+                'ocean': "Nemo le petit poisson part explorer les profondeurs. Il découvre un récif de corail menacé et aide tous les poissons à le sauver. Il apprend que chacun peut faire la différence.",
+                'nature': "Lily découvre un jardin secret où les animaux lui parlent. Elle apprend comment protéger la nature en aidant une famille d'oiseaux à sauver leur nid.",
+                'default': "Max part dans une grande aventure. Il rencontre des amis qui l'aident à surmonter les défis. Ensemble, ils découvrent que le courage et l'amitié sont les plus grandes forces."
+            }
+            base_story = fallback_stories.get(theme, fallback_stories['default'])
+            
+            # Essayer d'intégrer les demandes spécifiques même dans le fallback
+            if custom_request:
+                base_story += f" L'aventure inclut aussi {custom_request} qui rend l'histoire encore plus spéciale."
+            
+            return base_story
     
     async def _generate_ideas(self, story: str, theme: str, age_target: str, style: str) -> Dict[str, Any]:
         """Génère les idées créatives avec OpenAI (équivalent du nœud Ideas AI Agent)"""
@@ -425,8 +536,8 @@ class SeedanceService:
                             {"role": "system", "content": system_prompt},
                             {"role": "user", "content": user_prompt}
                         ],
-                        "temperature": 0.6,  # Réduit pour plus de cohérence
-                        "max_tokens": 800  # Augmenté pour des descriptions plus détaillées
+                        "temperature": 0.7,  # Augmenté légèrement pour plus de créativité rapide
+                        "max_tokens": 500  # Réduit de 800 à 500 pour accélérer la génération
                     }
                 ) as response:
                     if response.status == 200:
@@ -663,25 +774,35 @@ class SeedanceService:
         ]
     
     async def _generate_video_clips(self, scenes_prompts: List[Dict[str, Any]], animation_id: str) -> List[Dict[str, Any]]:
-        """Génère les clips vidéo avec Wavespeed AI (équivalent du nœud Create Clips)"""
+        """Génère les clips vidéo avec Wavespeed AI EN PARALLÈLE pour accélérer drastiquement"""
         try:
-            clips = []
+            print(f"   🚀 Génération PARALLÈLE de {len(scenes_prompts)} clips...")
             
+            # Générer tous les clips en parallèle avec asyncio.gather
+            tasks = []
             for i, scene in enumerate(scenes_prompts):
-                print(f"   🎥 Génération clip {i+1}/3...")
-                
-                # Appel à l'API Wavespeed
-                clip_result = await self._create_single_clip(scene, animation_id)
-                
-                if clip_result:
-                    clips.append(clip_result)
-                    # Attendre entre les générations pour éviter les rate limits
-                    await asyncio.sleep(3)
+                print(f"   📝 Préparation clip {i+1}/3...")
+                task = self._create_single_clip(scene, animation_id)
+                tasks.append(task)
+            
+            # Exécuter toutes les tâches en parallèle
+            print(f"   ⚡ Lancement des {len(tasks)} générations en parallèle...")
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            # Traiter les résultats
+            clips = []
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    print(f"   ❌ Erreur clip {i+1}: {result}")
+                    clips.append(self._create_fallback_clip(scenes_prompts[i], animation_id))
+                elif result:
+                    print(f"   ✅ Clip {i+1} généré avec succès")
+                    clips.append(result)
                 else:
                     print(f"   ⚠️ Échec clip {i+1}, utilisation fallback")
-                    # Créer un clip de fallback
-                    clips.append(self._create_fallback_clip(scene, animation_id))
+                    clips.append(self._create_fallback_clip(scenes_prompts[i], animation_id))
             
+            print(f"   🎯 Génération parallèle terminée: {len([c for c in clips if c.get('status') == 'success'])}/{len(clips)} réussies")
             return clips
             
         except Exception as e:
@@ -693,8 +814,8 @@ class SeedanceService:
         """Crée un seul clip vidéo avec Wavespeed AI"""
         try:
             async with aiohttp.ClientSession() as session:
-                # Données pour la génération (s'assurer que la durée <= 10s)
-                clip_duration = min(scene.get("duration", 10), self.max_clip_duration)
+                # Données pour la génération (durée réduite pour accélérer)
+                clip_duration = min(scene.get("duration", 6), self.max_clip_duration)  # Durée par défaut réduite à 6s
                 payload = {
                     "aspect_ratio": self.cartoon_aspect_ratio,
                     "duration": clip_duration,
@@ -762,8 +883,8 @@ class SeedanceService:
             traceback.print_exc()
             return None
     
-    async def _wait_for_clip_completion(self, prediction_id: str, max_wait: int = 140) -> Optional[str]:
-        """Attend la completion d'un clip vidéo"""
+    async def _wait_for_clip_completion(self, prediction_id: str, max_wait: int = 90) -> Optional[str]:
+        """Attend la completion d'un clip vidéo - OPTIMISÉ"""
         try:
             async with aiohttp.ClientSession() as session:
                 headers = {
@@ -806,8 +927,8 @@ class SeedanceService:
                         else:
                             print(f"   ❌ Erreur status check: {response.status}")
                     
-                    # Attendre avant de revérifier
-                    await asyncio.sleep(5)
+                    # Attendre réduit avant de revérifier (optimisation)
+                    await asyncio.sleep(3)  # Réduit de 5s à 3s
                 
                 print(f"   ⏰ Timeout après {max_wait}s")
                 return None
@@ -939,8 +1060,8 @@ class SeedanceService:
             traceback.print_exc()
             return None
     
-    async def _wait_for_audio_completion(self, request_id: str, max_wait: int = 60) -> Optional[str]:
-        """Attend la completion d'un clip audio avec Fal AI"""
+    async def _wait_for_audio_completion(self, request_id: str, max_wait: int = 45) -> Optional[str]:
+        """Attend la completion d'un clip audio avec Fal AI - OPTIMISÉ"""
         try:
             async with aiohttp.ClientSession() as session:
                 headers = {
@@ -1139,8 +1260,8 @@ class SeedanceService:
                         }
             return None
     
-    async def _wait_for_final_video(self, request_id: str, max_wait: int = 60) -> Optional[str]:
-        """Attend la completion de la vidéo finale"""
+    async def _wait_for_final_video(self, request_id: str, max_wait: int = 30) -> Optional[str]:
+        """Attend la completion de la vidéo finale - OPTIMISÉ"""
         try:
             async with aiohttp.ClientSession() as session:
                 headers = {
@@ -1409,3 +1530,5 @@ class SeedanceService:
 
 # Instance globale
 seedance_service = SeedanceService()
+
+
