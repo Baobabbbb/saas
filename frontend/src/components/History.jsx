@@ -135,7 +135,7 @@ const History = ({ onClose, onSelect }) => {
                     <audio
                       controls
                       className="creation-audio"
-                      src={`http://localhost:8000/${creation.audio_path}`}
+                      src={`http://localhost:8004/${creation.audio_path}`}
                     />
                   )}
 
@@ -172,7 +172,7 @@ const History = ({ onClose, onSelect }) => {
                     )}                    {creation.audio_path && (
                       <a
                         className="btn-audio"
-                        href={`http://localhost:8000/${creation.audio_path}`}
+                        href={`http://localhost:8004/${creation.audio_path}`}
                         download
                         onClick={(e) => e.stopPropagation()}
                       >

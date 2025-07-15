@@ -141,8 +141,8 @@ function App() {
   const [customComicTheme, setCustomComicTheme] = useState('');
   
   // SEEDANCE states
-  const [selectedSeedanceTheme, setSelectedSeedanceTheme] = useState(null);
-  const [selectedSeedanceDuration, setSelectedSeedanceDuration] = useState(null);
+  const [selectedSeedanceTheme, setSelectedSeedanceTheme] = useState('adventure');
+  const [selectedSeedanceDuration, setSelectedSeedanceDuration] = useState(45);
   const [seedanceResult, setSeedanceResult] = useState(null);
   const [showSeedanceViewer, setShowSeedanceViewer] = useState(false);
 
@@ -188,6 +188,13 @@ function App() {
     console.log('🚀 Fonction handleGenerate appelée, contentType:', contentType);
     setIsGenerating(true);
     setGeneratedResult(null);
+    
+    // Nettoyer spécifiquement les résultats SEEDANCE précédents
+    if (contentType === 'seedance') {
+      setSeedanceResult(null);
+      setShowSeedanceViewer(false);
+    }
+    
     // setShowConfetti(true);
     
     // Nettoyer les données temporaires précédentes
@@ -338,6 +345,9 @@ function App() {
       }
       
       const seedanceData = await response.json();
+      
+      // Ajouter un timestamp pour forcer le rechargement de la vidéo
+      seedanceData.timestamp = Date.now();
       
       setSeedanceResult(seedanceData);
       setShowSeedanceViewer(true); // Afficher immédiatement le viewer

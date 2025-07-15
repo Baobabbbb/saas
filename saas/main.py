@@ -1427,3 +1427,21 @@ async def get_stories_by_theme(theme: str):
             "status": "error",
             "error": str(e)
         }
+
+# === DÉMARRAGE DU SERVEUR ===
+if __name__ == "__main__":
+    import uvicorn
+    print("🚀 Démarrage du serveur FRIDAY SAAS...")
+    print("   📚 BD avec IA activée")
+    print("   🎬 Animations avec CrewAI")
+    print("   🎭 SEEDANCE avec Wavespeed AI + Fal AI")
+    print("   🎵 Comptines et histoires audio")
+    print("   🎨 Coloriage généré par IA")
+    
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8004,
+        reload=False,
+        log_level="info"
+    )

@@ -38,8 +38,8 @@ class SeedanceService:
         self.cartoon_style = os.getenv("CARTOON_STYLE", "2D cartoon animation, Disney style")
         self.cartoon_quality = os.getenv("CARTOON_QUALITY", "high quality animation, smooth movement")
         
-        # Limite de durée pour Wavespeed (max 10 secondes) - OPTIMISÉE
-        self.max_clip_duration = 6  # Réduit de 10s à 6s pour accélérer la génération
+        # Limite de durée pour Wavespeed (max 10 secondes) - DYNAMIQUE
+        self.max_clip_duration = 10  # Limite Wavespeed (sera ajustée dynamiquement)
         
         # Timeouts optimisés pour réduire les temps d'attente
         self.max_clip_wait = 90  # Réduit de 140s à 90s
@@ -47,7 +47,8 @@ class SeedanceService:
         self.max_final_wait = 30  # Réduit de 60s à 30s
         
         # Configuration des répertoires
-        self.cache_dir = Path("cache/seedance")
+        # Utiliser le chemin relatif au répertoire parent (racine du projet)
+        self.cache_dir = Path(__file__).parent.parent.parent / "cache" / "seedance"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         
         # Détection de FFmpeg
@@ -99,6 +100,7 @@ class SeedanceService:
             
             start_time = time.time()
             animation_id = str(uuid.uuid4())[:8]
+            print(f"🆔 NOUVEL ID GÉNÉRATION: {animation_id}")
             
             # ÉTAPE 1: Génération d'idées avec OpenAI
             print("💡 Étape 1: Génération d'idées...")
@@ -115,7 +117,7 @@ class SeedanceService:
                 raise Exception("Échec de la génération des prompts")
             
             # ÉTAPE 3: Génération des clips vidéo
-            print("🎥 Étape 3: Génération des clips...")
+            print(f"🎥 Étape 3: Génération des clips avec ID {animation_id}...")
             video_clips = await self._generate_video_clips(scenes_prompts, animation_id)
             
             if not video_clips:
@@ -127,7 +129,7 @@ class SeedanceService:
             audio_clips = await self._generate_audio_clips(video_clips, idea_result)
             
             # ÉTAPE 5: Assemblage final
-            print("🎞️ Étape 5: Assemblage final...")
+            print(f"🎞️ Étape 5: Assemblage final avec ID {animation_id}...")
             
             # Essayer d'abord l'assemblage local avec FFmpeg
             final_video = await self._assemble_local_video(video_clips, animation_id)
@@ -455,8 +457,14 @@ L'histoire doit être:
         try:
             import openai
             
-            # Calculer la durée par scène (max 10s pour Wavespeed)
-            scene_duration = min(total_duration // 3, self.max_clip_duration)
+            # Calculer la durée par scène de façon optimale
+            optimal_scene_duration = total_duration // 3  # Divise équitablement
+            # Respecter la limite Wavespeed (10s max) mais optimiser la durée
+            scene_duration = min(optimal_scene_duration, self.max_clip_duration)
+            
+            print(f"🎯 Durée calculée: {optimal_scene_duration}s par scène (limité à {scene_duration}s)")
+            if optimal_scene_duration > self.max_clip_duration:
+                print(f"⚠️ Durée réduite de {optimal_scene_duration}s à {scene_duration}s par scène")
             
             system_prompt = f"""
             Rôle: Tu es un expert en narration et direction artistique pour dessins animés éducatifs.
@@ -815,7 +823,9 @@ L'histoire doit être:
         try:
             async with aiohttp.ClientSession() as session:
                 # Données pour la génération (durée réduite pour accélérer)
-                clip_duration = min(scene.get("duration", 6), self.max_clip_duration)  # Durée par défaut réduite à 6s
+                # Calculer la durée optimale pour ce clip (utilise la durée par défaut de 10s)
+                clip_duration = min(scene.get("duration", 10), self.max_clip_duration)  # Utiliser 10s par défaut au lieu de 6s
+                
                 payload = {
                     "aspect_ratio": self.cartoon_aspect_ratio,
                     "duration": clip_duration,
@@ -862,7 +872,7 @@ L'histoire doit être:
                                         "video_url": f"/cache/seedance/{local_path.name}" if local_path else video_url,
                                         "video_path": str(local_path) if local_path else None,
                                     "wavespeed_url": video_url,  # Garder l'URL originale pour l'audio
-                                    "duration": scene["duration"],
+                                    "duration": clip_duration,
                                     "status": "success",
                                     "prediction_id": prediction_id
                                 }
@@ -1315,7 +1325,9 @@ L'histoire doit être:
     
     def _calculate_actual_duration(self, video_clips: List[Dict[str, Any]]) -> int:
         """Calcule la durée réelle de l'animation"""
-        return sum(clip.get("duration", 0) for clip in video_clips)
+        total_duration = sum(clip.get("duration", self.max_clip_duration) for clip in video_clips)
+        # S'assurer qu'on a au moins une durée minimale
+        return max(total_duration, self.max_clip_duration) if video_clips else self.max_clip_duration
     
     async def get_seedance_status(self) -> Dict[str, Any]:
         """Retourne le statut du service SEEDANCE"""
@@ -1400,6 +1412,7 @@ L'histoire doit être:
             # Préparer le fichier de sortie
             output_filename = f"seedance_{animation_id}_assembled.mp4"
             output_path = self.cache_dir / output_filename
+            print(f"   🎯 Assemblage pour ID: {animation_id} → {output_filename}")
             
             # Créer le fichier de liste pour FFmpeg
             filelist_path = self.cache_dir / f"filelist_{animation_id}.txt"

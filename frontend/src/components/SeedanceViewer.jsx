@@ -124,11 +124,20 @@ const SeedanceViewer = ({ seedanceResult, onClose }) => {
                   <div className="video-player">
                     <div className="seedance-video-container">
                       <video 
-                        src={`http://localhost:8000${video_url}`}
+                        src={`http://localhost:8004${video_url}?timestamp=${Date.now()}&random=${Math.random()}&nocache=true`}
                         controls
                         autoPlay
                         muted
                         className="seedance-video"
+                        key={`video-${video_url}-${Date.now()}-${Math.random()}`}
+                        onLoad={() => {
+                          console.log('Vidéo chargée:', video_url);
+                        }}
+                        onError={() => {
+                          console.error('Erreur chargement vidéo:', video_url);
+                          // Forcer un rechargement après erreur
+                          setTimeout(() => window.location.reload(), 2000);
+                        }}
                       >
                         Votre navigateur ne supporte pas la lecture vidéo.
                       </video>
@@ -141,12 +150,58 @@ const SeedanceViewer = ({ seedanceResult, onClose }) => {
                         avec la technologie SEEDANCE avancée.
                       </p>
                       
+                      {/* Debug info */}
+                      <div className="debug-info" style={{fontSize: '12px', color: '#666', marginBottom: '10px'}}>
+                        📁 Fichier: {video_url ? video_url.split('/').pop() : 'Non défini'}<br/>
+                        🆔 ID Animation: {seedanceResult.animation_id || 'Non défini'}<br/>
+                        🎬 Thème: {metadata.theme || 'Non défini'}<br/>
+                        ⏰ Généré le: {metadata.timestamp || 'Non défini'}
+                      </div>
+                      
                       <div className="video-actions">
                         <button className="download-btn">
                           📥 Télécharger
                         </button>
                         <button className="share-btn">
                           🔗 Partager
+                        </button>
+                        <button 
+                          className="refresh-btn"
+                          onClick={() => {
+                            // Forcer le rechargement de la vidéo avec nouveau cache bust
+                            const video = document.querySelector('.seedance-video');
+                            if (video) {
+                              const newSrc = `http://localhost:8004${video_url}?timestamp=${Date.now()}&random=${Math.random()}&force=true`;
+                              video.src = newSrc;
+                              video.load();
+                            }
+                          }}
+                          style={{
+                            background: '#f39c12',
+                            color: 'white',
+                            border: 'none',
+                            padding: '8px 12px',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            marginLeft: '8px'
+                          }}
+                        >
+                          🔄 Recharger vidéo
+                        </button>
+                        <button 
+                          className="page-refresh-btn"
+                          onClick={() => window.location.reload()}
+                          style={{
+                            background: '#e74c3c',
+                            color: 'white',
+                            border: 'none',
+                            padding: '8px 12px',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            marginLeft: '8px'
+                          }}
+                        >
+                          🔄 Actualiser page
                         </button>
                       </div>
                     </div>
@@ -204,7 +259,7 @@ const SeedanceViewer = ({ seedanceResult, onClose }) => {
                           {scene.video_url && (
                             <div className="scene-preview">
                               <video 
-                                src={`http://localhost:8000${scene.video_url}`}
+                                src={`http://localhost:8004${scene.video_url}`}
                                 controls
                                 className="scene-video"
                                 muted
