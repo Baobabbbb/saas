@@ -33,6 +33,11 @@ class ComicGenerator:
         self.sd_generator = StableDiffusionGenerator()
         self.ai_enhancer = ComicAIEnhancer() if os.getenv("ENABLE_AI_BUBBLES", "true").lower() == "true" else None
         
+        # Forcer l'activation des bulles IA pour résoudre le problème d'affichage
+        if not self.ai_enhancer:
+            print("⚠️ Force l'activation des bulles IA...")
+            self.ai_enhancer = ComicAIEnhancer()
+        
         print(f"🎨 ComicGenerator initialisé avec {'IA activée' if self.ai_enhancer else 'IA désactivée'}")
         
         # Configuration des styles artistiques avec mots-clés de cohérence
@@ -230,8 +235,10 @@ Assure-toi que :
                     char_context = ". ".join(character_descriptions) if character_descriptions else ""
                     base_prompt = f"Realistic comic book illustration. Scene: {scene_data.get('scene_description', '')}. Characters: {char_context}."
 
-                # Construire le prompt final optimisé pour Stability AI
+                # Construire le prompt final optimisé pour Stability AI avec renforcement du thème
+                theme_context = self._get_theme_visual_keywords(script_data.get("theme", "adventure"))
                 full_prompt = f"""{base_prompt}
+Theme context: {theme_context}
 Style requirements: {style_prompt}, realistic comic book illustration, cinematic lighting, hand-drawn style, dynamic composition, vivid colors, expressive characters, detailed background environment, professional comic book art quality, no text or speech bubbles, 2D digital art, European/American comic book style.
 Technical specs: high resolution, sharp focus, masterpiece quality, detailed illustration."""
 
@@ -262,7 +269,7 @@ Technical specs: high resolution, sharp focus, masterpiece quality, detailed ill
                 
                 page_info = {
                     "page_number": scene_num,
-                    "image_url": f"/static/generated_comics/{comic_id}/page_{scene_num}_final.png",
+                    "image_url": self._get_correct_image_url(comic_id, scene_num, comic_dir),
                     "description": f"Page {scene_num} de votre bande dessinée",  # Description simple sans prompt
                     "dialogues": dialogues,
                     "location": scene_data.get("location", ""),
@@ -512,6 +519,20 @@ English translation (visual description only, no extra text):"""
         return (bubble_x, bubble_y + 20)
 
     async def _add_speech_bubbles(self, image_path: Path, dialogues: List[Dict], comic_dir: Path, page_num: int) -> Path:
+        """Utilise un système hybride pour garantir la visibilité des bulles"""
+        
+        if not dialogues:
+            # Si pas de dialogue, copier l'image originale
+            final_path = comic_dir / f"page_{page_num}_final.png"
+            img = Image.open(image_path)
+            img.save(final_path)
+            return final_path
+        
+        # Toujours utiliser le système PIL fiable pour garantir des bulles visibles
+        print(f"🎨 Génération de bulles PIL fiables pour page {page_num}")
+        return await self._add_speech_bubbles_pil_reliable(image_path, dialogues, comic_dir, page_num)
+    
+    async def _add_speech_bubbles_pil_reliable(self, image_path: Path, dialogues: List[Dict], comic_dir: Path, page_num: int) -> Path:
         """Ajoute les bulles de dialogue à l'image avec queues dirigées vers les personnages"""
         
         if not dialogues:
@@ -862,32 +883,19 @@ English translation (visual description only, no extra text):"""
                         "action_description": f"Une aventure passionnante avec {spec.hero_name}"
                     })
             
-            # 3. Générer les images avec notre nouveau système IA
-            print("🎨 Génération des images avec IA...")
-            pages = await self.sd_generator.generate_comic_images(comic_data, spec)
+            # 3. Générer les images avec le système natif qui gère les thèmes
+            print("🎨 Génération des images avec thème espace...")
+            pages, comic_id = await self.generate_comic_images(script_data, request_data.get("art_style", "cartoon"))
             
-            # 4. Créer l'ID de la BD
-            comic_id = f"comic_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            
-            # 5. Adapter le format des pages pour l'API
-            formatted_pages = []
-            for page in pages:
-                formatted_page = {
-                    "page_number": page["page_number"],
-                    "description": page["description"],
-                    "image_url": page["image_url"],
-                    "image_path": page["image_path"],
-                    "dialogues": page.get("dialogues", []),
-                    "metadata": page.get("metadata", {})
-                }
-                formatted_pages.append(formatted_page)
+            # 5. Les pages sont déjà au bon format depuis generate_comic_images
+            formatted_pages = pages
             
             # 6. Sauvegarder les métadonnées
             metadata = {
                 "comic_id": comic_id,
                 "title": script_data.get("title", "Aventure BD"),
                 "synopsis": script_data.get("synopsis", "Une aventure passionnante"),
-                "characters": script_data.get("main_characters", [spec.hero_name]),
+                "characters": script_data.get("main_characters", []),
                 "theme": request_data["theme"],
                 "art_style": request_data.get("art_style", "cartoon"),
                 "story_length": request_data.get("story_length", "short"),
@@ -1123,3 +1131,122 @@ English translation (visual description only, no extra text):"""
         """
         
         print(debug_box)
+    
+    def _get_correct_image_url(self, comic_id: str, scene_num: int, comic_dir: Path) -> str:
+        """Détermine l'URL correcte de l'image en fonction des fichiers qui existent"""
+        base_url = f"/static/generated_comics/{comic_id}/page_{scene_num}"
+        
+        # Ordre de priorité des fichiers à vérifier
+        possible_files = [
+            f"page_{scene_num}_bubble_2_sd3_advanced.png",  # Fichier final avec bulles SD3
+            f"page_{scene_num}_bubble_1_sd3_advanced.png",  # Fichier avec une bulle SD3
+            f"page_{scene_num}_final.png",                  # Fichier final classique
+            f"page_{scene_num}_base.png",                   # Fichier de base sans bulles
+        ]
+        
+        for filename in possible_files:
+            filepath = comic_dir / filename
+            if filepath.exists():
+                return f"/static/generated_comics/{comic_id}/{filename}"
+        
+        # Fallback : retourner le fichier de base même s'il n'existe pas
+        return f"/static/generated_comics/{comic_id}/page_{scene_num}_base.png"
+    
+    def _get_theme_visual_keywords(self, theme: str) -> str:
+        """Renforce le thème avec des mots-clés visuels spécifiques"""
+        theme_keywords = {
+            "space": "space setting, alien planets, spaceships, stars, cosmic background, futuristic technology, astronauts, space suits, galaxies, nebulae, alien creatures, space stations, rockets, zero gravity, sci-fi environment",
+            "adventure": "adventure setting, mysterious forests, ancient castles, treasure maps, exploration gear, jungle environments, hidden temples, mountain landscapes, caves, waterfalls",
+            "animals": "natural wildlife setting, African savanna, jungle environments, animal habitats, nature scenes, wildlife photography style, natural lighting, grasslands, trees, watering holes",
+            "magic": "magical fantasy setting, enchanted forests, fairy tale castles, magical creatures, sparkling effects, mystical atmosphere, fantasy landscape, magical portals, floating objects",
+            "friendship": "school environments, playground scenes, neighborhood settings, modern urban environments, classroom scenes, friendly atmosphere, warm lighting, contemporary settings"
+        }
+        return theme_keywords.get(theme, theme_keywords["adventure"])
+    
+    async def _add_speech_bubbles_pil_simple(self, image_path: Path, dialogues: List[Dict], comic_dir: Path, page_num: int) -> Path:
+        """Génère des bulles de dialogue fiables avec PIL - Version simplifiée et visible"""
+        
+        img = Image.open(image_path)
+        draw = ImageDraw.Draw(img)
+        
+        print(f"🎯 Génération de {len(dialogues)} bulles PIL fiables")
+        
+        # Charger une police simple et visible
+        try:
+            font = ImageFont.truetype("arial.ttf", 20)
+        except:
+            try:
+                font = ImageFont.truetype("Arial.ttf", 20)
+            except:
+                font = ImageFont.load_default()
+        
+        width, height = img.size
+        
+        # Positions fixes pour garantir la visibilité
+        bubble_positions = [
+            (width * 0.15, height * 0.15),  # Haut-gauche
+            (width * 0.85, height * 0.15),  # Haut-droite
+            (width * 0.15, height * 0.85),  # Bas-gauche
+            (width * 0.85, height * 0.85),  # Bas-droite
+        ]
+        
+        for i, dialogue in enumerate(dialogues):
+            if i >= len(bubble_positions):
+                break
+                
+            text = dialogue.get("text", "...")
+            x, y = bubble_positions[i]
+            
+            # Calculer la taille de la bulle
+            lines = self._wrap_text(text, 20)  # Max 20 caractères par ligne
+            line_height = 25
+            text_width = max(len(line) * 12 for line in lines)  # Approximation
+            text_height = len(lines) * line_height
+            
+            # Dimensions de la bulle avec padding
+            bubble_width = text_width + 40
+            bubble_height = text_height + 30
+            
+            # Ajuster la position pour que la bulle reste dans l'image
+            bubble_x = max(20, min(x - bubble_width//2, width - bubble_width - 20))
+            bubble_y = max(20, min(y - bubble_height//2, height - bubble_height - 20))
+            
+            # Dessiner la bulle (fond blanc, bordure noire épaisse)
+            bubble_rect = [bubble_x, bubble_y, bubble_x + bubble_width, bubble_y + bubble_height]
+            draw.ellipse(bubble_rect, fill="white", outline="black", width=3)
+            
+            # Ajouter le texte centré
+            text_x = bubble_x + 20
+            text_y = bubble_y + 15
+            
+            for j, line in enumerate(lines):
+                line_y = text_y + j * line_height
+                draw.text((text_x, line_y), line, fill="black", font=font)
+            
+            print(f"   💬 Bulle {i+1}: '{text[:30]}...' à position ({bubble_x}, {bubble_y})")
+        
+        # Sauvegarder l'image finale
+        final_path = comic_dir / f"page_{page_num}_final.png"
+        img.save(final_path)
+        
+        print(f"✅ {len(dialogues)} bulles PIL fiables générées: {final_path}")
+        return final_path
+    
+    def _wrap_text(self, text: str, max_width: int) -> List[str]:
+        """Divise le texte en lignes de largeur maximale"""
+        words = text.split()
+        lines = []
+        current_line = ""
+        
+        for word in words:
+            if len(current_line + " " + word) <= max_width:
+                current_line = current_line + " " + word if current_line else word
+            else:
+                if current_line:
+                    lines.append(current_line)
+                current_line = word
+        
+        if current_line:
+            lines.append(current_line)
+        
+        return lines

@@ -1,0 +1,9 @@
+{
+  "test_status": "success",
+  "base_image": "test_bubble_output\\base_image.png",
+  "final_image": "test_bubble_output\\image_avec_bulles.png",
+  "base_size": 2884,
+  "final_size": 8179,
+  "bubbles_added": 2,
+  "test_time": "2025-07-15"
+}

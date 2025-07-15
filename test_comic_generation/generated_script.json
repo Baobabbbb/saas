@@ -1,0 +1,136 @@
+{
+  "title": "Les Explorateurs de l'Espace : Aventure sur la Planète Zog",
+  "synopsis": "Deux jeunes astronautes, Mia et Tom, se retrouvent coincés sur une planète colorée pleine d'îles flottantes. Pour retourner chez eux, ils doivent réparer leur vaisseau spatial avec l'aide de nouveaux amis extraterrestres !",
+  "main_characters": [
+    {
+      "name": "Mia",
+      "age": "8 ans",
+      "physical_description": "Mia a de longs cheveux bouclés blonds, des yeux verts pétillants, et un sourire éclatant. Elle est de taille moyenne pour son âge, avec un visage expressif et des taches de rousseur.",
+      "clothing": "T-shirt violet avec une étoile dorée, short en denim, et baskets blanches.",
+      "personality": "Curieuse, optimiste et pleine d'énergie.",
+      "role": "Ingénieure en herbe, elle adore résoudre des problèmes."
+    },
+    {
+      "name": "Tom",
+      "age": "9 ans",
+      "physical_description": "Tom a les cheveux bruns en bataille, des yeux bleus malicieux, et un grand sourire. Il est un peu plus grand que Mia, avec un visage joyeux et des lunettes rondes.",
+      "clothing": "T-shirt vert avec un vaisseau spatial imprimé, pantalon cargo, et bottes robustes.",
+      "personality": "Inventif, drôle et un peu maladroit.",
+      "role": "Capitaine de l'expédition, il adore l'aventure."
+    }
+  ],
+  "scenes": [
+    {
+      "scene_number": 1,
+      "location": "Planète Zog, près du vaisseau spatial endommagé",
+      "time_of_day": "Milieu de journée, ciel ensoleillé avec des nuages colorés",
+      "visual_description": "Illustration de bande dessinée réaliste de Mia et Tom, en train d'examiner leur vaisseau spatial endommagé. Le vaisseau est brillant et futuriste, avec des dégâts visibles. En arrière-plan, des îles flottantes aux couleurs vives, couvertes de plantes étranges. Mia, à gauche, est accroupie en train de regarder sous le vaisseau, tandis que Tom, à droite, tient une clé à molette et regarde le vaisseau avec une expression inquiète. Composition dynamique avec des couleurs éclatantes et une ambiance joyeuse.",
+      "characters_present": [
+        "Mia",
+        "Tom"
+      ],
+      "dialogues": [
+        {
+          "character": "Tom",
+          "text": "Oh non, notre vaisseau ! Comment on rentre ?",
+          "emotion": "inquiétude",
+          "bubble_position": "haut-gauche",
+          "character_position": "droite"
+        },
+        {
+          "character": "Mia",
+          "text": "Ne t'inquiète pas, on va le réparer !",
+          "emotion": "confiance",
+          "bubble_position": "bas-droite",
+          "character_position": "gauche"
+        }
+      ],
+      "mood": "Ambiance enjouée et déterminée",
+      "story_progression": "Introduction des personnages et du conflit principal : réparer le vaisseau pour rentrer chez eux."
+    },
+    {
+      "scene_number": 2,
+      "location": "Forêt d'arbres géants sur la planète Zog",
+      "time_of_day": "Après-midi, lumière dorée filtrée à travers les feuilles",
+      "visual_description": "Scène montrant Mia et Tom marchant à travers une forêt d'arbres géants aux troncs multicolores. Des créatures extraterrestres amusantes les observent depuis les branches. Mia porte un sac à dos rempli d'outils, et Tom semble émerveillé par les créatures. La composition est dynamique, avec des créatures aux formes étranges et des fleurs géantes autour d'eux.",
+      "characters_present": [
+        "Mia",
+        "Tom"
+      ],
+      "dialogues": [
+        {
+          "character": "Mia",
+          "text": "Regarde ces arbres ! Ils sont comme des bonbons !",
+          "emotion": "émerveillement",
+          "bubble_position": "haut-gauche",
+          "character_position": "gauche"
+        },
+        {
+          "character": "Tom",
+          "text": "Et ces créatures ont l'air de vouloir jouer !",
+          "emotion": "excitation",
+          "bubble_position": "bas-droite",
+          "character_position": "droite"
+        }
+      ],
+      "mood": "Ambiance magique et amusante",
+      "story_progression": "Mia et Tom rencontrent les créatures extraterrestres qui leur offrent de l'aide."
+    },
+    {
+      "scene_number": 3,
+      "location": "Laboratoire extraterrestre",
+      "time_of_day": "Soirée, lumière douce et colorée",
+      "visual_description": "Illustration de Mia et Tom dans un laboratoire extraterrestre rempli d'inventions étranges et de gadgets. Des extraterrestres aux couleurs vives les aident à réparer le vaisseau. Mia utilise un outil avec un sourire déterminé, tandis que Tom regarde un écran holographique avec curiosité. L'ambiance est chaleureuse et collaborative, avec des couleurs vives et des objets fascinants autour.",
+      "characters_present": [
+        "Mia",
+        "Tom"
+      ],
+      "dialogues": [
+        {
+          "character": "Mia",
+          "text": "Avec vos outils, ça va être un jeu d'enfant !",
+          "emotion": "enthousiasme",
+          "bubble_position": "haut-gauche",
+          "character_position": "gauche"
+        },
+        {
+          "character": "Tom",
+          "text": "J'espère que ça ne va pas exploser !",
+          "emotion": "inquiétude comique",
+          "bubble_position": "bas-droite",
+          "character_position": "droite"
+        }
+      ],
+      "mood": "Ambiance joviale et collaborative",
+      "story_progression": "Mia et Tom reçoivent de l'aide pour réparer le vaisseau et avancent vers leur objectif."
+    },
+    {
+      "scene_number": 4,
+      "location": "Ciel de la planète Zog, à bord du vaisseau spatial",
+      "time_of_day": "Nuit étoilée, ciel brillant de couleurs",
+      "visual_description": "Illustration de Mia et Tom à l'intérieur de leur vaisseau spatial, prêt à décoller. Ils sourient, entourés de lumières clignotantes et de commandes. À l'extérieur, des étoiles scintillantes et les îles flottantes de Zog. La composition est dynamique, avec un cadrage qui montre le tableau de bord et les étoiles à travers le hublot.",
+      "characters_present": [
+        "Mia",
+        "Tom"
+      ],
+      "dialogues": [
+        {
+          "character": "Tom",
+          "text": "Accroche-toi, Mia ! On décolle !",
+          "emotion": "excitation",
+          "bubble_position": "haut-gauche",
+          "character_position": "gauche"
+        },
+        {
+          "character": "Mia",
+          "text": "À nous l'espace !",
+          "emotion": "joie",
+          "bubble_position": "bas-droite",
+          "character_position": "droite"
+        }
+      ],
+      "mood": "Ambiance triomphante et joyeuse",
+      "story_progression": "Climax et résolution : Mia et Tom réussissent à réparer le vaisseau et s'envolent vers de nouvelles aventures."
+    }
+  ]
+}

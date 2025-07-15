@@ -6,8 +6,9 @@ export const API_ENDPOINTS = {
   generateRhyme: `${API_BASE_URL}/generate_rhyme/`,
   generateAudioStory: `${API_BASE_URL}/generate_audio_story/`,
   generateColoring: `${API_BASE_URL}/generate_coloring/`,
-  generateComic: `${API_BASE_URL}/test_comic/`, // Serveur test avec corrections
-  generateAnimation: `${API_BASE_URL}/generate_animation/`,
+  generateComic: `${API_BASE_URL}/generate_comic/`, // Endpoint correct
+  generateAnimation: `${API_BASE_URL}/api/animations/generate`,
+  generateSeedance: `${API_BASE_URL}/api/seedance/generate`,
   checkTaskStatus: (taskId) => `${API_BASE_URL}/check_task_status/${taskId}`,
   downloadAudio: (fileName, url) => `${API_BASE_URL}/download_audio/${fileName}.mp3?url=${encodeURIComponent(url)}`
 };
