@@ -14,7 +14,7 @@ from pathlib import Path
 # Ajouter le chemin
 sys.path.insert(0, str(Path(__file__).parent))
 
-app = FastAPI(title="API Histoires et Coloriages", version="1.0")
+app = FastAPI(title="API Test Génération", version="1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -96,22 +96,6 @@ async def generate_animation_test(request: AnimationRequest):
             "message": "Erreur lors de la génération"
         }
 
-
-
-# Endpoints additionnels pour compatibilité
-@app.get("/")
-async def root():
-    return {"message": "API Dessins Animés IA", "version": "2.0"}
-
-@app.post("/generate_story/")
-async def generate_story_placeholder(request: dict):
-    return {"status": "not_implemented", "message": "Utilisez /generate_animation/"}
-
-@app.post("/generate_coloring/")
-async def generate_coloring_placeholder(request: dict):
-    return {"status": "not_implemented", "message": "Utilisez /generate_animation/"}
-
-
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

@@ -329,20 +329,15 @@ English translation (visual description only, no extra text):"""
         
         output_path = output_dir / f"page_{page_num}_raw.png"
         
-        # EXIGENCE: Stability AI OBLIGATOIRE - Pas de fallback
+        # EXIGENCE STRICTE: Stability AI OBLIGATOIRE - Pas de fallback
         if not (self.image_model == "stability-ai" and self.stability_key):
-            raise Exception("❌ ERREUR CONFIGURATION: IMAGE_MODEL doit être 'stability-ai' et STABILITY_API_KEY doit être configurée. Aucun fallback autorisé.")
+            raise Exception("❌ ERREUR CONFIGURATION: IMAGE_MODEL doit être 'stability-ai' et STABILITY_API_KEY doit être configurée. AUCUN FALLBACK AUTORISÉ.")
         
-        try:
-            print(f"🎨 Génération Stability AI OBLIGATOIRE pour page {page_num} (seed: {seed})...")
-            # Traduire le prompt en anglais pour Stability AI
-            english_prompt = await self._translate_prompt_to_english(prompt)
-            return await self._generate_with_stability_ai_corrected(english_prompt, output_path, seed)
-        except Exception as e:
-            # AUCUN FALLBACK - Propager l'erreur pour arrêter la génération
-            error_msg = f"❌ ÉCHEC STABILITY AI PAGE {page_num}: {e}. GÉNÉRATION INTERROMPUE - Aucun fallback autorisé."
-            print(error_msg)
-            raise Exception(error_msg)
+        print(f"🎨 Génération Stability AI OBLIGATOIRE pour page {page_num} (seed: {seed})...")
+        
+        # Traduire le prompt en anglais pour Stability AI
+        english_prompt = await self._translate_prompt_to_english(prompt)
+        return await self._generate_with_stability_ai_corrected(english_prompt, output_path, seed)
 
     # ================================================================================
     # FONCTIONS DE FALLBACK SUPPRIMÉES - SEULE STABILITY AI EST AUTORISÉE
@@ -936,55 +931,106 @@ English translation (visual description only, no extra text):"""
             }
     
     async def _generate_with_stability_ai_corrected(self, prompt: str, output_path: Path, seed: int) -> Path:
-        """Version corrigée de Stability AI - utilise requests synchrone qui fonctionne mieux"""
-        try:
-            import requests
+        """Version corrigée de Stability AI - OBLIGATOIRE sans fallback"""
+        import requests
+        
+        # API Stability AI v2beta
+        api_url = "https://api.stability.ai/v2beta/stable-image/generate/sd3"
+        
+        headers = {
+            "Authorization": f"Bearer {self.stability_key}",
+            "Accept": "image/*"
+        }
+        
+        # Utiliser requests avec files au lieu d'aiohttp
+        files = {
+            "prompt": (None, prompt),
+            "model": (None, "sd3-medium"),
+            "aspect_ratio": (None, "3:2"),
+            "seed": (None, str(seed)),
+            "output_format": (None, "png")
+        }
+        
+        print(f"🎯 Stability AI SD3 - Seed: {seed}")
+        
+        # Utiliser requests (synchrone) avec timeout approprié
+        response = requests.post(
+            api_url,
+            headers=headers,
+            files=files,
+            timeout=60  # Timeout normal, pas de compromis
+        )
+        
+        if response.status_code == 200:
+            image_data = response.content
             
-            # API Stability AI v2beta
-            api_url = "https://api.stability.ai/v2beta/stable-image/generate/sd3"
-            
-            headers = {
-                "Authorization": f"Bearer {self.stability_key}",
-                "Accept": "image/*"
-            }
-            
-            # Utiliser requests avec files au lieu d'aiohttp
-            files = {
-                "prompt": (None, prompt),
-                "model": (None, "sd3-medium"),
-                "aspect_ratio": (None, "3:2"),
-                "seed": (None, str(seed)),
-                "output_format": (None, "png")
-            }
-            
-            print(f"🎯 Stability AI SD3 - Seed: {seed}")
-            
-            # Utiliser requests (synchrone) qui gère mieux multipart/form-data
-            response = requests.post(
-                api_url,
-                headers=headers,
-                files=files,
-                timeout=60
-            )
-            
-            if response.status_code == 200:
-                image_data = response.content
+            if len(image_data) > 1000:
+                with open(output_path, 'wb') as f:
+                    f.write(image_data)
                 
-                if len(image_data) > 1000:
-                    with open(output_path, 'wb') as f:
-                        f.write(image_data)
-                    
-                    print(f"✅ Image Stability AI générée: {output_path} ({len(image_data)} bytes)")
-                    return output_path
-                else:
-                    raise Exception("Image trop petite")
+                print(f"✅ Image Stability AI générée: {output_path} ({len(image_data)} bytes)")
+                return output_path
             else:
-                print(f"❌ Erreur API Stability AI ({response.status_code}): {response.text}")
-                raise Exception(f"API error: {response.status_code}")
-                        
+                raise Exception("Image générée trop petite - Erreur API")
+        else:
+            error_msg = f"❌ Erreur API Stability AI ({response.status_code}): {response.text}"
+            print(error_msg)
+            raise Exception(error_msg)
+    
+    async def _create_placeholder_image_quick(self, output_path: Path, page_num: int, prompt: str) -> Path:
+        """Crée rapidement une image placeholder colorée pour éviter les blocages"""
+        try:
+            from PIL import Image, ImageDraw, ImageFont
+            
+            # Créer une image colorée avec informations de base
+            img = Image.new('RGB', (800, 600), f'hsl({(page_num * 60) % 360}, 70%, 85%)')
+            draw = ImageDraw.Draw(img)
+            
+            # Couleurs harmonieuses selon la page
+            colors = ['#6B4EFF', '#FFD166', '#FF85A1', '#A0E7E5', '#B8E6B8']
+            main_color = colors[page_num % len(colors)]
+            
+            # Fond dégradé simple
+            for y in range(600):
+                opacity = int(255 * (1 - y / 600))
+                color = f"{main_color}{opacity:02x}"
+                try:
+                    draw.line([(0, y), (800, y)], fill=color)
+                except:
+                    pass
+            
+            # Cadre décoratif
+            draw.rectangle([50, 50, 750, 550], outline=main_color, width=5)
+            
+            # Texte informatif
+            try:
+                font_large = ImageFont.truetype("arial.ttf", 36)
+                font_small = ImageFont.truetype("arial.ttf", 18)
+            except:
+                font_large = ImageFont.load_default()
+                font_small = ImageFont.load_default()
+            
+            # Titre
+            draw.text((400, 200), f"Page {page_num}", fill='white', font=font_large, anchor='mm')
+            draw.text((400, 250), "Bande Dessinée", fill='white', font=font_small, anchor='mm')
+            
+            # Extrait du prompt (première ligne)
+            prompt_words = prompt.split()[:6]
+            short_prompt = " ".join(prompt_words) + "..."
+            draw.text((400, 350), short_prompt, fill='white', font=font_small, anchor='mm')
+            
+            # Sauvegarder
+            img.save(output_path)
+            print(f"✅ Placeholder créé: {output_path}")
+            
+            return output_path
+            
         except Exception as e:
-            print(f"❌ Erreur Stability AI: {e}")
-            raise e
+            print(f"❌ Erreur création placeholder: {e}")
+            # Dernier fallback - image unie
+            img = Image.new('RGB', (800, 600), '#6B4EFF')
+            img.save(output_path)
+            return output_path
     
     async def _generate_with_dalle(self, prompt: str, output_path: Path, seed: int) -> Path:
         """Génération avec DALL-E d'OpenAI"""

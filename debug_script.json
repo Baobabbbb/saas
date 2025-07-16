@@ -1,0 +1,137 @@
+{
+  "title": "Aventures Stellaires sur la Planète Colorée",
+  "synopsis": "Deux amis intrépides, Max et Lila, se retrouvent coincés sur une planète pleine de merveilles et de mystères. Ils doivent réparer leur vaisseau spatial pour retourner chez eux.",
+  "main_characters": [
+    {
+      "name": "Max",
+      "age": "8 ans",
+      "physical_description": "Max est un garçon de taille moyenne avec des cheveux bruns en bataille, des yeux verts pétillants et un sourire espiègle. Il a une petite tache de rousseur sur le nez.",
+      "clothing": "Max porte un t-shirt rouge avec une étoile bleue, un short en denim et des baskets blanches.",
+      "personality": "Curieux, aventureux et toujours prêt à aider ses amis.",
+      "role": "Héros de l'histoire, il propose des idées pour réparer le vaisseau."
+    },
+    {
+      "name": "Lila",
+      "age": "9 ans",
+      "physical_description": "Lila est une fille de grande taille avec des cheveux longs et bouclés, de couleur châtain clair, et des yeux marron qui brillent d'intelligence. Elle porte des lunettes rondes.",
+      "clothing": "Lila porte une robe jaune avec des motifs d'étoiles, des leggings bleus et des sandales roses.",
+      "personality": "Inventive, réfléchie et pleine d'humour, elle trouve souvent des solutions aux problèmes.",
+      "role": "Co-héroïne, elle utilise ses connaissances pour aider à réparer le vaisseau."
+    }
+  ],
+  "scenes": [
+    {
+      "scene_number": 1,
+      "location": "Planète Colorée avec des îles flottantes",
+      "time_of_day": "Matin ensoleillé avec un ciel bleu éclatant",
+      "visual_description": "Illustration de Max et Lila, debout sur une île flottante entourée de jungle colorée. Des plantes aux teintes vibrantes et des fleurs géantes les entourent. Max montre une carte intergalactique, l'air déterminé, tandis que Lila examine un outil brillant. Leurs vêtements sont bien visibles et identiques à ceux décrits.",
+      "characters_present": [
+        "Max",
+        "Lila"
+      ],
+      "dialogues": [
+        {
+          "character": "Max",
+          "text": "Regarde, Lila ! C'est ici qu'on doit atterrir !",
+          "emotion": "excité",
+          "bubble_position": "haut-gauche",
+          "character_position": "gauche"
+        },
+        {
+          "character": "Lila",
+          "text": "Super ! Mais comment réparer le vaisseau ?",
+          "emotion": "préoccupée",
+          "bubble_position": "bas-droite",
+          "character_position": "droite"
+        }
+      ],
+      "mood": "Ambiance joyeuse et d'aventure",
+      "story_progression": "Introduction des personnages et du décor, mise en place du conflit."
+    },
+    {
+      "scene_number": 2,
+      "location": "Laboratoire d'un alien inventeur",
+      "time_of_day": "Après-midi lumineux avec des couleurs vives",
+      "visual_description": "Max et Lila sont dans un laboratoire rempli de gadgets étranges et colorés. Un alien amical avec de grands yeux et des antennes les aide. Max regarde un moteur de vaisseau spatial, tandis que Lila prend des notes. Les murs sont décorés de posters d'inventions.",
+      "characters_present": [
+        "Max",
+        "Lila",
+        "Alien"
+      ],
+      "dialogues": [
+        {
+          "character": "Alien",
+          "text": "Vous avez besoin d'un nouveau moteur ? Voilà !",
+          "emotion": "enthousiaste",
+          "bubble_position": "haut-centre",
+          "character_position": "arrière-plan"
+        },
+        {
+          "character": "Lila",
+          "text": "C'est parfait ! Merci, ami !",
+          "emotion": "reconnaissante",
+          "bubble_position": "bas-gauche",
+          "character_position": "gauche"
+        }
+      ],
+      "mood": "Ambiance de coopération et de découverte",
+      "story_progression": "Les personnages trouvent un allié et les outils nécessaires pour réparer leur vaisseau."
+    },
+    {
+      "scene_number": 3,
+      "location": "Près du vaisseau endommagé",
+      "time_of_day": "Crépuscule avec des couleurs chaudes",
+      "visual_description": "Max et Lila travaillent ensemble sur leur vaisseau endommagé. Le vaisseau est coloré, avec des panneaux ouverts et des fils qui dépassent. Max tient une clé à molette, tandis que Lila est penchée sur le moteur, concentrée. Le ciel est rempli d'étoiles scintillantes.",
+      "characters_present": [
+        "Max",
+        "Lila"
+      ],
+      "dialogues": [
+        {
+          "character": "Max",
+          "text": "Je pense que ça marche !",
+          "emotion": "excité",
+          "bubble_position": "haut-gauche",
+          "character_position": "gauche"
+        },
+        {
+          "character": "Lila",
+          "text": "On va bientôt rentrer chez nous !",
+          "emotion": "joyeuse",
+          "bubble_position": "bas-droite",
+          "character_position": "droite"
+        }
+      ],
+      "mood": "Ambiance de détermination et d'espoir",
+      "story_progression": "Les personnages s'activent pour réparer le vaisseau, tension croissante."
+    },
+    {
+      "scene_number": 4,
+      "location": "Dans le vaisseau spatial, prêt à décoller",
+      "time_of_day": "Nuit étoilée",
+      "visual_description": "Max et Lila sont à l'intérieur de leur vaisseau, entourés de lumières clignotantes. Max est aux commandes, l'air déterminé, tandis que Lila regarde par le hublot, émerveillée par les étoiles. Le vaisseau est prêt à décoller, l'ambiance est excitante.",
+      "characters_present": [
+        "Max",
+        "Lila"
+      ],
+      "dialogues": [
+        {
+          "character": "Max",
+          "text": "En route pour de nouvelles aventures !",
+          "emotion": "enthousiaste",
+          "bubble_position": "haut-gauche",
+          "character_position": "gauche"
+        },
+        {
+          "character": "Lila",
+          "text": "À nous les étoiles !",
+          "emotion": "joyeuse",
+          "bubble_position": "bas-droite",
+          "character_position": "droite"
+        }
+      ],
+      "mood": "Ambiance de joie et d'excitation",
+      "story_progression": "Climax de l'histoire, les personnages réussissent leur mission et s'envolent vers de nouvelles aventures."
+    }
+  ]
+}
