@@ -145,6 +145,7 @@ function App() {
   const [selectedSeedanceDuration, setSelectedSeedanceDuration] = useState(45);
   const [seedanceResult, setSeedanceResult] = useState(null);
   const [showSeedanceViewer, setShowSeedanceViewer] = useState(false);
+  const [seedanceGenerating, setSeedanceGenerating] = useState(false);
 
   // Store the current generated title for use in UI
   const [currentTitle, setCurrentTitle] = useState(null);
@@ -193,6 +194,7 @@ function App() {
     if (contentType === 'seedance') {
       setSeedanceResult(null);
       setShowSeedanceViewer(false);
+      setSeedanceGenerating(false); // Réinitialiser l\'état de chargement
     }
     
     // setShowConfetti(true);
@@ -321,6 +323,8 @@ function App() {
       generatedContent = comicData; // Stocker pour l'historique
     } else if (contentType === 'seedance') {
       // Génération SEEDANCE avec l'API dédiée (histoire et âge adaptés automatiquement)
+      setSeedanceGenerating(true); // Commencer le chargement
+      
       const payload = {
         theme: selectedSeedanceTheme,
         duration: selectedSeedanceDuration,
@@ -328,30 +332,123 @@ function App() {
       };
       
       console.log('🚀 Payload SEEDANCE:', payload);
+      console.log('🌐 API URL:', `${API_BASE_URL}/api/seedance/generate`);
       
-      const response = await fetch(`${API_BASE_URL}/api/seedance/generate`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json; charset=utf-8',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/seedance/generate`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json; charset=utf-8',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Erreur API SEEDANCE:', response.status, errorText);
-        throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Erreur API SEEDANCE:', response.status, errorText);
+          throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const seedanceData = await response.json();
+        
+        // DEBUG: Log complet de la réponse
+        console.log('🔍 SEEDANCE Response complète:', {
+          seedanceData,
+          status: seedanceData.status,
+          video_url: seedanceData.video_url,
+          animation: seedanceData.animation,
+          animation_video_url: seedanceData.animation?.video_url
+        });
+        
+        // Ajouter un timestamp pour forcer le rechargement de la vidéo
+        seedanceData.timestamp = Date.now();
+        
+        // Vérifier si la génération est terminée
+        const videoUrl = seedanceData.video_url || seedanceData.animation?.video_url;
+        console.log('🎬 Vérification video_url:', { videoUrl, status: seedanceData.status });
+        
+        if ((seedanceData.status === 'completed' || seedanceData.status === 'success') && videoUrl) {
+          console.log('✅ Conditions remplies - Animation terminée !');
+          console.log('📊 Status:', seedanceData.status);
+          console.log('🎥 Video URL:', videoUrl);
+          // Créer un objet résultat unifié
+          const unifiedResult = {
+            ...seedanceData,
+            video_url: videoUrl,
+            scenes: seedanceData.animation?.scenes || seedanceData.scenes || [],
+            total_duration: seedanceData.animation?.total_duration || seedanceData.total_duration,
+            generation_time: seedanceData.animation?.generation_time || seedanceData.generation_time,
+            scenes_count: seedanceData.animation?.scenes_count || seedanceData.scenes_count,
+            metadata: seedanceData.animation?.metadata || seedanceData.metadata || {}
+          };
+          
+          // Animation terminée - afficher le viewer
+          setSeedanceResult(unifiedResult);
+          setShowSeedanceViewer(true);
+          setSeedanceGenerating(false); // Arrêter le chargement
+          generatedContent = unifiedResult; // Stocker pour l'historique
+          
+          console.log('🎉 État mis à jour:', {
+            seedanceGenerating: false,
+            showSeedanceViewer: true,
+            seedanceResult: unifiedResult
+          });
+        } else if (seedanceData.task_id || seedanceData.status === 'processing') {
+          // Animation en cours - continuer a afficher le chargement
+          console.log('Animation en cours, task_id:', seedanceData.task_id);
+          setSeedanceResult(null);
+          setShowSeedanceViewer(false);
+          // Ne pas arreter seedanceGenerating ici - il reste a true
+          
+          // TODO: Implementer le polling pour verifier l etat de la tache
+          // Pour l instant, on va simuler une attente
+          setTimeout(async () => {
+            try {
+              // Ici on pourrait faire un nouveau call API pour verifier l etat
+              console.log('Verification de l etat de l animation...');
+              // Pour le moment, on suppose que c est termine apres 30 secondes
+            } catch (pollError) {
+              console.error('Erreur lors de la verification:', pollError);
+              setSeedanceGenerating(false); // Arreter en cas d erreur
+            }
+          }, 5000);
+        } else {
+          console.log('Conditions non remplies:', {
+            status: seedanceData.status,
+            hasVideoUrl: !!videoUrl,
+            statusOk: (seedanceData.status === 'completed' || seedanceData.status === 'success'),
+            videoUrlValue: videoUrl
+          });
+          // Reponse inattendue - mais on suppose que c est fini
+          console.warn('Reponse SEEDANCE inattendue:', seedanceData);
+          setSeedanceResult(seedanceData);
+          setShowSeedanceViewer(true);
+          setSeedanceGenerating(false); // Arreter le chargement
+          generatedContent = seedanceData;
+        }
+        
+        // setSeedanceGenerating(false); est géré dans chaque cas ci-dessus
+        
+      } catch (error) {
+        console.error('🚨 Erreur de connexion SEEDANCE:', error);
+        setSeedanceGenerating(false); // Arrêter le chargement en cas d'erreur
+        
+        // Afficher une erreur plus explicite à l'utilisateur
+        if (error.message.includes('Failed to fetch') || error.message.includes('CONNECTION_REFUSED')) {
+          const errorMessage = '❌ Le serveur SEEDANCE n\'est pas accessible.\n\n' +
+                              '🔧 Solutions:\n' +
+                              '1. Démarrez le serveur avec: start_server.bat\n' +
+                              '2. Ou via: cd saas/saas && python -m uvicorn main:app --host 127.0.0.1 --port 8004\n' +
+                              '3. Vérifiez que le port 8004 est libre\n\n' +
+                              '🌐 Le serveur doit être accessible sur http://localhost:8004';
+          
+          alert(errorMessage);
+          throw new Error(errorMessage);
+        } else {
+          throw error;
+        }
       }
-      
-      const seedanceData = await response.json();
-      
-      // Ajouter un timestamp pour forcer le rechargement de la vidéo
-      seedanceData.timestamp = Date.now();
-      
-      setSeedanceResult(seedanceData);
-      setShowSeedanceViewer(true); // Afficher immédiatement le viewer
-      generatedContent = seedanceData; // Stocker pour l'historique
     }
 
     // 🔁 Enregistre le résultat généré pour affichage audio/texte
@@ -482,7 +579,7 @@ function App() {
 };
 
 const handleSelectCreation = (creation) => {
-    // Si c'est une demande pour afficher l'histoire
+    // Si c\'est une demande pour afficher l\'histoire
     if (creation.action === 'showStory') {
       setGeneratedResult({
         title: creation.title,
@@ -714,7 +811,7 @@ const downloadPDF = async (title, content) => {
                 music_status: 'completed'
               };
               setGeneratedResult(completeRhyme);
-              setIsGenerating(false); // Arrêter l'état de génération
+              setIsGenerating(false); // Arrêter l\'état de génération
               // Ne pas supprimer tempRhymeData tout de suite pour le téléchargement
               console.log('🎵✅ Comptine complète affichée:', completeRhyme);
               console.log('🎵✅ Titre sauvegardé pour téléchargement:', tempData.title);
@@ -917,7 +1014,7 @@ const downloadPDF = async (title, content) => {
             stepNumber={contentType === 'coloring' ? 4 : 3}
           /><GenerateButton
             onGenerate={handleGenerate}
-            isGenerating={isGenerating}
+            isGenerating={contentType === 'seedance' ? seedanceGenerating : isGenerating}
             isDisabled={!isFormValid()}
             contentType={contentType}
           />
@@ -933,7 +1030,7 @@ const downloadPDF = async (title, content) => {
             <div className="preview-container">
               <div className={`preview ${!generatedResult ? 'empty' : ''}`}>
                 <AnimatePresence mode="wait">
-  {isGenerating ? (
+  {isGenerating || seedanceGenerating ? (
     <motion.div
       className="generating-animation"
       initial={{ opacity: 0 }}
@@ -954,11 +1051,19 @@ const downloadPDF = async (title, content) => {
           : contentType === 'animation'
           ? 'Création de votre dessin animé en cours...'
           : contentType === 'seedance'
-          ? 'Création de votre dessin animé en cours…'
+          ? (seedanceGenerating ? 'Création de votre dessin animé SEEDANCE en cours…' : 'Génération en cours…')
           : contentType === 'comic'
           ? 'Création de votre bande dessinée en cours...'
           : 'Génération en cours...'}
-      </p></motion.div>
+      </p>
+      {seedanceGenerating && (
+        <p style={{fontSize: '0.9em', color: '#666', marginTop: '10px'}}>
+          🎬 Génération avec l'IA SEEDANCE<br/>
+          ⏱️ Durée: {selectedSeedanceDuration} secondes<br/>
+          🎨 Thème: {selectedSeedanceTheme}<br/>
+          💡 Cela peut prendre quelques minutes...
+        </p>
+      )}</motion.div>
   ) : coloringResult && contentType === 'coloring' ? (
     <motion.div
       className="generated-result"
@@ -1115,7 +1220,7 @@ const downloadPDF = async (title, content) => {
             console.log('  - window.tempRhymeData:', window.tempRhymeData);
             console.log('  - Titre final choisi:', title);
             
-            // Vérifier que le titre n'est pas vide ou "undefined"
+            // Vérifier que le titre n\'est pas vide ou "undefined"
             if (!title || title === 'undefined' || title.trim() === '') {
               title = 'Ma_Comptine_Personnalisee';
               console.log('🎵 Titre vide détecté, utilisation du fallback:', title);
@@ -1130,7 +1235,7 @@ const downloadPDF = async (title, content) => {
               .replace(/\s+/g, "_") // Remplacer les espaces par des underscores
               .replace(/[^a-z0-9_]/g, ""); // Garder uniquement lettres, chiffres et underscores
             
-            // Vérifier que le nom nettoyé n'est pas vide
+            // Vérifier que le nom nettoyé n\'est pas vide
             const finalFileName = cleanTitle || 'ma_comptine_personnalisee';
             
             console.log('🎵 Téléchargement - Nom de fichier final:', `${finalFileName}.mp3`);

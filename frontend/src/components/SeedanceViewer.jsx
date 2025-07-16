@@ -150,12 +150,68 @@ const SeedanceViewer = ({ seedanceResult, onClose }) => {
                         avec la technologie SEEDANCE avancée.
                       </p>
                       
-                      {/* Debug info */}
-                      <div className="debug-info" style={{fontSize: '12px', color: '#666', marginBottom: '10px'}}>
-                        📁 Fichier: {video_url ? video_url.split('/').pop() : 'Non défini'}<br/>
-                        🆔 ID Animation: {seedanceResult.animation_id || 'Non défini'}<br/>
-                        🎬 Thème: {metadata.theme || 'Non défini'}<br/>
-                        ⏰ Généré le: {metadata.timestamp || 'Non défini'}
+                      {/* Boutons de contrôle debug */}
+                      <div style={{marginBottom: '10px'}}>
+                        <button 
+                          onClick={() => {
+                            const video = document.querySelector('video');
+                            if (video) {
+                              video.currentTime = 0;
+                              video.load();
+                              video.play();
+                            }
+                          }}
+                          style={{
+                            padding: '5px 10px',
+                            marginRight: '10px',
+                            backgroundColor: '#007bff',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '3px',
+                            cursor: 'pointer',
+                            fontSize: '11px'
+                          }}
+                        >
+                          🔄 Recharger Vidéo
+                        </button>
+                        <button 
+                          onClick={() => {
+                            console.log('🎥 SEEDANCE Debug:', {
+                              seedanceResult,
+                              video_url,
+                              metadata,
+                              timestamp: Date.now()
+                            });
+                          }}
+                          style={{
+                            padding: '5px 10px',
+                            backgroundColor: '#28a745',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '3px',
+                            cursor: 'pointer',
+                            fontSize: '11px'
+                          }}
+                        >
+                          📊 Log Debug
+                        </button>
+                      </div>
+                      <div className="debug-info" style={{
+                        fontSize: '11px', 
+                        color: '#666', 
+                        marginBottom: '10px',
+                        background: '#f8f9fa',
+                        padding: '8px',
+                        borderRadius: '4px',
+                        border: '1px solid #e9ecef'
+                      }}>
+                        <strong>🔍 Debug Info SEEDANCE:</strong><br/>
+                        📁 Fichier: <code>{video_url ? video_url.split('/').pop() : 'Non défini'}</code><br/>
+                        🆔 ID Animation: <code>{seedanceResult.animation_id || 'Non défini'}</code><br/>
+                        🎬 Thème demandé: <code>{metadata.theme || 'Non défini'}</code><br/>
+                        ⏰ Généré le: <code>{metadata.timestamp || 'Non défini'}</code><br/>
+                        🌐 URL complète: <code style={{fontSize: '10px'}}>{video_url ? `http://localhost:8004${video_url}` : 'Non défini'}</code><br/>
+                        🔄 Cache-bust: <code>{Date.now()}</code>
                       </div>
                       
                       <div className="video-actions">
