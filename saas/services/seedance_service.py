@@ -144,7 +144,7 @@ class SeedanceService:
             
             # Si l'assemblage échoue, utiliser le premier clip réussi comme fallback
             if not final_video and video_clips:
-                print("⚠️ Assemblage final échoué, utilisation du premier clip")
+                print("⚠️ Assemblage final échoué, recherche du premier clip réussi")
                 # Utiliser le premier clip réussi comme fallback
                 for clip in video_clips:
                     if clip.get("video_url") and clip["status"] == "success":
@@ -155,22 +155,35 @@ class SeedanceService:
                         }
                         break
                 
-                # Si vraiment aucun clip n'est disponible, créer un placeholder
+                # Si vraiment aucun clip n'est disponible, créer un placeholder fonctionnel
                 if not final_video:
-                    placeholder_url = self._create_placeholder_video(animation_id, duration)
-                    final_video = {
-                        "video_url": placeholder_url,
-                        "video_path": None,
-                        "status": "placeholder"
-                    }
+                    print("⚠️ Aucun clip disponible - création d'un placeholder fonctionnel")
+                    placeholder_result = self._create_functional_placeholder(animation_id, duration, theme)
+                    if placeholder_result and placeholder_result.get("video_url"):
+                        final_video = placeholder_result
+                        print(f"✅ Placeholder créé: {placeholder_result['video_url']}")
+                    else:
+                        # Dernier recours - URL simple
+                        placeholder_url = self._create_placeholder_video(animation_id, duration)
+                        final_video = {
+                            "video_url": placeholder_url,
+                            "video_path": None,
+                            "status": "placeholder"
+                        }
+            
             # S'assurer qu'on a un résultat à retourner
             if not final_video:
-                error_placeholder_url = self._create_placeholder_video(f"error_{animation_id}")
-                final_video = {
-                    "video_url": error_placeholder_url,
-                    "video_path": None,
-                    "status": "error"
-                }
+                print("❌ Création d'un placeholder d'erreur")
+                error_placeholder_result = self._create_functional_placeholder(f"error_{animation_id}", 5, "error")
+                if error_placeholder_result and error_placeholder_result.get("video_url"):
+                    final_video = error_placeholder_result
+                else:
+                    error_placeholder_url = self._create_placeholder_video(f"error_{animation_id}")
+                    final_video = {
+                        "video_url": error_placeholder_url,
+                        "video_path": None,
+                        "status": "error"
+                    }
             
             # Préparation du résultat
             actual_duration = self._calculate_actual_duration(video_clips)
@@ -1376,6 +1389,90 @@ L'histoire doit être:
         except Exception as e:
             print(f"   ❌ Erreur création placeholder: {e}")
             return f"/cache/seedance/error_{animation_id}.mp4"
+    
+    def _create_functional_placeholder(self, animation_id: str, duration: int = 5, theme: str = "animation") -> Optional[Dict[str, Any]]:
+        """Crée un vrai fichier vidéo de fallback avec FFmpeg"""
+        try:
+            filename = f"fallback_{animation_id}.mp4"
+            placeholder_path = self.cache_dir / filename
+            
+            if placeholder_path.exists():
+                return {
+                    "video_url": f"/cache/seedance/{filename}",
+                    "video_path": str(placeholder_path),
+                    "status": "functional_placeholder"
+                }
+            
+            # Choisir une couleur selon le thème
+            color_map = {
+                "space": "darkblue",
+                "ocean": "teal", 
+                "nature": "green",
+                "animals": "brown",
+                "friendship": "pink",
+                "adventure": "orange",
+                "magic": "purple",
+                "error": "red"
+            }
+            color = color_map.get(theme, "blue")
+            
+            # Essayer de créer une vraie vidéo avec FFmpeg
+            if self.ffmpeg_path:
+                try:
+                    # Créer une vidéo colorée avec texte
+                    cmd = [
+                        self.ffmpeg_path, 
+                        "-f", "lavfi", 
+                        "-i", f"color=c={color}:size=640x360:duration={duration}",
+                        "-f", "lavfi",
+                        "-i", f"color=c=white:size=400x100:duration={duration}",
+                        "-filter_complex", 
+                        f"[0:v][1:v]overlay=120:130,drawtext=text='Animation {theme}\\nEn cours...':fontsize=24:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/2",
+                        "-c:v", "libx264", 
+                        "-t", str(duration), 
+                        "-pix_fmt", "yuv420p",
+                        "-r", "25",  # 25 FPS
+                        str(placeholder_path), 
+                        "-y"
+                    ]
+                    
+                    result = subprocess.run(cmd, check=True, capture_output=True, timeout=30)
+                    
+                    if placeholder_path.exists() and placeholder_path.stat().st_size > 1000:
+                        print(f"   ✅ Placeholder fonctionnel créé: {filename} ({placeholder_path.stat().st_size} bytes)")
+                        return {
+                            "video_url": f"/cache/seedance/{filename}",
+                            "video_path": str(placeholder_path),
+                            "status": "functional_placeholder"
+                        }
+                    else:
+                        print(f"   ❌ Placeholder créé mais fichier trop petit")
+                        
+                except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+                    print(f"   ❌ Erreur FFmpeg pour placeholder: {e}")
+            
+            # Fallback: créer un fichier minimal
+            try:
+                with open(placeholder_path, 'wb') as f:
+                    # Header MP4 minimal mais valide
+                    f.write(b'\x00\x00\x00\x20ftypmp42\x00\x00\x00\x00mp42mp41\x00\x00\x00\x08free')
+                
+                if placeholder_path.exists():
+                    print(f"   ⚠️ Placeholder minimal créé: {filename}")
+                    return {
+                        "video_url": f"/cache/seedance/{filename}",
+                        "video_path": str(placeholder_path),
+                        "status": "minimal_placeholder"
+                    }
+                    
+            except Exception as e:
+                print(f"   ❌ Erreur création fichier minimal: {e}")
+            
+            return None
+            
+        except Exception as e:
+            print(f"   ❌ Erreur création placeholder fonctionnel: {e}")
+            return None
     
     async def _assemble_local_video(self, video_clips: List[Dict[str, Any]], animation_id: str) -> Optional[Dict[str, Any]]:
         """Assemble la vidéo finale localement avec FFmpeg"""

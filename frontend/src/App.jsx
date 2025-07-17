@@ -351,49 +351,94 @@ function App() {
         }
         
         const seedanceData = await response.json();
+        console.log('🔍 SEEDANCE Response:', seedanceData);
         
-        // DEBUG: Log complet de la réponse
-        console.log('🔍 SEEDANCE Response complète:', {
-          seedanceData,
-          status: seedanceData.status,
-          video_url: seedanceData.video_url,
-          animation: seedanceData.animation,
-          animation_video_url: seedanceData.animation?.video_url
-        });
-        
-        // Ajouter un timestamp pour forcer le rechargement de la vidéo
-        seedanceData.timestamp = Date.now();
-        
-        // Vérifier si la génération est terminée
-        const videoUrl = seedanceData.video_url || seedanceData.animation?.video_url;
-        console.log('🎬 Vérification video_url:', { videoUrl, status: seedanceData.status });
-        
-        if ((seedanceData.status === 'completed' || seedanceData.status === 'success') && videoUrl) {
-          console.log('✅ Conditions remplies - Animation terminée !');
-          console.log('📊 Status:', seedanceData.status);
-          console.log('🎥 Video URL:', videoUrl);
-          // Créer un objet résultat unifié
-          const unifiedResult = {
-            ...seedanceData,
-            video_url: videoUrl,
-            scenes: seedanceData.animation?.scenes || seedanceData.scenes || [],
-            total_duration: seedanceData.animation?.total_duration || seedanceData.total_duration,
-            generation_time: seedanceData.animation?.generation_time || seedanceData.generation_time,
-            scenes_count: seedanceData.animation?.scenes_count || seedanceData.scenes_count,
-            metadata: seedanceData.animation?.metadata || seedanceData.metadata || {}
-          };
+        // Verifier si la generation est terminee
+        if (seedanceData.status === 'completed' || seedanceData.status === 'success') {
+          console.log('✅ Animation terminee ! Status:', seedanceData.status);
           
-          // Animation terminée - afficher le viewer
-          setSeedanceResult(unifiedResult);
-          setShowSeedanceViewer(true);
-          setSeedanceGenerating(false); // Arrêter le chargement
-          generatedContent = unifiedResult; // Stocker pour l'historique
+          const videoUrl = seedanceData.video_url || seedanceData.animation?.video_url;
           
-          console.log('🎉 État mis à jour:', {
-            seedanceGenerating: false,
-            showSeedanceViewer: true,
-            seedanceResult: unifiedResult
-          });
+          if (videoUrl && videoUrl !== null && videoUrl !== "null") {
+            // Fonction pour verifier si le fichier est pret
+            const checkVideoFile = async (url, attempts = 0) => {
+              if (attempts > 20) { // Max 20 tentatives (1 minute)
+                console.error('⏰ Timeout: fichier video non accessible apres 1 minute');
+                console.error('🚨 Echec de generation - services externes indisponibles');
+                
+                // Afficher un message d'erreur explicite a l'utilisateur
+                alert('❌ Génération échouée\n\n' +
+                      '🔧 Les services externes (Wavespeed AI, Fal AI) sont temporairement indisponibles.\n\n' +
+                      '💡 Solutions:\n' +
+                      '• Vérifiez les crédits API\n' +
+                      '• Réessayez dans quelques minutes\n' +
+                      '• Contactez l\'administrateur si le problème persiste');
+                
+                setSeedanceGenerating(false);
+                return;
+              }
+              
+              try {
+                const videoResponse = await fetch(`http://localhost:8004${url}`, { method: 'HEAD' });
+                if (videoResponse.ok) {
+                  console.log('🎬 Fichier video accessible:', url);
+                  
+                  // Creer un objet resultat unifie
+                  const unifiedResult = {
+                    ...seedanceData,
+                    video_url: videoUrl,
+                    scenes: seedanceData.animation?.scenes || seedanceData.scenes || [],
+                    total_duration: seedanceData.animation?.total_duration || seedanceData.total_duration || 30,
+                    generation_time: seedanceData.animation?.generation_time || seedanceData.generation_time || 0,
+                    scenes_count: seedanceData.animation?.scenes_count || seedanceData.scenes_count || 3,
+                    metadata: seedanceData.animation?.metadata || seedanceData.metadata || { theme: 'Animation' }
+                  };
+                  
+                  // Animation et fichier prets - afficher le viewer
+                  setSeedanceResult(unifiedResult);
+                  setShowSeedanceViewer(true);
+                  setSeedanceGenerating(false);
+                  generatedContent = unifiedResult;
+                } else {
+                  console.log(`⏳ Fichier video pas encore pret, tentative ${attempts + 1}/20...`);
+                  // Reessayer dans 3 secondes
+                  setTimeout(() => checkVideoFile(url, attempts + 1), 3000);
+                }
+              } catch (error) {
+                console.log(`⏳ Fichier video en cours de generation, tentative ${attempts + 1}/20...`);
+                // Reessayer dans 3 secondes
+                setTimeout(() => checkVideoFile(url, attempts + 1), 3000);
+              }
+            };
+            
+            // Commencer la verification
+            checkVideoFile(videoUrl);
+          } else {
+            console.log('❌ Aucun video_url trouve dans la reponse - Generation echouee');
+            console.error('🚨 Services externes indisponibles:', {
+              status: seedanceData.status,
+              video_url: videoUrl,
+              assembly_status: seedanceData.animation?.assembly_status,
+              generation_time: seedanceData.animation?.generation_time
+            });
+            
+            // Arreter immediatement et informer l'utilisateur
+            setSeedanceGenerating(false);
+            
+            // Message d'erreur detaille
+            const errorMessage = '❌ Génération impossible\n\n' +
+                                '🔍 Diagnostic:\n' +
+                                '• Les services IA externes (Wavespeed AI, Fal AI) sont indisponibles\n' +
+                                '• Aucun fichier vidéo n\'a pu être généré\n\n' +
+                                '🔧 Solutions:\n' +
+                                '• Vérifiez la configuration des clés API\n' +
+                                '• Vérifiez les crédits des services externes\n' +
+                                '• Réessayez dans quelques minutes\n' +
+                                '• Contactez l\'administrateur technique\n\n' +
+                                '📊 Temps de traitement: ' + (seedanceData.animation?.generation_time || 'N/A') + 's';
+            
+            alert(errorMessage);
+          }
         } else if (seedanceData.task_id || seedanceData.status === 'processing') {
           // Animation en cours - continuer a afficher le chargement
           console.log('Animation en cours, task_id:', seedanceData.task_id);
@@ -1051,7 +1096,7 @@ const downloadPDF = async (title, content) => {
           : contentType === 'animation'
           ? 'Création de votre dessin animé en cours...'
           : contentType === 'seedance'
-          ? (seedanceGenerating ? 'Création de votre dessin animé SEEDANCE en cours…' : 'Génération en cours…')
+          ? (seedanceGenerating ? 'Génération de votre dessin animé en cours...' : 'Génération en cours…')
           : contentType === 'comic'
           ? 'Création de votre bande dessinée en cours...'
           : 'Génération en cours...'}
