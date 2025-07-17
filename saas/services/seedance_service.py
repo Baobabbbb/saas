@@ -98,30 +98,53 @@ class SeedanceService:
             print(f"🎬 Génération SEEDANCE: {story[:50]}...")
             print(f"   📊 Thème: {theme}, Age: {age_target}, Durée: {duration}s")
             
+            # DIAGNOSTIC DES CLÉS API
+            print("🔍 Vérification des clés API...")
+            if not self.openai_api_key or self.openai_api_key.startswith("sk-votre"):
+                raise ValueError("Clé OpenAI manquante ou invalide. Vérifiez votre fichier .env")
+            if not self.wavespeed_api_key or self.wavespeed_api_key.startswith("votre_"):
+                raise ValueError("Clé Wavespeed manquante ou invalide. Vérifiez votre fichier .env")
+            if not self.fal_api_key or self.fal_api_key.startswith("votre_"):
+                raise ValueError("Clé Fal AI manquante ou invalide. Vérifiez votre fichier .env")
+            print("✅ Toutes les clés API sont configurées")
+            
             start_time = time.time()
             animation_id = str(uuid.uuid4())[:8]
             print(f"🆔 NOUVEL ID GÉNÉRATION: {animation_id}")
             
             # ÉTAPE 1: Génération d'idées avec OpenAI
             print("💡 Étape 1: Génération d'idées...")
-            idea_result = await self._generate_ideas(story, theme, age_target, style)
-            
-            if not idea_result:
-                raise Exception("Échec de la génération d'idées")
+            try:
+                idea_result = await self._generate_ideas(story, theme, age_target, style)
+                if not idea_result:
+                    raise Exception("La génération d'idées a retourné un résultat vide")
+                print(f"✅ Idées générées: {idea_result.get('Caption', 'N/A')}")
+            except Exception as e:
+                print(f"❌ Erreur étape 1 (idées): {e}")
+                raise Exception(f"Échec de la génération d'idées: {str(e)}")
             
             # ÉTAPE 2: Génération des prompts pour 3 scènes
             print("📝 Étape 2: Génération des prompts...")
-            scenes_prompts = await self._generate_scene_prompts(idea_result, duration)
-            
-            if not scenes_prompts:
-                raise Exception("Échec de la génération des prompts")
+            try:
+                scenes_prompts = await self._generate_scene_prompts(idea_result, duration)
+                if not scenes_prompts:
+                    raise Exception("La génération de prompts a retourné un résultat vide")
+                print(f"✅ {len(scenes_prompts)} prompts de scènes générés")
+            except Exception as e:
+                print(f"❌ Erreur étape 2 (prompts): {e}")
+                raise Exception(f"Échec de la génération des prompts: {str(e)}")
             
             # ÉTAPE 3: Génération des clips vidéo
             print(f"🎥 Étape 3: Génération des clips avec ID {animation_id}...")
-            video_clips = await self._generate_video_clips(scenes_prompts, animation_id)
-            
-            if not video_clips:
-                raise Exception("Échec de la génération des clips")
+            try:
+                video_clips = await self._generate_video_clips(scenes_prompts, animation_id)
+                if not video_clips:
+                    raise Exception("La génération de clips a retourné un résultat vide")
+                successful_clips = [clip for clip in video_clips if clip.get("status") == "success"]
+                print(f"✅ {len(successful_clips)}/{len(video_clips)} clips générés avec succès")
+            except Exception as e:
+                print(f"❌ Erreur étape 3 (clips): {e}")
+                raise Exception(f"Échec de la génération des clips: {str(e)}")
             
             # ÉTAPE 4: Génération des sons (TOUJOURS)
             audio_clips = []
@@ -228,12 +251,43 @@ class SeedanceService:
             print(f"✅ Animation SEEDANCE générée en {generation_time:.2f}s")
             return result
             
-        except Exception as e:
-            print(f"❌ Erreur SEEDANCE: {e}")
+        except ValueError as ve:
+            print(f"❌ Erreur de configuration SEEDANCE: {ve}")
             return {
                 "status": "error",
+                "error_type": "configuration",
+                "error": str(ve),
+                "message": f"Problème de configuration: {str(ve)}",
+                "solution": "Vérifiez que toutes les clés API sont correctement configurées dans le fichier .env"
+            }
+        except aiohttp.ClientError as ce:
+            print(f"❌ Erreur de connectivité SEEDANCE: {ce}")
+            return {
+                "status": "error", 
+                "error_type": "connectivity",
+                "error": str(ce),
+                "message": f"Problème de connexion réseau: {str(ce)}",
+                "solution": "Vérifiez votre connexion internet et que les services API sont accessibles"
+            }
+        except asyncio.TimeoutError as te:
+            print(f"❌ Timeout SEEDANCE: {te}")
+            return {
+                "status": "error",
+                "error_type": "timeout", 
+                "error": str(te),
+                "message": "Timeout lors de la génération - les services AI ont pris trop de temps à répondre",
+                "solution": "Réessayez dans quelques minutes, les services AI peuvent être surchargés"
+            }
+        except Exception as e:
+            print(f"❌ Erreur SEEDANCE générale: {e}")
+            import traceback
+            traceback.print_exc()
+            return {
+                "status": "error",
+                "error_type": "general",
                 "error": str(e),
-                "message": f"Erreur lors de la génération SEEDANCE: {str(e)}"
+                "message": f"Erreur lors de la génération SEEDANCE: {str(e)}",
+                "solution": "Consultez les logs pour plus de détails"
             }
     
     async def generate_story_for_theme(self, theme: str, age_target: str = "3-8 ans", custom_request: str = "") -> str:
@@ -364,15 +418,19 @@ L'histoire doit être:
             - Séquences visuelles engageantes
             - Cohérence narrative
             
-            FORMAT DE SORTIE (JSON):
+            FORMAT DE SORTIE (JSON UNIQUEMENT):
+            Tu DOIS répondre UNIQUEMENT avec un objet JSON valide, sans texte avant ou après.
+            Utilise EXACTEMENT cette structure:
             {{
                 "Caption": "Description courte avec emoji",
                 "Idea": "Concept détaillé de l'animation",
-                "Environment": "Environnement visuel",
+                "Environment": "Environnement visuel", 
                 "Sound": "Description des effets sonores",
                 "Educational_Value": "Valeur éducative",
                 "Characters": "Personnages principaux"
             }}
+            
+            IMPORTANT: Réponds UNIQUEMENT avec le JSON, pas d'autre texte.
             """
             
             user_prompt = f"""
@@ -381,9 +439,11 @@ L'histoire doit être:
             Crée un concept d'animation éducative engageante pour des enfants de {age_target}.
             Le thème éducatif est: {theme}
             Style visuel souhaité: {style}
+            
+            RAPPEL: Réponds UNIQUEMENT avec un objet JSON valide, rien d'autre.
             """
             
-            async with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
                 async with session.post(
                     "https://api.openai.com/v1/chat/completions",
                     headers={
@@ -404,15 +464,38 @@ L'histoire doit être:
                         result = await response.json()
                         content = result["choices"][0]["message"]["content"]
                         
-                        # Tenter de parser le JSON
+                        # Tenter de parser le JSON avec nettoyage et fallback robuste
                         try:
-                            idea_data = json.loads(content)
-                            return idea_data
-                        except json.JSONDecodeError:
-                            # Fallback si le JSON n'est pas valide
+                            # Nettoyer le contenu pour extraire le JSON
+                            cleaned_content = content.strip()
+                            
+                            # Chercher un bloc JSON dans la réponse
+                            json_start = cleaned_content.find('{')
+                            json_end = cleaned_content.rfind('}') + 1
+                            
+                            if json_start >= 0 and json_end > json_start:
+                                json_content = cleaned_content[json_start:json_end]
+                                idea_data = json.loads(json_content)
+                                
+                                # Valider que tous les champs requis sont présents
+                                required_fields = ["Caption", "Idea", "Environment", "Sound", "Educational_Value", "Characters"]
+                                if all(field in idea_data for field in required_fields):
+                                    print(f"✅ JSON valide parsé avec succès")
+                                    return idea_data
+                                else:
+                                    print(f"⚠️ JSON parsé mais champs manquants: {[f for f in required_fields if f not in idea_data]}")
+                                    raise json.JSONDecodeError("Champs manquants", json_content, 0)
+                            else:
+                                print(f"⚠️ Aucune structure JSON trouvée dans: {cleaned_content[:100]}...")
+                                raise json.JSONDecodeError("Pas de JSON trouvé", cleaned_content, 0)
+                                
+                        except json.JSONDecodeError as e:
+                            print(f"⚠️ Échec parsing JSON: {e}")
+                            print(f"   Contenu reçu: {content[:200]}...")
+                            # Fallback structuré si le JSON n'est pas valide
                             return {
                                 "Caption": f"🎨 Animation éducative: {story[:50]}...",
-                                "Idea": content,
+                                "Idea": content if len(content) < 500 else f"Animation éducative basée sur: {story[:100]}...",
                                 "Environment": f"Environnement coloré et éducatif pour {age_target}",
                                 "Sound": "Musique douce et effets sonores adaptés aux enfants",
                                 "Educational_Value": f"Apprentissage ludique du thème: {theme}",
@@ -516,12 +599,16 @@ L'histoire doit être:
             - Progression logique et fluide entre les scènes
             - Style: {self.cartoon_style}, {self.cartoon_quality}
             
-            FORMAT DE SORTIE (JSON):
+            FORMAT DE SORTIE (JSON UNIQUEMENT):
+            Tu DOIS répondre UNIQUEMENT avec un objet JSON valide, sans texte avant ou après.
+            Utilise EXACTEMENT cette structure:
             {{
                 "Scene1_Introduction": "Description détaillée de la scène d'introduction",
                 "Scene2_Development": "Description détaillée de la scène de développement", 
                 "Scene3_Resolution": "Description détaillée de la scène de résolution"
             }}
+            
+            IMPORTANT: Réponds UNIQUEMENT avec le JSON, pas d'autre texte.
             """
             
             user_prompt = f"""
@@ -542,9 +629,11 @@ L'histoire doit être:
             - Pas de répétition de la même action
             - Pas de descriptions identiques
             - Pas d'éléments incohérents avec le thème
+            
+            RAPPEL: Réponds UNIQUEMENT avec un objet JSON valide, rien d'autre.
             """
             
-            async with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
                 async with session.post(
                     "https://api.openai.com/v1/chat/completions",
                     headers={
@@ -581,8 +670,31 @@ L'histoire doit être:
                             
                             print(f"   🧹 Contenu nettoyé pour parsing: {cleaned_content[:100]}...")
                             
-                            scenes_data = json.loads(cleaned_content)
+                            # Chercher un bloc JSON dans la réponse
+                            json_start = cleaned_content.find('{')
+                            json_end = cleaned_content.rfind('}') + 1
                             
+                            if json_start >= 0 and json_end > json_start:
+                                json_content = cleaned_content[json_start:json_end]
+                                
+                                # Nettoyer les caractères de contrôle problématiques
+                                import re
+                                json_content = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', json_content)
+                                
+                                scenes_data = json.loads(json_content)
+                                
+                                # Valider que tous les champs requis sont présents
+                                required_fields = ["Scene1_Introduction", "Scene2_Development", "Scene3_Resolution"]
+                                if all(field in scenes_data for field in required_fields):
+                                    print(f"✅ JSON des scènes parsé avec succès")
+                                    # Continuer avec le processing normal
+                                else:
+                                    print(f"⚠️ JSON parsé mais champs manquants: {[f for f in required_fields if f not in scenes_data]}")
+                                    raise json.JSONDecodeError("Champs de scènes manquants", json_content, 0)
+                            else:
+                                print(f"⚠️ Aucune structure JSON trouvée dans les scènes")
+                                raise json.JSONDecodeError("Pas de JSON trouvé", cleaned_content, 0)
+                                
                             # Transformer en format attendu avec structure narrative
                             scenes = []
                             scene_types = ["Introduction", "Development", "Resolution"]
@@ -605,9 +717,8 @@ L'histoire doit être:
                                     "duration": scene_duration,
                                     "prompt": enhanced_prompt
                                 })
-                                
-                                print(f"   📋 Scène {i+1} ({scene_type}): {description[:80]}...")
                             
+                            print(f"✅ {len(scenes)} scènes structurées créées")
                             return scenes
                             
                         except json.JSONDecodeError as je:
