@@ -122,6 +122,8 @@ async def stt_endpoint(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- Comptine ---
+from services.udio_service import udio_service
+
 class RhymeRequest(BaseModel):
     rhyme_type: str
     custom_request: Optional[str] = None
@@ -129,7 +131,7 @@ class RhymeRequest(BaseModel):
 @app.post("/generate_rhyme/")
 async def generate_rhyme(request: RhymeRequest):
     try:
-        # Vérifier la clé API
+        # Vérifier la clé API OpenAI
         openai_key = os.getenv("OPENAI_API_KEY")
         if not openai_key or openai_key.startswith("sk-votre"):
             raise HTTPException(
@@ -137,6 +139,15 @@ async def generate_rhyme(request: RhymeRequest):
                 detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
             )
         
+        # Vérifier la clé API Udio
+        goapi_key = os.getenv("GOAPI_API_KEY")
+        if not goapi_key or goapi_key.startswith("votre_cle"):
+            raise HTTPException(
+                status_code=400, 
+                detail="❌ Clé API GoAPI Udio non configurée. Veuillez configurer GOAPI_API_KEY dans le fichier .env"
+            )
+        
+        # 1. Générer les paroles avec OpenAI
         prompt = f"Écris une comptine courte, joyeuse et rythmée pour enfants sur le thème : {request.rhyme_type}.\n"
         if request.custom_request:
             prompt += f"Demande spécifique : {request.custom_request}\n"
@@ -186,16 +197,51 @@ COMPTINE: [texte de la comptine]"""
                 # En cas d'erreur, utiliser le contenu complet
                 pass
         
-        return {
-            "title": title,
-            "content": rhyme_content,
-            "type": "rhyme"
-        }
+        # 2. Lancer la génération musicale avec Udio
+        print(f"🎵 Lancement génération musicale pour: {title}")
+        udio_result = await udio_service.generate_musical_nursery_rhyme(
+            lyrics=rhyme_content,
+            rhyme_type=request.rhyme_type
+        )
+        
+        if udio_result.get("status") == "success":
+            task_id = udio_result.get("task_id")
+            print(f"✅ Tâche musicale créée: {task_id}")
+            
+            return {
+                "title": title,
+                "content": rhyme_content,
+                "type": "rhyme",
+                "music_task_id": task_id,
+                "music_status": "processing",
+                "message": "Comptine générée, musique en cours de création..."
+            }
+        else:
+            # Si la génération musicale échoue, retourner une erreur HTTP
+            error_message = udio_result.get("error", "Erreur inconnue lors de la génération musicale")
+            print(f"❌ Erreur génération musicale: {error_message}")
+            raise HTTPException(
+                status_code=500, 
+                detail=f"❌ La création de l'audio a échoué : {error_message}"
+            )
+            
     except HTTPException:
         raise
     except Exception as e:
         print(f"❌ Erreur génération comptine: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
+
+@app.get("/check_task_status/{task_id}")
+async def check_task_status(task_id: str):
+    """
+    Vérifie le statut d'une tâche musicale Udio
+    """
+    try:
+        result = await udio_service.check_task_status(task_id)
+        return result
+    except Exception as e:
+        print(f"❌ Erreur vérification statut: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la vérification : {str(e)}")
 
 # --- Histoire Audio ---
 class AudioStoryRequest(BaseModel):
