@@ -335,6 +335,49 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
 class ColoringRequest(BaseModel):
     theme: str
 
+# Instance globale du générateur de coloriage
+coloring_generator_instance = ColoringGenerator()
+
+@app.post("/generate_coloring/")
+async def generate_coloring(request: ColoringRequest):
+    """
+    Génère un coloriage basé sur un thème
+    """
+    try:
+        print(f"🎨 Génération coloriage: {request.theme}")
+        
+        # Vérifier la clé API Stability AI
+        stability_key = os.getenv("STABILITY_API_KEY")
+        if not stability_key or stability_key.startswith("sk-votre"):
+            raise HTTPException(
+                status_code=400, 
+                detail="❌ Clé API Stability AI non configurée. Veuillez configurer STABILITY_API_KEY dans le fichier .env"
+            )
+        
+        # Générer le coloriage
+        result = await coloring_generator_instance.generate_coloring_pages(request.theme)
+        
+        if result.get("success") == True:  # Le service retourne "success" au lieu de "status"
+            return {
+                "status": "success",
+                "theme": request.theme,
+                "images": result.get("images", []),
+                "message": "Coloriage généré avec succès !",
+                "type": "coloring"
+            }
+        else:
+            error_message = result.get("error", "Erreur inconnue lors de la génération du coloriage")
+            raise HTTPException(
+                status_code=500, 
+                detail=f"❌ La création du coloriage a échoué : {error_message}"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur génération coloriage: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
+
 # --- Bandes Dessinées ---
 
 # Modèles pour les BD
