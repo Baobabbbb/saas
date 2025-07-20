@@ -43,7 +43,7 @@ class ColoringGenerator:
                 image_path = await self._generate_coloring_image(prompt, self.output_dir, clean_theme)
                 if image_path:
                     images.append({
-                        "image_url": f"http://localhost:8000/static/coloring/coloriage_{clean_theme}.png",
+                        "image_url": f"http://localhost:8006/static/coloring/coloriage_{clean_theme}.png",
                         "theme": theme
                     })
             except Exception as e:
