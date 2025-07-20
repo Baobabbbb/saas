@@ -6,7 +6,6 @@ import { API_ENDPOINTS, API_BASE_URL } from './config/api';
 import Header from './components/Header';
 import ContentTypeSelector from './components/ContentTypeSelector';
 import RhymeSelector from './components/RhymeSelector';
-import MusicalRhymeSelector from './components/MusicalRhymeSelector';
 import AudioStorySelector from './components/AudioStorySelector';
 import AnimationSelector from './components/AnimationSelector';
 import AnimationViewer from './components/AnimationViewer';
@@ -205,10 +204,7 @@ function App() {
       if (contentType === 'rhyme') {
         const payload = {
           rhyme_type: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
-          custom_request: customRequest,
-          generate_music: true, // Always generate music for rhymes
-          custom_style: musicStyle === 'custom' ? customMusicStyle : null,
-          language: 'fr'
+          custom_request: customRequest
         };
 
         console.log('🎵 Envoi payload comptine:', payload);
@@ -223,6 +219,28 @@ function App() {
         if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
         generatedContent = await response.json();
         console.log('🎵 Contenu reçu:', generatedContent);
+        
+        // Si une tâche musicale a été créée, stocker les données et lancer le polling
+        if (generatedContent.music_task_id) {
+          console.log('🎵 Tâche musicale créée:', generatedContent.music_task_id);
+          
+          // Stocker temporairement les données de la comptine
+          window.tempRhymeData = {
+            title: generatedContent.title,
+            content: generatedContent.content,
+            type: 'rhyme',
+            music_status: 'processing'
+          };
+          
+          // Lancer le polling pour suivre la génération musicale
+          pollTaskStatus(generatedContent.music_task_id);
+          
+          // NE PAS définir generatedResult - laisser l'animation de chargement
+          generatedContent = null;
+          
+          // Sortir de la fonction pour éviter le traitement de l'historique avec generatedContent null
+          return;
+        }
       } else if (contentType === 'audio') {
       const payload = {
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
@@ -376,9 +394,9 @@ function App() {
     if (contentType === 'rhyme') {
       // Utiliser le titre de l'IA ou générer un titre attractif
       if (generatedContent.title && !generatedContent.title.includes('générée')) {
-        title = generatedContent.title + (generatedContent.has_music ? ' 🎵' : '');
+        title = generatedContent.title + ' 🎵';
       } else {
-        title = generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme) + (generatedContent.has_music ? ' 🎵' : '');
+        title = generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme) + ' 🎵';
       }
     } else if (contentType === 'audio') {
       // Utiliser le titre de l'IA ou générer un titre attractif
@@ -398,21 +416,8 @@ function App() {
     // Stocker le titre pour l'utiliser dans l'UI
     setCurrentTitle(title);
     
-    // 🎵 Pour les comptines musicales, ne pas afficher le résultat tout de suite
-    if (contentType === 'rhyme' && generatedContent.task_id && generateMusic) {
-      console.log('🎵 Comptine musicale en cours - attente de la musique avant affichage');
-      console.log('🎵 Démarrage du polling automatique pour task_id:', generatedContent.task_id);
-      // Stocker temporairement les données avec le titre calculé pour le polling
-      window.tempRhymeData = {
-        ...generatedContent,
-        title: title // S'assurer que le titre formaté est inclus
-      };
-      pollTaskStatus(generatedContent.task_id);
-      // NE PAS setGeneratedResult maintenant - ce sera fait dans le polling
-    } else {
-      // Pour les autres types de contenu, affichage immédiat
-      setGeneratedResult(generatedContent);
-    }
+    // Pour tous les types de contenu, affichage immédiat
+    setGeneratedResult(generatedContent);
     
     console.log('🔁 ContentType:', contentType);
 
@@ -483,13 +488,10 @@ function App() {
     // Afficher une alerte avec plus d'informations
     alert(`❌ Erreur lors de la génération : ${error.message}\n\n💡 Conseil : Vérifiez que les clés API sont configurées dans le fichier .env du serveur.`);
     
-    // Pour les comptines musicales, arrêter l'animation même en cas d'erreur
-    if (contentType === 'rhyme' && generateMusic) {
-      setIsGenerating(false);
-    }
   } finally {
-    // Ne pas arrêter l'animation pour les comptines musicales qui continuent en polling
-    if (!(contentType === 'rhyme' && generateMusic)) {
+    // L'état isGenerating pour les comptines sera géré dans pollTaskStatus
+    // Pour les autres types de contenu, arrêter l'animation de chargement
+    if (contentType !== 'rhyme') {
       setIsGenerating(false);
     }
   }
@@ -547,10 +549,6 @@ const handleSelectCreation = (creation) => {
     if (contentType === 'rhyme') {
       if (!selectedRhyme) return false;
       if (selectedRhyme === 'custom' && !customRhyme.trim()) return false;
-      // Style musical obligatoire pour toutes les comptines
-      if (!musicStyle) return false;
-      // Validation supplémentaire pour le style musical personnalisé
-      if (musicStyle === 'custom' && !customMusicStyle.trim()) return false;
     } else if (contentType === 'audio') {
       if (!selectedAudioStory) return false;
       if (selectedAudioStory === 'custom' && !customAudioStory.trim()) return false;
@@ -723,27 +721,28 @@ const downloadPDF = async (title, content) => {
             // Récupérer les données de comptine stockées temporairement
             const tempData = window.tempRhymeData;
             if (tempData) {
-              // Afficher la comptine complète (paroles + audio)
+              // Afficher SEULEMENT l'audio pour les comptines (pas les paroles)
               const completeRhyme = {
-                ...tempData,
+                title: tempData.title,
+                type: 'rhyme',
                 audio_url: audioUrl,
                 audio_path: audioUrl,
-                music_status: 'completed'
+                music_status: 'completed',
+                // Ne PAS inclure 'content' pour forcer l'affichage audio uniquement
               };
               setGeneratedResult(completeRhyme);
               setIsGenerating(false); // Arrêter l'état de génération
-              // Ne pas supprimer tempRhymeData tout de suite pour le téléchargement
-              console.log('🎵✅ Comptine complète affichée:', completeRhyme);
-              console.log('🎵✅ Titre sauvegardé pour téléchargement:', tempData.title);
-              console.log('🎵✅ completeRhyme.title final:', completeRhyme.title);
+              console.log('🎵✅ Comptine audio-only affichée:', completeRhyme);
+              console.log('🎵✅ Audio URL:', audioUrl);
             } else {
               // Fallback : mise à jour simple
-              setGeneratedResult(prev => ({
-                ...prev,
+              setGeneratedResult({
+                type: 'rhyme',
                 audio_url: audioUrl,
                 audio_path: audioUrl,
-                music_status: 'completed'
-              }));
+                music_status: 'completed',
+                title: 'Comptine musicale'
+              });
               setIsGenerating(false);
             }
           } else {
@@ -767,28 +766,18 @@ const downloadPDF = async (title, content) => {
           }
           return; // Arrêter le polling
         } else if (status.status === 'failed' || status.task_status === 'failed') {
-          // Tâche échouée
+          // Tâche échouée - ARRÊTER LA GÉNÉRATION AVEC ERREUR
           console.error('❌ Génération musicale échouée:', status);
-          const tempData = window.tempRhymeData;
-          if (tempData) {
-            // Afficher quand même les paroles même si la musique a échoué
-            const rhymeWithError = {
-              ...tempData,
-              music_status: 'failed',
-              music_error: status.error || 'Erreur de génération musicale'
-            };
-            setGeneratedResult(rhymeWithError);
-            setIsGenerating(false);
-            // Ne pas supprimer tempRhymeData pour conserver le titre
-            console.log('🎵❌ Comptine affichée sans musique (erreur):', rhymeWithError);
-          } else {
-            setGeneratedResult(prev => ({
-              ...prev,
-              music_status: 'failed',
-              music_error: status.error || 'Erreur de génération musicale'
-            }));
-            setIsGenerating(false);
-          }
+          const errorMessage = status.error || 'La création de l\'audio a échoué. Veuillez réessayer.';
+          
+          // Arrêter la génération et afficher l'erreur
+          setIsGenerating(false);
+          setGeneratedResult(null); // Pas d'affichage de contenu
+          
+          // Afficher l'erreur à l'utilisateur
+          alert(`❌ Erreur : ${errorMessage}`);
+          
+          console.log('🎵❌ Génération audio échouée, arrêt complet');
           return; // Arrêter le polling
         }
         
@@ -839,17 +828,11 @@ const downloadPDF = async (title, content) => {
                 exit="exit"
                 transition={{ duration: 0.3 }}
               >
-                <MusicalRhymeSelector
+                <RhymeSelector
                   selectedRhyme={selectedRhyme}
                   setSelectedRhyme={setSelectedRhyme}
                   customRhyme={customRhyme}
                   setCustomRhyme={setCustomRhyme}
-                  generateMusic={generateMusic}
-                  setGenerateMusic={setGenerateMusic}
-                  musicStyle={musicStyle}
-                  setMusicStyle={setMusicStyle}
-                  customMusicStyle={customMusicStyle}
-                  setCustomMusicStyle={setCustomMusicStyle}
                 />
               </motion.div>
             ) : contentType === 'audio' ? (
@@ -967,7 +950,7 @@ const downloadPDF = async (title, content) => {
         <div className="dot"></div>
         <div className="dot"></div>
       </div>      <p>        {contentType === 'rhyme'
-          ? 'Création de votre comptine en cours…'
+          ? 'Votre comptine est en cours de création…'
           : contentType === 'audio'
           ? 'Création de l\'histoire en cours...'
           : contentType === 'coloring'
@@ -1089,114 +1072,91 @@ const downloadPDF = async (title, content) => {
   {contentType === 'rhyme' && generatedResult && (
     <div
       style={{
-        height: '300px',
+        minHeight: '300px',
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '1rem',
-        padding: '1rem'
+        gap: '1.5rem',
+        padding: '2rem',
+        backgroundColor: '#f8f9ff',
+        borderRadius: '16px',
+        border: '2px solid #e0e7ff'
       }}
     >
-      {/* Audio si disponible */}
-      {(generatedResult.audio_path || generatedResult.audio_url) && (
-        <audio
-          controls
-          style={{ width: '100%', maxWidth: '280px' }}
-          src={generatedResult.audio_path || generatedResult.audio_url}
-        />
-      )}
-
-      {/* Boutons d'action dans le style des cartes */}
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-        <button
-          onClick={() => {
-            const audioUrl = generatedResult.audio_path || generatedResult.audio_url;
-            if (!audioUrl) {
-              alert('Audio non disponible pour le téléchargement');
-              return;
-            }
-            
-            // Essayer d'obtenir le titre depuis plusieurs sources avec priorité
-            let title = 
-              generatedResult.title || 
-              currentTitle || 
-              (window.tempRhymeData && window.tempRhymeData.title) ||
-              'Ma_Comptine';
-            
-            console.log('🎵 Téléchargement - DEBUG COMPLET:');
-            console.log('  - generatedResult:', generatedResult);
-            console.log('  - generatedResult.title:', generatedResult.title);
-            console.log('  - currentTitle:', currentTitle);
-            console.log('  - window.tempRhymeData:', window.tempRhymeData);
-            console.log('  - Titre final choisi:', title);
-            
-            // Vérifier que le titre n'est pas vide ou "undefined"
-            if (!title || title === 'undefined' || title.trim() === '') {
-              title = 'Ma_Comptine_Personnalisee';
-              console.log('🎵 Titre vide détecté, utilisation du fallback:', title);
-            }
-            
-            // Enlever les émojis et nettoyer le titre pour le nom de fichier
-            const cleanTitle = title
-              .replace(/[🎵🎶🎼🎤🎧🎹🥁🎺🎸🎻]/g, '') // Enlever les émojis musicaux
-              .trim()
-              .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Retirer les accents
-              .toLowerCase()
-              .replace(/\s+/g, "_") // Remplacer les espaces par des underscores
-              .replace(/[^a-z0-9_]/g, ""); // Garder uniquement lettres, chiffres et underscores
-            
-            // Vérifier que le nom nettoyé n'est pas vide
-            const finalFileName = cleanTitle || 'ma_comptine_personnalisee';
-            
-            console.log('🎵 Téléchargement - Nom de fichier final:', `${finalFileName}.mp3`);
-            
-            // Utiliser la route proxy du backend pour le téléchargement
-            try {
-              console.log('🎵 Début du téléchargement via proxy backend');
-              const downloadUrl = API_ENDPOINTS.downloadAudio(finalFileName, audioUrl);
-              
-              const link = document.createElement('a');
-              link.href = downloadUrl;
-              link.download = `${finalFileName}.mp3`;
-              link.style.display = 'none';
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              
-              console.log('🎵✅ Téléchargement initié avec le nom:', `${finalFileName}.mp3`);
-            } catch (error) {
-              console.error('❌ Erreur lors du téléchargement:', error);
-              alert('Erreur lors du téléchargement du fichier.');
-            }
-          }}
-          className="rhyme-button"
-        >
-          💾 Télécharger la comptine
-        </button>
+      {/* Contenu de la comptine */}
+      <div style={{
+        width: '100%',
+        maxWidth: '500px',
+        textAlign: 'center',
+        lineHeight: '1.8',
+        fontSize: '1.1rem',
+        color: '#4c1d95',
+        fontWeight: '500',
+        whiteSpace: 'pre-line'
+      }}>
+        {/* Affichage UNIQUEMENT si audio disponible */}
+        {(generatedResult.audio_path || generatedResult.audio_url) ? (
+          // Audio uniquement - PAS DE FALLBACK
+          <div style={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '1rem'
+          }}>
+            <h3 style={{ color: '#4c1d95', marginBottom: '1rem' }}>
+              🎵 {generatedResult.title || 'Votre comptine musicale'}
+            </h3>
+            <audio
+              controls
+              style={{ width: '100%', maxWidth: '400px' }}
+              src={generatedResult.audio_path || generatedResult.audio_url}
+              download={(generatedResult.audio_path || generatedResult.audio_url)?.split('/').pop()}
+            />
+            <p style={{ color: '#6b7280', fontSize: '0.9rem', textAlign: 'center' }}>
+              🎶 Votre comptine musicale est prête ! Appuyez sur play pour l'écouter.
+            </p>
+          </div>
+        ) : (
+          // Si pas d'audio, afficher message d'erreur
+          <div style={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '1rem',
+            padding: '2rem',
+            color: '#dc2626',
+            textAlign: 'center'
+          }}>
+            <h3 style={{ color: '#dc2626', marginBottom: '1rem' }}>
+              ❌ Erreur de génération
+            </h3>
+            <p>
+              La création de l'audio a échoué. Veuillez réessayer en cliquant sur "Créer ma comptine".
+            </p>
+          </div>
+        )}
       </div>
-      
-      {/* Statut de génération musicale */}
-      {generatedResult.task_id && !generatedResult.audio_path && (
-        <div style={{
-          padding: '0.5rem 1rem',
-          backgroundColor: generatedResult.music_status === 'failed' || generatedResult.music_status === 'error' ? '#ffe5eb' : '#fff5e0',
-          color: generatedResult.music_status === 'failed' || generatedResult.music_status === 'error' ? '#FF85A1' : '#FFD166',
-          border: `2px solid ${generatedResult.music_status === 'failed' || generatedResult.music_status === 'error' ? '#FF85A1' : '#FFD166'}`,
-          borderRadius: '16px',
-          fontWeight: '600',
-          textAlign: 'center',
-          fontSize: '0.8rem',
-          maxWidth: '280px'
-        }}>
-          {generatedResult.music_status === 'failed' || generatedResult.music_status === 'error' ? (
-            `❌ Génération échouée`
-          ) : generatedResult.music_status === 'completed_no_audio' ? (
-            '⚠️ Audio non disponible'
-          ) : (
-            '🎵 Génération en cours...'
-          )}
+
+      {/* Boutons d'action uniquement si audio présent */}
+      {(generatedResult.audio_path || generatedResult.audio_url) && (
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+          <button
+            onClick={() => {
+              const audioUrl = generatedResult.audio_path || generatedResult.audio_url;
+              const fileName = audioUrl.split('/').pop() || 'comptine.mp3';
+              const a = document.createElement('a');
+              a.href = audioUrl;
+              a.download = fileName;
+              a.click();
+            }}
+            className="rhyme-button"
+          >
+            🎵 Télécharger l'audio
+          </button>
         </div>
       )}
     </div>
