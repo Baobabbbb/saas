@@ -22,11 +22,21 @@ import ComicPopup from './components/ComicPopup';
 import LegalPages from './components/LegalPages';
 import CookieBanner from './components/CookieBanner';
 import Footer from './components/Footer';
-import useSupabaseUser from './hooks/useSupabaseUser';
+import useSupabaseUser from './hooks/useSupabaseUser_simple';
 
 import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
 import { downloadComicAsPDF } from './utils/pdfUtils';
+import { jsPDF } from 'jspdf';
+
+// Fonction utilitaire pour construire l'URL audio complète
+const getAudioUrl = (audioPath) => {
+  if (!audioPath) return null;
+  // Si c'est déjà une URL complète, la retourner
+  if (audioPath.startsWith('http')) return audioPath;
+  // Sinon, construire l'URL avec le bon port
+  return `http://localhost:8006/${audioPath}`;
+};
 
 // Fonction pour générer des titres attractifs pour les enfants
 const generateChildFriendlyTitle = (contentType, theme, content = '') => {
@@ -118,7 +128,16 @@ function App() {
   const [customRequest, setCustomRequest] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   // const [showConfetti, setShowConfetti] = useState(false);
+  // États séparés pour chaque type de contenu
+  const [audioResult, setAudioResult] = useState(null);
+  const [rhymeResult, setRhymeResult] = useState(null);
+  
+  // État générique pour la compatibilité (sera remplacé par les états spécifiques)
   const [generatedResult, setGeneratedResult] = useState(null);
+  const [forceAudioRender, setForceAudioRender] = useState(0);
+  
+  // État pour la popup d'histoire (depuis l'historique)
+  const [storyPopupData, setStoryPopupData] = useState(null);
   const [showFullStory, setShowFullStory] = useState(false);
   const [showStoryPopup, setShowStoryPopup] = useState(false);
   const [showColoringPopup, setShowColoringPopup] = useState(false);
@@ -152,18 +171,57 @@ function App() {
   // User account state
   const { user, loading } = useSupabaseUser();
   const [showHistory, setShowHistory] = useState(false);
+
+  // Supprimer les erreurs d'extensions de navigateur
+  useEffect(() => {
+    // Masquer les erreurs des extensions crypto/solana qui polluent la console
+    const originalError = console.error;
+    console.error = (...args) => {
+      // Filtrer les erreurs d'extensions
+      const message = args.join(' ');
+      if (message.includes('solanaActionsContentScript') || 
+          message.includes('extension') ||
+          message.includes('chrome-extension')) {
+        return; // Ignorer ces erreurs
+      }
+      originalError.apply(console, args);
+    };
+    
+    return () => {
+      console.error = originalError;
+    };
+  }, []);
   
   // Legal pages state
   const [showLegalPages, setShowLegalPages] = useState(false);
   const [activeLegalSection, setActiveLegalSection] = useState('mentions');
 
+  // Fonction pour obtenir le bon résultat selon le type de contenu
+  const getCurrentResult = () => {
+    switch (contentType) {
+      case 'audio':
+        return audioResult;
+      case 'rhyme':
+        return rhymeResult;
+      case 'coloring':
+        return coloringResult;
+      case 'comic':
+        return comicResult;
+      case 'animation':
+        return animationResult;
+      default:
+        return null;
+    }
+  };
+
   // 📖 Pagination : découpe le texte en pages
   const storyPages = useMemo(() => {
-    if (contentType === 'audio' && generatedResult?.content) {
-      return splitTextIntoPages(generatedResult.content);
+    const currentResult = getCurrentResult();
+    if (contentType === 'audio' && currentResult?.content) {
+      return splitTextIntoPages(currentResult.content);
     }
     return [];
-  }, [generatedResult, contentType]);
+  }, [contentType, audioResult, coloringResult, comicResult, animationResult, rhymeResult]);
   
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
@@ -182,10 +240,78 @@ function App() {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  // Fonction pour interroger le statut de l'animation
+  const pollAnimationStatus = async (animationId, initialData) => {
+    let attempts = 0;
+    const maxAttempts = 60; // 5 minutes max (5s * 60)
+    
+    const poll = async () => {
+      try {
+        const response = await fetch(API_ENDPOINTS.animationStatus(animationId));
+        if (!response.ok) throw new Error('Erreur lors de la vérification du statut');
+        
+        const statusData = await response.json();
+        console.log('🔄 Statut animation:', statusData);
+        
+        // Mettre à jour les données de l'animation
+        const updatedData = {
+          ...initialData,
+          ...statusData,
+          // Mapper les champs pour l'AnimationViewer
+          total_duration: statusData.duration || initialData.duration || 30,
+          clips: statusData.video_clips || statusData.result?.scenes || [],
+          scenes: statusData.scenes || statusData.result?.scenes || [],
+          generation_time: statusData.generation_time || 0,
+          successful_clips: statusData.successful_clips || 0,
+          fallback_clips: statusData.fallback_clips || 0,
+          // Extraire l'URL finale du vrai serveur
+          final_video_url: statusData.result?.final_video_url || statusData.final_video_url
+        };
+        
+        setAnimationResult(updatedData);
+        
+        // Si complété ou échoué, arrêter le polling
+        if (statusData.status === 'completed' || statusData.status === 'failed' || statusData.status === 'error') {
+          console.log('🏁 Animation terminée:', statusData.status);
+          return;
+        }
+        
+        // Continuer le polling si pas encore fini
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(poll, 5000); // Vérifier toutes les 5 secondes
+        } else {
+          console.warn('⌛ Timeout du polling d\'animation');
+        }
+        
+      } catch (error) {
+        console.error('❌ Erreur lors du polling:', error);
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(poll, 5000); // Réessayer en cas d'erreur
+        }
+      }
+    };
+    
+    // Démarrer le polling après 2 secondes
+    setTimeout(poll, 2000);
+  };
   
   // Handle Generation
   const handleGenerate = async () => {
-    console.log('🚀 Fonction handleGenerate appelée, contentType:', contentType);
+    // Réinitialiser les états quand on lance une nouvelle génération
+    setAudioResult(null);
+    setRhymeResult(null);
+    setColoringResult(null);
+    setComicResult(null);
+    setAnimationResult(null);
+    setGeneratedResult(null);
+    // Éviter les appels multiples
+    if (isGenerating) {
+      return;
+    }
+    
     setIsGenerating(true);
     setGeneratedResult(null);
     // setShowConfetti(true);
@@ -195,11 +321,8 @@ function App() {
       delete window.tempRhymeData;
     }
 
-    if (loading) return;
-
     try {
       let generatedContent = null;
-      console.log('📋 Début de génération pour type:', contentType);
 
       if (contentType === 'rhyme') {
         const payload = {
@@ -246,13 +369,19 @@ function App() {
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
         voice: selectedVoice,
         custom_request: customRequest
-      };      const response = await fetch(API_ENDPOINTS.generateAudioStory, {
+      };
+      
+      const response = await fetch(API_ENDPOINTS.generateAudioStory, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       
-      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erreur HTTP : ${response.status} - ${errorText}`);
+      }
+      
       generatedContent = await response.json();
     } else if (contentType === 'coloring') {
       const finalTheme = selectedTheme === 'custom' ? customColoringTheme : selectedTheme;
@@ -270,8 +399,17 @@ function App() {
       
       const coloringData = await response.json();
       
-      setColoringResult(coloringData);
-      generatedContent = coloringData; // Stocker pour l'historique
+      // Générer un titre pour le coloriage
+      const coloringTitle = generateChildFriendlyTitle('coloriage', finalTheme);
+      
+      // Ajouter le titre aux données
+      const coloringDataWithTitle = {
+        ...coloringData,
+        title: coloringTitle
+      };
+      
+      setColoringResult(coloringDataWithTitle);
+      generatedContent = coloringDataWithTitle; // Stocker pour l'historique
     } else if (contentType === 'comic') {
       console.log('🎯 Démarrage génération BD...');
       
@@ -357,11 +495,9 @@ function App() {
       }
       
       const payload = {
-        story: story,
-        duration: selectedDuration,
-        style: selectedStyle,
         theme: selectedAnimationTheme,
-        mode: 'production'  // Toujours en mode production
+        duration: selectedDuration,
+        custom_prompt: story  // Utiliser custom_prompt au lieu de story
       };
       
       const response = await fetch(API_ENDPOINTS.generateAnimation, {
@@ -380,9 +516,15 @@ function App() {
       }
       
       const animationData = await response.json();
+      console.log('🎬 Animation démarrée:', animationData);
+      
+      // Démarrer le suivi du statut de l'animation
+      if (animationData.animation_id) {
+        pollAnimationStatus(animationData.animation_id, animationData);
+      }
       
       setAnimationResult(animationData);
-      setShowAnimationViewer(true); // Afficher immédiatement le viewer
+      // Ne pas ouvrir la popup automatiquement, rester sur la page principale
       generatedContent = animationData; // Stocker pour l'historique
     }
 
@@ -417,7 +559,40 @@ function App() {
     setCurrentTitle(title);
     
     // Pour tous les types de contenu, affichage immédiat
-    setGeneratedResult(generatedContent);
+    // Forcer la préservation des propriétés audio
+    const resultWithAudio = {
+      ...generatedContent,
+      audio_path: generatedContent?.audio_path || null,
+      audio_url: generatedContent?.audio_url || null,
+      audio_generated: generatedContent?.audio_generated || false
+    };
+    
+    // Stocker dans le bon état selon le type de contenu
+    switch (contentType) {
+      case 'audio':
+        setAudioResult(resultWithAudio);
+        break;
+      case 'rhyme':
+        setRhymeResult(resultWithAudio);
+        break;
+      case 'coloring':
+        setColoringResult(resultWithAudio);
+        break;
+      case 'comic':
+        setComicResult(resultWithAudio);
+        break;
+      case 'animation':
+        setAnimationResult(resultWithAudio);
+        break;
+    }
+    
+    // Garder l'état générique pour la compatibilité
+    setGeneratedResult(resultWithAudio);
+    
+    // Forcer le re-rendu des composants audio
+    if (resultWithAudio?.audio_path || resultWithAudio?.audio_url) {
+      setForceAudioRender(prev => prev + 1);
+    }
     
     console.log('🔁 ContentType:', contentType);
 
@@ -467,7 +642,8 @@ function App() {
           title: title,
           createdAt: new Date().toISOString(),
           content: generatedContent?.content || generatedContent || 'Contenu généré...',
-          audio_path: generatedContent?.audio_path || null
+          audio_path: generatedContent?.audio_path || null,
+          audio_generated: generatedContent?.audio_generated || false
         };
       }
       
@@ -500,24 +676,64 @@ function App() {
 const handleSelectCreation = (creation) => {
     // Si c'est une demande pour afficher l'histoire
     if (creation.action === 'showStory') {
-      setGeneratedResult({
+      const storyData = {
         title: creation.title,
         content: creation.content || creation.data?.content || '',
-        type: creation.type
-      });
+        type: creation.type,
+        audio_path: creation.audio_path || creation.data?.audio_path || null,
+        audio_url: creation.audio_url || creation.data?.audio_url || null,
+        audio_generated: creation.audio_generated || creation.data?.audio_generated || false
+      };
+      
+      // Stocker dans le bon état selon le type
+      if (creation.type === 'audio') {
+        setAudioResult(storyData);
+      } else if (creation.type === 'rhyme') {
+        setRhymeResult(storyData);
+      }
+      
+      // Garder l'état générique pour la compatibilité
+      setGeneratedResult(storyData);
+      // Stocker les données pour la popup
+      setStoryPopupData(storyData);
       setShowStoryPopup(true);
       // On ne ferme PAS l'historique, juste on affiche la popup
     } else if (creation.action === 'showColoring') {
       // Pour les coloriages, on affiche dans la popup de coloriage
-      setColoringResult({
+      const coloringData = {
         success: true,
         theme: creation.theme || creation.data?.theme || 'coloriage',
         images: creation.images || creation.data?.images || [],
         total_images: (creation.images || creation.data?.images || []).length,
         metadata: creation.metadata || creation.data?.metadata || {}
-      });
+      };
+      setColoringResult(coloringData);
       setShowColoringPopup(true);
       // On ne ferme PAS l'historique, juste on affiche la popup
+    } else if (creation.action === 'showComic') {
+      // Pour les BD, on affiche dans la popup de BD
+      const comicData = {
+        success: true,
+        theme: creation.theme || creation.data?.theme || 'aventure',
+        pages: creation.pages || creation.data?.pages || [],
+        total_pages: (creation.pages || creation.data?.pages || []).length,
+        art_style: creation.data?.art_style || 'cartoon',
+        comic_data: creation.data || {}
+      };
+      setComicResult(comicData);
+      setShowComicPopup(true);
+    } else if (creation.action === 'showAnimation') {
+      // Pour les animations, on affiche dans la popup d'animation
+      const animationData = {
+        success: true,
+        theme: creation.theme || creation.data?.theme || 'aventure',
+        clips: creation.clips || creation.data?.clips || [],
+        total_scenes: (creation.clips || creation.data?.clips || []).length,
+        actual_duration: creation.data?.actual_duration || 5,
+        animation_data: creation.data || {}
+      };
+      setAnimationResult(animationData);
+      setShowAnimationViewer(true);
     } else {
       // Pour les autres actions, on ferme l'historique
       setShowHistory(false);
@@ -544,8 +760,6 @@ const handleSelectCreation = (creation) => {
   };
   
   const isFormValid = () => {
-    console.log('🔍 Validation du formulaire pour contentType:', contentType);
-    
     if (contentType === 'rhyme') {
       if (!selectedRhyme) return false;
       if (selectedRhyme === 'custom' && !customRhyme.trim()) return false;
@@ -555,45 +769,14 @@ const handleSelectCreation = (creation) => {
       // La voix est optionnelle
     } else if (contentType === 'coloring') {
       if (!selectedTheme) return false;
-      if (selectedTheme === 'custom' && !customColoringTheme.trim()) {
-        console.log('❌ Thème de coloriage personnalisé manquant');
-        return false;
-      }
+      if (selectedTheme === 'custom' && !customColoringTheme.trim()) return false;
     } else if (contentType === 'comic') {
-      console.log('🎯 Debug validation BD:', {
-        selectedComicTheme,
-        selectedComicArtStyle,
-        selectedComicCharacter,
-        selectedComicStoryLength,
-        customRequest: customRequest?.slice(0, 20) + '...',
-        customCharacter: customCharacter?.slice(0, 20) + '...'
-      });
-      
-      if (!selectedComicTheme) {
-        console.log('❌ Thème BD manquant');
-        return false;
-      }
-      if (selectedComicTheme === 'custom' && !customComicTheme.trim()) {
-        console.log('❌ Thème personnalisé manquant');
-        return false;
-      }
-      if (!selectedComicArtStyle) {
-        console.log('❌ Style artistique manquant');
-        return false;
-      }
-      if (!selectedComicCharacter) {
-        console.log('❌ Personnage manquant');
-        return false;
-      }
-      if (selectedComicCharacter === 'custom' && !customCharacter.trim()) {
-        console.log('❌ Personnage personnalisé manquant');
-        return false;
-      }
-      if (!selectedComicStoryLength) {
-        console.log('❌ Longueur d\'histoire manquante');
-        return false;
-      }
-      console.log('✅ Validation BD réussie');
+      if (!selectedComicTheme) return false;
+      if (selectedComicTheme === 'custom' && !customComicTheme.trim()) return false;
+      if (!selectedComicArtStyle) return false;
+      if (!selectedComicCharacter) return false;
+      if (selectedComicCharacter === 'custom' && !customCharacter.trim()) return false;
+      if (!selectedComicStoryLength) return false;
     } else if (contentType === 'animation') {
       // Pour les animations, au minimum un thème doit être sélectionné
       if (!selectedAnimationTheme) return false;
@@ -642,6 +825,7 @@ const downloadPDF = async (title, content) => {
     new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = "anonymous";
+      // Note: crossOrigin est toujours nécessaire pour les images externes
       img.src = url;
       img.onload = () => resolve(img);
     });
@@ -727,6 +911,7 @@ const downloadPDF = async (title, content) => {
                 type: 'rhyme',
                 audio_url: audioUrl,
                 audio_path: audioUrl,
+                audio_generated: true,
                 music_status: 'completed',
                 // Ne PAS inclure 'content' pour forcer l'affichage audio uniquement
               };
@@ -740,6 +925,7 @@ const downloadPDF = async (title, content) => {
                 type: 'rhyme',
                 audio_url: audioUrl,
                 audio_path: audioUrl,
+                audio_generated: true,
                 music_status: 'completed',
                 title: 'Comptine musicale'
               });
@@ -751,6 +937,7 @@ const downloadPDF = async (title, content) => {
             if (tempData) {
               const completeRhyme = {
                 ...tempData,
+                audio_generated: false,
                 music_status: 'completed_no_audio'
               };
               setGeneratedResult(completeRhyme);
@@ -919,12 +1106,12 @@ const downloadPDF = async (title, content) => {
             customRequest={customRequest}
             setCustomRequest={setCustomRequest}
             stepNumber={contentType === 'coloring' ? 4 : 3}
-          /><GenerateButton
-            onGenerate={handleGenerate}
-            isGenerating={isGenerating}
-            isDisabled={!isFormValid()}
-            contentType={contentType}
-          />
+          />                <GenerateButton 
+                  onGenerate={handleGenerate} 
+                  isGenerating={isGenerating}
+                  isDisabled={!isFormValid()}
+                  contentType={contentType}
+                />
         </motion.div>
 
         <div className="preview-column">
@@ -935,7 +1122,7 @@ const downloadPDF = async (title, content) => {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <div className="preview-container">
-              <div className={`preview ${!generatedResult ? 'empty' : ''}`}>
+              <div className={`preview ${!getCurrentResult() ? 'empty' : ''}`}>
                 <AnimatePresence mode="wait">
   {isGenerating ? (
     <motion.div
@@ -986,8 +1173,8 @@ const downloadPDF = async (title, content) => {
       <button
         onClick={() => {
           if (coloringResult?.images) {
-            // Utiliser le titre généré par l'IA, sinon fallback sur le thème
-            const titleForDownload = currentTitle || (selectedTheme ? `coloriages_${selectedTheme}` : 'coloriages');
+            // Utiliser le titre du coloriage généré
+            const titleForDownload = coloringResult.title || (selectedTheme ? `coloriages_${selectedTheme}` : 'coloriages');
             downloadColoringAsPDF(coloringResult.images, titleForDownload);
           }
         }}
@@ -1040,6 +1227,66 @@ const downloadPDF = async (title, content) => {
         📄 Télécharger la BD
       </button>
     </motion.div>
+  ) : animationResult && contentType === 'animation' && animationResult.status === 'completed' ? (
+    <motion.div
+      className="generated-result"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      key="animation-result"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '1rem'
+      }}
+    >
+      <div style={{
+        textAlign: 'center',
+        marginBottom: '1rem'
+      }}>
+        <h3 style={{ color: '#4c1d95', marginBottom: '0.5rem' }}>🎬 Votre dessin animé est prêt !</h3>
+        <p style={{ color: '#666', fontSize: '0.9rem' }}>
+          Animation de {animationResult.duration || animationResult.total_duration || 30}s générée avec succès
+        </p>
+      </div>
+
+      <button
+        onClick={() => setShowAnimationViewer(true)}
+        className="rhyme-button"
+        style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          border: 'none',
+          color: 'white'
+        }}
+      >
+        🎬 Ouvrir le dessin animé
+      </button>
+
+      <button
+        onClick={() => {
+          const videoUrl = animationResult.final_video_url || animationResult.result?.final_video_url;
+          if (videoUrl) {
+            // Créer un lien temporaire pour télécharger
+            const link = document.createElement('a');
+            link.href = videoUrl;
+            link.download = `animation_${animationResult.theme || 'video'}_${Date.now()}.mp4`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+        }}
+        className="rhyme-button"
+        style={{
+          background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+          border: 'none',
+          color: 'white'
+        }}
+      >
+        💾 Télécharger le dessin animé
+      </button>
+    </motion.div>
   ) : (
     
     <motion.div
@@ -1053,7 +1300,7 @@ const downloadPDF = async (title, content) => {
     src="/cloud-logo.svg"
     alt="BDKids logo"
     className="preview-logo"
-  />*/}  {!generatedResult && !coloringResult && !comicResult && (
+  />*/}  {!getCurrentResult() && (
     <div className="empty-preview">    <p>
       {contentType === 'rhyme'
         ? 'Votre comptine apparaîtra ici'
@@ -1069,7 +1316,7 @@ const downloadPDF = async (title, content) => {
   )}
   
   {/* 🎵 Affichage des comptines */}
-  {contentType === 'rhyme' && generatedResult && (
+              {contentType === 'rhyme' && getCurrentResult() && (
     <div
       style={{
         minHeight: '300px',
@@ -1097,7 +1344,7 @@ const downloadPDF = async (title, content) => {
         whiteSpace: 'pre-line'
       }}>
         {/* Affichage UNIQUEMENT si audio disponible */}
-        {(generatedResult.audio_path || generatedResult.audio_url) ? (
+                      {(getCurrentResult().audio_path || getCurrentResult().audio_url) ? (
           // Audio uniquement - PAS DE FALLBACK
           <div style={{
             width: '100%',
@@ -1107,13 +1354,13 @@ const downloadPDF = async (title, content) => {
             gap: '1rem'
           }}>
             <h3 style={{ color: '#4c1d95', marginBottom: '1rem' }}>
-              🎵 {generatedResult.title || 'Votre comptine musicale'}
+                              🎵 {getCurrentResult().title || 'Votre comptine musicale'}
             </h3>
             <audio
               controls
               style={{ width: '100%', maxWidth: '400px' }}
-              src={generatedResult.audio_path || generatedResult.audio_url}
-              download={(generatedResult.audio_path || generatedResult.audio_url)?.split('/').pop()}
+              src={getAudioUrl(getCurrentResult().audio_path || getCurrentResult().audio_url)}
+              download={(getCurrentResult().audio_path || getCurrentResult().audio_url)?.split('/').pop()}
             />
             <p style={{ color: '#6b7280', fontSize: '0.9rem', textAlign: 'center' }}>
               🎶 Votre comptine musicale est prête ! Appuyez sur play pour l'écouter.
@@ -1142,11 +1389,11 @@ const downloadPDF = async (title, content) => {
       </div>
 
       {/* Boutons d'action uniquement si audio présent */}
-      {(generatedResult.audio_path || generatedResult.audio_url) && (
+      {(getCurrentResult().audio_path || getCurrentResult().audio_url) && getCurrentResult().audio_generated && (
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '1rem' }}>
           <button
             onClick={() => {
-              const audioUrl = generatedResult.audio_path || generatedResult.audio_url;
+              const audioUrl = getCurrentResult().audio_path || getCurrentResult().audio_url;
               const fileName = audioUrl.split('/').pop() || 'comptine.mp3';
               const a = document.createElement('a');
               a.href = audioUrl;
@@ -1163,35 +1410,41 @@ const downloadPDF = async (title, content) => {
   )}
   
   {/* 🎵 Audio présent pour autres contenus */}
-{contentType !== 'rhyme' && (generatedResult?.audio_path || generatedResult?.audio_url) && (
+
+{contentType === 'audio' && getCurrentResult()?.audio_path && getCurrentResult()?.audio_generated && (
   <div
     style={{
-      height: '300px', // 👈 même hauteur que le bloc boutons
+      minHeight: '150px',
+
       display: 'flex',
       flexDirection: 'column',
-      justifyContent: 'center', // 👈 centre l’audio verticalement aussi
+        justifyContent: 'center', // 👈 centre l’audio verticalement aussi
       alignItems: 'center'
     }}
   >
     <audio
+      key={`audio-${getCurrentResult()?.audio_path}`}
+      preload="metadata"
       controls
-      style={{ width: '100%', maxWidth: '360px' }} // 👈 limite la largeur pour l’esthétique
-      src={generatedResult.audio_path || generatedResult.audio_url}
-      download={(generatedResult.audio_path || generatedResult.audio_url)?.split('/').pop()}
+      style={{ width: '80%', minWidth: '320px' }} // 👈 limite la largeur pour l’esthétique
+      src={getAudioUrl(getCurrentResult().audio_path || getCurrentResult().audio_url)}
+      download={(getCurrentResult().audio_path || getCurrentResult().audio_url)?.split('/').pop()}
     />
+
   </div>
 )}
 
-{contentType === 'audio' && generatedResult?.content && (
+{contentType === 'audio' && getCurrentResult()?.content && (
   <div
     style={{
-      height: '300px', // 👈 même hauteur
+      height: '200px', // 👈 hauteur réduite pour remonter les boutons
       width: '100%',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: '1rem'
+      gap: '0.5rem',
+      marginBottom: '10%'
     }}
   >
     <button
@@ -1202,11 +1455,60 @@ const downloadPDF = async (title, content) => {
     </button>
 
     <button
-      onClick={() => downloadPDF(generatedResult.title, generatedResult.content)}
+      onClick={() => downloadPDF(getCurrentResult().title, getCurrentResult().content)}
       className="rhyme-button"
     >
       📄 Télécharger l'histoire
     </button>
+
+    {/* Bouton audio seulement si audio disponible */}
+    {(getCurrentResult().audio_path || getCurrentResult().audio_url) && (
+    <button
+      onClick={async () => {
+                 try {
+           const audioUrl = getAudioUrl(getCurrentResult().audio_path);
+           
+           // Utiliser EXACTEMENT la même logique que le PDF
+           let finalTitle = getCurrentResult().title || 'Histoire';
+           if (getCurrentResult().content && getCurrentResult().content.startsWith("**") && getCurrentResult().content.includes("**", 2)) {
+             finalTitle = getCurrentResult().content.split("**")[1].trim();
+           }
+           
+           // Appliquer la même transformation que le PDF
+           const safeTitle = finalTitle
+             .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+             .toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+          
+          // Fetch le fichier audio pour forcer le téléchargement
+          const response = await fetch(audioUrl);
+          const blob = await response.blob();
+          
+                  // Créer un URL pour le blob (méthode moderne)
+        const blobUrl = URL.createObjectURL(blob);
+          
+          // Créer le lien de téléchargement
+          const link = document.createElement('a');
+          link.href = blobUrl;
+                     link.download = `${safeTitle}.mp3`;
+          link.style.display = 'none';
+          
+          // Ajouter au DOM, cliquer et nettoyer
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+                  // Nettoyer l'URL blob (méthode moderne)
+        URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+          console.error('Erreur lors du téléchargement audio:', error);
+          alert('Erreur lors du téléchargement. Veuillez réessayer.');
+        }
+      }}
+      className="rhyme-button"
+    >
+      🎵 Télécharger l'audio
+    </button>
+    )}
   </div>
 )}
 </motion.div>
@@ -1243,9 +1545,12 @@ const downloadPDF = async (title, content) => {
     </AnimatePresence>
       {showStoryPopup && (
   <StoryPopup
-    title={generatedResult.title}
-    content={generatedResult.content}
-    onClose={() => setShowStoryPopup(false)}
+                title={storyPopupData?.title || getCurrentResult()?.title || 'Histoire'}
+            content={storyPopupData?.content || getCurrentResult()?.content || ''}
+    onClose={() => {
+      setShowStoryPopup(false);
+      setStoryPopupData(null);
+    }}
   />
 )}
 
@@ -1253,6 +1558,7 @@ const downloadPDF = async (title, content) => {
       <ColoringPopup
         coloringResult={coloringResult}
         selectedTheme={selectedTheme}
+        customColoringTheme={customColoringTheme}
         onClose={() => setShowColoringPopup(false)}
       />
     )}
@@ -1260,6 +1566,7 @@ const downloadPDF = async (title, content) => {
     {showComicPopup && (
       <ComicPopup
         comicResult={comicResult}
+        selectedComicTheme={selectedComicTheme}
         onClose={() => setShowComicPopup(false)}
       />
     )}
@@ -1267,6 +1574,7 @@ const downloadPDF = async (title, content) => {
     {showAnimationViewer && (
       <AnimationViewer
         animationResult={animationResult}
+        selectedAnimationTheme={selectedAnimationTheme}
         onClose={() => setShowAnimationViewer(false)}
       />
     )}

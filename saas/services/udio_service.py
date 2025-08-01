@@ -249,12 +249,14 @@ class UdioService:
                                 if audio_url:
                                     response_data["audio_url"] = audio_url
                                     response_data["audio_path"] = audio_url
+                                    response_data["audio_generated"] = True
                                     response_data["status"] = "completed"
                                     print(f"✅ Comptine Udio prête: {audio_url}")
                                 else:
                                     print(f"⚠️ Aucune URL audio Udio trouvée")
                                     print(f"   Task data complet: {json.dumps(task_data, indent=2)}")
                                     response_data["status"] = "completed"
+                                    response_data["audio_generated"] = False
                                     response_data["warning"] = "Audio généré mais URL introuvable"
                             
                             return response_data
@@ -311,13 +313,15 @@ class UdioService:
                         "status": "completed",
                         "task_data": task_data,
                         "audio_url": audio_url,
-                        "audio_path": audio_url
+                        "audio_path": audio_url,
+                        "audio_generated": True
                     }
                 else:
                     print(f"⚠️ Udio terminé mais pas d'URL audio")
                     return {
                         "status": "completed",
                         "task_data": task_data,
+                        "audio_generated": False,
                         "warning": "Pas d'URL audio dans la réponse"
                     }
             

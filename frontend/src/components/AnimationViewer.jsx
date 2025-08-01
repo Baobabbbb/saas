@@ -19,10 +19,11 @@ const AnimationViewer = ({ animationResult, onClose }) => {
     pipeline_type
   } = animationResult;
 
-  const hasVideo = clips.some(clip => clip.status === 'success');
+  const hasVideo = clips.some(clip => clip.status === 'success') || (status === 'completed' && (animationResult.final_video_url || animationResult.result?.final_video_url));
   const scenesDetails = scenes || animationResult.scenes_details || [];
 
   const formatTime = (seconds) => {
+    if (!seconds || isNaN(seconds)) return '---';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
@@ -65,6 +66,15 @@ const AnimationViewer = ({ animationResult, onClose }) => {
         {/* Header */}
         <div className="viewer-header">
           <h2>🎬 Votre dessin animé IA</h2>
+          {status && (
+            <div className="status-badge" style={{backgroundColor: getStatusColor(status)}}>
+              {getStatusIcon(status)} {status === 'generating_idea' ? 'Création de l\'idée...' :
+                                      status === 'creating_scenes' ? 'Création des scènes...' :
+                                      status === 'generating_clips' ? 'Génération vidéo...' :
+                                      status === 'completed' ? 'Terminé !' :
+                                      status === 'failed' ? 'Échoué' : status}
+            </div>
+          )}
           <button className="close-button" onClick={onClose}>
             ✕
           </button>
@@ -74,7 +84,7 @@ const AnimationViewer = ({ animationResult, onClose }) => {
         <div className="animation-stats">
           <div className="stat-item">
             <span className="stat-icon">⏱️</span>
-            <span>Durée: {formatTime(total_duration)}</span>
+            <span>Durée: {formatTime(total_duration || animationResult.duration)}</span>
           </div>
           <div className="stat-item">
             <span className="stat-icon">🎞️</span>
@@ -92,7 +102,7 @@ const AnimationViewer = ({ animationResult, onClose }) => {
           )}
           <div className="stat-item">
             <span className="stat-icon">🚀</span>
-            <span>Généré en {Math.round(generation_time)}s</span>
+            <span>Généré en {generation_time ? Math.round(generation_time) + 's' : 'En cours...'}</span>
           </div>
         </div>
 
@@ -245,12 +255,33 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                   </div>
                 ) : (
                   <div className="no-video">
-                    <div className="no-video-icon">⚠️</div>
-                    <h3>Génération en cours...</h3>
+                    <div className="no-video-icon">{status === 'completed' ? '✅' : '⚠️'}</div>
+                    <h3>{status === 'completed' ? 'Animation terminée !' : 'Génération en cours...'}</h3>
+                    <p style={{fontSize: '12px', color: '#666'}}>Debug: status={status}, hasVideo={hasVideo}</p>
                     <p>
-                      La génération vidéo peut prendre quelques minutes.
-                      Certaines scènes utilisent des modes de fallback.
+                      {status === 'completed' 
+                        ? 'Votre animation a été générée avec succès ! Thème: ' + (animationResult.theme || 'N/A')
+                        : 'La génération vidéo peut prendre quelques minutes. Certaines scènes utilisent des modes de fallback.'}
                     </p>
+                    {status === 'completed' && (animationResult.final_video_url || animationResult.result?.final_video_url) && (
+                      <div className="video-controls">
+                        <button className="play-btn" onClick={() => window.open(animationResult.final_video_url || animationResult.result?.final_video_url, '_blank')}>
+                          🎬 Voir l'animation
+                        </button>
+                      </div>
+                    )}
+                    {/* Bouton de test temporaire */}
+                    {(animationResult.final_video_url || animationResult.result?.final_video_url) && (
+                      <div className="video-controls" style={{marginTop: '10px'}}>
+                        <button className="play-btn" style={{backgroundColor: '#ff6b6b'}} onClick={() => {
+                          const url = animationResult.final_video_url || animationResult.result?.final_video_url;
+                          console.log('Test vidéo URL:', url);
+                          window.open(url, '_blank');
+                        }}>
+                          🗏 Test Vidéo
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </motion.div>

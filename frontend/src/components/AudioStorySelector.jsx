@@ -3,20 +3,23 @@ import { motion } from 'framer-motion';
 import './AudioStorySelector.css';
 
 const audioStories = [
-  { id: 'bedtime', title: 'Histoire du soir', description: 'Un conte apaisant pour aider votre enfant à s\'endormir', emoji: '🌙' },
+  { id: 'magic', title: 'Monde magique', description: 'Une histoire pleine de magie avec des fées et des sorciers bienveillants', emoji: '🧚‍♀️' },
+  { id: 'dinosaurs', title: 'Temps des dinosaures', description: 'Un voyage dans le passé à la rencontre de dinosaures gentils', emoji: '🦕' },
+  { id: 'space', title: 'Voyage spatial', description: 'Une aventure dans l\'espace avec des planètes et des aliens sympathiques', emoji: '🚀' },
   { id: 'adventure', title: 'Aventure fantastique', description: 'Une aventure pleine de rebondissements et de magie', emoji: '✨' },
   { id: 'animals', title: 'Amis animaux', description: 'Une histoire avec des animaux qui parlent et vivent des aventures', emoji: '🦊' },
-  { id: 'learning', title: 'Conte éducatif', description: 'Une histoire qui enseigne une leçon importante', emoji: '📚' },
+  { id: 'underwater', title: 'Monde sous-marin', description: 'Une exploration des océans avec des créatures marines extraordinaires', emoji: '🐠' },
+  { id: 'forest', title: 'Forêt enchantée', description: 'Une promenade dans une forêt mystérieuse pleine de surprises', emoji: '🌲' },
   { id: 'funny', title: 'Histoire drôle', description: 'Un conte amusant qui fera rire votre enfant', emoji: '😄' },
-  { id: 'mystery', title: 'Petit mystère', description: 'Une énigme adaptée aux enfants à résoudre', emoji: '🔍' }
+  { id: 'mystery', title: 'Petit mystère', description: 'Une énigme adaptée aux enfants à résoudre', emoji: '🔍' },
+  { id: 'friendship', title: 'Belle amitié', description: 'Une histoire touchante sur l\'amitié et l\'entraide', emoji: '👫' },
+  { id: 'learning', title: 'Conte éducatif', description: 'Une histoire qui enseigne une leçon importante', emoji: '📚' },
+  { id: 'bedtime', title: 'Histoire du soir', description: 'Un conte apaisant pour aider votre enfant à s\'endormir', emoji: '🌙' }
 ];
 
 const voices = [
-  { id: 'female', name: 'Voix féminine douce', description: 'Une voix apaisante et chaleureuse' },
-  { id: 'male', name: 'Voix masculine calme', description: 'Une voix posée et rassurante' },
-  { id: 'child', name: 'Voix d\'enfant', description: 'Une voix enjouée et espiègle' },
-  { id: 'grandma', name: 'Voix de grand-mère', description: 'Une voix chaleureuse et bienveillante' },
-  { id: 'grandpa', name: 'Voix de grand-père', description: 'Une voix sage et posée' }
+  { id: 'female', name: 'Voix féminine' },
+  { id: 'male', name: 'Voix masculine' }
 ];
 
 const AudioStorySelector = ({ 
@@ -29,7 +32,6 @@ const AudioStorySelector = ({
 }) => {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const handleAudioStorySelect = (storyId) => {
-    console.log('🎵 Sélection histoire audio:', storyId);
     // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
     if (selectedAudioStory === storyId) {
       setSelectedAudioStory('');
@@ -112,7 +114,7 @@ const AudioStorySelector = ({
       )}
 
       <div className="voice-selector-section">
-        <h3>3. Choisissez une voix pour la narration (optionnel)</h3>
+        <h3>3. Choisissez une narration (optionnel)</h3>
         
         <div className="voice-options">
           {voices.map((voice) => (
@@ -124,14 +126,10 @@ const AudioStorySelector = ({
               whileTap={{ scale: 0.98 }}
             >
               <div className="voice-icon">
-                {voice.id === 'female' ? '👩' : 
-                 voice.id === 'male' ? '👨' : 
-                 voice.id === 'child' ? '👧' : 
-                 voice.id === 'grandma' ? '👵' : '👴'}
+                {voice.id === 'female' ? '👩' : '👨'}
               </div>
               <div className="voice-details">
                 <h4>{voice.name}</h4>
-                <p>{voice.description}</p>
               </div>
             </motion.div>
           ))}

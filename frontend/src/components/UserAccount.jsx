@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './UserAccount.css';
 import { signUpWithProfile, signIn, signOut, updateUserProfile, getCurrentUserProfile, deleteUserAccount, resetPassword } from '../services/auth';
 import AdminPanel from './AdminPanel';
+import useSupabaseUser from '../hooks/useSupabaseUser_simple';
 
 const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -15,7 +16,14 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [error, setError] = useState('');
-  const [userFirstName, setUserFirstName] = useState('');
+  
+  // Utiliser le hook useSupabaseUser pour récupérer les données utilisateur
+  const { user, loading } = useSupabaseUser();
+  
+
+  
+  // Utiliser la prop isLoggedIn du parent pour déterminer l'état de connexion
+  const isUserLoggedIn = isLoggedIn || !!user;
   
   // Référence pour le composant user-account afin de détecter les clics en dehors
   const userAccountRef = useRef(null);
@@ -38,35 +46,8 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   
   // Vérifier si l'utilisateur connecté est l'administrateur
   const isAdmin = () => {
-    const userEmail = localStorage.getItem('userEmail');
-    return userEmail === ADMIN_EMAIL;
+    return user?.email === ADMIN_EMAIL;
   };
-
-  // Effet pour surveiller les changements de firstName dans localStorage
-  useEffect(() => {
-    const updateUserFirstName = () => {
-      if (isLoggedIn) {
-        const storedFirstName = localStorage.getItem('userFirstName');
-        setUserFirstName(storedFirstName || '');
-      } else {
-        // Si pas connecté, vider le firstName
-        setUserFirstName('');
-      }
-    };
-
-    // Mise à jour initiale
-    updateUserFirstName();
-
-    // Surveiller les changements seulement si connecté
-    let interval;
-    if (isLoggedIn) {
-      interval = setInterval(updateUserFirstName, 1000);
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isLoggedIn]);
 
   // useEffect pour fermer le dropdown quand on clique en dehors
   useEffect(() => {
@@ -182,8 +163,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
         return;
       }
       
-      // Mettre à jour l'état local
-      setUserFirstName(profileFirstName.trim());
+              // Le hook useSupabaseUser se met à jour automatiquement
       
       // Afficher le message de succès
       setProfileUpdateSuccess(true);
@@ -199,34 +179,36 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
     }
   };  const handleLogin = async (e) => {
     e.preventDefault();
-    const { error } = await signIn({ email, password });
     
-    if (error) {
-      // Afficher l'erreur directement dans le formulaire
-      if (error.message === 'WRONG_PASSWORD') {
-        setError('Les identifiants saisis sont incorrects. Vérifiez votre email et mot de passe.');
+    try {
+      const result = await signIn({ email, password });
+      
+      if (result.error) {
+        // Afficher l'erreur directement dans le formulaire
+        if (result.error.message === 'WRONG_PASSWORD') {
+          setError('Les identifiants saisis sont incorrects. Vérifiez votre email et mot de passe.');
+        } else {
+          setError(result.error.message);
+        }
+        setPassword(''); // Vider le mot de passe
       } else {
-        setError(error.originalMessage || error.message);
+        setError('');
+        // Succès de connexion
+        setEmail('');
+        setPassword('');
+        setShowLoginForm(false);
+        setShowDropdown(false);
+        
+        // Le hook useSupabaseUser se met à jour automatiquement
+        
+        // Appeler le callback de connexion pour mettre à jour l'état global
+        if (onLogin) {
+          onLogin();
+        }
       }
-      setPassword(''); // Vider le mot de passe
-    } else {
-      setError('');
-      // Succès de connexion
-      setEmail('');
-      setPassword('');
-      setShowLoginForm(false);
-      setShowDropdown(false);
-      
-      // Mettre à jour le prénom depuis localStorage
-      setTimeout(() => {
-        const storedFirstName = localStorage.getItem('userFirstName');
-        setUserFirstName(storedFirstName || '');
-      }, 100);
-      
-      // Appeler le callback de connexion pour mettre à jour l'état global
-      if (onLogin) {
-        onLogin();
-      }
+    } catch (error) {
+      console.error('Erreur de connexion:', error);
+      setError('Erreur lors de la connexion');
     }
   };
 
@@ -283,32 +265,41 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
       return;
     }
     
-    const { error } = await signUpWithProfile({ email, password, firstName, lastName });
-    if (error) {
-      setError(error.message);    } else {
-      setError('');
-      // Succès de l'inscription
-      setFirstName('');
-      setLastName('');
-      setEmail('');
-      setPassword('');
-      setShowRegisterForm(false);
-      setShowDropdown(false);
+    try {
+      const result = await signUpWithProfile({ email, password, firstName, lastName });
       
-      // Mettre à jour le prénom depuis localStorage
-      setTimeout(() => {
-        const storedFirstName = localStorage.getItem('userFirstName');
-        setUserFirstName(storedFirstName || '');
-      }, 100);
-      
-      // Appeler le callback d'inscription pour mettre à jour l'état global
-      if (onRegister) {
-        onRegister();
+      if (result.error) {
+        setError(result.error.message);
+      } else {
+        setError('');
+        // Succès de l'inscription
+        setFirstName('');
+        setLastName('');
+        setEmail('');
+        setPassword('');
+        setShowRegisterForm(false);
+        setShowDropdown(false);
+        
+        // Le hook useSupabaseUser se met à jour automatiquement
+        
+        // Appeler le callback d'inscription pour mettre à jour l'état global
+        if (onRegister) {
+          onRegister();
+        }
       }
+    } catch (error) {
+      console.error('Erreur d\'inscription:', error);
+      setError('Erreur lors de l\'inscription');
     }
-  };  const handleLogout = () => {
-    localStorage.clear();
-    window.location.reload();
+  };  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+      // Fallback en cas d'erreur
+      localStorage.clear();
+      window.location.reload();
+    }
   };
   const handleAdminPanelClick = () => {
     setShowAdminPanel(true);
@@ -438,10 +429,10 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
         whileTap={{ scale: 0.95 }}
         onClick={toggleDropdown}
       >
-        {isLoggedIn ? (
+        {isUserLoggedIn ? (
           <div className="avatar">
             {/* Première lettre du prénom de l'utilisateur ou icône par défaut */}
-            {userFirstName?.charAt(0).toUpperCase() || localStorage.getItem('userFirstName')?.charAt(0).toUpperCase() || 'U'}
+            {user?.name?.charAt(0).toUpperCase() || 'U'}
           </div>
         ) : (
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -459,10 +450,10 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            {isLoggedIn ? (
+            {isUserLoggedIn ? (
               <>
                 <div className="user-info">
-                  <p>Bonjour, {userFirstName || 'Visiteur'}</p>
+                  <p>Bonjour {user?.firstName || user?.name?.split(' ')[0] || 'Visiteur'}</p>
                 </div>
                 <ul>
                   {isAdmin() && (
@@ -575,6 +566,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                     id="password" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
+                    autoComplete="new-password"
                     required 
                   />
                   <div className="forgot-password-section">
@@ -663,6 +655,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                     id="register-password" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
+                    autoComplete="new-password"
                     required 
                   />
                   <div className="login-section">
