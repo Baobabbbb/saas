@@ -1,6 +1,6 @@
 // Utilitaires pour générer des PDFs de bandes dessinées
 
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 
 /**
  * Télécharge une bande dessinée au format PDF

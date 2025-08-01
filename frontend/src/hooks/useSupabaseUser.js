@@ -19,12 +19,9 @@ export default function useSupabaseUser() {
             .eq('id', user.id)
             .single();
           
-          console.log('Profile data:', profile, 'Error:', error); // Debug
-          
           if (profile && profile.prenom) {
             localStorage.setItem('userName', `${profile.prenom} ${profile.nom}`);
             localStorage.setItem('userFirstName', profile.prenom);
-            console.log('Stored firstName:', profile.prenom); // Debug
           } else {
             // Cas spécial pour l'admin si pas de profil
             if (user.email === 'fredagathe77@gmail.com') {
@@ -43,9 +40,7 @@ export default function useSupabaseUser() {
               if (!upsertError) {
                 localStorage.setItem('userName', `${adminFirstName} ${adminLastName}`);
                 localStorage.setItem('userFirstName', adminFirstName);
-                console.log('Created admin profile with firstName:', adminFirstName);
               } else {
-                console.error('Error creating admin profile:', upsertError);
                 const fallbackName = user.email.split('@')[0];
                 localStorage.setItem('userName', fallbackName);
                 localStorage.setItem('userFirstName', fallbackName);
@@ -77,14 +72,23 @@ export default function useSupabaseUser() {
       }
     };
 
-    // Initialisation de l'utilisateur avec gestion d'erreur
+    // Initialisation de l'utilisateur avec gestion d'erreur et timeout
     const initializeUser = async () => {
+      // Timeout de sécurité pour éviter que loading reste bloqué
+      const timeoutId = setTimeout(() => {
+        console.warn('Supabase timeout - passage en mode invité');
+        setUser(null);
+        setLoading(false);
+      }, 3000); // 3 secondes max
+
       try {
         const { data: { user } } = await supabase.auth.getUser();
+        clearTimeout(timeoutId);
         setUser(user);
         await syncUserData(user);
         setLoading(false);
       } catch (error) {
+        clearTimeout(timeoutId);
         console.warn('Supabase initialization error (non-critical):', error);
         setUser(null);
         setLoading(false);

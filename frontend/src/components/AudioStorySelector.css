@@ -117,8 +117,8 @@
 }
 
 .voice-options {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
   margin-top: 0.5rem;
 }
@@ -126,13 +126,15 @@
 .voice-option {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  gap: 0.75rem;
   background-color: #f5f0ff;
   border-radius: 12px;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
   border: 2px solid transparent;
+  min-height: 60px;
 }
 
 .voice-option:hover {
@@ -146,22 +148,25 @@
 }
 
 .voice-icon {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .voice-details {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  justify-content: center;
+  text-align: center;
 }
 
 .voice-details h4 {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   margin: 0;
   color: var(--primary);
+  font-weight: 600;
 }
 
 .voice-details p {
@@ -174,5 +179,18 @@
 @media (max-width: 768px) {
   .audio-story-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .voice-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .voice-option {
+    justify-content: flex-start;
+    text-align: left;
+  }
+  
+  .voice-details {
+    text-align: left;
   }
 }

@@ -23,7 +23,8 @@ const ColoringPopup = ({ coloringResult, onClose, selectedTheme }) => {
   };
   const handleDownloadPDF = () => {
     if (coloringResult?.images) {
-      const title = selectedTheme ? `coloriages_${selectedTheme}` : 'coloriages';
+      // Utiliser le même titre que la page principale
+      const title = coloringResult.title || (selectedTheme ? `coloriages_${selectedTheme}` : 'coloriages');
       downloadColoringAsPDF(coloringResult.images, title);
     }
   };

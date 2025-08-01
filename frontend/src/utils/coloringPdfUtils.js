@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 
 // Fonction pour charger une image et obtenir son dataURL
 async function fetchImageInfo(url) {
