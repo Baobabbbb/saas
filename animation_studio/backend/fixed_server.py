@@ -646,8 +646,28 @@ def get_status(animation_id: str):
 
 if __name__ == "__main__":
     import uvicorn
+    import os.path
+    
     print("🚀 Lancement du serveur Animation Studio COMPLET...")
     print(f"🔑 OpenAI: {'✅' if OPENAI_API_KEY else '❌'}")
     print(f"🔑 Wavespeed: {'✅' if WAVESPEED_API_KEY else '❌'}")
     print(f"🔑 FAL: {'✅' if FAL_API_KEY else '❌'}")
-    uvicorn.run(app, host="0.0.0.0", port=8012) 
+    
+    # Configuration SSL pour le développement
+    ssl_keyfile = "../../../ssl/dev.key"
+    ssl_certfile = "../../../ssl/dev.crt"
+    
+    # Vérifier si les certificats SSL existent
+    if os.path.exists(ssl_keyfile) and os.path.exists(ssl_certfile):
+        print(f"🔒 Démarrage du serveur Animation Studio sur HTTPS://0.0.0.0:8012")
+        uvicorn.run(
+            app, 
+            host="0.0.0.0", 
+            port=8012,
+            ssl_keyfile=ssl_keyfile,
+            ssl_certfile=ssl_certfile
+        )
+    else:
+        print(f"⚠️ Certificats SSL non trouvés, démarrage en HTTP://0.0.0.0:8012")
+        print(f"   Certificats attendus : {ssl_keyfile}, {ssl_certfile}")
+        uvicorn.run(app, host="0.0.0.0", port=8012) 

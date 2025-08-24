@@ -48,6 +48,7 @@ export async function signIn({ email, password }) {
           const fallbackName = data.user.email.split('@')[0];
           localStorage.setItem('userName', fallbackName);
           localStorage.setItem('userFirstName', fallbackName);
+          localStorage.setItem('userLastName', '');
         }
       }
       
@@ -76,24 +77,56 @@ export async function signIn({ email, password }) {
 export async function signUpWithProfile({ email, password, firstName, lastName }) {
   try {
     
-    // Simulation d'inscription simple
-    localStorage.setItem('userEmail', email);
-    localStorage.setItem('userName', `${firstName} ${lastName}`);
-    localStorage.setItem('userFirstName', firstName);
-    localStorage.setItem('userLastName', lastName);
-    
-    // Déclencher l'événement personnalisé pour notifier les changements
-    window.dispatchEvent(new Event('localStorageChanged'));
-    
-    return {
-      data: {
-        user: {
-          email: email,
-          name: `${firstName} ${lastName}`
-        }
-      },
-      error: null
-    };
+    // Inscription réelle avec Supabase Auth
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password
+    });
+
+    if (error) {
+      return { error: { message: error.message } };
+    }
+
+    if (data.user) {
+      // Créer le profil utilisateur dans la table profiles
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            id: data.user.id,
+            email: email,
+            first_name: firstName,
+            last_name: lastName,
+            created_at: new Date().toISOString()
+          }
+        ]);
+
+      if (profileError) {
+        // Continuer même si le profil n'est pas créé
+      }
+
+      // Sauvegarder dans localStorage
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('userName', `${firstName} ${lastName}`);
+      localStorage.setItem('userFirstName', firstName);
+      localStorage.setItem('userLastName', lastName);
+      
+      // Déclencher l'événement personnalisé pour notifier les changements
+      window.dispatchEvent(new Event('localStorageChanged'));
+      
+      return {
+        data: {
+          user: {
+            id: data.user.id,
+            email: email,
+            name: `${firstName} ${lastName}`
+          }
+        },
+        error: null
+      };
+    } else {
+      return { error: { message: 'Erreur lors de l\'inscription' } };
+    }
   } catch (error) {
     return { error: { message: error.message } };
   }
