@@ -1,75 +1,157 @@
-// Service pour gérer l'état des fonctionnalités du site
-const FEATURES_STORAGE_KEY = 'fridayFeatures';
+// Service pour gérer l'état des fonctionnalités du site via API
+const API_BASE_URL = 'https://192.168.1.19:8006/api';
 
 // Configuration par défaut des fonctionnalités
 const DEFAULT_FEATURES = {
   animation: { enabled: true, name: 'Dessin animé', icon: '🎬' },
-  comic: { enabled: true, name: 'Bande dessinée', icon: '📚' },
+  comic: { enabled: true, name: 'Bande dessinée', icon: '💬' },
   coloring: { enabled: true, name: 'Coloriage', icon: '🎨' },
   audio: { enabled: true, name: 'Histoire', icon: '📖' },
   rhyme: { enabled: true, name: 'Comptine', icon: '🎵' }
 };
 
-export const getFeatures = () => {
-  const stored = localStorage.getItem(FEATURES_STORAGE_KEY);
-  if (stored) {
-    try {
-      const parsedFeatures = JSON.parse(stored);
-      // Nettoyer les anciennes fonctionnalités obsolètes
-      delete parsedFeatures.musical_rhyme;
-      
-      const cleanedFeatures = { ...DEFAULT_FEATURES, ...parsedFeatures };
-      // Sauvegarder la version nettoyée
-      localStorage.setItem(FEATURES_STORAGE_KEY, JSON.stringify(cleanedFeatures));
-      return cleanedFeatures;
-    } catch (error) {
-      console.error('Erreur lors du parsing des fonctionnalités:', error);
+// Fonction pour récupérer les fonctionnalités depuis l'API
+export const getFeatures = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/features`);
+    if (response.ok) {
+      const features = await response.json();
+      return features;
+    } else {
+      return DEFAULT_FEATURES;
     }
+  } catch (error) {
+    return DEFAULT_FEATURES;
   }
-  return DEFAULT_FEATURES;
 };
 
-export const updateFeature = (featureKey, enabled) => {
-  const features = getFeatures();
-  features[featureKey] = { ...features[featureKey], enabled };
-  localStorage.setItem(FEATURES_STORAGE_KEY, JSON.stringify(features));
-  
-  // Déclencher un événement personnalisé pour notifier les composants
-  window.dispatchEvent(new CustomEvent('featuresUpdated', { detail: features }));
-  
-  return features;
+// Fonction pour mettre à jour une fonctionnalité via l'API
+export const updateFeature = async (featureKey, enabled) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/features/${featureKey}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ enabled })
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      
+      // Déclencher un événement personnalisé pour notifier les composants
+      window.dispatchEvent(new CustomEvent('featuresUpdated', { 
+        detail: result.features 
+      }));
+      
+      return result.features;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    return null;
+  }
 };
 
-export const isFeatureEnabled = (featureKey) => {
-  const features = getFeatures();
-  return features[featureKey]?.enabled || false;
+// Fonction pour vérifier si une fonctionnalité est activée
+export const isFeatureEnabled = async (featureKey) => {
+  try {
+    const features = await getFeatures();
+    return features[featureKey]?.enabled || false;
+  } catch (error) {
+    return false;
+  }
 };
 
-export const getEnabledFeatures = () => {
-  const features = getFeatures();
-  return Object.entries(features)
-    .filter(([key, feature]) => feature.enabled)
-    .reduce((enabled, [key, feature]) => {
-      enabled[key] = feature;
-      return enabled;
-    }, {});
+// Fonction pour récupérer les fonctionnalités activées
+export const getEnabledFeatures = async () => {
+  try {
+    const features = await getFeatures();
+    return Object.entries(features)
+      .filter(([key, feature]) => feature.enabled)
+      .reduce((enabled, [key, feature]) => {
+        enabled[key] = feature;
+        return enabled;
+      }, {});
+  } catch (error) {
+    return {};
+  }
 };
 
-export const resetFeatures = () => {
-  localStorage.setItem(FEATURES_STORAGE_KEY, JSON.stringify(DEFAULT_FEATURES));
-  window.dispatchEvent(new CustomEvent('featuresUpdated', { detail: DEFAULT_FEATURES }));
-  return DEFAULT_FEATURES;
+// Fonction pour réinitialiser les fonctionnalités
+export const resetFeatures = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/features/reset`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      
+      // Déclencher un événement personnalisé pour notifier les composants
+      window.dispatchEvent(new CustomEvent('featuresUpdated', { 
+        detail: result.features 
+      }));
+      
+      return result.features;
+    } else {
+      return DEFAULT_FEATURES;
+    }
+  } catch (error) {
+    return DEFAULT_FEATURES;
+  }
 };
 
+// Fonction pour récupérer toutes les fonctionnalités
 export const getAllFeatures = () => {
   return { ...DEFAULT_FEATURES };
 };
 
 // Fonction utilitaire pour vérifier si toutes les fonctionnalités requises sont activées
-export const areRequiredFeaturesEnabled = (requiredFeatures = []) => {
-  const enabledFeatures = getEnabledFeatures();
-  return requiredFeatures.every(feature => enabledFeatures[feature]);
+export const areRequiredFeaturesEnabled = async (requiredFeatures = []) => {
+  try {
+    const enabledFeatures = await getEnabledFeatures();
+    return requiredFeatures.every(feature => enabledFeatures[feature]);
+  } catch (error) {
+    return false;
+  }
 };
+
+// Polling pour synchroniser les changements
+let pollingInterval = null;
+
+// Démarrer le polling pour synchroniser les changements
+export const startPolling = () => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+  }
+  
+  pollingInterval = setInterval(async () => {
+    try {
+      const features = await getFeatures();
+      // Déclencher l'événement pour notifier les composants
+      window.dispatchEvent(new CustomEvent('featuresUpdated', { 
+        detail: features 
+      }));
+    } catch (error) {
+      // Erreur silencieuse
+    }
+  }, 2000); // Vérifier toutes les 2 secondes
+};
+
+// Arrêter le polling
+export const stopPolling = () => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
+};
+
+// Démarrer le polling au chargement
+startPolling();
 
 // Export par défaut pour compatibilité
 export default {
@@ -79,5 +161,7 @@ export default {
   getEnabledFeatures,
   resetFeatures,
   getAllFeatures,
-  areRequiredFeaturesEnabled
+  areRequiredFeaturesEnabled,
+  startPolling,
+  stopPolling
 };

@@ -5,14 +5,16 @@ import { getEnabledFeatures } from '../services/features';
 
 const ContentTypeSelector = ({ contentType, setContentType }) => {
   const [enabledFeatures, setEnabledFeatures] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Charger les fonctionnalités activées
-    setEnabledFeatures(getEnabledFeatures());
+    loadEnabledFeatures();
 
     // Écouter les changements de fonctionnalités
-    const handleFeaturesUpdate = (event) => {
-      setEnabledFeatures(getEnabledFeatures());
+    const handleFeaturesUpdate = async (event) => {
+      const features = await getEnabledFeatures();
+      setEnabledFeatures(features);
       
       // Si la fonctionnalité actuellement sélectionnée est désactivée, 
       // basculer vers la première fonctionnalité disponible
@@ -31,12 +33,35 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
     };
   }, [contentType, setContentType]);
 
+  const loadEnabledFeatures = async () => {
+    try {
+      setLoading(true);
+      const features = await getEnabledFeatures();
+      setEnabledFeatures(features);
+    } catch (error) {
+      console.error('Erreur lors du chargement des fonctionnalités:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleContentTypeSelect = (type) => {
     // Ne pas permettre la désélection - toujours sélectionner le type choisi
     setContentType(type);
   };
   
   const hasEnabledFeatures = Object.keys(enabledFeatures).length > 0;
+  
+  if (loading) {
+    return (
+      <div className="content-type-selector">
+        <h3>1. Choisissez le type de contenu</h3>
+        <div className="loading-message">
+          <p>Chargement des fonctionnalités...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="content-type-selector">
@@ -103,11 +128,11 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
               <div className="content-type-icon">📖</div>
               <div className="content-type-details">
                 <h4>Histoire</h4>
-                <p>Créez une courte histoire à lire ou à écouter pour votre enfant</p>
+                <p>Créez une histoire audio avec narration et effets sonores</p>
               </div>
             </motion.div>
           )}
-          
+
           {enabledFeatures.rhyme && (
             <motion.div
               className={`content-type-option ${contentType === 'rhyme' ? 'selected' : ''}`}
@@ -118,7 +143,7 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
               <div className="content-type-icon">🎵</div>
               <div className="content-type-details">
                 <h4>Comptine</h4>
-                <p>Créez une comptine personnalisée</p>
+                <p>Créez une comptine musicale avec paroles et mélodie</p>
               </div>
             </motion.div>
           )}

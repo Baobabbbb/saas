@@ -1,26 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './UserAccount.css';
-import { signUpWithProfile, signIn, signOut, updateUserProfile, getCurrentUserProfile, deleteUserAccount, resetPassword } from '../services/auth';
-import AdminPanel from './AdminPanel';
-import useSupabaseUser from '../hooks/useSupabaseUser_simple';
+
+import useSupabaseUser from '../hooks/useSupabaseUser';
 
 const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [showProfileForm, setShowProfileForm] = useState(false);
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [error, setError] = useState('');
   
-  // Utiliser le hook useSupabaseUser pour récupérer les données utilisateur
+  // Utiliser le hook useSupabaseUser simplifié
   const { user, loading } = useSupabaseUser();
-  
-
   
   // Utiliser la prop isLoggedIn du parent pour déterminer l'état de connexion
   const isUserLoggedIn = isLoggedIn || !!user;
@@ -47,6 +44,118 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   // Vérifier si l'utilisateur connecté est l'administrateur
   const isAdmin = () => {
     return user?.email === ADMIN_EMAIL;
+  };
+
+  // Fonctions d'authentification simplifiées avec localStorage
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    try {
+      // Simulation d'authentification simple
+      if (email && password) {
+        localStorage.setItem('userEmail', email);
+        localStorage.setItem('userName', email.split('@')[0]);
+        localStorage.setItem('userFirstName', email.split('@')[0]);
+        
+        // Recharger la page pour mettre à jour l'état
+        window.location.reload();
+      } else {
+        setError('Veuillez remplir tous les champs');
+      }
+    } catch (error) {
+      setError('Erreur de connexion');
+    }
+  };
+
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    try {
+      if (email && password && firstName && lastName) {
+        localStorage.setItem('userEmail', email);
+        localStorage.setItem('userName', `${firstName} ${lastName}`);
+        localStorage.setItem('userFirstName', firstName);
+        localStorage.setItem('userLastName', lastName);
+        
+        // Recharger la page pour mettre à jour l'état
+        window.location.reload();
+      } else {
+        setError('Veuillez remplir tous les champs');
+      }
+    } catch (error) {
+      setError('Erreur d\'inscription');
+    }
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userFirstName');
+    localStorage.removeItem('userLastName');
+    
+    // Recharger la page pour mettre à jour l'état
+    window.location.reload();
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    try {
+      if (profileFirstName && profileLastName) {
+        localStorage.setItem('userName', `${profileFirstName} ${profileLastName}`);
+        localStorage.setItem('userFirstName', profileFirstName);
+        localStorage.setItem('userLastName', profileLastName);
+        
+        setProfileUpdateSuccess(true);
+        setTimeout(() => {
+          setProfileUpdateSuccess(false);
+          setShowProfileForm(false);
+        }, 2000);
+        
+        // Recharger la page pour mettre à jour l'état
+        window.location.reload();
+      } else {
+        setError('Veuillez remplir tous les champs');
+      }
+    } catch (error) {
+      setError('Erreur de mise à jour du profil');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText === 'SUPPRIMER') {
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userFirstName');
+      localStorage.removeItem('userLastName');
+      
+      // Recharger la page pour mettre à jour l'état
+      window.location.reload();
+    } else {
+      setError('Veuillez taper SUPPRIMER pour confirmer');
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    try {
+      if (resetEmail) {
+        setResetEmailSent(true);
+        setTimeout(() => {
+          setResetEmailSent(false);
+          setShowForgotPassword(false);
+        }, 3000);
+      } else {
+        setError('Veuillez entrer votre email');
+      }
+    } catch (error) {
+      setError('Erreur d\'envoi d\'email');
+    }
   };
 
   // useEffect pour fermer le dropdown quand on clique en dehors
@@ -95,331 +204,35 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showDropdown, showLoginForm, showRegisterForm, showProfileForm, showForgotPassword, showDeleteConfirm]);
+
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
     setShowLoginForm(false);
     setShowRegisterForm(false);
     setShowProfileForm(false);
     setShowForgotPassword(false);
-    setError('');
-    setResetEmailSent(false);
-  };
-
-  const handleProfileClick = async () => {
-    setError('');
-    setProfileUpdateSuccess(false);
-    
-    // Charger les données utilisateur depuis Supabase
-    const { data, error } = await getCurrentUserProfile();
-    
-    if (error) {
-      // Fallback vers localStorage si erreur
-      setProfileFirstName(localStorage.getItem('userFirstName') || '');
-      setProfileLastName(localStorage.getItem('userLastName') || '');
-      setProfileEmail(localStorage.getItem('userEmail') || '');
-      setError('Impossible de charger le profil depuis la base de données');
-    } else {
-      setProfileFirstName(data.firstName || '');
-      setProfileLastName(data.lastName || '');
-      setProfileEmail(data.email || '');
-    }
-    
-    setShowProfileForm(true);
-    setShowDropdown(false);
-  };
-
-  const handleLoginClick = () => {
-    setShowLoginForm(true);
-    setShowRegisterForm(false);
-    setError('');
-  };
-
-  const handleRegisterClick = () => {
-    setShowRegisterForm(true);
-    setShowLoginForm(false);
-    setShowProfileForm(false);
-    setError('');
-  };
-
-  const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    setError('');
-    setProfileUpdateSuccess(false);
-    
-    if (!profileFirstName.trim() || !profileLastName.trim()) {
-      setError('Le prénom et le nom sont obligatoires');
-      return;
-    }
-    
-    try {
-      // Mise à jour du profil dans Supabase
-      const { data, error } = await updateUserProfile({
-        firstName: profileFirstName.trim(),
-        lastName: profileLastName.trim()
-      });
-      
-      if (error) {
-        setError('Erreur lors de la mise à jour du profil: ' + error.message);
-        return;
-      }
-      
-              // Le hook useSupabaseUser se met à jour automatiquement
-      
-      // Afficher le message de succès
-      setProfileUpdateSuccess(true);
-      
-      // Masquer le message de succès après 3 secondes
-      setTimeout(() => {
-        setProfileUpdateSuccess(false);
-      }, 3000);
-      
-    } catch (error) {
-      setError('Erreur lors de la mise à jour du profil');
-      console.error('Erreur mise à jour profil:', error);
-    }
-  };  const handleLogin = async (e) => {
-    e.preventDefault();
-    
-    try {
-      const result = await signIn({ email, password });
-      
-      if (result.error) {
-        // Afficher l'erreur directement dans le formulaire
-        if (result.error.message === 'WRONG_PASSWORD') {
-          setError('Les identifiants saisis sont incorrects. Vérifiez votre email et mot de passe.');
-        } else {
-          setError(result.error.message);
-        }
-        setPassword(''); // Vider le mot de passe
-      } else {
-        setError('');
-        // Succès de connexion
-        setEmail('');
-        setPassword('');
-        setShowLoginForm(false);
-        setShowDropdown(false);
-        
-        // Le hook useSupabaseUser se met à jour automatiquement
-        
-        // Appeler le callback de connexion pour mettre à jour l'état global
-        if (onLogin) {
-          onLogin();
-        }
-      }
-    } catch (error) {
-      console.error('Erreur de connexion:', error);
-      setError('Erreur lors de la connexion');
-    }
-  };
-
-  // Fonction de validation d'email
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
-    return emailRegex.test(email);
-  };
-
-  // Fonction de validation de mot de passe
-  const validatePassword = (password) => {
-    // Au moins 6 caractères
-    if (password.length < 6) {
-      return "Le mot de passe doit contenir au moins 6 caractères";
-    }
-    
-    // Au moins une majuscule
-    if (!/[A-Z]/.test(password)) {
-      return "Le mot de passe doit contenir au moins une majuscule";
-    }
-    
-    // Au moins un chiffre
-    if (!/[0-9]/.test(password)) {
-      return "Le mot de passe doit contenir au moins un chiffre";
-    }
-    
-    // Au moins un caractère spécial
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-      return "Le mot de passe doit contenir au moins un caractère spécial (!@#$%^&*...)";
-    }
-    
-    return null; // Pas d'erreur
-  };
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    
-    // Validation du format de l'email
-    if (!validateEmail(email)) {
-      setError('Veuillez saisir une adresse email valide (ex: nom@domaine.com)');
-      return;
-    }
-    
-    // Validation des champs requis
-    if (!firstName.trim() || !lastName.trim()) {
-      setError('Le prénom et le nom sont obligatoires');
-      return;
-    }
-    
-    // Validation du mot de passe
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-      setError(passwordError);
-      return;
-    }
-    
-    try {
-      const result = await signUpWithProfile({ email, password, firstName, lastName });
-      
-      if (result.error) {
-        setError(result.error.message);
-      } else {
-        setError('');
-        // Succès de l'inscription
-        setFirstName('');
-        setLastName('');
-        setEmail('');
-        setPassword('');
-        setShowRegisterForm(false);
-        setShowDropdown(false);
-        
-        // Le hook useSupabaseUser se met à jour automatiquement
-        
-        // Appeler le callback d'inscription pour mettre à jour l'état global
-        if (onRegister) {
-          onRegister();
-        }
-      }
-    } catch (error) {
-      console.error('Erreur d\'inscription:', error);
-      setError('Erreur lors de l\'inscription');
-    }
-  };  const handleLogout = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
-      // Fallback en cas d'erreur
-      localStorage.clear();
-      window.location.reload();
-    }
-  };
-  const handleAdminPanelClick = () => {
-    setShowAdminPanel(true);
-    setShowDropdown(false);
-  };
-
-  const closeAdminPanel = () => {
-    setShowAdminPanel(false);
-  };
-
-  const handleDeleteAccount = () => {
-    setShowDeleteConfirm(true);
-    setDeleteConfirmText('');
-    setError('');
-  };
-
-  const handleConfirmDelete = async () => {
-    if (deleteConfirmText !== 'SUPPRIMER') {
-      setError('Veuillez saisir "SUPPRIMER" pour confirmer');
-      return;
-    }
-
-    try {
-      const { data, error } = await deleteUserAccount();
-      
-      if (error) {
-        let errorMessage = 'Erreur lors de la suppression: ' + error.message;
-        
-        // Gestion spéciale si la fonction RPC n'est pas disponible
-        if (error.requiresAdminCleanup) {
-          errorMessage = `Suppression partielle effectuée. L'utilisateur ${error.userEmail} (ID: ${error.userId}) doit être supprimé manuellement par l'administrateur dans Supabase.`;
-          
-          // Fermer les formulaires même en cas d'erreur partielle
-          setShowDeleteConfirm(false);
-          setShowProfileForm(false);
-          setShowDropdown(false);
-          
-          // Informer le parent de la déconnexion
-          if (onLogout) {
-            onLogout();
-          }
-          
-          // Afficher l'erreur mais procéder au rechargement
-          alert(errorMessage);
-          window.location.reload();
-          return;
-        }
-        
-        setError(errorMessage);
-        return;
-      }
-
-      // Fermer tous les formulaires
-      setShowDeleteConfirm(false);
-      setShowProfileForm(false);
-      setShowDropdown(false);
-
-      // Afficher un message de confirmation
-      alert(data.message || 'Votre compte a été supprimé avec succès');
-
-      // Informer le composant parent de la déconnexion
-      if (onLogout) {
-        onLogout();
-      }
-
-      // Recharger la page pour nettoyer l'état
-      window.location.reload();
-
-    } catch (error) {
-      setError('Erreur lors de la suppression du compte');
-      console.error('Erreur suppression compte:', error);
-    }
-  };
-
-  const handleCancelDelete = () => {
     setShowDeleteConfirm(false);
-    setDeleteConfirmText('');
-    setError('');
   };
 
-  // Fonctions pour la réinitialisation du mot de passe
-  const handleForgotPassword = () => {
-    setShowForgotPassword(true);
-    setShowLoginForm(false);
-    setError('');
-    setResetEmailSent(false);
-    setResetEmail(email); // Pré-remplir avec l'email de connexion si disponible
-  };
-
-  const handleSendResetEmail = async (e) => {
-    e.preventDefault();
-    setError('');
-    
-    if (!resetEmail.trim()) {
-      setError('Veuillez saisir votre adresse email');
-      return;
+  // Charger les données du profil quand l'utilisateur est connecté
+  useEffect(() => {
+    if (user) {
+      setProfileFirstName(user.firstName || '');
+      setProfileLastName(user.lastName || '');
+      setProfileEmail(user.email || '');
     }
+  }, [user]);
 
-    try {
-      const { error } = await resetPassword({ email: resetEmail });
-      
-      if (error) {
-        setError('Erreur lors de l\'envoi de l\'email: ' + error.message);
-        return;
-      }
-
-      setResetEmailSent(true);
-    } catch (error) {
-      setError('Erreur lors de l\'envoi de l\'email de réinitialisation');
-      console.error('Erreur reset password:', error);
-    }
-  };
-
-  const handleBackToLogin = () => {
-    setShowForgotPassword(false);
-    setShowLoginForm(true);
-    setResetEmailSent(false);
-    setResetEmail('');
-    setError('');
-  };
+  // Afficher un indicateur de chargement si nécessaire
+  if (loading) {
+    return (
+      <div className="user-account">
+        <div className="user-avatar loading">
+          <div className="loading-spinner"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="user-account" ref={userAccountRef}>
@@ -459,31 +272,9 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                   {isAdmin() && (
                     <motion.li 
                       className="admin-option" 
-                      onClick={handleAdminPanelClick}
-                      whileHover={{ 
-                        scale: 1.02,
-                        x: 3,
-                        transition: { 
-                          type: "spring", 
-                          stiffness: 400, 
-                          damping: 17 
-                        }
-                      }}
-                      whileTap={{ 
-                        scale: 0.98,
-                        x: 1,
-                        transition: { 
-                          type: "spring", 
-                          stiffness: 600, 
-                          damping: 20 
-                        }
-                      }}
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ 
-                        duration: 0.3,
-                        ease: "easeOut"
-                      }}
+                      onClick={() => { setShowDropdown(false); window.open('http://192.168.1.19:5174', '_blank'); }}
+                      whileHover={{ x: 2, transition: { type: "spring", stiffness: 300, damping: 20 } }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       <motion.span
                         initial={{ opacity: 0 }}
@@ -495,13 +286,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                     </motion.li>
                   )}
                   <motion.li 
-                    onClick={handleProfileClick}
-                    whileHover={{ x: 2, transition: { type: "spring", stiffness: 300, damping: 20 } }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Mon compte
-                  </motion.li>
-                  <motion.li 
                     onClick={() => { setShowDropdown(false); window.location.hash = 'historique'; }}
                     whileHover={{ x: 2, transition: { type: "spring", stiffness: 300, damping: 20 } }}
                     whileTap={{ scale: 0.98 }}
@@ -509,7 +293,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                     Mon historique
                   </motion.li>
                   <motion.li 
-                    onClick={handleLogout}
+                    onClick={handleSignOut}
                     whileHover={{ x: 2, transition: { type: "spring", stiffness: 300, damping: 20 } }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -520,8 +304,8 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
             ) : (
               <>
                 <ul>
-                  <li onClick={handleLoginClick}>Se connecter</li>
-                  <li onClick={handleRegisterClick}>S'inscrire</li>
+                  <li onClick={() => { setShowDropdown(false); setShowLoginForm(true); }}>Se connecter</li>
+                  <li onClick={() => { setShowDropdown(false); setShowRegisterForm(true); }}>S'inscrire</li>
                 </ul>
               </>
             )}
@@ -548,7 +332,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
               <h3>Connexion</h3>
               {/* Affichage de l'erreur ici */}
               {error && <div className="error" style={{ color: "red", marginBottom: 10 }}>{error}</div>}
-              <form onSubmit={handleLogin}>
+              <form onSubmit={handleSignIn}>
                 <div className="form-group">
                   <label htmlFor="email">Email</label>
                   <input 
@@ -573,14 +357,14 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                     <button 
                       type="button" 
                       className="link-button register-link"
-                      onClick={handleRegisterClick}
+                      onClick={() => { setShowLoginForm(false); setShowRegisterForm(true); }}
                     >
                       S'inscrire
                     </button>
                     <button 
                       type="button" 
                       className="link-button"
-                      onClick={handleForgotPassword}
+                      onClick={() => { setShowLoginForm(false); setShowForgotPassword(true); }}
                     >
                       Mot de passe oublié ?
                     </button>
@@ -615,7 +399,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
               <h3>Inscription</h3>
               {/* Affichage de l'erreur ici */}
               {error && <div className="error" style={{ color: "red", marginBottom: 10 }}>{error}</div>}
-              <form onSubmit={handleRegister}>
+              <form onSubmit={handleSignUp}>
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="firstName">Prénom</label>
@@ -662,7 +446,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                     <button 
                       type="button" 
                       className="link-button login-link"
-                      onClick={handleLoginClick}
+                      onClick={() => { setShowRegisterForm(false); setShowLoginForm(true); }}
                     >
                       Connexion
                     </button>
@@ -748,7 +532,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                   <button 
                     type="button" 
                     className="delete-account-btn"
-                    onClick={handleDeleteAccount}
+                    onClick={() => { setShowProfileForm(false); setShowDeleteConfirm(true); }}
                   >
                     Supprimer mon compte
                   </button>
@@ -780,7 +564,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                 <h4>⚠️ Confirmation de suppression</h4>
                 <button 
                   className="confirm-popup-close"
-                  onClick={handleCancelDelete}
+                  onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }}
                 >
                   ✕
                 </button>
@@ -799,13 +583,13 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
               <div className="confirm-popup-actions">
                 <button 
                   className="confirm-popup-btn"
-                  onClick={handleConfirmDelete}
+                  onClick={handleDeleteAccount}
                 >
                   Confirmer
                 </button>
                 <button 
                   className="confirm-popup-btn confirm-popup-btn-secondary"
-                  onClick={handleCancelDelete}
+                  onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }}
                 >
                   Annuler
                 </button>
@@ -845,7 +629,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                 <h4>🗑️ Supprimer mon compte</h4>
                 <button 
                   className="error-popup-close"
-                  onClick={handleCancelDelete}
+                  onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }}
                 >
                   ✕
                 </button>
@@ -885,13 +669,13 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
               <div className="error-popup-actions">
                 <button 
                   className="error-popup-btn error-popup-btn-secondary"
-                  onClick={handleCancelDelete}
+                  onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }}
                 >
                   Annuler
                 </button>
                 <button 
                   className="error-popup-btn"
-                  onClick={handleConfirmDelete}
+                  onClick={handleDeleteAccount}
                   style={{
                     backgroundColor: deleteConfirmText === 'SUPPRIMER' ? '#d73a49' : '#ccc',
                     cursor: deleteConfirmText === 'SUPPRIMER' ? 'pointer' : 'not-allowed'
@@ -906,12 +690,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
         )}
       </AnimatePresence>
 
-      {/* Panneau Administrateur */}
-      <AnimatePresence>
-        {showAdminPanel && (
-          <AdminPanel onClose={closeAdminPanel} />
-        )}
-      </AnimatePresence>
+
 
       {/* Formulaire de réinitialisation du mot de passe */}
       <AnimatePresence>
@@ -934,7 +713,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
               {error && <div className="error" style={{ color: "red", marginBottom: 10 }}>{error}</div>}
               
               {!resetEmailSent ? (
-                <form onSubmit={handleSendResetEmail}>
+                <form onSubmit={handleResetPassword}>
                   <p style={{ marginBottom: 16, color: '#666' }}>
                     Saisissez votre adresse email pour recevoir un lien de réinitialisation.
                   </p>
@@ -949,7 +728,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                     />
                   </div>
                   <div className="form-actions">
-                    <button type="button" onClick={handleBackToLogin}>Retour</button>
+                    <button type="button" onClick={() => { setShowForgotPassword(false); setShowLoginForm(true); }}>Retour</button>
                     <button type="submit">Envoyer</button>
                   </div>
                 </form>
@@ -966,7 +745,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                     </p>
                     <button 
                       type="button" 
-                      onClick={handleBackToLogin}
+                      onClick={() => { setShowForgotPassword(false); setShowLoginForm(true); }}
                       style={{ 
                         background: 'var(--primary)', 
                         color: 'white', 

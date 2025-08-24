@@ -87,7 +87,10 @@ app.add_middleware(
         "https://localhost:5179", "https://localhost:5180",
         # Autres origins communs
         "http://127.0.0.1:5173", "https://127.0.0.1:5173",
-        "http://localhost:3000", "https://localhost:3000"
+        "http://localhost:3000", "https://localhost:3000",
+        # Adresse IP locale pour le développement
+        "http://192.168.1.19:5173", "https://192.168.1.19:5173",
+        "http://192.168.1.19:5174", "https://192.168.1.19:5174"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -136,6 +139,51 @@ async def diagnostic():
         "openai_key_preview": f"{openai_key[:10]}..." if openai_key else "Non configurée",
         "stability_key_preview": f"{stability_key[:10]}..." if stability_key else "Non configurée",
         "fal_key_preview": f"{fal_key[:10]}..." if fal_key else "Non configurée"
+    }
+
+# === ROUTE DES FONCTIONNALITÉS ===
+
+@app.get("/api/features")
+async def get_features():
+    """Route pour récupérer l'état des fonctionnalités du site"""
+    return {
+        "animation": {"enabled": True, "name": "Dessin animé", "icon": "🎬"},
+        "comic": {"enabled": True, "name": "Bande dessinée", "icon": "💬"},
+        "coloring": {"enabled": True, "name": "Coloriage", "icon": "🎨"},
+        "audio": {"enabled": True, "name": "Histoire", "icon": "📖"},
+        "rhyme": {"enabled": True, "name": "Comptine", "icon": "🎵"}
+    }
+
+@app.put("/api/features/{feature_key}")
+async def update_feature(feature_key: str, request: dict):
+    """Route pour mettre à jour l'état d'une fonctionnalité"""
+    enabled = request.get("enabled", True)
+    # Ici vous pourriez sauvegarder en base de données
+    return {
+        "success": True,
+        "feature": feature_key,
+        "enabled": enabled,
+        "features": {
+            "animation": {"enabled": True, "name": "Dessin animé", "icon": "🎬"},
+            "comic": {"enabled": True, "name": "Bande dessinée", "icon": "💬"},
+            "coloring": {"enabled": True, "name": "Coloriage", "icon": "🎨"},
+            "audio": {"enabled": True, "name": "Histoire", "icon": "📖"},
+            "rhyme": {"enabled": True, "name": "Comptine", "icon": "🎵"}
+        }
+    }
+
+@app.post("/api/features/reset")
+async def reset_features():
+    """Route pour réinitialiser toutes les fonctionnalités"""
+    return {
+        "success": True,
+        "features": {
+            "animation": {"enabled": True, "name": "Dessin animé", "icon": "🎬"},
+            "comic": {"enabled": True, "name": "Bande dessinée", "icon": "💬"},
+            "coloring": {"enabled": True, "name": "Coloriage", "icon": "🎨"},
+            "audio": {"enabled": True, "name": "Histoire", "icon": "📖"},
+            "rhyme": {"enabled": True, "name": "Comptine", "icon": "🎵"}
+        }
     }
 
 # === ENDPOINTS VALIDÉS ===
@@ -570,6 +618,7 @@ except RuntimeError:
 if __name__ == "__main__":
     import uvicorn
     import threading
+    import os.path
     
     # Configuration de base
     config = {
@@ -578,20 +627,27 @@ if __name__ == "__main__":
         "port": int(os.getenv("PORT", 8006)),
     }
     
-    # Configuration SSL supprimée car gérée automatiquement par Vercel
-    ssl_config = {}
+    # Configuration SSL pour le développement
+    ssl_keyfile = "../../ssl/dev.key"
+    ssl_certfile = "../../ssl/dev.crt"
     
     # Mode debug pour le développement
     if os.getenv("ENVIRONMENT", "development").lower() != "production":
         config["log_level"] = "debug"
-        # Note: reload désactivé car incompatible avec SSL et FastAPI app object
+        
+        # Vérifier si les certificats SSL existent
+        if os.path.exists(ssl_keyfile) and os.path.exists(ssl_certfile):
+            config["ssl_keyfile"] = ssl_keyfile
+            config["ssl_certfile"] = ssl_certfile
+            print(f"🔒 Démarrage du serveur FRIDAY sur HTTPS://{config['host']}:{config['port']}")
+        else:
+            print(f"⚠️ Certificats SSL non trouvés, démarrage en HTTP://{config['host']}:{config['port']}")
     else:
         config["log_level"] = "info"
+        print(f"🚀 Démarrage du serveur FRIDAY sur HTTP://{config['host']}:{config['port']}")
     
-    print(f"🚀 Démarrage du serveur FRIDAY sur HTTP://{config['host']}:{config['port']}")
-    
-    # En développement, lancer aussi un serveur HTTP sur un port différent
-    if os.getenv("ENVIRONMENT", "development").lower() != "production":
+    # En développement, lancer aussi un serveur HTTP sur un port différent si pas de SSL
+    if os.getenv("ENVIRONMENT", "development").lower() != "production" and not config.get("ssl_keyfile"):
         def run_http_server():
             http_config = {
                 "app": app,
