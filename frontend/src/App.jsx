@@ -184,7 +184,7 @@ function App() {
         };
 
         // Utiliser l'endpoint correct pour les comptines
-        const response = await fetch('http://localhost:8000/generate_rhyme/', {
+        const response = await fetch('http://192.168.1.21:8006/generate_rhyme/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -197,7 +197,7 @@ function App() {
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
         voice: selectedVoice,
         custom_request: customRequest
-      };      const response = await fetch('http://localhost:8000/generate_audio_story/', {
+      };      const response = await fetch('http://192.168.1.21:8006/generate_audio_story/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -210,7 +210,7 @@ function App() {
         theme: selectedTheme
       };
       
-      const response = await fetch('http://localhost:8000/generate_coloring/', {
+        const response = await fetch('http://192.168.1.21:8006/generate_coloring/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -255,7 +255,7 @@ function App() {
         mode: generationMode  // Nouveau: passer le mode de génération
       };
       
-      const response = await fetch('http://localhost:8000/generate_animation/', {
+        const response = await fetch('http://192.168.1.21:8006/generate_animation/', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json; charset=utf-8',
@@ -518,7 +518,7 @@ const downloadPDF = async (title, content) => {
     
     const checkStatus = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/check_task_status/${taskId}`);
+        const response = await fetch(`http://192.168.1.21:8006/check_task_status/${taskId}`);
         const status = await response.json();
         
         console.log(`Polling tentative ${attempts + 1}/${maxAttempts}:`, status);
@@ -795,7 +795,7 @@ const downloadPDF = async (title, content) => {
           <audio
             controls
             style={{ width: '100%', maxWidth: '300px' }}
-            src={`http://localhost:8000/${generatedResult.audio_path}`}
+            src={`http://192.168.1.21:8006/${generatedResult.audio_path}`}
           />
         )}
         
@@ -838,7 +838,7 @@ const downloadPDF = async (title, content) => {
             <button
               onClick={async () => {
                 try {
-                  const response = await fetch(`http://localhost:8000/check_task_status/${generatedResult.task_id}`);
+                  const response = await fetch(`http://192.168.1.21:8006/check_task_status/${generatedResult.task_id}`);
                   const status = await response.json();
                   if (status.status === 'completed' && status.audio_path) {
                     setGeneratedResult({

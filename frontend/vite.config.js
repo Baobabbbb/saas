@@ -6,8 +6,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    host: '192.168.1.19', // Interface principale uniquement
+    host: '192.168.1.21', // Configuration réseau qui fonctionnait
     strictPort: true,
+    hmr: {
+      port: 5173,
+    },
     proxy: {
       '/admin': {
         target: 'http://localhost:5174',

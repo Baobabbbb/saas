@@ -1,50 +1,35 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function useSupabaseUser() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fonction pour récupérer les données utilisateur depuis localStorage
-    const getUserFromStorage = () => {
+    // Fonction pour charger l'utilisateur de manière sécurisée
+    const loadUser = () => {
       try {
         const userEmail = localStorage.getItem('userEmail');
-        const userName = localStorage.getItem('userName');
-        const userFirstName = localStorage.getItem('userFirstName');
-        
-        if (userEmail) {
-          return {
+        if (userEmail && userEmail.trim()) {
+          const userData = {
             id: 'local-user',
-            email: userEmail,
-            name: userName || userEmail.split('@')[0],
-            firstName: userFirstName || userEmail.split('@')[0]
+            email: userEmail.trim(),
+            name: (localStorage.getItem('userName') || userEmail.split('@')[0] || 'User').trim(),
+            firstName: (localStorage.getItem('userFirstName') || userEmail.split('@')[0] || 'User').trim()
           };
+          setUser(userData);
+        } else {
+          setUser(null);
         }
-        return null;
       } catch (error) {
-        console.warn('localStorage access error:', error);
-        return null;
+        console.warn('Erreur chargement user:', error.message);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
     };
 
-    // Initialisation avec timeout de sécurité
-    const timeoutId = setTimeout(() => {
-      console.warn('User initialization timeout - using guest mode');
-      setUser(null);
-      setLoading(false);
-    }, 2000);
-
-    try {
-      const localUser = getUserFromStorage();
-      clearTimeout(timeoutId);
-      setUser(localUser);
-      setLoading(false);
-    } catch (error) {
-      clearTimeout(timeoutId);
-      console.warn('User initialization error:', error);
-      setUser(null);
-      setLoading(false);
-    }
+    // Délai minimal pour s'assurer que React est prêt
+    setTimeout(loadUser, 50);
   }, []);
 
   return { user, loading };
