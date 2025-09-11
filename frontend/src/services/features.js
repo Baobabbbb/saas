@@ -1,5 +1,5 @@
 // Service pour gérer l'état des fonctionnalités du site via API
-const API_BASE_URL = 'https://192.168.1.19:8006/api';
+const API_BASE_URL = 'http://192.168.1.21:8006/api';
 
 // Configuration par défaut des fonctionnalités
 const DEFAULT_FEATURES = {

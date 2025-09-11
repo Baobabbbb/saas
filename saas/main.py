@@ -24,6 +24,7 @@ from services.stt import transcribe_audio
 from services.coloring_generator import ColoringGenerator
 from services.comic_generator import ComicGenerator
 from utils.translate import translate_text
+from models.animation import AnimationRequest
 # Validation et sécurité supprimées car gérées automatiquement par Vercel + Supabase
 
 # --- Chargement .env ---
@@ -570,6 +571,49 @@ async def generate_comic(request: dict):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erreur lors de la génération de la BD : {str(e)}")
+
+# --- Animation ---
+@app.post("/generate_animation/")
+async def generate_animation(request: dict):
+    """
+    Génère une animation avec IA
+    """
+    try:
+        # Extraire les paramètres
+        style = request.get("style", "cartoon")
+        theme = request.get("theme", "adventure")
+        duration = request.get("duration", 30)
+        mode = request.get("mode", "demo")
+
+        print(f"🎬 Génération animation: {theme} / {style} / {duration}s / mode: {mode}")
+
+        # Simulation de génération pour l'instant
+        import time
+        import uuid
+
+        task_id = str(uuid.uuid4())
+        print(f"📋 Task ID: {task_id}")
+
+        # Simuler un délai de génération
+        time.sleep(2)
+
+        # Retourner un résultat simulé
+        result = {
+            "task_id": task_id,
+            "status": "processing",
+            "message": f"Animation '{theme}' en cours de génération...",
+            "estimated_time": "2-3 minutes",
+            "style": style,
+            "theme": theme,
+            "duration": duration
+        }
+
+        print(f"✅ Animation générée: {result}")
+        return result
+
+    except Exception as e:
+        print(f"❌ Erreur génération animation: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération de l'animation : {str(e)}")
 
 # === ROUTES D'AUTHENTIFICATION JWT ===
 

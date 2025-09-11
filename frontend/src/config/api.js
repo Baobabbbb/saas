@@ -1,7 +1,7 @@
 // Configuration de l'API
-// Note: HTTP pour le développement, HTTPS pour la production
-export const API_BASE_URL = 'http://localhost:8006';
-export const ANIMATION_API_BASE_URL = 'http://localhost:8012';
+// Configuration réseau principale
+export const API_BASE_URL = 'http://192.168.1.21:8006';
+export const ANIMATION_API_BASE_URL = 'http://192.168.1.21:8012';
 
 // Endpoints de l'API
 export const API_ENDPOINTS = {
