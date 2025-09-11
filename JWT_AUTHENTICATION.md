@@ -56,16 +56,16 @@ Le composant `UserAccount.jsx` a été modifié pour :
 
 ### Variables d'environnement
 
-Dans `backend/saas/.env` :
+Dans `backend/config.py` :
 
-```env
+```python
 # JWT Authentication
-JWT_SECRET=your-super-secret-jwt-key-change-in-production
+JWT_SECRET = os.getenv("JWT_SECRET", "your-super-secret-jwt-key-change-in-production")
 ```
 
 ### Dépendances
 
-Ajoutées dans `backend/saas/requirements.txt` :
+Ajoutées dans `requirements.txt` :
 
 ```
 PyJWT==2.8.0
@@ -204,7 +204,7 @@ Le script teste :
 
 ```bash
 # Backend
-tail -f backend/saas/logs/app.log
+tail -f backend/logs/app.log
 
 # Frontend (Console navigateur)
 # Vérifier les erreurs d'authentification
