@@ -641,6 +641,28 @@ except RuntimeError:
     # Pas de loop actuel, c'est OK
     pass
 
+# === SERVIR LE FRONTEND (SPA) ===
+
+@app.get("/", include_in_schema=False)
+async def serve_root():
+    """Servez le build React à la racine."""
+    index_path = static_dir / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    return {"detail": "Not Found"}
+
+
+@app.get("/{full_path:path}", include_in_schema=False)
+async def spa_fallback(full_path: str):
+    """Fallback pour le routage côté client (évite 404 sur refresh)."""
+    # Laisse les routes d'API et les assets gérer leur 404 normalement
+    if full_path.startswith(("api", "static", "docs", "openapi.json", "redoc")):
+        raise HTTPException(status_code=404, detail="Not Found")
+    index_path = static_dir / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    raise HTTPException(status_code=404, detail="Not Found")
+
 # === ENDPOINTS DE TEST RATE LIMITING ===
 
 # Endpoints de test supprimés car inutiles avec Vercel
