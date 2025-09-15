@@ -1,7 +1,7 @@
 // Configuration de l'API
-// Configuration réseau principale
-export const API_BASE_URL = 'http://192.168.1.21:8006';
-export const ANIMATION_API_BASE_URL = 'http://192.168.1.21:8012';
+// Utiliser des URLs relatives par défaut pour le déploiement (même domaine Railway)
+export const API_BASE_URL = import.meta?.env?.VITE_API_BASE_URL || '';
+export const ANIMATION_API_BASE_URL = import.meta?.env?.VITE_ANIMATION_API_BASE_URL || '';
 
 // Endpoints de l'API
 export const API_ENDPOINTS = {
