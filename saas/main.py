@@ -77,22 +77,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # CORS avec support UTF-8
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        # Frontend HTTP (développement)
-        "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", 
-        "http://localhost:5176", "http://localhost:5177", "http://localhost:5178", 
-        "http://localhost:5179", "http://localhost:5180",
-        # Frontend HTTPS (sécurisé)
-        "https://localhost:5173", "https://localhost:5174", "https://localhost:5175",
-        "https://localhost:5176", "https://localhost:5177", "https://localhost:5178",
-        "https://localhost:5179", "https://localhost:5180",
-        # Autres origins communs
-        "http://127.0.0.1:5173", "https://127.0.0.1:5173",
-        "http://localhost:3000", "https://localhost:3000",
-        # Adresse IP locale pour le développement
-        "http://192.168.1.19:5173", "https://192.168.1.19:5173",
-        "http://192.168.1.19:5174", "https://192.168.1.19:5174"
-    ],
+    # En production sur Railway, le frontend est servi par le même domaine → on autorise tout par simplicité
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
