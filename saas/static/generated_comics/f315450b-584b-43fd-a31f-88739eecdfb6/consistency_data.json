@@ -1,0 +1,27 @@
+{
+  "base_seed": 940514,
+  "character_seeds": {
+    "Milo": 940514,
+    "Lila": 941514
+  },
+  "main_characters": [
+    {
+      "name": "Milo",
+      "age": "8 ans",
+      "physical_description": "Un garçon de taille moyenne, avec des cheveux bruns en bataille et des yeux verts pétillants. Il a un petit grain de beauté sur la joue gauche.",
+      "clothing": "T-shirt bleu avec un motif d'étoiles, short en jean, baskets blanches.",
+      "personality": "Curieux, aventurier et un peu maladroit.",
+      "role": "Le pilote du vaisseau et le moteur des idées."
+    },
+    {
+      "name": "Lila",
+      "age": "9 ans",
+      "physical_description": "Une fille de grande taille, avec des cheveux longs et ondulés de couleur châtain clair et des yeux noisette. Elle porte des lunettes rondes.",
+      "clothing": "Robe jaune à pois avec des collants violets et des ballerines roses.",
+      "personality": "Intelligente, réfléchie et toujours optimiste.",
+      "role": "L'ingénieure qui aide à réparer le vaisseau."
+    }
+  ],
+  "art_style_used": null,
+  "generation_timestamp": "2025-07-15T23:04:12.484466"
+}
