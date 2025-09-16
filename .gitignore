@@ -33,9 +33,9 @@ htmlcov/
 *.bak
 
 # --- Fichiers générés ---
-static/
-saas/static/
-backend/static/
+#static/
+#saas/static/
+#backend/static/
 dist/
 build/
 test_output/
