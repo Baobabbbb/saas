@@ -73,6 +73,10 @@ static_dir.mkdir(exist_ok=True)
 
 # Monter le répertoire static
 app.mount("/static", StaticFiles(directory="static"), name="static")
+# Monter aussi /assets pour les fichiers générés par Vite (JS/CSS)
+assets_dir = static_dir / "assets"
+if assets_dir.exists():
+    app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
 
 # CORS avec support UTF-8
 app.add_middleware(
@@ -656,7 +660,7 @@ async def serve_root():
 async def spa_fallback(full_path: str):
     """Fallback pour le routage côté client (évite 404 sur refresh)."""
     # Laisse les routes d'API et les assets gérer leur 404 normalement
-    if full_path.startswith(("api", "static", "docs", "openapi.json", "redoc")):
+    if full_path.startswith(("api", "static", "assets", "docs", "openapi.json", "redoc")):
         raise HTTPException(status_code=404, detail="Not Found")
     index_path = static_dir / "index.html"
     if index_path.exists():
