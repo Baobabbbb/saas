@@ -256,7 +256,7 @@ function App() {
         mode: generationMode  // Nouveau: passer le mode de génération
       };
       
-        const response = await fetch(`${API_BASE_URL}/generate_animation/`, {
+        const response = await fetch(`${ANIMATION_API_BASE_URL}/generate`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json; charset=utf-8',
