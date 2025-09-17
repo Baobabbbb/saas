@@ -136,6 +136,40 @@ class AnimationPipeline:
             if animation_id in self.active_animations:
                 self.active_animations[animation_id] = result
 
+    async def start_generation_async(
+        self,
+        request: AnimationRequest,
+        progress_callback: Optional[Callable[[AnimationProgress], None]] = None
+    ) -> str:
+        """Crée un job PENDING et démarre la génération en tâche de fond.
+        Retourne immédiatement l'animation_id à utiliser pour le polling.
+        """
+        animation_id = str(uuid.uuid4())
+        result_placeholder = AnimationResult(
+            animation_id=animation_id,
+            status=AnimationStatus.PENDING,
+            created_at=datetime.now().isoformat()
+        )
+        self.active_animations[animation_id] = result_placeholder
+
+        async def run_job():
+            try:
+                # Lancer la génération complète
+                final_result = await self.generate_animation(request, progress_callback)
+                # Forcer l'id pour correspondre au placeholder retourné au client
+                final_result.animation_id = animation_id
+                self.active_animations[animation_id] = final_result
+            except Exception as e:
+                failed = self.active_animations.get(animation_id, result_placeholder)
+                failed.status = AnimationStatus.FAILED
+                failed.error_message = str(e)
+                self.active_animations[animation_id] = failed
+
+        # Planifier sans attendre
+        asyncio.create_task(run_job())
+
+        return animation_id
+
     async def _update_progress(
         self, 
         animation_id: str, 

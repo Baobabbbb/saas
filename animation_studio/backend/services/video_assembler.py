@@ -35,7 +35,8 @@ class VideoAssembler:
             
             # 3. Attendre le traitement (équivalent du "Wait for Final Video" dans n8n)
             total_duration = sum(clip.duration for clip in valid_clips)
-            await asyncio.sleep(min(total_duration * 2, 120))  # Attente adaptative
+            # Attente initiale plus courte puis polling
+            await asyncio.sleep(min(30, max(10, int(total_duration / 4))))
             
             # 4. Récupérer le résultat
             result = await self._get_assembly_result(request_id)
