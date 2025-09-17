@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import './AnimationViewer.css';
 
@@ -160,14 +161,14 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                             
                             // Priorité: video_url pour vraies vidéos > demo_image_url > image_url
                             if (clip.video_url && clip.type === 'real_video') {
-                              mediaUrl = `http://192.168.1.21:8006${clip.video_url}`;
+                              mediaUrl = `${API_BASE_URL}${clip.video_url}`;
                               isVideo = true;
                             } else if (clip.demo_image_url) {
-                              mediaUrl = `http://localhost:8006${clip.demo_image_url}`;
+                              mediaUrl = `${API_BASE_URL}${clip.demo_image_url}`;
                             } else if (clip.image_url) {
-                              mediaUrl = `http://localhost:8006${clip.image_url}`;
+                              mediaUrl = `${API_BASE_URL}${clip.image_url}`;
                             } else if (clip.video_url) {
-                              mediaUrl = `http://192.168.1.21:8006${clip.video_url}`;
+                              mediaUrl = `${API_BASE_URL}${clip.video_url}`;
                             }
                             
                             console.log(`Clip ${index + 1}:`, { clip, mediaUrl, isVideo });

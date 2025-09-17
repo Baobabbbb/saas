@@ -17,6 +17,7 @@ import ColoringSelector from './components/ColoringSelector';
 import ColoringViewer from './components/ColoringViewer';
 import ColoringPopup from './components/ColoringPopup';
 import useSupabaseUser from './hooks/useSupabaseUser';
+import { API_BASE_URL, ANIMATION_API_BASE_URL } from './config/api';
 
 import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
@@ -184,7 +185,7 @@ function App() {
         };
 
         // Utiliser l'endpoint correct pour les comptines
-        const response = await fetch('http://192.168.1.21:8006/generate_rhyme/', {
+        const response = await fetch(`${API_BASE_URL}/generate_rhyme/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -197,7 +198,7 @@ function App() {
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
         voice: selectedVoice,
         custom_request: customRequest
-      };      const response = await fetch('http://192.168.1.21:8006/generate_audio_story/', {
+      };      const response = await fetch(`${API_BASE_URL}/generate_audio_story/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -210,7 +211,7 @@ function App() {
         theme: selectedTheme
       };
       
-        const response = await fetch('http://192.168.1.21:8006/generate_coloring/', {
+        const response = await fetch(`${API_BASE_URL}/generate_coloring/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -255,7 +256,7 @@ function App() {
         mode: generationMode  // Nouveau: passer le mode de génération
       };
       
-        const response = await fetch('http://192.168.1.21:8006/generate_animation/', {
+        const response = await fetch(`${API_BASE_URL}/generate_animation/`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json; charset=utf-8',
@@ -518,7 +519,7 @@ const downloadPDF = async (title, content) => {
     
     const checkStatus = async () => {
       try {
-        const response = await fetch(`http://192.168.1.21:8006/check_task_status/${taskId}`);
+        const response = await fetch(`${API_BASE_URL}/check_task_status/${taskId}`);
         const status = await response.json();
         
         console.log(`Polling tentative ${attempts + 1}/${maxAttempts}:`, status);
@@ -795,7 +796,7 @@ const downloadPDF = async (title, content) => {
           <audio
             controls
             style={{ width: '100%', maxWidth: '300px' }}
-            src={`http://192.168.1.21:8006/${generatedResult.audio_path}`}
+            src={`${API_BASE_URL}/${generatedResult.audio_path}`}
           />
         )}
         
@@ -838,7 +839,7 @@ const downloadPDF = async (title, content) => {
             <button
               onClick={async () => {
                 try {
-                  const response = await fetch(`http://192.168.1.21:8006/check_task_status/${generatedResult.task_id}`);
+                  const response = await fetch(`${API_BASE_URL}/check_task_status/${generatedResult.task_id}`);
                   const status = await response.json();
                   if (status.status === 'completed' && status.audio_path) {
                     setGeneratedResult({
@@ -908,7 +909,7 @@ const downloadPDF = async (title, content) => {
     <audio
       controls
       style={{ width: '100%', maxWidth: '360px' }} // 👈 limite la largeur pour l’esthétique
-      src={`http://localhost:8000/${generatedResult.audio_path}`}
+      src={`${API_BASE_URL}/${generatedResult.audio_path}`}
       download={generatedResult.audio_path.split('/').pop()}
     />
   </div>
