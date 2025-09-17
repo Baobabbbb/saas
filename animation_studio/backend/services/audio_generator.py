@@ -106,7 +106,7 @@ class AudioGenerator:
         
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=audio_params, headers=headers) as response:
-                if response.status not in [200, 201]:
+                if response.status not in [200, 201, 202]:
                     error_text = await response.text()
                     raise Exception(f"Erreur API FAL AI {response.status}: {error_text}")
                 
@@ -127,19 +127,19 @@ class AudioGenerator:
         for attempt in range(max_retries):
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers) as response:
-                    if response.status == 200:
+                    if response.status in [200, 201, 202]:
                         result = await response.json()
                         
                         # Vérifier si la génération est terminée
-                        if result.get("status") == "completed":
+                        status = result.get("status") or result.get("state") or result.get("job", {}).get("status")
+                        if status in ["completed", "succeeded", "success", "done"]:
                             # Extraire l'URL audio du résultat
                             if "outputs" in result and len(result["outputs"]) > 0:
                                 audio_url = result["outputs"][0]
                                 return {"audio_url": audio_url}
                             else:
                                 raise Exception("Aucun fichier audio généré")
-                        
-                        elif result.get("status") == "failed":
+                        elif status in ["failed", "error"]:
                             raise Exception(f"Génération audio échouée: {result.get('error', 'Erreur inconnue')}")
                         
                         # Si en cours, attendre et réessayer

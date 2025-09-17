@@ -23,7 +23,7 @@ class Config:
     TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
     CARTOON_STYLE = os.getenv("CARTOON_STYLE", "2D cartoon animation, Disney style, vibrant colors, smooth animation")
     DEFAULT_DURATION = int(os.getenv("DEFAULT_DURATION", "30"))
-    VIDEO_ASPECT_RATIO = os.getenv("VIDEO_ASPECT_RATIO", "9:16")
+    VIDEO_ASPECT_RATIO = os.getenv("VIDEO_ASPECT_RATIO", "16:9")
     VIDEO_RESOLUTION = os.getenv("VIDEO_RESOLUTION", "480p")
     
     # Server Settings

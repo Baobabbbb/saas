@@ -110,7 +110,7 @@ class VideoAssembler:
         
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=assembly_params, headers=headers) as response:
-                if response.status not in [200, 201]:
+                if response.status not in [200, 201, 202]:
                     error_text = await response.text()
                     raise Exception(f"Erreur API FAL AI FFmpeg {response.status}: {error_text}")
                 
@@ -131,11 +131,12 @@ class VideoAssembler:
         for attempt in range(max_retries):
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers) as response:
-                    if response.status == 200:
+                    if response.status in [200, 201, 202]:
                         result = await response.json()
                         
                         # Vérifier si l'assemblage est terminé
-                        if result.get("status") == "completed":
+                        status = result.get("status") or result.get("state") or result.get("job", {}).get("status")
+                        if status in ["completed", "succeeded", "success", "done"]:
                             # Extraire l'URL vidéo du résultat
                             if "video" in result:
                                 return {"video_url": result["video"]["url"]}
@@ -143,8 +144,7 @@ class VideoAssembler:
                                 return {"video_url": result["outputs"][0]}
                             else:
                                 raise Exception("Aucune vidéo assemblée générée")
-                        
-                        elif result.get("status") == "failed":
+                        elif status in ["failed", "error"]:
                             raise Exception(f"Assemblage vidéo échoué: {result.get('error', 'Erreur inconnue')}")
                         
                         # Si en cours, attendre et réessayer

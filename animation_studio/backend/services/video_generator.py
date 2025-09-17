@@ -26,24 +26,43 @@ class VideoGenerator:
         try:
             # 1. Soumettre la requête de génération
             video_data = await self._submit_video_generation(video_params)
-            
-            if not video_data or "data" not in video_data:
-                raise Exception("Réponse invalide de l'API Wavespeed")
-            
-            prediction_id = video_data["data"]["id"]
-            
+
+            # Extraire prediction_id de manière robuste
+            prediction_id = None
+            if video_data:
+                if isinstance(video_data, dict):
+                    prediction_id = (
+                        video_data.get("data", {}).get("id")
+                        or video_data.get("id")
+                        or video_data.get("prediction_id")
+                        or video_data.get("request_id")
+                    )
+            if not prediction_id:
+                raise Exception(f"Réponse invalide de l'API Wavespeed: {video_data}")
+
             # 2. Attendre le traitement (équivalent du "Wait for clips" dans n8n)
             await asyncio.sleep(min(scene.duration * 10, 140))  # Attente adaptative basée sur la durée
-            
+
             # 3. Récupérer le résultat
             result = await self._get_video_result(prediction_id)
-            
-            if not result or "video" not in result:
-                raise Exception("Erreur lors de la récupération du résultat vidéo")
-            
+
+            # Récupérer l'URL vidéo dans différentes structures possibles
+            video_url = None
+            if result:
+                if isinstance(result, dict):
+                    if "video" in result and isinstance(result["video"], dict):
+                        video_url = result["video"].get("url") or result["video"].get("path")
+                    if not video_url and "outputs" in result and isinstance(result["outputs"], list) and len(result["outputs"]) > 0:
+                        video_url = result["outputs"][0]
+                    if not video_url:
+                        video_url = result.get("video_url")
+
+            if not video_url:
+                raise Exception(f"Aucun URL vidéo dans le résultat: {result}")
+
             return VideoClip(
                 scene_number=scene.scene_number,
-                video_url=result["video"]["url"],
+                video_url=video_url,
                 duration=scene.duration,
                 status="completed"
             )
@@ -69,11 +88,16 @@ class VideoGenerator:
         
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=params, headers=headers) as response:
-                if response.status != 200:
+                if response.status not in [200, 201, 202]:
                     error_text = await response.text()
                     raise Exception(f"Erreur API Wavespeed {response.status}: {error_text}")
-                
-                return await response.json()
+
+                # Certaines réponses ne sont pas en JSON strict
+                try:
+                    return await response.json()
+                except Exception:
+                    text = await response.text()
+                    return {"raw": text}
 
     async def _get_video_result(self, prediction_id: str) -> Dict[str, Any]:
         """Récupère le résultat d'une génération vidéo"""
@@ -84,19 +108,20 @@ class VideoGenerator:
             "Authorization": f"Bearer {self.api_key}"
         }
         
-        max_retries = 10
+        max_retries = 16
         retry_delay = 15  # secondes
         
         for attempt in range(max_retries):
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers) as response:
-                    if response.status == 200:
+                    if response.status in [200, 201, 202]:
                         result = await response.json()
                         
                         # Vérifier si la génération est terminée
-                        if result.get("status") == "completed":
+                        status = result.get("status") or result.get("state") or result.get("job", {}).get("status")
+                        if status in ["completed", "succeeded", "success", "done"]:
                             return result
-                        elif result.get("status") == "failed":
+                        elif status in ["failed", "error"]:
                             raise Exception(f"Génération vidéo échouée: {result.get('error', 'Erreur inconnue')}")
                         
                         # Si en cours, attendre et réessayer
