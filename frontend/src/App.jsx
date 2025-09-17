@@ -248,22 +248,42 @@ function App() {
         throw new Error("L'histoire doit contenir au moins 10 caractères");
       }
       
-      const payload = {
-        story: story,
-        duration: selectedDuration,
-        style: selectedStyle,
-        theme: selectedAnimationTheme,
-        mode: generationMode  // Nouveau: passer le mode de génération
+      // Aligner avec le schéma backend: theme (en anglais), duration (30|60|120|180|240|300), custom_prompt optionnel
+      const normalizedThemeMap = {
+        'magie': 'magic',
+        'aventure': 'adventure',
+        'animaux': 'animals',
+        'espace': 'space',
+        'nature': 'nature',
+        'amitié': 'friendship',
+        'famille': 'friendship'
       };
-      
-        const response = await fetch(`${ANIMATION_API_BASE_URL}/generate`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json; charset=utf-8',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
+      const normalizedTheme = normalizedThemeMap[selectedAnimationTheme] || selectedAnimationTheme || 'adventure';
+
+      const payload = {
+        theme: normalizedTheme,
+        duration: Number(selectedDuration),
+        // user_id optionnel: non requis pour la démo
+        custom_prompt: story || undefined
+      };
+
+      // Fallback: si mode demo → utiliser endpoint simplifié /generate-quick
+      const endpoint = generationMode === 'demo'
+        ? `${ANIMATION_API_BASE_URL}/generate-quick?theme=${encodeURIComponent(payload.theme)}&duration=${payload.duration}`
+        : `${ANIMATION_API_BASE_URL}/generate`;
+
+      const fetchOptions = generationMode === 'demo'
+        ? { method: 'POST' }
+        : {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json; charset=utf-8',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          };
+
+      const response = await fetch(endpoint, fetchOptions);
 
       if (!response.ok) {
         const errorText = await response.text();

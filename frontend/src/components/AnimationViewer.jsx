@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { API_BASE_URL } from '../config/api';
+import { API_BASE_URL, ANIMATION_API_BASE_URL } from '../config/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import './AnimationViewer.css';
 
@@ -161,14 +161,23 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                             
                             // Priorité: video_url pour vraies vidéos > demo_image_url > image_url
                             if (clip.video_url && clip.type === 'real_video') {
-                              mediaUrl = `${API_BASE_URL}${clip.video_url}`;
+                              // Si l'URL est déjà absolue, on la garde telle quelle ; sinon, on préfixe avec le domaine de l'API animation
+                              mediaUrl = /^https?:\/\//i.test(clip.video_url)
+                                ? clip.video_url
+                                : `${ANIMATION_API_BASE_URL}${clip.video_url}`;
                               isVideo = true;
                             } else if (clip.demo_image_url) {
-                              mediaUrl = `${API_BASE_URL}${clip.demo_image_url}`;
+                              mediaUrl = /^https?:\/\//i.test(clip.demo_image_url)
+                                ? clip.demo_image_url
+                                : `${ANIMATION_API_BASE_URL}${clip.demo_image_url}`;
                             } else if (clip.image_url) {
-                              mediaUrl = `${API_BASE_URL}${clip.image_url}`;
+                              mediaUrl = /^https?:\/\//i.test(clip.image_url)
+                                ? clip.image_url
+                                : `${ANIMATION_API_BASE_URL}${clip.image_url}`;
                             } else if (clip.video_url) {
-                              mediaUrl = `${API_BASE_URL}${clip.video_url}`;
+                              mediaUrl = /^https?:\/\//i.test(clip.video_url)
+                                ? clip.video_url
+                                : `${ANIMATION_API_BASE_URL}${clip.video_url}`;
                             }
                             
                             console.log(`Clip ${index + 1}:`, { clip, mediaUrl, isVideo });
