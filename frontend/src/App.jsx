@@ -131,6 +131,34 @@ function App() {
   // Nouveau: mode de génération (demo ou production)
   const [generationMode, setGenerationMode] = useState('demo');
 
+  // Utilitaire d'attente
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  // Polling du statut d'une animation jusqu'à complétion
+  const waitForAnimationCompletion = async (animationId, { intervalMs = 5000, maxAttempts = 240 } = {}) => {
+    let attempts = 0;
+    while (attempts < maxAttempts) {
+      try {
+        const res = await fetch(`${ANIMATION_API_BASE_URL}/status/${animationId}`);
+        if (res.ok) {
+          const statusPayload = await res.json();
+          if (statusPayload?.type === 'result') {
+            const data = statusPayload.data;
+            if (data?.status === 'completed') return data;
+            if (data?.status === 'failed') throw new Error(data?.error_message || 'Génération échouée');
+          }
+          // Optionnel: on pourrait afficher la progression ici via statusPayload.data
+        }
+      } catch (e) {
+        // On continue à réessayer, logs silencieux
+        console.warn('Polling statut animation erreur:', e?.message || e);
+      }
+      attempts += 1;
+      await delay(intervalMs);
+    }
+    throw new Error('Timeout de génération de l’animation');
+  };
+
   // Store the current generated title for use in UI
   const [currentTitle, setCurrentTitle] = useState(null);
 
@@ -290,12 +318,21 @@ function App() {
         console.error('Erreur API Animation:', response.status, errorText);
         throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
       }
-      
-      const animationData = await response.json();
-      
-      setAnimationResult(animationData);
-      setShowAnimationViewer(true); // Afficher immédiatement le viewer
-      generatedContent = animationData; // Stocker pour l'historique
+
+      const initialData = await response.json();
+
+      // Ne pas ouvrir le viewer tout de suite; attendre la complétion réelle
+      let finalData = initialData;
+      const animationId = initialData?.animation_id;
+      const isCompleted = initialData?.status === 'completed' && (initialData?.final_video_url || (initialData?.clips?.length || 0) > 0);
+
+      if (animationId && !isCompleted) {
+        finalData = await waitForAnimationCompletion(animationId);
+      }
+
+      setAnimationResult(finalData);
+      setShowAnimationViewer(true);
+      generatedContent = finalData; // Stocker pour l'historique
     }
 
     // 🔁 Enregistre le résultat généré pour affichage audio/texte
