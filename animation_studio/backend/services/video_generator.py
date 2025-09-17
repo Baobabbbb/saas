@@ -40,8 +40,8 @@ class VideoGenerator:
             if not prediction_id:
                 raise Exception(f"Réponse invalide de l'API Wavespeed: {video_data}")
 
-            # 2. Attendre le traitement (équivalent du "Wait for clips" dans n8n)
-            await asyncio.sleep(min(scene.duration * 10, 140))  # Attente adaptative basée sur la durée
+            # 2. Petite attente initiale avant polling (laisser le job démarrer)
+            await asyncio.sleep(min(30, max(10, int(scene.duration))))
 
             # 3. Récupérer le résultat
             result = await self._get_video_result(prediction_id)
@@ -147,7 +147,7 @@ class VideoGenerator:
         clips = []
         
         # Générer les clips en parallèle avec limitation pour éviter la surcharge
-        semaphore = asyncio.Semaphore(3)  # Maximum 3 générations simultanées
+        semaphore = asyncio.Semaphore(2)  # Maximum 2 générations simultanées pour stabilité
         
         async def generate_with_semaphore(scene: Scene) -> VideoClip:
             async with semaphore:

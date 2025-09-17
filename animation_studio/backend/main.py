@@ -162,27 +162,25 @@ async def get_themes():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur récupération thèmes: {str(e)}")
 
-@app.post("/generate", response_model=AnimationResult)
+@app.post("/generate")
 async def generate_animation(request: AnimationRequest, background_tasks: BackgroundTasks):
-    """Génère un dessin animé basé sur la requête"""
+    """Démarre la génération et retourne immédiatement un animation_id pour polling."""
     try:
-        # Valider la requête
         if request.duration not in [30, 60, 120, 180, 240, 300]:
             raise HTTPException(status_code=400, detail="Durée non supportée")
-        
-        # Démarrer la génération en arrière-plan
+
+        # Callback de progression
         def progress_callback(progress: AnimationProgress):
             progress_callbacks[progress.animation_id] = progress
-        
-        # Générer l'animation
-        result = await pipeline.generate_animation(request, progress_callback)
-        
-        # Nettoyer le cache de progression
-        if result.animation_id in progress_callbacks:
-            del progress_callbacks[result.animation_id]
-        
-        return result
-        
+
+        # Démarrer la génération asynchrone et obtenir l'id immédiatement
+        animation_id = await pipeline.start_generation_async(request, progress_callback)
+
+        return JSONResponse(status_code=202, content={
+            "animation_id": animation_id,
+            "status": "pending"
+        })
+
     except HTTPException:
         raise
     except Exception as e:
