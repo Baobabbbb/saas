@@ -28,14 +28,15 @@ class AnimationPipeline:
         self.active_animations: Dict[str, AnimationResult] = {}
     
     async def generate_animation(
-        self, 
-        request: AnimationRequest, 
-        progress_callback: Optional[Callable[[AnimationProgress], None]] = None
+        self,
+        request: AnimationRequest,
+        progress_callback: Optional[Callable[[AnimationProgress], None]] = None,
+        forced_animation_id: Optional[str] = None,
     ) -> AnimationResult:
         """Génère un dessin animé complet selon le workflow zseedance.json"""
         
         # Initialiser le résultat
-        animation_id = str(uuid.uuid4())
+        animation_id = forced_animation_id or str(uuid.uuid4())
         start_time = time.time()
         
         result = AnimationResult(
@@ -154,10 +155,8 @@ class AnimationPipeline:
 
         async def run_job():
             try:
-                # Lancer la génération complète
-                final_result = await self.generate_animation(request, progress_callback)
-                # Forcer l'id pour correspondre au placeholder retourné au client
-                final_result.animation_id = animation_id
+                # Lancer la génération complète en imposant le même id
+                final_result = await self.generate_animation(request, progress_callback, forced_animation_id=animation_id)
                 self.active_animations[animation_id] = final_result
             except Exception as e:
                 failed = self.active_animations.get(animation_id, result_placeholder)
