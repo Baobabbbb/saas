@@ -90,12 +90,25 @@ class VideoGenerator:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
+        # Essayer plusieurs variantes de base_url pour éviter les 404 (docs/versions différentes)
+        candidate_bases = list(dict.fromkeys([
+            self.base_url.rstrip("/"),
+            "https://api.wavespeed.ai/api/v3",
+            "https://api.wavespeed.ai/v3",
+            "https://api.wavespeed.ai/api/v1",
+            "https://api.wavespeed.ai/v1",
+            "https://api.wavespeed.ai",
+        ]))
+
         async with aiohttp.ClientSession() as session:
-            attempts = [
-                (f"{self.base_url}/predictions", {"model": self.model, "input": params}),
-                (f"{self.base_url}/{self.model}", params),
-                (f"{self.base_url}/jobs", {"model": self.model, **params}),
-            ]
+            attempts = []
+            for base in candidate_bases:
+                attempts.extend([
+                    (f"{base}/predictions", {"model": self.model, "input": params}),
+                    (f"{base}/{self.model}", params),
+                    (f"{base}/jobs", {"model": self.model, **params}),
+                    (f"{base}/predict", {"model": self.model, "input": params}),
+                ])
             last_error = None
             for url, payload in attempts:
                 try:
@@ -124,11 +137,23 @@ class VideoGenerator:
         
         for attempt in range(max_retries):
             async with aiohttp.ClientSession() as session:
-                for url in [
-                    f"{self.base_url}/predictions/{prediction_id}",
-                    f"{self.base_url}/predictions/{prediction_id}/result",
-                    f"{self.base_url}/jobs/{prediction_id}",
-                ]:
+                candidate_bases = list(dict.fromkeys([
+                    self.base_url.rstrip("/"),
+                    "https://api.wavespeed.ai/api/v3",
+                    "https://api.wavespeed.ai/v3",
+                    "https://api.wavespeed.ai/api/v1",
+                    "https://api.wavespeed.ai/v1",
+                    "https://api.wavespeed.ai",
+                ]))
+                urls = []
+                for base in candidate_bases:
+                    urls.extend([
+                        f"{base}/predictions/{prediction_id}",
+                        f"{base}/predictions/{prediction_id}/result",
+                        f"{base}/jobs/{prediction_id}",
+                        f"{base}/prediction/{prediction_id}",
+                    ])
+                for url in urls:
                     try:
                         async with session.get(url, headers=headers) as response:
                             if response.status in [200, 201, 202]:
