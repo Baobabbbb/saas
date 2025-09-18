@@ -131,16 +131,20 @@ Respecte exactement le format JSON demandé avec Scene 1, Scene 2, etc."""
             for i in range(num_scenes):
                 scene_key = f"Scene {i + 1}"
                 if scene_key in scenes_data:
+                    # Coercer la description en texte si l'IA renvoie un objet
+                    raw_value = scenes_data[scene_key]
+                    description_text = self._coerce_scene_text(raw_value)
+
                     # Créer le prompt optimisé pour SeedANce
                     optimized_prompt = self.optimize_prompt_for_seedance(
-                        scenes_data[scene_key],
+                        description_text,
                         story_idea.environment,
                         i + 1
                     )
                     
                     scene = Scene(
                         scene_number=i + 1,
-                        description=scenes_data[scene_key],
+                        description=description_text,
                         duration=scene_durations[i],
                         prompt=optimized_prompt
                     )
@@ -154,6 +158,25 @@ Respecte exactement le format JSON demandé avec Scene 1, Scene 2, etc."""
         
         except Exception as e:
             raise Exception(f"Erreur lors de la création des scènes: {str(e)}")
+
+    def _coerce_scene_text(self, value) -> str:
+        """Transforme une valeur de scène (str ou dict) en description texte exploitable."""
+        if isinstance(value, str):
+            return value.strip()
+        if isinstance(value, dict):
+            # Chercher un champ descriptif fréquent
+            for key in ["Description", "description", "scene", "text", "content", "prompt"]:
+                v = value.get(key)
+                if isinstance(v, str) and v.strip():
+                    return v.strip()
+            # Sinon concaténer les valeurs textuelles
+            parts = [str(v).strip() for v in value.values() if isinstance(v, str) and v.strip()]
+            if parts:
+                return ". ".join(parts)
+            # Dernier recours: JSON brut
+            return json.dumps(value, ensure_ascii=False)
+        # Types inattendus
+        return str(value)
 
     def optimize_prompt_for_seedance(self, scene_description: str, environment: str, scene_number: int) -> str:
         """Optimise le prompt pour la génération vidéo SeedANce/Wavespeed"""
