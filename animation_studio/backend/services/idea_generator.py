@@ -88,11 +88,11 @@ FORMAT DE SORTIE:
 json
 [
   {{
-    "Caption": "🌟 Une aventure magique commence! Parfait pour l'imagination! #enfants #animation #magie",
-    "Idea": "Idée complète de l'histoire en une phrase d'action claire et engageante",
-    "Environment": "Description de l'environnement en moins de 20 mots",
-    "Sound": "Description des effets sonores et ambiance musicale adaptés aux enfants",
-    "Status": "for production"
+    "caption": "🌟 Une aventure magique commence! Parfait pour l'imagination! #enfants #animation #magie",
+    "idea": "Idée complète de l'histoire en une phrase d'action claire et engageante",
+    "environment": "Description de l'environnement en moins de 20 mots",
+    "sound": "Description des effets sonores et ambiance musicale adaptés aux enfants",
+    "status": "for production"
   }}
 ]"""
 
@@ -134,7 +134,20 @@ Respecte exactement le format JSON demandé."""
             
             idea_data = json.loads(content)[0]
             
-            return StoryIdea(**idea_data)
+            # Normaliser les clés en minuscules si nécessaire
+            normalized = { (k.lower() if isinstance(k, str) else k): v for k, v in idea_data.items() }
+            
+            # Mapper les éventuelles variantes vers les clés attendues
+            key_map = {
+                "caption": "caption",
+                "idea": "idea",
+                "environment": "environment",
+                "sound": "sound",
+                "status": "status",
+            }
+            mapped = { key_map.get(k, k): v for k, v in normalized.items() }
+            
+            return StoryIdea(**mapped)
             
         except json.JSONDecodeError as e:
             # Fallback en cas d'erreur de parsing
