@@ -77,7 +77,12 @@ class AnimationPipeline:
             # Vérifier qu'au moins un clip a été généré avec succès
             valid_clips = [clip for clip in video_clips if clip.status == "completed"]
             if not valid_clips:
-                raise Exception("Aucun clip vidéo n'a pu être généré")
+                # Agréger les erreurs pour diagnostic frontend
+                failed_details = "; ".join(
+                    [f"scene {c.scene_number}: {c.status}" for c in video_clips if c.status and c.status.startswith("failed")]
+                ) or "aucun détail"
+                result.error_message = f"Aucun clip vidéo n'a pu être généré ({failed_details})"
+                raise Exception(result.error_message)
             
             # Étape 4: Génération audio (équivalent "Create Sounds" -> "Get Sounds" dans n8n)
             await self._update_progress(animation_id, AnimationStatus.GENERATING_AUDIO, 70,
