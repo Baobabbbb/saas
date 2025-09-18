@@ -19,7 +19,7 @@ class VideoGenerator:
         # Préparer les paramètres selon l'API Wavespeed (inspiré de zseedance.json)
         video_params = {
             "aspect_ratio": config.VIDEO_ASPECT_RATIO,
-            "duration": scene.duration,
+            "duration": min(int(scene.duration), config.WAVESPEED_MAX_DURATION),
             "prompt": scene.prompt
         }
         
@@ -108,8 +108,8 @@ class VideoGenerator:
             "Authorization": f"Bearer {self.api_key}"
         }
         
-        max_retries = 16
-        retry_delay = 15  # secondes
+        max_retries = 50
+        retry_delay = 12  # secondes
         
         for attempt in range(max_retries):
             async with aiohttp.ClientSession() as session:
