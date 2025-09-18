@@ -14,6 +14,7 @@ class Config:
     # API Endpoints
     WAVESPEED_BASE_URL = os.getenv("WAVESPEED_BASE_URL", "https://api.wavespeed.ai/api/v3")
     WAVESPEED_MODEL = os.getenv("WAVESPEED_MODEL", "bytedance/seedance-v1-pro-t2v-480p")
+    WAVESPEED_MAX_DURATION = int(os.getenv("WAVESPEED_MAX_DURATION", "6"))
     
     # FAL AI Models
     FAL_AUDIO_MODEL = os.getenv("FAL_AUDIO_MODEL", "fal-ai/mmaudio-v2")
