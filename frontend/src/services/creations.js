@@ -1,157 +1,196 @@
 import { supabase } from '../supabaseClient'
 
-// ID utilisateur fictif pour forcer l'utilisation de Supabase
-const FORCE_SUPABASE_USER_ID = 'friday-user-' + Date.now().toString();
+console.log('🚀 FRIDAY: Service créations - SUPABASE ONLY MODE');
 
-// Service pour gérer les créations AVEC SUPABASE OBLIGATOIRE
-// PATCH TEMPORAIRE : Force l'utilisation de Supabase au lieu du localStorage
+// Fonction pour obtenir l'ID utilisateur actuel
+function getCurrentUserId() {
+  // 1. Essayer de récupérer depuis la session Supabase
+  const fridayUser = localStorage.getItem('friday_supabase_user');
+  if (fridayUser) {
+    const user = JSON.parse(fridayUser);
+    return user.id;
+  }
+  
+  // 2. Générer un ID basé sur l'email localStorage
+  const userEmail = localStorage.getItem('userEmail');
+  if (userEmail) {
+    return 'friday-user-' + btoa(userEmail).slice(0, 10);
+  }
+  
+  // 3. ID par défaut
+  return 'friday-anonymous-' + Date.now();
+}
 
-// Ajouter une création - VERSION SUPABASE ONLY
+// Ajouter une création - SUPABASE OBLIGATOIRE
 export async function addCreation({ type, title, data }) {
+  console.log('💾 FRIDAY: Sauvegarde création en base Supabase', { type, title });
+  
+  const userId = getCurrentUserId();
+  
   try {
-    console.log('🔄 SUPABASE: Tentative de création...', { type, title });
-
-    // FORCER l'utilisation de Supabase - PAS de fallback localStorage
-    const { data: newCreation, error } = await supabase
-      .from('creations')
-      .insert([{
-        user_id: FORCE_SUPABASE_USER_ID, // ID fictif pour contourner l'auth
-        type,
-        title,
-        data: {
-          ...data,
-          created_via: 'web_version',
-          timestamp: new Date().toISOString()
-        }
-      }])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('❌ SUPABASE ERROR:', error);
-      throw new Error(`Supabase error: ${error.message}`);
-    }
-
-    console.log('✅ SUPABASE SUCCESS: Création sauvegardée', newCreation);
-    return { data: newCreation };
-
-  } catch (error) {
-    console.error('💥 ERREUR SUPABASE:', error);
-    // PAS de fallback - on veut voir les vraies erreurs Supabase
-    throw error;
-  }
-}
-
-// Récupérer l'historique des créations - VERSION SUPABASE ONLY
-export async function getUserCreations() {
-  try {
-    console.log('🔄 SUPABASE: Récupération des créations...');
-
-    // FORCER l'utilisation de Supabase
-    const { data, error } = await supabase
-      .from('creations')
-      .select('*')
-      .eq('user_id', FORCE_SUPABASE_USER_ID)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('❌ SUPABASE ERROR récupération:', error);
-      throw new Error(`Supabase error: ${error.message}`);
-    }
-
-    console.log('✅ SUPABASE SUCCESS: Récupéré', data?.length || 0, 'créations');
-    return data || [];
-
-  } catch (error) {
-    console.error('💥 ERREUR SUPABASE récupération:', error);
-    // PAS de fallback - on veut voir les vraies erreurs Supabase
-    throw error;
-  }
-}
-
-// Supprimer une création - VERSION SUPABASE ONLY
-export async function deleteCreation(id) {
-  try {
-    console.log('🔄 SUPABASE: Suppression de la création...', id);
-
-    // FORCER l'utilisation de Supabase
-    const { error } = await supabase
-      .from('creations')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', FORCE_SUPABASE_USER_ID);
-
-    if (error) {
-      console.error('❌ SUPABASE ERROR suppression:', error);
-      throw new Error(`Supabase error: ${error.message}`);
-    }
-
-    console.log('✅ SUPABASE SUCCESS: Création supprimée');
-    return { error: null };
-
-  } catch (error) {
-    console.error('💥 ERREUR SUPABASE suppression:', error);
-    throw error;
-  }
-}
-
-// Fonction de diagnostic Supabase
-export async function diagnoseSupabase() {
-  try {
-    console.log('🔍 DIAGNOSTIC SUPABASE...');
-
-    // Test 1: Variables d'environnement
-    console.log('📋 Variables:');
-    console.log('- URL:', import.meta.env.VITE_SUPABASE_URL);
-    console.log('- KEY présente:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
-
-    // Test 2: Connexion de base
-    const { data: connectionTest, error: connectionError } = await supabase
-      .from('creations')
-      .select('count', { count: 'exact', head: true });
-
-    if (connectionError) {
-      console.log('❌ Connexion échouée:', connectionError.message);
-      return { status: 'error', error: connectionError.message };
-    }
-
-    console.log('✅ Connexion réussie');
-
-    // Test 3: Test d'insertion
-    const testData = {
-      user_id: FORCE_SUPABASE_USER_ID,
-      type: 'diagnostic',
-      title: 'Test de connexion',
-      data: { timestamp: new Date().toISOString(), test: true }
-    };
-
-    const { data: testResult, error: testError } = await supabase
-      .from('creations')
-      .insert([testData])
-      .select()
-      .single();
-
-    if (testError) {
-      console.log('❌ Test d\'insertion échoué:', testError.message);
-      return { status: 'error', error: testError.message };
-    }
-
-    console.log('✅ Test d\'insertion réussi:', testResult.id);
-
-    // Nettoyer le test
-    await supabase.from('creations').delete().eq('id', testResult.id);
-
-    return {
-      status: 'success',
-      message: 'Supabase fonctionne parfaitement !',
-      variables: {
-        url: !!import.meta.env.VITE_SUPABASE_URL,
-        key: !!import.meta.env.VITE_SUPABASE_ANON_KEY
+    const creationData = {
+      user_id: userId,
+      type,
+      title,
+      data: {
+        ...data,
+        created_via: 'friday_web',
+        user_email: localStorage.getItem('userEmail') || 'anonymous',
+        timestamp: new Date().toISOString()
       }
     };
 
+    console.log('📤 Envoi vers Supabase:', creationData);
+    
+    const { data: newCreation, error } = await supabase
+      .from('creations')
+      .insert([creationData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ ERREUR Supabase lors de la création:', error);
+      throw new Error(`Erreur base de données: ${error.message}`);
+    }
+
+    console.log('✅ Création sauvegardée en base:', newCreation);
+    return newCreation;
+    
   } catch (error) {
-    console.log('💥 Erreur diagnostic:', error);
-    return { status: 'error', error: error.message };
+    console.error('❌ ERREUR CRITIQUE lors de la sauvegarde:', error);
+    throw error;
   }
 }
+
+// Récupérer les créations - SUPABASE OBLIGATOIRE
+export async function getCreations() {
+  console.log('📥 FRIDAY: Récupération créations depuis Supabase');
+  
+  const userId = getCurrentUserId();
+  
+  try {
+    const { data: creations, error } = await supabase
+      .from('creations')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ ERREUR Supabase lors de la récupération:', error);
+      throw new Error(`Erreur base de données: ${error.message}`);
+    }
+
+    console.log(`✅ ${creations?.length || 0} créations récupérées de la base`);
+    return creations || [];
+    
+  } catch (error) {
+    console.error('❌ ERREUR CRITIQUE lors de la récupération:', error);
+    throw error;
+  }
+}
+
+// Alias pour compatibilité avec History.jsx
+export const getUserCreations = getCreations;
+
+// Supprimer une création - SUPABASE OBLIGATOIRE
+export async function deleteCreation(id) {
+  console.log('🗑️ FRIDAY: Suppression création de Supabase, ID:', id);
+  
+  try {
+    const { error } = await supabase
+      .from('creations')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('❌ ERREUR Supabase lors de la suppression:', error);
+      throw new Error(`Erreur base de données: ${error.message}`);
+    }
+
+    console.log('✅ Création supprimée de la base');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ ERREUR CRITIQUE lors de la suppression:', error);
+    throw error;
+  }
+}
+
+// Mettre à jour une création - SUPABASE OBLIGATOIRE
+export async function updateCreation(id, updates) {
+  console.log('📝 FRIDAY: Mise à jour création en base, ID:', id);
+  
+  try {
+    const { data: updatedCreation, error } = await supabase
+      .from('creations')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ ERREUR Supabase lors de la mise à jour:', error);
+      throw new Error(`Erreur base de données: ${error.message}`);
+    }
+
+    console.log('✅ Création mise à jour en base:', updatedCreation);
+    return updatedCreation;
+    
+  } catch (error) {
+    console.error('❌ ERREUR CRITIQUE lors de la mise à jour:', error);
+    throw error;
+  }
+}
+
+// Obtenir une création spécifique - SUPABASE OBLIGATOIRE
+export async function getCreation(id) {
+  console.log('🔍 FRIDAY: Récupération création spécifique, ID:', id);
+  
+  try {
+    const { data: creation, error } = await supabase
+      .from('creations')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('❌ ERREUR Supabase lors de la récupération:', error);
+      throw new Error(`Erreur base de données: ${error.message}`);
+    }
+
+    console.log('✅ Création récupérée:', creation);
+    return creation;
+    
+  } catch (error) {
+    console.error('❌ ERREUR CRITIQUE lors de la récupération:', error);
+    throw error;
+  }
+}
+
+// Fonction utilitaire pour vérifier la connexion Supabase
+export async function testSupabaseConnection() {
+  console.log('🧪 FRIDAY: Test de connexion Supabase...');
+  
+  try {
+    const { data, error, count } = await supabase
+      .from('creations')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      console.error('❌ Connexion Supabase échouée:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('✅ Connexion Supabase réussie - Créations en base:', count);
+    return { success: true, count };
+    
+  } catch (error) {
+    console.error('❌ Test connexion échoué:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+console.log('✅ FRIDAY: Service créations initialisé - Mode Supabase uniquement');

@@ -1,70 +1,32 @@
 import { createClient } from '@supabase/supabase-js'
-import { SUPABASE_CONFIG, diagnoseEnvironmentVariables } from './config/supabase-config'
 
-// Diagnostic au chargement
-console.log('🚀 INITIALISATION SUPABASE CLIENT FRIDAY');
-const envDiagnostic = diagnoseEnvironmentVariables();
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://xfbmdeuzuyixpmouhqcv.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmYm1kZXV6dXlpeHBtb3VocWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMzE3ODQsImV4cCI6MjA2NDkwNzc4NH0.XzFIT3BwW9dKRrmFFbSAufCpC1SZuUI-VU2Uer5VoTw'
 
-export const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
+console.log('🚀 FRIDAY: Initialisation Supabase client');
+console.log('🔗 URL:', supabaseUrl);
+console.log('🔑 Clé présente:', !!supabaseAnonKey);
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: false
   }
 })
 
-// Test de connexion immédiat
-console.log('🔍 TEST CONNEXION SUPABASE...');
+// Test immédiat de connexion
+console.log('🧪 FRIDAY: Test connexion Supabase...');
 supabase.from('creations').select('count', { count: 'exact', head: true })
   .then(({ data, error, count }) => {
     if (error) {
-      console.error('❌ ERREUR CONNEXION SUPABASE:', error);
+      console.error('❌ FRIDAY: Erreur connexion Supabase:', error.message);
     } else {
-      console.log('✅ CONNEXION SUPABASE OK - Créations dans la base:', count);
+      console.log('✅ FRIDAY: Connexion Supabase OK -', count, 'créations en base');
     }
   })
   .catch(err => {
-    console.error('❌ ERREUR CRITIQUE SUPABASE:', err);
+    console.error('❌ FRIDAY: Erreur critique Supabase:', err.message);
   });
 
-export function diagnoseSupabase() {
-  console.log('🧪 DIAGNOSTIC COMPLET SUPABASE CLIENT');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  
-  const config = {
-    url: SUPABASE_CONFIG.url,
-    keyPresent: !!SUPABASE_CONFIG.anonKey,
-    keyPreview: SUPABASE_CONFIG.anonKey?.substring(0, 20) + '...',
-    clientInitialized: !!supabase
-  };
-  
-  console.log('📊 Configuration actuelle:', config);
-  
-  // Test de connexion
-  return supabase.from('creations').select('count', { count: 'exact', head: true })
-    .then(({ data, error, count }) => {
-      const result = {
-        ...config,
-        connectionTest: error ? 'FAILED' : 'SUCCESS',
-        error: error?.message,
-        recordCount: count
-      };
-      
-      console.log('🔍 Résultat test connexion:', result);
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      
-      return result;
-    })
-    .catch(err => {
-      const result = {
-        ...config,
-        connectionTest: 'ERROR',
-        error: err.message
-      };
-      
-      console.error('❌ Erreur test connexion:', result);
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      
-      return result;
-    });
-}
+console.log('✅ FRIDAY: Client Supabase initialisé avec succès');
