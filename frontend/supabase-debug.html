@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Debug Supabase - FRIDAY</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -13,7 +14,7 @@
             min-height: 100vh;
         }
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.1);
             padding: 30px;
@@ -24,329 +25,263 @@
             text-align: center;
             margin-bottom: 30px;
             font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         .test-section {
             background: rgba(255, 255, 255, 0.1);
-            margin: 20px 0;
             padding: 20px;
+            margin: 20px 0;
             border-radius: 10px;
-            border-left: 5px solid #4CAF50;
+            border-left: 5px solid #ffd700;
         }
-        .test-section.error {
-            border-left-color: #f44336;
+        .result {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 5px solid;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
         }
-        .test-section.warning {
-            border-left-color: #ff9800;
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: #4CAF50;
+        }
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            border-color: #f44336;
+        }
+        .warning {
+            background: rgba(255, 193, 7, 0.2);
+            border-color: #FFC107;
+        }
+        .info {
+            background: rgba(33, 150, 243, 0.2);
+            border-color: #2196F3;
         }
         button {
-            background: #4CAF50;
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
             border: none;
-            padding: 12px 24px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 16px;
             margin: 10px 5px;
-            transition: background 0.3s;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
         }
         button:hover {
-            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
-        button:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-        }
-        .status {
-            padding: 10px;
-            margin: 10px 0;
+        .env-var {
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            margin: 5px 0;
             border-radius: 5px;
-            font-weight: bold;
+            font-family: monospace;
         }
-        .status.success { background: rgba(76, 175, 80, 0.2); color: #4CAF50; }
-        .status.error { background: rgba(244, 67, 54, 0.2); color: #f44336; }
-        .status.warning { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
-        .status.info { background: rgba(33, 150, 243, 0.2); color: #2196F3; }
-        pre {
-            background: rgba(0, 0, 0, 0.3);
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
             padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            font-size: 12px;
-        }
-        .result-list {
-            list-style: none;
-            padding: 0;
-        }
-        .result-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .result-list li:last-child {
-            border-bottom: none;
+            border-radius: 10px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔍 Debug Supabase - FRIDAY</h1>
-
+        <h1>🔧 DIAGNOSTIC SUPABASE - FRIDAY</h1>
+        
         <div class="test-section">
-            <h2>🚀 Tests Automatiques</h2>
-            <button onclick="runAllTests()">Lancer tous les tests</button>
-            <button onclick="clearResults()">Effacer les résultats</button>
-            <div id="test-results"></div>
+            <h2>📊 Variables d'Environnement</h2>
+            <div id="env-vars"></div>
+            <button onclick="checkEnvironmentVariables()">🔍 Vérifier Variables</button>
         </div>
-
+        
         <div class="test-section">
-            <h2>🔧 Tests Manuels</h2>
-            <button onclick="testVariables()">Variables d'environnement</button>
-            <button onclick="testSupabaseConnection()">Connexion Supabase</button>
-            <button onclick="testDatabaseOperations()">Opérations DB</button>
-            <button onclick="testAppIntegration()">Intégration App</button>
-            <div id="manual-results"></div>
+            <h2>🔌 Test de Connexion</h2>
+            <div id="connection-test"></div>
+            <button onclick="testSupabaseConnection()">🧪 Tester Connexion</button>
         </div>
-
+        
         <div class="test-section">
-            <h2>📊 État du Système</h2>
-            <div id="system-status"></div>
+            <h2>📝 Test Création</h2>
+            <div id="creation-test"></div>
+            <button onclick="testCreateRecord()">➕ Tester Création</button>
         </div>
-
+        
         <div class="test-section">
-            <h2>🎯 Actions Recommandées</h2>
-            <div id="recommendations"></div>
+            <h2>📋 Statistiques Base de Données</h2>
+            <div id="database-stats"></div>
+            <button onclick="getDatabaseStats()">📊 Charger Statistiques</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔄 Test Complet</h2>
+            <button onclick="runCompleteTest()">🚀 Lancer Test Complet</button>
+            <div id="complete-test"></div>
         </div>
     </div>
 
-    <script type="module">
-        let testResults = document.getElementById('test-results');
-        let manualResults = document.getElementById('manual-results');
-        let systemStatus = document.getElementById('system-status');
-        let recommendations = document.getElementById('recommendations');
-
-        function log(message, type = 'info', target = testResults) {
-            const div = document.createElement('div');
-            div.className = `status ${type}`;
-            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> ${message}`;
-            target.appendChild(div);
-            console.log(`[${type.toUpperCase()}] ${message}`);
+    <script>
+        // Configuration Supabase identique à l'app
+        const SUPABASE_URL = 'https://xfbmdeuzuyixpmouhqcv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmYm1kZXV6dXlpeHBtb3VocWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMzE3ODQsImV4cCI6MjA2NDkwNzc4NH0.XzFIT3BwW9dKRrmFFbSAufCpC1SZuUI-VU2Uer5VoTw';
+        
+        // Initialiser Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        function addResult(containerId, content, type = 'info') {
+            const container = document.getElementById(containerId);
+            const result = document.createElement('div');
+            result.className = `result ${type}`;
+            result.textContent = content;
+            container.appendChild(result);
         }
-
-        function clearResults() {
-            testResults.innerHTML = '';
-            manualResults.innerHTML = '';
+        
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
         }
-
-        // Test des variables d'environnement
-        async function testVariables() {
-            log('🔍 Test des variables d\'environnement...', 'info', manualResults);
-
+        
+        function checkEnvironmentVariables() {
+            clearResults('env-vars');
+            
+            addResult('env-vars', '🔍 VÉRIFICATION VARIABLES D\'ENVIRONNEMENT', 'info');
+            addResult('env-vars', `URL Supabase: ${SUPABASE_URL}`, 'success');
+            addResult('env-vars', `Clé anonyme présente: ${SUPABASE_ANON_KEY ? '✅ OUI' : '❌ NON'}`, SUPABASE_ANON_KEY ? 'success' : 'error');
+            addResult('env-vars', `Prévisualisation clé: ${SUPABASE_ANON_KEY.substring(0, 30)}...`, 'info');
+            addResult('env-vars', `Client Supabase initialisé: ${supabase ? '✅ OUI' : '❌ NON'}`, supabase ? 'success' : 'error');
+        }
+        
+        async function testSupabaseConnection() {
+            clearResults('connection-test');
+            addResult('connection-test', '🔌 TEST DE CONNEXION SUPABASE...', 'info');
+            
             try {
-                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-                const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-                if (supabaseUrl) {
-                    log(`✅ VITE_SUPABASE_URL: ${supabaseUrl}`, 'success', manualResults);
+                const { data, error, count } = await supabase
+                    .from('creations')
+                    .select('*', { count: 'exact', head: true });
+                
+                if (error) {
+                    addResult('connection-test', `❌ ERREUR CONNEXION: ${error.message}`, 'error');
+                    addResult('connection-test', `Code: ${error.code || 'N/A'}`, 'error');
+                    addResult('connection-test', `Détails: ${error.details || 'N/A'}`, 'error');
                 } else {
-                    log('❌ VITE_SUPABASE_URL non définie', 'error', manualResults);
+                    addResult('connection-test', '✅ CONNEXION RÉUSSIE!', 'success');
+                    addResult('connection-test', `Nombre d'enregistrements: ${count}`, 'success');
                 }
-
-                if (supabaseKey) {
-                    log(`✅ VITE_SUPABASE_ANON_KEY présente (${supabaseKey.substring(0, 20)}...)`, 'success', manualResults);
-                } else {
-                    log('❌ VITE_SUPABASE_ANON_KEY non définie', 'error', manualResults);
-                }
-
-                if (supabaseUrl && supabaseKey) {
-                    log('🎉 Toutes les variables sont correctement chargées !', 'success', manualResults);
-                }
-
-            } catch (error) {
-                log(`💥 Erreur lors du test des variables: ${error.message}`, 'error', manualResults);
+            } catch (err) {
+                addResult('connection-test', `❌ ERREUR CRITIQUE: ${err.message}`, 'error');
             }
         }
-
-        // Test de connexion Supabase
-        async function testSupabaseConnection() {
-            log('🔌 Test de connexion à Supabase...', 'info', manualResults);
-
+        
+        async function testCreateRecord() {
+            clearResults('creation-test');
+            addResult('creation-test', '📝 TEST CRÉATION D\'ENREGISTREMENT...', 'info');
+            
+            const testData = {
+                user_id: 'friday-test-' + Date.now(),
+                type: 'comptine',
+                title: 'Test Diagnostic ' + new Date().toLocaleString(),
+                data: {
+                    content: 'Test de diagnostic Supabase',
+                    created_via: 'diagnostic_page',
+                    timestamp: new Date().toISOString()
+                }
+            };
+            
             try {
-                const { supabase } = await import('./src/supabaseClient.js');
-                log('✅ Client Supabase importé', 'success', manualResults);
-
-                // Test de connexion basique
                 const { data, error } = await supabase
                     .from('creations')
-                    .select('count', { count: 'exact', head: true });
-
-                if (error) {
-                    log(`❌ Erreur de connexion: ${error.message}`, 'error', manualResults);
-                    if (error.message.includes('CORS')) {
-                        log('💡 Solution: Vérifiez les origines autorisées dans Supabase', 'warning', manualResults);
-                    } else if (error.message.includes('JWT')) {
-                        log('💡 Solution: Vérifiez la clé API', 'warning', manualResults);
-                    }
-                } else {
-                    log('✅ Connexion Supabase réussie !', 'success', manualResults);
-                }
-
-            } catch (error) {
-                log(`💥 Erreur de connexion: ${error.message}`, 'error', manualResults);
-            }
-        }
-
-        // Test des opérations de base de données
-        async function testDatabaseOperations() {
-            log('💾 Test des opérations de base de données...', 'info', manualResults);
-
-            try {
-                const { supabase } = await import('./src/supabaseClient.js');
-
-                // Test d'insertion
-                const testId = 'test-' + Date.now();
-                const testData = {
-                    user_id: 'debug-user-' + Date.now(),
-                    type: 'debug',
-                    title: 'Test Debug',
-                    data: {
-                        timestamp: new Date().toISOString(),
-                        test: true,
-                        source: 'debug_page'
-                    }
-                };
-
-                log('📝 Test d\'insertion...', 'info', manualResults);
-                const { data: insertResult, error: insertError } = await supabase
-                    .from('creations')
                     .insert([testData])
-                    .select()
-                    .single();
-
-                if (insertError) {
-                    log(`❌ Erreur d'insertion: ${insertError.message}`, 'error', manualResults);
+                    .select();
+                
+                if (error) {
+                    addResult('creation-test', `❌ ERREUR CRÉATION: ${error.message}`, 'error');
+                    addResult('creation-test', `Code: ${error.code || 'N/A'}`, 'error');
                 } else {
-                    log(`✅ Insertion réussie - ID: ${insertResult.id}`, 'success', manualResults);
-
-                    // Test de récupération
-                    log('📖 Test de récupération...', 'info', manualResults);
-                    const { data: fetchResult, error: fetchError } = await supabase
-                        .from('creations')
-                        .select('*')
-                        .eq('id', insertResult.id);
-
-                    if (fetchError) {
-                        log(`❌ Erreur de récupération: ${fetchError.message}`, 'error', manualResults);
-                    } else {
-                        log(`✅ Récupération réussie: ${fetchResult.length} éléments`, 'success', manualResults);
-                    }
-
-                    // Nettoyer
-                    log('🧹 Nettoyage du test...', 'info', manualResults);
-                    await supabase.from('creations').delete().eq('id', insertResult.id);
-                    log('✅ Test nettoyé', 'success', manualResults);
+                    addResult('creation-test', '✅ CRÉATION RÉUSSIE!', 'success');
+                    addResult('creation-test', `ID: ${data[0]?.id}`, 'success');
+                    addResult('creation-test', `Titre: ${data[0]?.title}`, 'success');
                 }
-
-            } catch (error) {
-                log(`💥 Erreur DB: ${error.message}`, 'error', manualResults);
+            } catch (err) {
+                addResult('creation-test', `❌ ERREUR CRITIQUE: ${err.message}`, 'error');
             }
         }
-
-        // Test d'intégration avec l'app
-        async function testAppIntegration() {
-            log('🔗 Test d\'intégration avec l\'app...', 'info', manualResults);
-
+        
+        async function getDatabaseStats() {
+            clearResults('database-stats');
+            addResult('database-stats', '📊 CHARGEMENT STATISTIQUES...', 'info');
+            
             try {
-                const { diagnoseSupabase } = await import('./src/services/creations.js');
-
-                log('🏥 Lancement du diagnostic...', 'info', manualResults);
-                const result = await diagnoseSupabase();
-
-                if (result.status === 'success') {
-                    log('✅ Diagnostic réussi !', 'success', manualResults);
-                    log(`📊 ${result.message}`, 'info', manualResults);
-                } else {
-                    log(`❌ Diagnostic échoué: ${result.error}`, 'error', manualResults);
+                // Compter par type
+                const { data: allCreations, error } = await supabase
+                    .from('creations')
+                    .select('type, created_at');
+                
+                if (error) {
+                    addResult('database-stats', `❌ ERREUR: ${error.message}`, 'error');
+                    return;
                 }
-
-            } catch (error) {
-                log(`💥 Erreur d'intégration: ${error.message}`, 'error', manualResults);
+                
+                const stats = {};
+                allCreations.forEach(creation => {
+                    stats[creation.type] = (stats[creation.type] || 0) + 1;
+                });
+                
+                addResult('database-stats', `📊 STATISTIQUES DE LA BASE:`, 'success');
+                addResult('database-stats', `Total: ${allCreations.length} créations`, 'info');
+                
+                Object.entries(stats).forEach(([type, count]) => {
+                    addResult('database-stats', `${type}: ${count}`, 'info');
+                });
+                
+                // Dernière création
+                if (allCreations.length > 0) {
+                    const latest = allCreations.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+                    addResult('database-stats', `Dernière création: ${new Date(latest.created_at).toLocaleString()}`, 'info');
+                }
+                
+            } catch (err) {
+                addResult('database-stats', `❌ ERREUR: ${err.message}`, 'error');
             }
         }
-
-        // Test automatique complet
-        async function runAllTests() {
-            log('🚀 DÉBUT DES TESTS AUTOMATIQUES', 'info');
-
-            try {
-                await testVariables();
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                await testSupabaseConnection();
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                await testDatabaseOperations();
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                await testAppIntegration();
-
-                log('🏁 TESTS AUTOMATIQUES TERMINÉS', 'success');
-
-                // Afficher le résumé
-                updateSystemStatus();
-                updateRecommendations();
-
-            } catch (error) {
-                log(`💥 ERREUR GÉNÉRALE: ${error.message}`, 'error');
-            }
+        
+        async function runCompleteTest() {
+            clearResults('complete-test');
+            addResult('complete-test', '🚀 LANCEMENT TEST COMPLET...', 'info');
+            
+            // Test 1: Variables
+            addResult('complete-test', '1️⃣ Variables d\'environnement...', 'info');
+            checkEnvironmentVariables();
+            
+            // Test 2: Connexion
+            addResult('complete-test', '2️⃣ Test de connexion...', 'info');
+            await testSupabaseConnection();
+            
+            // Test 3: Création
+            addResult('complete-test', '3️⃣ Test de création...', 'info');
+            await testCreateRecord();
+            
+            // Test 4: Statistiques
+            addResult('complete-test', '4️⃣ Statistiques...', 'info');
+            await getDatabaseStats();
+            
+            addResult('complete-test', '✅ TEST COMPLET TERMINÉ!', 'success');
         }
-
-        // Mise à jour du statut système
-        function updateSystemStatus() {
-            const hasSupabaseUrl = !!import.meta.env.VITE_SUPABASE_URL;
-            const hasSupabaseKey = !!import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-            let statusHtml = '<ul class="result-list">';
-
-            statusHtml += `<li>🔧 Variables d'environnement: ${hasSupabaseUrl && hasSupabaseKey ? '✅ Chargées' : '❌ Manquantes'}</li>`;
-            statusHtml += `<li>🌐 URL Supabase: ${hasSupabaseUrl ? '✅ Présente' : '❌ Manquante'}</li>`;
-            statusHtml += `<li>🔑 Clé API: ${hasSupabaseKey ? '✅ Présente' : '❌ Manquante'}</li>`;
-            statusHtml += '<li>🚀 Application: ✅ En cours d\'exécution</li>';
-
-            statusHtml += '</ul>';
-            systemStatus.innerHTML = statusHtml;
-        }
-
-        // Mise à jour des recommandations
-        function updateRecommendations() {
-            const hasSupabaseUrl = !!import.meta.env.VITE_SUPABASE_URL;
-            const hasSupabaseKey = !!import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-            let recHtml = '<ul class="result-list">';
-
-            if (!hasSupabaseUrl || !hasSupabaseKey) {
-                recHtml += '<li>⚠️ <strong>Vérifiez les variables Railway</strong> - Elles ne sont pas chargées</li>';
-                recHtml += '<li>🔄 <strong>Redéployez</strong> après avoir ajouté les variables manquantes</li>';
-            } else {
-                recHtml += '<li>✅ Variables correctement chargées</li>';
-            }
-
-            recHtml += '<li>🔍 <strong>Testez la création</strong> d\'une comptine dans FRIDAY</li>';
-            recHtml += '<li>📊 <strong>Vérifiez Supabase</strong> - Les données doivent apparaître dans la table creations</li>';
-            recHtml += '<li>🐛 En cas d\'erreur, consultez la console développeur (F12)</li>';
-
-            recHtml += '</ul>';
-            recommendations.innerHTML = recHtml;
-        }
-
-        // Initialisation
-        updateSystemStatus();
-        updateRecommendations();
-
-        log('🔧 Page de debug chargée - Cliquez sur "Lancer tous les tests"', 'info');
-
-        // Exposition globale pour debug
-        window.runAllTests = runAllTests;
-        window.testVariables = testVariables;
-        window.testSupabaseConnection = testSupabaseConnection;
-        window.testDatabaseOperations = testDatabaseOperations;
-        window.testAppIntegration = testAppIntegration;
-        window.clearResults = clearResults;
+        
+        // Auto-lancement au chargement
+        window.addEventListener('load', () => {
+            console.log('🧪 Page de diagnostic Supabase chargée');
+            checkEnvironmentVariables();
+        });
     </script>
 </body>
 </html>

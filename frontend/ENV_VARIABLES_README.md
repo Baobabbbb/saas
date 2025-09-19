@@ -37,3 +37,5 @@ Après déploiement, testez avec :
 - ✅ Clé API valide (non expirée)
 - ✅ Origines CORS configurées dans Supabase
 - ✅ Tables `profiles` et `creations` créées
+
+
