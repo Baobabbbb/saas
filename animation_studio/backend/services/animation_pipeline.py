@@ -77,11 +77,12 @@ class AnimationPipeline:
             # Vérifier qu'au moins un clip a été généré avec succès
             valid_clips = [clip for clip in video_clips if clip.status == "completed"]
             if not valid_clips:
-                # Agréger les erreurs pour diagnostic frontend
+                # Agréger les erreurs pour diagnostic frontend + conseils utiles
                 failed_details = "; ".join(
                     [f"scene {c.scene_number}: {c.status}" for c in video_clips if c.status and c.status.startswith("failed")]
                 ) or "aucun détail"
-                result.error_message = f"Aucun clip vidéo n'a pu être généré ({failed_details})"
+                hints = "Vérifiez WAVESPEED_API_KEY, WAVESPEED_MODEL et WAVESPEED_BASE_URL; voir logs pour headers/HTTP."
+                result.error_message = f"Aucun clip vidéo n'a pu être généré ({failed_details}). {hints}"
                 raise Exception(result.error_message)
             
             # Étape 4: Génération audio (équivalent "Create Sounds" -> "Get Sounds" dans n8n)

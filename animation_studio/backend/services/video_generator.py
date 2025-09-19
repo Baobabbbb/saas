@@ -39,6 +39,21 @@ class VideoGenerator:
                         or video_data.get("request_id")
                     )
             if not prediction_id:
+                # Essayer d'extraire un id depuis 'raw' ou 'headers'
+                if isinstance(video_data, dict):
+                    headers_map = video_data.get("headers") or {}
+                    for key in ["Prediction-Id", "X-Prediction-Id", "Id", "X-Request-Id", "Request-Id"]:
+                        if headers_map.get(key):
+                            prediction_id = headers_map[key]
+                            break
+                    if not prediction_id:
+                        location = headers_map.get("Location") or headers_map.get("Content-Location") or headers_map.get("Operation-Location")
+                        if location:
+                            try:
+                                prediction_id = location.rstrip("/").split("/")[-1]
+                            except Exception:
+                                prediction_id = None
+            if not prediction_id:
                 raise Exception(f"Réponse invalide de l'API Wavespeed: {video_data}")
 
             # 2. Petite attente initiale avant polling (laisser le job démarrer)
@@ -114,13 +129,40 @@ class VideoGenerator:
                 try:
                     async with session.post(url, json=payload, headers=headers) as response:
                         if response.status in [200, 201, 202]:
+                            # Essayer JSON, sinon texte, sinon extraire depuis les headers (Location, Prediction-Id...)
                             try:
-                                return await response.json()
+                                parsed = await response.json()
+                                if parsed:
+                                    return parsed
                             except Exception:
-                                text = await response.text()
-                                return {"raw": text}
+                                pass
+                            text = await response.text()
+                            if text:
+                                return {"raw": text, "http_status": response.status, "headers": dict(response.headers)}
+                            # Corps vide: tenter d'extraire l'ID depuis les headers
+                            headers_map = {k: v for k, v in response.headers.items()}
+                            possible_keys = [
+                                "Prediction-Id", "X-Prediction-Id", "Id", "X-Request-Id",
+                                "Request-Id", "X-Operation-Id"
+                            ]
+                            for key in possible_keys:
+                                if key in headers_map and headers_map[key]:
+                                    return {"id": headers_map[key], "headers": headers_map, "http_status": response.status}
+                            # Location / Operation-Location peuvent pointer vers /predictions/{id}
+                            for loc_key in ["Location", "Content-Location", "Operation-Location"]:
+                                loc = headers_map.get(loc_key)
+                                if loc and isinstance(loc, str):
+                                    # Extraire la dernière partie de l'URL comme ID
+                                    try:
+                                        candidate_id = loc.rstrip("/").split("/")[-1]
+                                        if candidate_id:
+                                            return {"id": candidate_id, "headers": headers_map, "http_status": response.status}
+                                    except Exception:
+                                        pass
+                            # Rien trouvé
+                            return {"raw": text, "http_status": response.status, "headers": dict(response.headers)}
                         else:
-                            last_error = await response.text()
+                            last_error = f"HTTP {response.status} - " + (await response.text())
                 except Exception as e:
                     last_error = str(e)
             raise Exception(f"Soumission Wavespeed échouée: {last_error}")
