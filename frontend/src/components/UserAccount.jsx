@@ -541,7 +541,10 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                 </div>
                 
                 <ul>
-                  <li onClick={() => setShowProfileForm(true)}>
+                  <li onClick={() => {
+                    setShowDropdown(false);
+                    setShowProfileForm(true);
+                  }}>
                     Mon profil
                   </li>
                   
@@ -559,8 +562,71 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
             )}
           </AnimatePresence>
 
-          {/* Le reste du composant (profil, etc.) reste identique... */}
-          {/* Profil utilisateur formulaire - à compléter si nécessaire */}
+          {/* Formulaire de profil utilisateur */}
+          <AnimatePresence>
+            {showProfileForm && (
+              <motion.div
+                className="auth-form-container"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    setShowProfileForm(false);
+                    setError('');
+                  }
+                }}
+              >
+                <motion.div
+                  className="auth-form"
+                  initial={{ scale: 0.9, y: -20 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.9, y: -20 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <h3>Mon profil</h3>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    // TODO: Implémenter la mise à jour du profil si nécessaire
+                    setShowProfileForm(false);
+                  }}>
+                    <input
+                      type="email"
+                      placeholder="Email"
+                      value={profileEmail}
+                      onChange={(e) => setProfileEmail(e.target.value)}
+                      disabled
+                    />
+                    <input
+                      type="text"
+                      placeholder="Prénom"
+                      value={profileFirstName}
+                      onChange={(e) => setProfileFirstName(e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Nom"
+                      value={profileLastName}
+                      onChange={(e) => setProfileLastName(e.target.value)}
+                    />
+                    {error && <div className="error-message">{error}</div>}
+                    <div className="form-buttons">
+                      <button type="button" onClick={() => {
+                        setShowProfileForm(false);
+                        setError('');
+                      }}>
+                        Annuler
+                      </button>
+                      <button type="submit">
+                        Enregistrer
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </>
       )}
     </div>

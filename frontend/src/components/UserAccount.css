@@ -580,3 +580,10 @@
   font-size: 0.85rem;
   color: #666;
 }
+
+/* Style pour les champs disabled dans le profil */
+.auth-form input:disabled {
+  background-color: #f5f5f5;
+  color: #666;
+  cursor: not-allowed;
+}
