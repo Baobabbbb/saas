@@ -4,21 +4,31 @@ import { getUserCreations, deleteCreation } from '../services/creations';
 import './History.css';
 import { jsPDF } from 'jspdf';
 import { downloadColoringAsPDF } from '../utils/coloringPdfUtils';
+import useSupabaseUser from '../hooks/useSupabaseUser';
+import useUserCreations from '../hooks/useUserCreations';
+import { API_BASE_URL } from '../config/api';
 
 const History = ({ onClose, onSelect }) => {
-  const [creations, setCreations] = useState([]);
+  // Utiliser les hooks optimisés pour Supabase
+  const { user } = useSupabaseUser();
+  const { creations, loading: creationsLoading, refreshCreations } = useUserCreations(user?.id);
 
-  useEffect(() => {
-    fetchCreations();
-  }, []);
-
-  const fetchCreations = async () => {
+  // Fonction de suppression mise à jour pour utiliser le hook
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Supprimer cette création ?");
+    if (!confirmDelete) return;
+    
     try {
-      const data = await getUserCreations();
-      setCreations(data || []);
+      const { error } = await deleteCreation(id);
+      if (error) {
+        alert("Erreur lors de la suppression !");
+        return;
+      }
+      // Rafraîchir les créations après suppression
+      refreshCreations();
     } catch (error) {
-      console.error('Erreur lors du chargement des créations:', error);
-      setCreations([]);
+      console.error('Erreur lors de la suppression:', error);
+      alert("Erreur lors de la suppression !");
     }
   };
 
@@ -185,16 +195,6 @@ const History = ({ onClose, onSelect }) => {
     });
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Supprimer cette création ?");
-    if (!confirmDelete) return;
-    const { error } = await deleteCreation(id);
-    if (error) {
-      alert("Erreur lors de la suppression !");
-      return;
-    }
-    fetchCreations(); // Rafraîchir la liste après suppression
-  };
   return (
     <motion.div 
       className="history-panel"
@@ -210,7 +210,11 @@ const History = ({ onClose, onSelect }) => {
       </div>
         
         <div className="history-content">
-          {creations.length === 0 ? (
+          {creationsLoading ? (
+            <div className="empty-history">
+              <p>Chargement de votre historique...</p>
+            </div>
+          ) : creations.length === 0 ? (
             <div className="empty-history">
               <p>Vous n'avez pas encore de créations</p>
               <p className="empty-subtext">Vos créations apparaîtront ici une fois générées</p>
@@ -237,7 +241,7 @@ const History = ({ onClose, onSelect }) => {
                     <audio
                       controls
                       className="creation-audio"
-                      src={`http://localhost:8006/${creation.audio_path || creation.data?.audio_path}`}
+                      src={`${API_BASE_URL}/${creation.audio_path || creation.data?.audio_path}`}
                     />
                   )}
 
@@ -249,7 +253,7 @@ const History = ({ onClose, onSelect }) => {
                         onClick={async (e) => {
                           e.stopPropagation();
                           try {
-                            const audioUrl = `http://localhost:8006/${creation.audio_path || creation.data?.audio_path}`;
+                            const audioUrl = `${API_BASE_URL}/${creation.audio_path || creation.data?.audio_path}`;
                             const response = await fetch(audioUrl);
                             const blob = await response.blob();
                             const blobUrl = URL.createObjectURL(blob);
@@ -305,7 +309,7 @@ const History = ({ onClose, onSelect }) => {
                             onClick={async (e) => {
                               e.stopPropagation();
                               try {
-                                const audioUrl = `http://localhost:8006/${creation.audio_path || creation.data?.audio_path}`;
+                                const audioUrl = `${API_BASE_URL}/${creation.audio_path || creation.data?.audio_path}`;
                                 const response = await fetch(audioUrl);
                                 const blob = await response.blob();
                                 const blobUrl = URL.createObjectURL(blob);
@@ -348,7 +352,7 @@ const History = ({ onClose, onSelect }) => {
                     {(creation.audio_path || creation.data?.audio_path) && (creation.audio_generated || creation.data?.audio_generated) && creation.type !== 'rhyme' && creation.type !== 'audio' && (
                       <a
                         className="btn-audio"
-                        href={`http://localhost:8006/${creation.audio_path || creation.data?.audio_path}`}
+                        href={`${API_BASE_URL}/${creation.audio_path || creation.data?.audio_path}`}
                         download
                         onClick={(e) => e.stopPropagation()}
                       >
