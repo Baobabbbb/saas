@@ -35,13 +35,11 @@ export async function updateUserProfile(userId, profileData) {
   console.log('💾 FRIDAY: Mise à jour profil utilisateur:', userId, profileData);
   
   try {
-    // Préparer les données à mettre à jour
+    // Préparer les données à mettre à jour (utiliser les colonnes correctes)
     const updateData = {
       id: userId,
-      first_name: profileData.firstName,
-      last_name: profileData.lastName,
-      full_name: `${profileData.firstName || ''} ${profileData.lastName || ''}`.trim(),
-      updated_at: new Date().toISOString()
+      prenom: profileData.firstName,
+      nom: profileData.lastName
     };
 
     // Upsert: créer ou mettre à jour

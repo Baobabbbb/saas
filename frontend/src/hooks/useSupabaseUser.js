@@ -84,9 +84,9 @@ export default function useSupabaseUser() {
               // Mettre à jour avec les données du profil
               const enhancedUserData = {
                 ...baseUserData,
-                firstName: profile.first_name || baseUserData.firstName,
-                lastName: profile.last_name || baseUserData.lastName,
-                name: profile.full_name || `${profile.first_name || baseUserData.firstName} ${profile.last_name || baseUserData.lastName}`.trim(),
+                firstName: profile.prenom || profile.first_name || baseUserData.firstName,
+                lastName: profile.nom || profile.last_name || baseUserData.lastName,
+                name: profile.full_name || `${profile.prenom || profile.first_name || baseUserData.firstName} ${profile.nom || profile.last_name || baseUserData.lastName}`.trim(),
                 profile: profile
               };
               
@@ -102,11 +102,10 @@ export default function useSupabaseUser() {
                   .insert({
                     id: session.user.id,
                     email: session.user.email,
-                    first_name: baseUserData.firstName,
-                    last_name: baseUserData.lastName,
-                    full_name: baseUserData.name,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
+                    prenom: baseUserData.firstName,
+                    nom: baseUserData.lastName,
+                    role: 'user',
+                    created_at: new Date().toISOString()
                   })
                   .select()
                   .single();
