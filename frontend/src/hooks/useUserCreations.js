@@ -3,7 +3,7 @@ import { supabase } from "../supabaseClient";
 
 export default function useUserCreations(userId) {
   const [creations, setCreations] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -13,7 +13,9 @@ export default function useUserCreations(userId) {
       return;
     }
 
+    // Ne charger les créations que quand on en a besoin (lazy loading)
     const fetchUserCreations = async () => {
+      setLoading(true);
       try {
         console.log('📥 FRIDAY: Récupération créations utilisateur:', userId);
         
@@ -39,6 +41,7 @@ export default function useUserCreations(userId) {
       }
     };
 
+    // Charger uniquement si on a un userId
     fetchUserCreations();
   }, [userId]);
 
