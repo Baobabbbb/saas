@@ -516,6 +516,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
+                onClick={() => setShowProfileForm(false)}
               >
                 <motion.div
                   className="auth-form profile-form"
@@ -523,6 +524,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <h3>Mon profil</h3>
                   <form onSubmit={async (e) => {
