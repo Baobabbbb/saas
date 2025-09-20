@@ -6,126 +6,95 @@ export default function useSupabaseUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fonction pour créer/récupérer un utilisateur Supabase
-    const initializeUser = async () => {
+    // Fonction pour gérer l'utilisateur connecté UNIQUEMENT via Supabase
+    const getSupabaseUser = async () => {
       try {
-        // 1. Vérifier s'il y a déjà une session Supabase
+        console.log('🔍 FRIDAY: Vérification session Supabase...');
+        
+        // Récupérer la session actuelle Supabase
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (session?.user) {
-          console.log('✅ Session Supabase trouvée:', session.user.email);
-          setUser({
-            id: session.user.id,
-            email: session.user.email,
-            name: session.user.user_metadata?.name || session.user.email.split('@')[0],
-            firstName: session.user.user_metadata?.firstName || session.user.email.split('@')[0]
-          });
+        if (sessionError) {
+          console.error('❌ FRIDAY: Erreur session Supabase:', sessionError.message);
+          setUser(null);
           setLoading(false);
           return;
         }
 
-        // 2. Récupérer les données localStorage (migration)
-        const userEmail = localStorage.getItem('userEmail');
-        const userName = localStorage.getItem('userName');
-        const userFirstName = localStorage.getItem('userFirstName');
-
-        if (userEmail && userEmail.trim()) {
-          console.log('🔄 Migration localStorage vers Supabase:', userEmail);
+        if (session?.user) {
+          console.log('✅ FRIDAY: Session Supabase active:', session.user.email);
           
-          // 3. Créer un compte Supabase avec un mot de passe temporaire
-          const tempPassword = 'FridayTemp' + Date.now();
-          
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: userEmail.trim(),
-            password: tempPassword,
-            options: {
-              data: {
-                name: userName || userEmail.split('@')[0],
-                firstName: userFirstName || userEmail.split('@')[0],
-                source: 'friday_migration'
-              }
-            }
-          });
-
-          if (signUpError && signUpError.message.includes('already registered')) {
-            // 4. Si l'utilisateur existe déjà, se connecter
-            console.log('👤 Utilisateur existe, tentative de connexion...');
-            
-            // Créer une session factice pour cet utilisateur
-            const userData = {
-              id: 'friday-user-' + btoa(userEmail).slice(0, 10),
-              email: userEmail.trim(),
-              name: userName || userEmail.split('@')[0],
-              firstName: userFirstName || userEmail.split('@')[0]
-            };
-            
-            setUser(userData);
-            
-            // Stocker dans la session Supabase (hack pour la persistence)
-            localStorage.setItem('friday_supabase_user', JSON.stringify(userData));
-            
-          } else if (signUpData?.user) {
-            console.log('✅ Nouveau compte Supabase créé:', signUpData.user.email);
-            setUser({
-              id: signUpData.user.id,
-              email: signUpData.user.email,
-              name: signUpData.user.user_metadata?.name || signUpData.user.email.split('@')[0],
-              firstName: signUpData.user.user_metadata?.firstName || signUpData.user.email.split('@')[0]
-            });
-          } else {
-            console.error('❌ Erreur création compte:', signUpError);
-            // Fallback: utiliser les données localStorage mais with Supabase ID
-            const userData = {
-              id: 'friday-user-' + btoa(userEmail).slice(0, 10),
-              email: userEmail.trim(),
-              name: userName || userEmail.split('@')[0],
-              firstName: userFirstName || userEmail.split('@')[0]
-            };
-            setUser(userData);
-            localStorage.setItem('friday_supabase_user', JSON.stringify(userData));
-          }
-        } else {
-          // 5. Vérifier s'il y a une session Friday cachée
-          const fridayUser = localStorage.getItem('friday_supabase_user');
-          if (fridayUser) {
-            setUser(JSON.parse(fridayUser));
-          } else {
-            setUser(null);
-          }
-        }
-      } catch (error) {
-        console.error('❌ Erreur initialisation utilisateur:', error);
-        // En cas d'erreur, utiliser localStorage comme fallback mais avec un ID Supabase
-        const userEmail = localStorage.getItem('userEmail');
-        if (userEmail) {
           const userData = {
-            id: 'friday-user-' + btoa(userEmail).slice(0, 10),
-            email: userEmail.trim(),
-            name: localStorage.getItem('userName') || userEmail.split('@')[0],
-            firstName: localStorage.getItem('userFirstName') || userEmail.split('@')[0]
+            id: session.user.id,
+            email: session.user.email,
+            firstName: session.user.user_metadata?.firstName || session.user.email.split('@')[0],
+            lastName: session.user.user_metadata?.lastName || '',
+            name: session.user.user_metadata?.name || 
+                  `${session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${session.user.user_metadata?.lastName || ''}`.trim(),
+            user_metadata: session.user.user_metadata
           };
+          
           setUser(userData);
         } else {
+          console.log('ℹ️ FRIDAY: Aucune session Supabase active');
           setUser(null);
         }
+      } catch (error) {
+        console.error('❌ FRIDAY: Erreur critique récupération utilisateur:', error);
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
-    initializeUser();
+    // Initialiser
+    getSupabaseUser();
 
-    // Écouter les changements d'auth Supabase
+    // Écouter les changements d'authentification Supabase
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Changement auth Supabase:', event, session?.user?.email);
+      console.log('🔄 FRIDAY: Changement auth Supabase:', event, session?.user?.email || 'aucun utilisateur');
       
-      if (session?.user) {
-        setUser({
+      if (event === 'SIGNED_IN' && session?.user) {
+        console.log('✅ FRIDAY: Utilisateur connecté:', session.user.email);
+        
+        const userData = {
           id: session.user.id,
           email: session.user.email,
-          name: session.user.user_metadata?.name || session.user.email.split('@')[0],
-          firstName: session.user.user_metadata?.firstName || session.user.email.split('@')[0]
-        });
+          firstName: session.user.user_metadata?.firstName || session.user.email.split('@')[0],
+          lastName: session.user.user_metadata?.lastName || '',
+          name: session.user.user_metadata?.name || 
+                `${session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${session.user.user_metadata?.lastName || ''}`.trim(),
+          user_metadata: session.user.user_metadata
+        };
+        
+        setUser(userData);
+        setLoading(false);
+        
+        // Nettoyer localStorage (migration complète vers Supabase)
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userFirstName');
+        localStorage.removeItem('userLastName');
+        localStorage.removeItem('friday_supabase_user');
+        
+      } else if (event === 'SIGNED_OUT') {
+        console.log('🚪 FRIDAY: Utilisateur déconnecté');
+        setUser(null);
+        setLoading(false);
+        
+        // Nettoyer localStorage
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userFirstName');
+        localStorage.removeItem('userLastName');
+        localStorage.removeItem('friday_supabase_user');
+        
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('🔄 FRIDAY: Token Supabase rafraîchi');
+        // Garder l'utilisateur actuel
+        
+      } else {
+        console.log('ℹ️ FRIDAY: Événement auth Supabase:', event);
       }
     });
 
