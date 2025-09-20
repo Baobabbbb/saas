@@ -3,7 +3,7 @@ import { supabase } from "../supabaseClient";
 
 export default function useUserCreations(userId) {
   const [creations, setCreations] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Commencer en true pour affichage immédiat
   const [error, setError] = useState(null);
 
   useEffect(() => {

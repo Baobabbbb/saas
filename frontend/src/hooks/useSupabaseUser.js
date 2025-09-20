@@ -2,7 +2,19 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 
 export default function useSupabaseUser() {
-  const [user, setUser] = useState(null);
+  // Essayer de récupérer l'utilisateur depuis le cache localStorage pour affichage ultra-rapide
+  const [user, setUser] = useState(() => {
+    try {
+      const cachedUser = localStorage.getItem('friday_user_cache');
+      if (cachedUser) {
+        console.log('⚡ FRIDAY: Chargement cache utilisateur pour affichage immédiat');
+        return JSON.parse(cachedUser);
+      }
+    } catch (error) {
+      console.log('ℹ️ FRIDAY: Pas de cache utilisateur disponible');
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,9 +47,10 @@ export default function useSupabaseUser() {
             user_metadata: session.user.user_metadata
           };
           
-          // Afficher immédiatement l'utilisateur
+          // Afficher immédiatement l'utilisateur et le mettre en cache
           setUser(baseUserData);
           setLoading(false);
+          localStorage.setItem('friday_user_cache', JSON.stringify(baseUserData));
           
           // Puis récupérer les données du profil en arrière-plan
           try {
@@ -59,10 +72,11 @@ export default function useSupabaseUser() {
                 lastName: profile.last_name || baseUserData.lastName,
                 name: profile.full_name || `${profile.first_name || baseUserData.firstName} ${profile.last_name || baseUserData.lastName}`.trim(),
                 profile: profile
-              };
-              
-              console.log('👤 FRIDAY: Profil enrichi chargé:', enhancedUserData);
-              setUser(enhancedUserData);
+                   };
+                   
+                   console.log('👤 FRIDAY: Profil enrichi chargé:', enhancedUserData);
+                   setUser(enhancedUserData);
+                   localStorage.setItem('friday_user_cache', JSON.stringify(enhancedUserData));
             }
           } catch (error) {
             console.error('❌ FRIDAY: Erreur chargement profil (fallback sur auth):', error);
@@ -101,9 +115,10 @@ export default function useSupabaseUser() {
           user_metadata: session.user.user_metadata
         };
         
-        // Afficher immédiatement
+        // Afficher immédiatement et mettre en cache
         setUser(baseUserData);
         setLoading(false);
+        localStorage.setItem('friday_user_cache', JSON.stringify(baseUserData));
         
         // Enrichir avec le profil en arrière-plan
         try {
@@ -126,6 +141,7 @@ export default function useSupabaseUser() {
               profile: profile
             };
             setUser(enhancedUserData);
+            localStorage.setItem('friday_user_cache', JSON.stringify(enhancedUserData));
           }
         } catch (error) {
           console.error('❌ FRIDAY: Erreur enrichissement profil (utilisateur reste connecté):', error);
@@ -149,6 +165,7 @@ export default function useSupabaseUser() {
         localStorage.removeItem('userFirstName');
         localStorage.removeItem('userLastName');
         localStorage.removeItem('friday_supabase_user');
+        localStorage.removeItem('friday_user_cache');
         
       } else if (event === 'TOKEN_REFRESHED') {
         console.log('🔄 FRIDAY: Token Supabase rafraîchi');

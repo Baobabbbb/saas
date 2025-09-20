@@ -210,11 +210,11 @@ const History = ({ onClose, onSelect }) => {
       </div>
         
         <div className="history-content">
-          {creationsLoading ? (
+          {!user ? (
             <div className="empty-history">
-              <p>Chargement de votre historique...</p>
+              <p>Connexion en cours...</p>
             </div>
-          ) : creations.length === 0 ? (
+          ) : creations.length === 0 && !creationsLoading ? (
             <div className="empty-history">
               <p>Vous n'avez pas encore de créations</p>
               <p className="empty-subtext">Vos créations apparaîtront ici une fois générées</p>
