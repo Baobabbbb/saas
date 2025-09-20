@@ -286,14 +286,14 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                     setShowLoginForm(true);
                     setError('');
                   }}>
-                    🔐 Se connecter
+                    Se connecter
                   </li>
                   <li onClick={() => {
                     setShowDropdown(false);
                     setShowRegisterForm(true);
                     setError('');
                   }}>
-                    📝 Créer un compte
+                    Créer un compte
                   </li>
                 </ul>
               </motion.div>
@@ -308,6 +308,12 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    setShowLoginForm(false);
+                    setError('');
+                  }
+                }}
               >
                 <motion.div
                   className="auth-form"
@@ -375,6 +381,12 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    setShowRegisterForm(false);
+                    setError('');
+                  }
+                }}
               >
                 <motion.div
                   className="auth-form"
@@ -447,6 +459,12 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    setShowForgotPassword(false);
+                    setError('');
+                  }
+                }}
               >
                 <motion.div
                   className="auth-form"
