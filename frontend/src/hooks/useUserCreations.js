@@ -75,6 +75,17 @@ export default function useUserCreations(userId) {
       try {
         console.log('📥 FRIDAY: Récupération créations utilisateur:', userId);
         
+        // Test simple : compter toutes les créations d'abord
+        console.log('🧪 FRIDAY: Test connexion base - comptage total...');
+        const testResult = await supabase
+          .from('creations')
+          .select('*', { count: 'exact', head: true });
+        
+        console.log('🧪 FRIDAY: Test résultat:', {
+          count: testResult.count,
+          error: testResult.error
+        });
+        
         console.log('🔍 FRIDAY: Requête Supabase pour user_id:', userId);
         const { data, error: fetchError, count } = await supabase
           .from('creations')
@@ -89,34 +100,29 @@ export default function useUserCreations(userId) {
           userId: userId
         });
 
-        // Vérification supplémentaire : compter TOUTES les créations
-        try {
-          const { count: totalCount } = await supabase
-            .from('creations')
-            .select('*', { count: 'exact', head: true });
+        // Si pas de créations trouvées, faire des vérifications simples
+        if (!data || data.length === 0) {
+          console.log('🔍 FRIDAY: Aucune création pour cet utilisateur, vérifications...');
           
-          console.log('🔢 FRIDAY: Nombre total de créations dans la base:', totalCount);
-          
-          // Vérification : quelques créations pour voir les user_id existants
-          const { data: sampleCreations } = await supabase
-            .from('creations')
-            .select('user_id, type, title, created_at')
-            .limit(10)
-            .order('created_at', { ascending: false });
+          try {
+            // Compter toutes les créations
+            const { count: totalCount, error: countError } = await supabase
+              .from('creations')
+              .select('*', { count: 'exact', head: true });
             
-          console.log('🔍 FRIDAY: Échantillon créations existantes:', sampleCreations);
-          
-          // Recherche de créations avec des patterns d'anciens user_id
-          const { data: legacyCreations } = await supabase
-            .from('creations')
-            .select('user_id, type, title, created_at')
-            .like('user_id', 'friday-%')
-            .limit(5);
+            console.log('🔢 FRIDAY: Total créations base:', totalCount, 'erreur:', countError);
             
-          console.log('🔍 FRIDAY: Créations avec ancien format user_id:', legacyCreations);
-          
-        } catch (debugError) {
-          console.error('❌ FRIDAY: Erreur diagnostics:', debugError);
+            // Récupérer quelques exemples
+            const { data: samples, error: samplesError } = await supabase
+              .from('creations')
+              .select('user_id, type, title')
+              .limit(3);
+              
+            console.log('🔍 FRIDAY: Échantillons:', samples, 'erreur:', samplesError);
+            
+          } catch (err) {
+            console.error('❌ FRIDAY: Erreur vérifications:', err);
+          }
         }
 
         if (fetchError) {
@@ -125,27 +131,7 @@ export default function useUserCreations(userId) {
         } else {
           console.log('✅ FRIDAY: Créations récupérées:', data?.length || 0, 'pour user_id:', userId);
           
-          // Si aucune création trouvée avec l'ID Supabase, chercher les anciennes créations à migrer
-          if ((!data || data.length === 0) && userId) {
-            console.log('🔄 FRIDAY: Aucune création trouvée, recherche de créations à migrer...');
-            await attemptCreationsMigration(userId);
-            
-            // Nouvelle tentative après migration
-            const { data: migratedData } = await supabase
-              .from('creations')
-              .select('*')
-              .eq('user_id', userId)
-              .order('created_at', { ascending: false });
-              
-            if (migratedData && migratedData.length > 0) {
-              console.log('✅ FRIDAY: Créations migrées récupérées:', migratedData.length);
-              setCreations(migratedData);
-            } else {
-              setCreations(data || []);
-            }
-          } else {
-            setCreations(data || []);
-          }
+          setCreations(data || []);
           
           setError(null);
         }
