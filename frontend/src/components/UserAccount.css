@@ -2,6 +2,38 @@
   position: relative;
 }
 
+.user-account-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.user-account-display:hover {
+  background-color: rgba(107, 78, 255, 0.05);
+}
+
+.user-name-display {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.user-greeting {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.user-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
 .user-icon {
   width: 40px;
   height: 40px;

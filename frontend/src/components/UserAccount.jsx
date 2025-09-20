@@ -26,6 +26,20 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   // L'utilisateur est connecté si nous avons un objet user
   const isUserLoggedIn = !!user && !loading;
   
+  // Debug : vérifier les données utilisateur
+  useEffect(() => {
+    if (user) {
+      console.log('🎯 FRIDAY: UserAccount - Données utilisateur reçues:', {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        name: user.name
+      });
+    } else {
+      console.log('🎯 FRIDAY: UserAccount - Aucune donnée utilisateur');
+    }
+  }, [user]);
+  
   // Référence pour le composant user-account afin de détecter les clics en dehors
   const userAccountRef = useRef(null);
   
@@ -523,9 +537,15 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
         </>
       ) : (
         <>
-          <div className="user-icon" onClick={() => setShowDropdown(!showDropdown)}>
-            <div className="avatar">
-              {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '👤'}
+          <div className="user-account-display" onClick={() => setShowDropdown(!showDropdown)}>
+            <div className="user-icon">
+              <div className="avatar">
+                {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '👤'}
+              </div>
+            </div>
+            <div className="user-name-display">
+              <span className="user-greeting">Bonjour</span>
+              <span className="user-name">{user?.firstName || user?.name || user?.email?.split('@')[0] || 'Utilisateur'}</span>
             </div>
           </div>
 
