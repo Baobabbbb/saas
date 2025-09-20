@@ -42,6 +42,7 @@ export default function useUserCreations(userId) {
     };
 
     // Charger uniquement si on a un userId
+    console.log('🔍 FRIDAY: useUserCreations démarré pour userId:', userId);
     fetchUserCreations();
   }, [userId]);
 
