@@ -6,7 +6,7 @@ import useSupabaseUser from '../hooks/useSupabaseUser';
 import useUserCreations from '../hooks/useUserCreations';
 import { updateUserProfile } from '../services/profileService';
 
-const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
+const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
@@ -549,6 +549,15 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                     setShowProfileForm(true);
                   }}>
                     Mon profil
+                  </li>
+                  
+                  <li onClick={() => {
+                    setShowDropdown(false);
+                    if (onOpenHistory) {
+                      onOpenHistory();
+                    }
+                  }}>
+                    Mon historique
                   </li>
                   
                   {isAdmin() && (

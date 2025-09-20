@@ -629,6 +629,7 @@ const downloadPDF = async (title, content) => {
 
     <Header
       isLoggedIn={!!user}
+      onOpenHistory={() => setShowHistory(true)}
     />
 
     <main className="main-content">
