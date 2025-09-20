@@ -65,17 +65,31 @@ export default function useSupabaseUser() {
           // Puis récupérer les données du profil en arrière-plan
           try {
             console.log('🔍 FRIDAY: Recherche profil pour ID:', session.user.id);
+            console.log('🔍 FRIDAY: Test simple - récupération de TOUS les profils...');
+            
+            // Test 1: récupérer tous les profils pour voir s'il y en a
+            const { data: allProfiles, error: allError } = await supabase
+              .from('profiles')
+              .select('*')
+              .limit(3);
+            
+            console.log('🔍 FRIDAY: Tous les profils:', allProfiles, 'erreur:', allError);
+            
+            // Test 2: récupérer le profil spécifique
             const { data: profile, error: profileError } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', session.user.id)
               .single();
 
+            console.log('🔍 FRIDAY: Profil spécifique recherché pour ID:', session.user.id);
+            console.log('🔍 FRIDAY: Résultat:', { profile, profileError });
+
             if (profileError) {
               if (profileError.code === 'PGRST116') {
-                console.log('ℹ️ FRIDAY: Aucun profil trouvé dans la table profiles (normal)');
+                console.log('ℹ️ FRIDAY: Aucun profil trouvé dans la table profiles (code PGRST116)');
               } else {
-                console.warn('⚠️ FRIDAY: Erreur récupération profil:', profileError.message);
+                console.warn('⚠️ FRIDAY: Erreur récupération profil:', profileError.message, profileError.code);
               }
             }
 
