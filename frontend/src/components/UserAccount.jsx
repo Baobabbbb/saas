@@ -520,39 +520,41 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
         </>
       ) : (
         <>
-          <div className="user-avatar" onClick={() => setShowDropdown(!showDropdown)}>
-            <span>{user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '👤'}</span>
+          <div className="user-icon" onClick={() => setShowDropdown(!showDropdown)}>
+            <div className="avatar">
+              {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '👤'}
+            </div>
           </div>
 
           <AnimatePresence>
             {showDropdown && (
               <motion.div
-                className="user-dropdown"
+                className="dropdown-menu"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
                 <div className="user-info">
-                  <div className="user-name">{user?.firstName || user?.name || user?.email?.split('@')[0]}</div>
-                  <div className="user-email">{user?.email}</div>
+                  <p>{user?.firstName || user?.name || user?.email?.split('@')[0]}</p>
+                  <small>{user?.email}</small>
                 </div>
                 
-                <div className="dropdown-actions">
-                  <button onClick={() => setShowProfileForm(true)}>
-                    👤 Mon profil
-                  </button>
+                <ul>
+                  <li onClick={() => setShowProfileForm(true)}>
+                    Mon profil
+                  </li>
                   
                   {isAdmin() && (
-                    <button onClick={() => window.open('/admin', '_blank')}>
-                      ⚙️ Administration
-                    </button>
+                    <li className="admin-option" onClick={() => window.open('/admin', '_blank')}>
+                      Administration
+                    </li>
                   )}
                   
-                  <button onClick={handleSignOut} className="logout-button">
-                    🚪 Se déconnecter
-                  </button>
-                </div>
+                  <li onClick={handleSignOut}>
+                    Se déconnecter
+                  </li>
+                </ul>
               </motion.div>
             )}
           </AnimatePresence>
