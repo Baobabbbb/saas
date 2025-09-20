@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './UserAccount.css';
 import { supabase } from '../supabaseClient';
 import useSupabaseUser from '../hooks/useSupabaseUser';
-// import useUserCreations from '../hooks/useUserCreations'; // Déplacé vers History.jsx
-import { updateUserProfile } from '../services/profileService';
 
 const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory }) => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -19,13 +17,11 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   const [error, setError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   
-  // Utiliser les hooks Supabase
+  // Utiliser le hook useSupabaseUser
   const { user, loading } = useSupabaseUser();
-  // const { creations, loading: creationsLoading, refreshCreations } = useUserCreations(showProfileForm ? user?.id : null); // Déplacé vers History.jsx
   
   // L'utilisateur est connecté si nous avons un objet user
   const isUserLoggedIn = !!user && !loading;
-  
   
   // Référence pour le composant user-account afin de détecter les clics en dehors
   const userAccountRef = useRef(null);
@@ -216,12 +212,8 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   useEffect(() => {
     if (user) {
       setProfileEmail(user.email || '');
-      
-      const firstName = user.profile?.prenom || user.profile?.first_name || user.firstName || user.user_metadata?.firstName || user.user_metadata?.first_name || user.email?.split('@')[0] || '';
-      const lastName = user.profile?.nom || user.profile?.last_name || user.lastName || user.user_metadata?.lastName || user.user_metadata?.last_name || '';
-      
-      setProfileFirstName(firstName);
-      setProfileLastName(lastName);
+      setProfileFirstName(user.firstName || user.user_metadata?.firstName || '');
+      setProfileLastName(user.lastName || user.user_metadata?.lastName || '');
     }
   }, [user]);
 
@@ -259,77 +251,46 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
     <div className="user-account" ref={userAccountRef}>
       {!isUserLoggedIn ? (
         <>
-          <div 
-            className="user-icon"
-            onClick={() => {
-              setShowDropdown(!showDropdown);
-              setShowLoginForm(false);
-              setShowRegisterForm(false);
-              setShowForgotPassword(false);
-              setError('');
-            }}
-          >
-            {isAuthenticating ? (
-              <span>⏳</span>
-            ) : (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            )}
+          <div className="user-avatar" onClick={() => setShowDropdown(!showDropdown)}>
+            <span>👤</span>
           </div>
 
           <AnimatePresence>
             {showDropdown && (
               <motion.div
-                className="dropdown-menu"
+                className="user-dropdown"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                <ul>
-                  <li onClick={() => {
+                <div className="dropdown-actions">
+                  <button onClick={() => {
                     setShowDropdown(false);
                     setShowLoginForm(true);
                     setError('');
                   }}>
                     Se connecter
-                  </li>
-                  <li onClick={() => {
+                  </button>
+                  <button onClick={() => {
                     setShowDropdown(false);
                     setShowRegisterForm(true);
                     setError('');
                   }}>
                     Créer un compte
-                  </li>
-                </ul>
+                  </button>
+                </div>
               </motion.div>
             )}
-          </AnimatePresence>
 
-          <AnimatePresence>
             {showLoginForm && (
               <motion.div
-                className="auth-form-container"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                className="auth-form"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                onClick={(e) => {
-                  if (e.target === e.currentTarget) {
-                    setShowLoginForm(false);
-                    setError('');
-                  }
-                }}
               >
-                <motion.div
-                  className="auth-form"
-                  initial={{ scale: 0.9, y: -20 }}
-                  animate={{ scale: 1, y: 0 }}
-                  exit={{ scale: 0.9, y: -20 }}
-                  transition={{ duration: 0.2 }}
-                >
                 <h3>Connexion</h3>
                 <form onSubmit={handleSignIn}>
                   <input
@@ -378,31 +339,17 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     Mot de passe oublié ?
                   </button>
                 </form>
-                </motion.div>
               </motion.div>
             )}
 
             {showRegisterForm && (
               <motion.div
-                className="auth-form-container"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                className="auth-form"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                onClick={(e) => {
-                  if (e.target === e.currentTarget) {
-                    setShowRegisterForm(false);
-                    setError('');
-                  }
-                }}
               >
-                <motion.div
-                  className="auth-form"
-                  initial={{ scale: 0.9, y: -20 }}
-                  animate={{ scale: 1, y: 0 }}
-                  exit={{ scale: 0.9, y: -20 }}
-                  transition={{ duration: 0.2 }}
-                >
                 <h3>Créer un compte</h3>
                 <form onSubmit={handleSignUp}>
                   <input
@@ -456,31 +403,17 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     </button>
                   </div>
                 </form>
-                </motion.div>
               </motion.div>
             )}
 
             {showForgotPassword && (
               <motion.div
-                className="auth-form-container"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                className="auth-form"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                onClick={(e) => {
-                  if (e.target === e.currentTarget) {
-                    setShowForgotPassword(false);
-                    setError('');
-                  }
-                }}
               >
-                <motion.div
-                  className="auth-form"
-                  initial={{ scale: 0.9, y: -20 }}
-                  animate={{ scale: 1, y: 0 }}
-                  exit={{ scale: 0.9, y: -20 }}
-                  transition={{ duration: 0.2 }}
-                >
                 <h3>Réinitialiser le mot de passe</h3>
                 {!resetEmailSent ? (
                   <form onSubmit={handleResetPassword}>
@@ -521,60 +454,55 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     </button>
                   </div>
                 )}
-                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>
         </>
       ) : (
         <>
-          <div className="user-icon" onClick={() => setShowDropdown(!showDropdown)}>
-            <div className="avatar">
-              {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '👤'}
-            </div>
+          <div className="user-avatar" onClick={() => setShowDropdown(!showDropdown)}>
+            <span>{user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '👤'}</span>
           </div>
 
           <AnimatePresence>
             {showDropdown && (
               <motion.div
-                className="dropdown-menu"
+                className="user-dropdown"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
                 <div className="user-info">
-                  <p>{user?.firstName || user?.name || user?.email?.split('@')[0]}</p>
-                  <small>{user?.email}</small>
+                  <div className="user-name">{user?.firstName || user?.name || user?.email?.split('@')[0]}</div>
+                  <div className="user-email">{user?.email}</div>
                 </div>
                 
-                       <ul>
-                         {isAdmin() && (
-                           <li className="admin-option" onClick={() => window.open('/admin', '_blank')}>
-                             Administration
-                           </li>
-                         )}
-                         
-                         <li onClick={() => {
-                           setShowDropdown(false);
-                           setShowProfileForm(true);
-                         }}>
-                           Mon profil
-                         </li>
-                         
-                         <li onClick={() => {
-                           setShowDropdown(false);
-                           if (onOpenHistory) {
-                             onOpenHistory();
-                           }
-                         }}>
-                           Mon historique
-                         </li>
-                         
-                         <li onClick={handleSignOut}>
-                           Se déconnecter
-                         </li>
-                       </ul>
+                <div className="dropdown-actions">
+                  {isAdmin() && (
+                    <button onClick={() => window.open('/admin', '_blank')}>
+                      Administration
+                    </button>
+                  )}
+                  
+                  <button onClick={() => {
+                    setShowDropdown(false);
+                    setShowProfileForm(true);
+                  }}>
+                    Mon profil
+                  </button>
+                  
+                  <button onClick={() => {
+                    setShowDropdown(false);
+                    if (onOpenHistory) onOpenHistory();
+                  }}>
+                    Mon historique
+                  </button>
+                  
+                  <button onClick={handleSignOut} className="logout-button">
+                    Se déconnecter
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -588,53 +516,25 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                onClick={(e) => {
-                  if (e.target === e.currentTarget) {
-                    setShowProfileForm(false);
-                    setError('');
-                  }
-                }}
               >
                 <motion.div
-                  className="auth-form"
-                  initial={{ scale: 0.9, y: -20 }}
-                  animate={{ scale: 1, y: 0 }}
-                  exit={{ scale: 0.9, y: -20 }}
+                  className="auth-form profile-form"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
                 >
                   <h3>Mon profil</h3>
                   <form onSubmit={async (e) => {
                     e.preventDefault();
-                    setError('');
-                    setIsAuthenticating(true);
-
-                    try {
-                      console.log('💾 FRIDAY: Mise à jour profil...');
-                      
-                      await updateUserProfile(user.id, {
-                        firstName: profileFirstName.trim(),
-                        lastName: profileLastName.trim()
-                      });
-
-                      console.log('✅ FRIDAY: Profil mis à jour avec succès');
-                      setShowProfileForm(false);
-                      
-                      // Optionnel: recharger les données utilisateur
-                      // Le hook useSupabaseUser se rechargera automatiquement
-                      
-                    } catch (error) {
-                      console.error('❌ FRIDAY: Erreur mise à jour profil:', error);
-                      setError(error.message || 'Erreur lors de la mise à jour du profil');
-                    } finally {
-                      setIsAuthenticating(false);
-                    }
+                    // Logique de mise à jour du profil ici
+                    console.log('Mise à jour profil:', { profileFirstName, profileLastName });
                   }}>
                     <input
                       type="email"
-                      placeholder="Email"
                       value={profileEmail}
-                      onChange={(e) => setProfileEmail(e.target.value)}
                       disabled
+                      placeholder="Email"
                     />
                     <input
                       type="text"
@@ -648,16 +548,14 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                       value={profileLastName}
                       onChange={(e) => setProfileLastName(e.target.value)}
                     />
+                    
                     {error && <div className="error-message">{error}</div>}
+                    {profileUpdateSuccess && <div className="success-message">Profil mis à jour avec succès !</div>}
+                    
                     <div className="form-buttons">
-                      <button type="button" onClick={() => {
-                        setShowProfileForm(false);
-                        setError('');
-                      }}>
-                        Annuler
-                      </button>
-                      <button type="submit" disabled={isAuthenticating}>
-                        {isAuthenticating ? 'Enregistrement...' : 'Enregistrer'}
+                      <button type="submit">Mettre à jour</button>
+                      <button type="button" onClick={() => setShowProfileForm(false)}>
+                        Fermer
                       </button>
                     </div>
                   </form>
