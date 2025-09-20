@@ -221,9 +221,20 @@ const History = ({ onClose, onSelect }) => {
               <p className="empty-subtext">Vos créations apparaîtront ici une fois générées</p>
             </div>
           ) : (
-            <div className="creations-list">{creations.map((creation) => (              <motion.div 
+            <div className="creations-list">{creations.map((creation) => {
+              // Déterminer les classes CSS selon le contenu
+              const hasAudio = !!(creation.audio_path || creation.data?.audio_path);
+              const hasText = !!(creation.content || creation.data?.content);
+              const itemClasses = [
+                'creation-item',
+                hasAudio ? 'has-audio' : '',
+                hasText ? 'has-text' : ''
+              ].filter(Boolean).join(' ');
+
+              return (
+                <motion.div 
                 key={creation.id}
-                className="creation-item"
+                className={itemClasses}
                 onClick={() => onSelect({
                   ...creation,
                   action: creation.type === 'coloring' ? 'showColoring' : 'showStory'
@@ -388,7 +399,8 @@ const History = ({ onClose, onSelect }) => {
                   </div>
                 </div>
               </motion.div>
-            ))}
+              );
+            })}
             </div>
           )}
         </div>

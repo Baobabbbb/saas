@@ -126,6 +126,15 @@
   box-sizing: border-box;
 }
 
+/* Adaptation selon le type de création */
+.creation-item.has-audio {
+  min-height: 200px;
+}
+
+.creation-item.has-text {
+  min-height: 180px;
+}
+
 .creation-item:hover {
   border-color: rgba(107, 78, 255, 0.2);
   box-shadow: 0 4px 12px rgba(107, 78, 255, 0.12);
@@ -148,9 +157,18 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  justify-content: space-between;
+  justify-content: flex-start;
   height: 100%;
   overflow: hidden;
+}
+
+/* Meilleure répartition pour les créations avec contenu audio */
+.creation-item.has-audio .creation-details {
+  justify-content: space-between;
+}
+
+.creation-item.has-text .creation-details {
+  justify-content: space-between;
 }
 
 .creation-details h3 {
@@ -213,10 +231,11 @@
 }
 
 .creation-audio {
-  margin: 1rem 0;
+  margin: 0.5rem 0;
   width: 100%;
-  border-radius: 12px;
-  height: 40px;
+  border-radius: 8px;
+  height: 35px;
+  max-width: 100%;
 }
 
 .creation-actions {
