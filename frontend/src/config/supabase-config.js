@@ -56,3 +56,4 @@ export function diagnoseEnvironmentVariables() {
 // Auto-diagnostic au chargement du module
 console.log('🚀 CHARGEMENT MODULE SUPABASE CONFIG');
 diagnoseEnvironmentVariables();
+

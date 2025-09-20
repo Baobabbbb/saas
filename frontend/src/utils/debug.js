@@ -68,3 +68,4 @@ export function addDebugButton() {
 if (import.meta.env.DEV || window.location.search.includes('debug=true')) {
   document.addEventListener('DOMContentLoaded', addDebugButton);
 }
+
