@@ -62,87 +62,10 @@ export default function useSupabaseUser() {
           setLoading(false);
           localStorage.setItem('friday_user_cache', JSON.stringify(baseUserData));
           
-          // Puis récupérer les données du profil en arrière-plan
-          try {
-            console.log('🔍 FRIDAY: Recherche profil pour ID:', session.user.id);
-            console.log('🔍 FRIDAY: Test simple - récupération de TOUS les profils...');
-            
-            // Test 1: récupérer tous les profils pour voir s'il y en a
-            const { data: allProfiles, error: allError } = await supabase
-              .from('profiles')
-              .select('*')
-              .limit(3);
-            
-            console.log('🔍 FRIDAY: Tous les profils:', allProfiles, 'erreur:', allError);
-            
-            // Test 2: récupérer le profil spécifique
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-
-            console.log('🔍 FRIDAY: Profil spécifique recherché pour ID:', session.user.id);
-            console.log('🔍 FRIDAY: Résultat:', { profile, profileError });
-
-            if (profileError) {
-              if (profileError.code === 'PGRST116') {
-                console.log('ℹ️ FRIDAY: Aucun profil trouvé dans la table profiles (code PGRST116)');
-              } else {
-                console.warn('⚠️ FRIDAY: Erreur récupération profil:', profileError.message, profileError.code);
-              }
-            }
-
-            if (profile) {
-              console.log('👤 FRIDAY: Profil trouvé en BDD:', profile);
-              // Mettre à jour avec les données du profil
-              const enhancedUserData = {
-                ...baseUserData,
-                firstName: profile.prenom || profile.first_name || baseUserData.firstName,
-                lastName: profile.nom || profile.last_name || baseUserData.lastName,
-                name: profile.full_name || `${profile.prenom || profile.first_name || baseUserData.firstName} ${profile.nom || profile.last_name || baseUserData.lastName}`.trim(),
-                profile: profile
-              };
-              
-              console.log('👤 FRIDAY: Profil enrichi chargé:', enhancedUserData);
-              setUser(enhancedUserData);
-              localStorage.setItem('friday_user_cache', JSON.stringify(enhancedUserData));
-            } else {
-              console.log('ℹ️ FRIDAY: Création profil manquant...');
-              // Créer un profil par défaut
-              try {
-                const { data: newProfile, error: createError } = await supabase
-                  .from('profiles')
-                  .insert({
-                    id: session.user.id,
-                    email: session.user.email,
-                    prenom: baseUserData.firstName,
-                    nom: baseUserData.lastName,
-                    role: 'user',
-                    created_at: new Date().toISOString()
-                  })
-                  .select()
-                  .single();
-                
-                if (createError) {
-                  console.warn('⚠️ FRIDAY: Erreur création profil:', createError.message);
-                } else {
-                  console.log('✅ FRIDAY: Profil créé avec succès:', newProfile);
-                  const enhancedUserData = {
-                    ...baseUserData,
-                    profile: newProfile
-                  };
-                  setUser(enhancedUserData);
-                  localStorage.setItem('friday_user_cache', JSON.stringify(enhancedUserData));
-                }
-              } catch (createErr) {
-                console.error('❌ FRIDAY: Erreur création profil:', createErr);
-              }
-            }
-          } catch (error) {
-            console.error('❌ FRIDAY: Erreur chargement profil (fallback sur auth):', error);
-            // L'utilisateur reste avec les données auth
-          }
+          // FORCER la récupération du profil - approche directe
+          console.log('🚀 FRIDAY: DÉMARRAGE FORCÉ récupération profil...');
+          fetchProfileData(session.user.id, baseUserData);
+          
         } else {
           console.log('ℹ️ FRIDAY: Aucune session Supabase active');
           setUser(null);
@@ -152,6 +75,52 @@ export default function useSupabaseUser() {
         setUser(null);
       } finally {
         setLoading(false);
+      }
+    };
+
+    // Fonction séparée pour récupérer le profil
+    const fetchProfileData = async (userId, fallbackUserData) => {
+      console.log('🔍 FRIDAY: Recherche profil pour ID:', userId);
+      console.log('🔍 FRIDAY: Test simple - récupération de TOUS les profils...');
+      
+      try {
+        // Test 1: récupérer tous les profils pour voir s'il y en a
+        const { data: allProfiles, error: allError } = await supabase
+          .from('profiles')
+          .select('*')
+          .limit(3);
+        
+        console.log('🔍 FRIDAY: Tous les profils:', allProfiles, 'erreur:', allError);
+        
+        // Test 2: récupérer le profil spécifique
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        console.log('🔍 FRIDAY: Profil spécifique recherché pour ID:', userId);
+        console.log('🔍 FRIDAY: Résultat:', { profile, profileError });
+
+        if (profile) {
+          console.log('👤 FRIDAY: Profil trouvé en BDD:', profile);
+          // Mettre à jour avec les données du profil
+          const enhancedUserData = {
+            ...fallbackUserData,
+            firstName: profile.prenom || profile.first_name || fallbackUserData.firstName,
+            lastName: profile.nom || profile.last_name || fallbackUserData.lastName,
+            name: `${profile.prenom || profile.first_name || fallbackUserData.firstName} ${profile.nom || profile.last_name || fallbackUserData.lastName}`.trim(),
+            profile: profile
+          };
+          
+          console.log('👤 FRIDAY: Profil enrichi chargé:', enhancedUserData);
+          setUser(enhancedUserData);
+          localStorage.setItem('friday_user_cache', JSON.stringify(enhancedUserData));
+        } else {
+          console.log('ℹ️ FRIDAY: Aucun profil trouvé pour cet utilisateur');
+        }
+      } catch (error) {
+        console.error('❌ FRIDAY: Erreur récupération profil:', error);
       }
     };
 
