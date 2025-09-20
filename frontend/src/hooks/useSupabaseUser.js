@@ -72,16 +72,10 @@ export default function useSupabaseUser() {
               .single();
 
             if (profileError) {
-              console.log('⚠️ FRIDAY: Erreur/Info récupération profil:', {
-                code: profileError.code,
-                message: profileError.message,
-                details: profileError.details
-              });
-              
-              if (profileError.code !== 'PGRST116') { // PGRST116 = pas de résultat
-                console.warn('⚠️ FRIDAY: Erreur récupération profil:', profileError.message);
+              if (profileError.code === 'PGRST116') {
+                console.log('ℹ️ FRIDAY: Aucun profil trouvé dans la table profiles (normal)');
               } else {
-                console.log('ℹ️ FRIDAY: Aucun profil trouvé - utilisation données auth');
+                console.warn('⚠️ FRIDAY: Erreur récupération profil:', profileError.message);
               }
             }
 
@@ -97,17 +91,40 @@ export default function useSupabaseUser() {
               };
               
               console.log('👤 FRIDAY: Profil enrichi chargé:', enhancedUserData);
-              console.log('🔍 FRIDAY: Données profile détaillées:', {
-                'profile.first_name': profile.first_name,
-                'profile.last_name': profile.last_name,
-                'profile.full_name': profile.full_name,
-                'enhancedUserData.firstName': enhancedUserData.firstName,
-                'enhancedUserData.lastName': enhancedUserData.lastName
-              });
               setUser(enhancedUserData);
               localStorage.setItem('friday_user_cache', JSON.stringify(enhancedUserData));
             } else {
-              console.log('ℹ️ FRIDAY: Aucun profil en BDD, utilisation données auth uniquement');
+              console.log('ℹ️ FRIDAY: Création profil manquant...');
+              // Créer un profil par défaut
+              try {
+                const { data: newProfile, error: createError } = await supabase
+                  .from('profiles')
+                  .insert({
+                    id: session.user.id,
+                    email: session.user.email,
+                    first_name: baseUserData.firstName,
+                    last_name: baseUserData.lastName,
+                    full_name: baseUserData.name,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                  })
+                  .select()
+                  .single();
+                
+                if (createError) {
+                  console.warn('⚠️ FRIDAY: Erreur création profil:', createError.message);
+                } else {
+                  console.log('✅ FRIDAY: Profil créé avec succès:', newProfile);
+                  const enhancedUserData = {
+                    ...baseUserData,
+                    profile: newProfile
+                  };
+                  setUser(enhancedUserData);
+                  localStorage.setItem('friday_user_cache', JSON.stringify(enhancedUserData));
+                }
+              } catch (createErr) {
+                console.error('❌ FRIDAY: Erreur création profil:', createErr);
+              }
             }
           } catch (error) {
             console.error('❌ FRIDAY: Erreur chargement profil (fallback sur auth):', error);
