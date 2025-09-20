@@ -15,18 +15,22 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
-// Test immédiat de connexion
+// Test immédiat de connexion avec diagnostics détaillés
 console.log('🧪 FRIDAY: Test connexion Supabase...');
 supabase.from('creations').select('count', { count: 'exact', head: true })
   .then(({ data, error, count }) => {
     if (error) {
       console.error('❌ FRIDAY: Erreur connexion Supabase:', error.message);
+      console.error('🔍 FRIDAY: Détails erreur:', error);
+      console.error('🌐 FRIDAY: URL actuelle:', window.location.origin);
+      console.error('🔗 FRIDAY: Supabase URL:', supabaseUrl);
     } else {
       console.log('✅ FRIDAY: Connexion Supabase OK -', count, 'créations en base');
     }
   })
   .catch(err => {
     console.error('❌ FRIDAY: Erreur critique Supabase:', err.message);
+    console.error('🔍 FRIDAY: Stack trace:', err.stack);
   });
 
 console.log('✅ FRIDAY: Client Supabase initialisé avec succès');
