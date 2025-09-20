@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './UserAccount.css';
 import { supabase } from '../supabaseClient';
 import useSupabaseUser from '../hooks/useSupabaseUser';
-import useUserCreations from '../hooks/useUserCreations';
+// import useUserCreations from '../hooks/useUserCreations'; // Déplacé vers History.jsx
 import { updateUserProfile } from '../services/profileService';
 
 const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory }) => {
@@ -21,7 +21,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   
   // Utiliser les hooks Supabase
   const { user, loading } = useSupabaseUser();
-  const { creations, loading: creationsLoading, refreshCreations } = useUserCreations(showProfileForm ? user?.id : null);
+  // const { creations, loading: creationsLoading, refreshCreations } = useUserCreations(showProfileForm ? user?.id : null); // Déplacé vers History.jsx
   
   // L'utilisateur est connecté si nous avons un objet user
   const isUserLoggedIn = !!user && !loading;
@@ -656,33 +656,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                       </button>
                     </div>
                   </form>
-                  
-                  {/* Historique des créations */}
-                  <div className="user-creations-section">
-                    <h4>Mes créations ({creations?.length || 0})</h4>
-                    {creationsLoading ? (
-                      <p>Chargement de l'historique...</p>
-                    ) : creations?.length > 0 ? (
-                      <div className="creations-list">
-                        {creations.slice(0, 5).map((creation, index) => (
-                          <div key={creation.id || index} className="creation-item">
-                            <span className="creation-type">{creation.type || 'Création'}</span>
-                            <span className="creation-title">{creation.title || 'Sans titre'}</span>
-                            <span className="creation-date">
-                              {creation.created_at ? new Date(creation.created_at).toLocaleDateString('fr-FR') : ''}
-                            </span>
-                          </div>
-                        ))}
-                        {creations.length > 5 && (
-                          <p className="more-creations">
-                            ... et {creations.length - 5} autres créations
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="no-creations">Aucune création pour le moment</p>
-                    )}
-                  </div>
                 </motion.div>
               </motion.div>
             )}
