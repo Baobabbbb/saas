@@ -50,6 +50,13 @@ export async function addCreation({ type, title, data }) {
 
     if (error) {
       console.error('❌ ERREUR Supabase lors de la création:', error);
+      console.error('🔍 FRIDAY: Détails erreur Supabase:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      console.error('📄 FRIDAY: Données envoyées:', creationData);
       throw new Error(`Erreur base de données: ${error.message}`);
     }
 
