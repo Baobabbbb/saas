@@ -94,11 +94,20 @@ export default function useSupabaseUser() {
                 lastName: profile.last_name || baseUserData.lastName,
                 name: profile.full_name || `${profile.first_name || baseUserData.firstName} ${profile.last_name || baseUserData.lastName}`.trim(),
                 profile: profile
-                   };
-                   
-                   console.log('👤 FRIDAY: Profil enrichi chargé:', enhancedUserData);
-                   setUser(enhancedUserData);
-                   localStorage.setItem('friday_user_cache', JSON.stringify(enhancedUserData));
+              };
+              
+              console.log('👤 FRIDAY: Profil enrichi chargé:', enhancedUserData);
+              console.log('🔍 FRIDAY: Données profile détaillées:', {
+                'profile.first_name': profile.first_name,
+                'profile.last_name': profile.last_name,
+                'profile.full_name': profile.full_name,
+                'enhancedUserData.firstName': enhancedUserData.firstName,
+                'enhancedUserData.lastName': enhancedUserData.lastName
+              });
+              setUser(enhancedUserData);
+              localStorage.setItem('friday_user_cache', JSON.stringify(enhancedUserData));
+            } else {
+              console.log('ℹ️ FRIDAY: Aucun profil en BDD, utilisation données auth uniquement');
             }
           } catch (error) {
             console.error('❌ FRIDAY: Erreur chargement profil (fallback sur auth):', error);

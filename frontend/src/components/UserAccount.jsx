@@ -228,9 +228,24 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   // Charger les données du profil depuis Supabase
   useEffect(() => {
     if (user) {
+      console.log('📝 FRIDAY: Chargement données profil:', {
+        user: user,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profile: user.profile,
+        user_metadata: user.user_metadata
+      });
+      
       setProfileEmail(user.email || '');
-      setProfileFirstName(user.firstName || user.user_metadata?.firstName || '');
-      setProfileLastName(user.lastName || user.user_metadata?.lastName || '');
+      
+      // Priorité : données profile BDD > user_metadata > email
+      const firstName = user.profile?.first_name || user.firstName || user.user_metadata?.firstName || user.user_metadata?.first_name || '';
+      const lastName = user.profile?.last_name || user.lastName || user.user_metadata?.lastName || user.user_metadata?.last_name || '';
+      
+      console.log('📝 FRIDAY: Données profil déterminées:', { firstName, lastName });
+      
+      setProfileFirstName(firstName);
+      setProfileLastName(lastName);
     }
   }, [user]);
 
