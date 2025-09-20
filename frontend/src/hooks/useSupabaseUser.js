@@ -43,15 +43,19 @@ export default function useSupabaseUser() {
           });
           
           // D'abord créer l'utilisateur avec les données auth (chargement immédiat)
+          const emailBase = session.user.email.split('@')[0];
           const baseUserData = {
             id: session.user.id,
             email: session.user.email,
-            firstName: session.user.user_metadata?.firstName || session.user.email.split('@')[0],
-            lastName: session.user.user_metadata?.lastName || '',
+            firstName: session.user.user_metadata?.firstName || session.user.user_metadata?.first_name || emailBase,
+            lastName: session.user.user_metadata?.lastName || session.user.user_metadata?.last_name || '',
             name: session.user.user_metadata?.name || 
-                  `${session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${session.user.user_metadata?.lastName || ''}`.trim(),
+                  session.user.user_metadata?.full_name ||
+                  `${session.user.user_metadata?.firstName || session.user.user_metadata?.first_name || emailBase} ${session.user.user_metadata?.lastName || session.user.user_metadata?.last_name || ''}`.trim(),
             user_metadata: session.user.user_metadata
           };
+          
+          console.log('👤 FRIDAY: Données utilisateur créées:', baseUserData);
           
           // Afficher immédiatement l'utilisateur et le mettre en cache
           setUser(baseUserData);

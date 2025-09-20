@@ -73,71 +73,27 @@ export default function useUserCreations(userId) {
     const fetchUserCreations = async () => {
       setLoading(true);
       try {
-        console.log('📥 FRIDAY: Récupération créations utilisateur:', userId);
+        console.log('📥 FRIDAY: Récupération créations pour userId:', userId);
         
-        // Test simple : compter toutes les créations d'abord
-        console.log('🧪 FRIDAY: Test connexion base - comptage total...');
-        const testResult = await supabase
+        const { data, error: fetchError } = await supabase
           .from('creations')
-          .select('*', { count: 'exact', head: true });
-        
-        console.log('🧪 FRIDAY: Test résultat:', {
-          count: testResult.count,
-          error: testResult.error
-        });
-        
-        console.log('🔍 FRIDAY: Requête Supabase pour user_id:', userId);
-        const { data, error: fetchError, count } = await supabase
-          .from('creations')
-          .select('*', { count: 'exact' })
+          .select('*')
           .eq('user_id', userId)
           .order('created_at', { ascending: false });
-
-        console.log('📊 FRIDAY: Résultat requête Supabase:', {
-          data: data,
-          count: count,
-          error: fetchError,
-          userId: userId
-        });
-
-        // Si pas de créations trouvées, faire des vérifications simples
-        if (!data || data.length === 0) {
-          console.log('🔍 FRIDAY: Aucune création pour cet utilisateur, vérifications...');
-          
-          try {
-            // Compter toutes les créations
-            const { count: totalCount, error: countError } = await supabase
-              .from('creations')
-              .select('*', { count: 'exact', head: true });
-            
-            console.log('🔢 FRIDAY: Total créations base:', totalCount, 'erreur:', countError);
-            
-            // Récupérer quelques exemples
-            const { data: samples, error: samplesError } = await supabase
-              .from('creations')
-              .select('user_id, type, title')
-              .limit(3);
-              
-            console.log('🔍 FRIDAY: Échantillons:', samples, 'erreur:', samplesError);
-            
-          } catch (err) {
-            console.error('❌ FRIDAY: Erreur vérifications:', err);
-          }
-        }
 
         if (fetchError) {
           console.error('❌ FRIDAY: Erreur récupération créations:', fetchError);
           setError(fetchError.message);
+          setCreations([]);
         } else {
-          console.log('✅ FRIDAY: Créations récupérées:', data?.length || 0, 'pour user_id:', userId);
-          
+          console.log('✅ FRIDAY: Créations récupérées:', data?.length || 0);
           setCreations(data || []);
-          
           setError(null);
         }
       } catch (err) {
         console.error('❌ FRIDAY: Erreur critique récupération créations:', err);
         setError(err.message);
+        setCreations([]);
       } finally {
         setLoading(false);
       }
