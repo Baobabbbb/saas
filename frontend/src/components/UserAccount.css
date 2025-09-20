@@ -574,3 +574,9 @@
   cursor: pointer;
   font-weight: 500;
 }
+
+/* Ajustements pour l'affichage de l'email dans user-info */
+.user-info small {
+  font-size: 0.85rem;
+  color: #666;
+}
