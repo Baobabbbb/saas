@@ -73,8 +73,6 @@ export default function useUserCreations(userId) {
     const fetchUserCreations = async () => {
       setLoading(true);
       try {
-        console.log('📥 FRIDAY: Récupération créations pour userId:', userId);
-        
         const { data, error: fetchError } = await supabase
           .from('creations')
           .select('*')
@@ -82,25 +80,21 @@ export default function useUserCreations(userId) {
           .order('created_at', { ascending: false });
 
         if (fetchError) {
-          console.error('❌ FRIDAY: Erreur récupération créations:', fetchError);
+          console.error('Erreur récupération créations:', fetchError);
           setError(fetchError.message);
           setCreations([]);
         } else {
-          console.log('✅ FRIDAY: Créations récupérées:', data?.length || 0);
           setCreations(data || []);
           setError(null);
         }
       } catch (err) {
-        console.error('❌ FRIDAY: Erreur critique récupération créations:', err);
+        console.error('Erreur critique récupération créations:', err);
         setError(err.message);
         setCreations([]);
       } finally {
         setLoading(false);
       }
     };
-
-    // Charger uniquement si on a un userId
-    console.log('🔍 FRIDAY: useUserCreations démarré pour userId:', userId);
     fetchUserCreations();
   }, [userId]);
 
