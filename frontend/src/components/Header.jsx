@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import './Header.css';
 import UserAccount from './UserAccount';
 
-const Header = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
+const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory }) => {
   return (
     <header className="header">
       <div className="header-content">
@@ -51,6 +51,7 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
           onLogin={onLogin}
           onLogout={onLogout}
           onRegister={onRegister}
+          onOpenHistory={onOpenHistory}
         />
       </div>
     </header>
