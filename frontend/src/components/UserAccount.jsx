@@ -21,7 +21,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   
   // Utiliser les hooks Supabase
   const { user, loading } = useSupabaseUser();
-  const { creations, loading: creationsLoading, refreshCreations } = useUserCreations(user?.id);
+  const { creations, loading: creationsLoading, refreshCreations } = useUserCreations(showProfileForm ? user?.id : null);
   
   // L'utilisateur est connecté si nous avons un objet user
   const isUserLoggedIn = !!user && !loading;

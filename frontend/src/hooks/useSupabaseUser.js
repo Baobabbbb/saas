@@ -24,7 +24,22 @@ export default function useSupabaseUser() {
         if (session?.user) {
           console.log('✅ FRIDAY: Session Supabase active:', session.user.email);
           
-          // Récupérer les données du profil depuis la table profiles
+          // D'abord créer l'utilisateur avec les données auth (chargement immédiat)
+          const baseUserData = {
+            id: session.user.id,
+            email: session.user.email,
+            firstName: session.user.user_metadata?.firstName || session.user.email.split('@')[0],
+            lastName: session.user.user_metadata?.lastName || '',
+            name: session.user.user_metadata?.name || 
+                  `${session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${session.user.user_metadata?.lastName || ''}`.trim(),
+            user_metadata: session.user.user_metadata
+          };
+          
+          // Afficher immédiatement l'utilisateur
+          setUser(baseUserData);
+          setLoading(false);
+          
+          // Puis récupérer les données du profil en arrière-plan
           try {
             const { data: profile, error: profileError } = await supabase
               .from('profiles')
@@ -36,32 +51,22 @@ export default function useSupabaseUser() {
               console.warn('⚠️ FRIDAY: Erreur récupération profil:', profileError.message);
             }
 
-            const userData = {
-              id: session.user.id,
-              email: session.user.email,
-              firstName: profile?.first_name || session.user.user_metadata?.firstName || session.user.email.split('@')[0],
-              lastName: profile?.last_name || session.user.user_metadata?.lastName || '',
-              name: profile?.full_name || 
-                    `${profile?.first_name || session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${profile?.last_name || session.user.user_metadata?.lastName || ''}`.trim(),
-              user_metadata: session.user.user_metadata,
-              profile: profile // Ajouter les données complètes du profil
-            };
-            
-            console.log('👤 FRIDAY: Données utilisateur chargées:', userData);
-            setUser(userData);
+            if (profile) {
+              // Mettre à jour avec les données du profil
+              const enhancedUserData = {
+                ...baseUserData,
+                firstName: profile.first_name || baseUserData.firstName,
+                lastName: profile.last_name || baseUserData.lastName,
+                name: profile.full_name || `${profile.first_name || baseUserData.firstName} ${profile.last_name || baseUserData.lastName}`.trim(),
+                profile: profile
+              };
+              
+              console.log('👤 FRIDAY: Profil enrichi chargé:', enhancedUserData);
+              setUser(enhancedUserData);
+            }
           } catch (error) {
-            console.error('❌ FRIDAY: Erreur chargement profil:', error);
-            // Fallback sur les métadonnées d'auth
-            const userData = {
-              id: session.user.id,
-              email: session.user.email,
-              firstName: session.user.user_metadata?.firstName || session.user.email.split('@')[0],
-              lastName: session.user.user_metadata?.lastName || '',
-              name: session.user.user_metadata?.name || 
-                    `${session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${session.user.user_metadata?.lastName || ''}`.trim(),
-              user_metadata: session.user.user_metadata
-            };
-            setUser(userData);
+            console.error('❌ FRIDAY: Erreur chargement profil (fallback sur auth):', error);
+            // L'utilisateur reste avec les données auth
           }
         } else {
           console.log('ℹ️ FRIDAY: Aucune session Supabase active');
@@ -85,7 +90,22 @@ export default function useSupabaseUser() {
       if (event === 'SIGNED_IN' && session?.user) {
         console.log('✅ FRIDAY: Utilisateur connecté:', session.user.email);
         
-        // Récupérer les données du profil depuis la table profiles
+        // Créer immédiatement l'utilisateur avec les données auth
+        const baseUserData = {
+          id: session.user.id,
+          email: session.user.email,
+          firstName: session.user.user_metadata?.firstName || session.user.email.split('@')[0],
+          lastName: session.user.user_metadata?.lastName || '',
+          name: session.user.user_metadata?.name || 
+                `${session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${session.user.user_metadata?.lastName || ''}`.trim(),
+          user_metadata: session.user.user_metadata
+        };
+        
+        // Afficher immédiatement
+        setUser(baseUserData);
+        setLoading(false);
+        
+        // Enrichir avec le profil en arrière-plan
         try {
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
@@ -97,33 +117,18 @@ export default function useSupabaseUser() {
             console.warn('⚠️ FRIDAY: Erreur récupération profil lors connexion:', profileError.message);
           }
 
-          const userData = {
-            id: session.user.id,
-            email: session.user.email,
-            firstName: profile?.first_name || session.user.user_metadata?.firstName || session.user.email.split('@')[0],
-            lastName: profile?.last_name || session.user.user_metadata?.lastName || '',
-            name: profile?.full_name || 
-                  `${profile?.first_name || session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${profile?.last_name || session.user.user_metadata?.lastName || ''}`.trim(),
-            user_metadata: session.user.user_metadata,
-            profile: profile
-          };
-          
-          setUser(userData);
-          setLoading(false);
+          if (profile) {
+            const enhancedUserData = {
+              ...baseUserData,
+              firstName: profile.first_name || baseUserData.firstName,
+              lastName: profile.last_name || baseUserData.lastName,
+              name: profile.full_name || `${profile.first_name || baseUserData.firstName} ${profile.last_name || baseUserData.lastName}`.trim(),
+              profile: profile
+            };
+            setUser(enhancedUserData);
+          }
         } catch (error) {
-          console.error('❌ FRIDAY: Erreur chargement profil lors connexion:', error);
-          // Fallback
-          const userData = {
-            id: session.user.id,
-            email: session.user.email,
-            firstName: session.user.user_metadata?.firstName || session.user.email.split('@')[0],
-            lastName: session.user.user_metadata?.lastName || '',
-            name: session.user.user_metadata?.name || 
-                  `${session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${session.user.user_metadata?.lastName || ''}`.trim(),
-            user_metadata: session.user.user_metadata
-          };
-          setUser(userData);
-          setLoading(false);
+          console.error('❌ FRIDAY: Erreur enrichissement profil (utilisateur reste connecté):', error);
         }
         
         // Nettoyer localStorage (migration complète vers Supabase)
