@@ -238,11 +238,15 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       
       setProfileEmail(user.email || '');
       
-      // Priorité : données profile BDD > user_metadata > email
-      const firstName = user.profile?.first_name || user.firstName || user.user_metadata?.firstName || user.user_metadata?.first_name || '';
+      // Priorité : données profile BDD > données user > user_metadata > email
+      const firstName = user.profile?.first_name || user.firstName || user.user_metadata?.firstName || user.user_metadata?.first_name || user.email?.split('@')[0] || '';
       const lastName = user.profile?.last_name || user.lastName || user.user_metadata?.lastName || user.user_metadata?.last_name || '';
       
-      console.log('📝 FRIDAY: Données profil déterminées:', { firstName, lastName });
+      console.log('📝 FRIDAY: Données profil déterminées:', { 
+        firstName, 
+        lastName,
+        source: user.profile?.first_name ? 'BDD' : user.firstName ? 'user' : 'fallback'
+      });
       
       setProfileFirstName(firstName);
       setProfileLastName(lastName);
