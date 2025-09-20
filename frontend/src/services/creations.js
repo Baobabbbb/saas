@@ -3,29 +3,43 @@ import { supabase } from '../supabaseClient'
 console.log('🚀 FRIDAY: Service créations - SUPABASE ONLY MODE');
 
 // Fonction pour obtenir l'ID utilisateur actuel
-function getCurrentUserId() {
-  // 1. Essayer de récupérer depuis la session Supabase
-  const fridayUser = localStorage.getItem('friday_supabase_user');
-  if (fridayUser) {
-    const user = JSON.parse(fridayUser);
-    return user.id;
+async function getCurrentUserId() {
+  try {
+    // 1. Essayer de récupérer depuis la session Supabase DIRECTEMENT
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (session?.user?.id) {
+      console.log('👤 FRIDAY: ID utilisateur récupéré depuis session Supabase:', session.user.id);
+      return session.user.id;
+    }
+    
+    // 2. Essayer le cache localStorage
+    const cachedUser = localStorage.getItem('friday_user_cache');
+    if (cachedUser) {
+      const user = JSON.parse(cachedUser);
+      if (user.id) {
+        console.log('👤 FRIDAY: ID utilisateur récupéré depuis cache:', user.id);
+        return user.id;
+      }
+    }
+    
+    console.warn('⚠️ FRIDAY: Aucun ID utilisateur trouvé');
+    return null;
+  } catch (error) {
+    console.error('❌ FRIDAY: Erreur récupération ID utilisateur:', error);
+    return null;
   }
-  
-  // 2. Générer un ID basé sur l'email localStorage
-  const userEmail = localStorage.getItem('userEmail');
-  if (userEmail) {
-    return 'friday-user-' + btoa(userEmail).slice(0, 10);
-  }
-  
-  // 3. ID par défaut
-  return 'friday-anonymous-' + Date.now();
 }
 
 // Ajouter une création - SUPABASE OBLIGATOIRE
 export async function addCreation({ type, title, data }) {
   console.log('💾 FRIDAY: Sauvegarde création en base Supabase', { type, title });
   
-  const userId = getCurrentUserId();
+  const userId = await getCurrentUserId();
+  
+  if (!userId) {
+    console.warn('⚠️ FRIDAY: Impossible de sauvegarder - pas d\'ID utilisateur');
+    throw new Error('Utilisateur non connecté');
+  }
   
   try {
     const creationData = {
@@ -73,9 +87,15 @@ export async function addCreation({ type, title, data }) {
 export async function getCreations() {
   console.log('📥 FRIDAY: Récupération créations depuis Supabase');
   
-  const userId = getCurrentUserId();
+  const userId = await getCurrentUserId();
+  
+  if (!userId) {
+    console.warn('⚠️ FRIDAY: Impossible de récupérer les créations - pas d\'ID utilisateur');
+    return [];
+  }
   
   try {
+    console.log('🔍 FRIDAY: Recherche créations pour user_id:', userId);
     const { data: creations, error } = await supabase
       .from('creations')
       .select('*')

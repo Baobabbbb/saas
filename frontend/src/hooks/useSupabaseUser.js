@@ -35,6 +35,12 @@ export default function useSupabaseUser() {
 
         if (session?.user) {
           console.log('✅ FRIDAY: Session Supabase active:', session.user.email);
+          console.log('👤 FRIDAY: Données auth complètes:', {
+            id: session.user.id,
+            email: session.user.email,
+            user_metadata: session.user.user_metadata,
+            app_metadata: session.user.app_metadata
+          });
           
           // D'abord créer l'utilisateur avec les données auth (chargement immédiat)
           const baseUserData = {
@@ -54,17 +60,29 @@ export default function useSupabaseUser() {
           
           // Puis récupérer les données du profil en arrière-plan
           try {
+            console.log('🔍 FRIDAY: Recherche profil pour ID:', session.user.id);
             const { data: profile, error: profileError } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', session.user.id)
               .single();
 
-            if (profileError && profileError.code !== 'PGRST116') { // PGRST116 = pas de résultat
-              console.warn('⚠️ FRIDAY: Erreur récupération profil:', profileError.message);
+            if (profileError) {
+              console.log('⚠️ FRIDAY: Erreur/Info récupération profil:', {
+                code: profileError.code,
+                message: profileError.message,
+                details: profileError.details
+              });
+              
+              if (profileError.code !== 'PGRST116') { // PGRST116 = pas de résultat
+                console.warn('⚠️ FRIDAY: Erreur récupération profil:', profileError.message);
+              } else {
+                console.log('ℹ️ FRIDAY: Aucun profil trouvé - utilisation données auth');
+              }
             }
 
             if (profile) {
+              console.log('👤 FRIDAY: Profil trouvé en BDD:', profile);
               // Mettre à jour avec les données du profil
               const enhancedUserData = {
                 ...baseUserData,
