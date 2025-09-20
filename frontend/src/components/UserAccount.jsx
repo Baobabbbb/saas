@@ -576,33 +576,33 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                   <small>{user?.email}</small>
                 </div>
                 
-                <ul>
-                  <li onClick={() => {
-                    setShowDropdown(false);
-                    setShowProfileForm(true);
-                  }}>
-                    Mon profil
-                  </li>
-                  
-                  <li onClick={() => {
-                    setShowDropdown(false);
-                    if (onOpenHistory) {
-                      onOpenHistory();
-                    }
-                  }}>
-                    Mon historique
-                  </li>
-                  
-                  {isAdmin() && (
-                    <li className="admin-option" onClick={() => window.open('/admin', '_blank')}>
-                      Administration
-                    </li>
-                  )}
-                  
-                  <li onClick={handleSignOut}>
-                    Se déconnecter
-                  </li>
-                </ul>
+                       <ul>
+                         {isAdmin() && (
+                           <li className="admin-option" onClick={() => window.open('/admin', '_blank')}>
+                             Administration
+                           </li>
+                         )}
+                         
+                         <li onClick={() => {
+                           setShowDropdown(false);
+                           setShowProfileForm(true);
+                         }}>
+                           Mon profil
+                         </li>
+                         
+                         <li onClick={() => {
+                           setShowDropdown(false);
+                           if (onOpenHistory) {
+                             onOpenHistory();
+                           }
+                         }}>
+                           Mon historique
+                         </li>
+                         
+                         <li onClick={handleSignOut}>
+                           Se déconnecter
+                         </li>
+                       </ul>
               </motion.div>
             )}
           </AnimatePresence>
