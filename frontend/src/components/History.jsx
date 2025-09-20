@@ -12,6 +12,16 @@ const History = ({ onClose, onSelect }) => {
   // Utiliser les hooks optimisés pour Supabase
   const { user } = useSupabaseUser();
   const { creations, loading: creationsLoading, refreshCreations } = useUserCreations(user?.id);
+  
+  // Debug : vérifier les créations reçues
+  useEffect(() => {
+    console.log('📖 FRIDAY: History - État créations:', {
+      user: user?.id,
+      creationsCount: creations?.length || 0,
+      loading: creationsLoading,
+      creations: creations
+    });
+  }, [creations, creationsLoading, user]);
 
   // Fonction de suppression mise à jour pour utiliser le hook
   const handleDelete = async (id) => {
