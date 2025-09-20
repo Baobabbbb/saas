@@ -1,13 +1,9 @@
 import { supabase } from '../supabaseClient';
 
-console.log('🚀 FRIDAY: Service profil - SUPABASE INTEGRATION');
-
 /**
  * Récupère le profil complet d'un utilisateur
  */
 export async function getUserProfile(userId) {
-  console.log('👤 FRIDAY: Récupération profil utilisateur:', userId);
-  
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -16,14 +12,13 @@ export async function getUserProfile(userId) {
       .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = pas de résultat
-      console.error('❌ FRIDAY: Erreur récupération profil:', error);
+      console.error('Erreur récupération profil:', error);
       throw new Error(`Erreur récupération profil: ${error.message}`);
     }
 
-    console.log('✅ FRIDAY: Profil récupéré:', data);
     return data;
   } catch (error) {
-    console.error('❌ FRIDAY: Erreur critique récupération profil:', error);
+    console.error('Erreur critique récupération profil:', error);
     throw error;
   }
 }
@@ -32,8 +27,6 @@ export async function getUserProfile(userId) {
  * Met à jour le profil d'un utilisateur
  */
 export async function updateUserProfile(userId, profileData) {
-  console.log('💾 FRIDAY: Mise à jour profil utilisateur:', userId, profileData);
-  
   try {
     // Préparer les données à mettre à jour (utiliser les colonnes correctes)
     const updateData = {
@@ -53,14 +46,13 @@ export async function updateUserProfile(userId, profileData) {
       .single();
 
     if (error) {
-      console.error('❌ FRIDAY: Erreur mise à jour profil:', error);
+      console.error('Erreur mise à jour profil:', error);
       throw new Error(`Erreur mise à jour profil: ${error.message}`);
     }
 
-    console.log('✅ FRIDAY: Profil mis à jour avec succès:', data);
     return data;
   } catch (error) {
-    console.error('❌ FRIDAY: Erreur critique mise à jour profil:', error);
+    console.error('Erreur critique mise à jour profil:', error);
     throw error;
   }
 }
@@ -105,8 +97,6 @@ export async function createUserProfile(userId, email, profileData = {}) {
  * Supprime le profil d'un utilisateur
  */
 export async function deleteUserProfile(userId) {
-  console.log('🗑️ FRIDAY: Suppression profil utilisateur:', userId);
-  
   try {
     const { error } = await supabase
       .from('profiles')
@@ -114,14 +104,13 @@ export async function deleteUserProfile(userId) {
       .eq('id', userId);
 
     if (error) {
-      console.error('❌ FRIDAY: Erreur suppression profil:', error);
+      console.error('Erreur suppression profil:', error);
       throw new Error(`Erreur suppression profil: ${error.message}`);
     }
 
-    console.log('✅ FRIDAY: Profil supprimé avec succès');
     return true;
   } catch (error) {
-    console.error('❌ FRIDAY: Erreur critique suppression profil:', error);
+    console.error('Erreur critique suppression profil:', error);
     throw error;
   }
 }

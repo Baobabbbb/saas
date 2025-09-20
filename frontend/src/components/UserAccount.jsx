@@ -26,19 +26,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   // L'utilisateur est connecté si nous avons un objet user
   const isUserLoggedIn = !!user && !loading;
   
-  // Debug : vérifier les données utilisateur
-  useEffect(() => {
-    if (user) {
-      console.log('🎯 FRIDAY: UserAccount - Données utilisateur reçues:', {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        name: user.name
-      });
-    } else {
-      console.log('🎯 FRIDAY: UserAccount - Aucune donnée utilisateur');
-    }
-  }, [user]);
   
   // Référence pour le composant user-account afin de détecter les clics en dehors
   const userAccountRef = useRef(null);
@@ -228,25 +215,10 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   // Charger les données du profil depuis Supabase
   useEffect(() => {
     if (user) {
-      console.log('📝 FRIDAY: Chargement données profil:', {
-        user: user,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        profile: user.profile,
-        user_metadata: user.user_metadata
-      });
-      
       setProfileEmail(user.email || '');
       
-      // Priorité : données profile BDD > données user > user_metadata > email
       const firstName = user.profile?.prenom || user.profile?.first_name || user.firstName || user.user_metadata?.firstName || user.user_metadata?.first_name || user.email?.split('@')[0] || '';
       const lastName = user.profile?.nom || user.profile?.last_name || user.lastName || user.user_metadata?.lastName || user.user_metadata?.last_name || '';
-      
-      console.log('📝 FRIDAY: Données profil déterminées:', { 
-        firstName, 
-        lastName,
-        source: user.profile?.first_name ? 'BDD' : user.firstName ? 'user' : 'fallback'
-      });
       
       setProfileFirstName(firstName);
       setProfileLastName(lastName);
