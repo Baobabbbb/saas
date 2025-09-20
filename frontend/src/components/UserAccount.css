@@ -587,3 +587,76 @@
   color: #666;
   cursor: not-allowed;
 }
+
+/* Styles pour l'historique des créations dans le profil */
+.user-creations-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.user-creations-section h4 {
+  margin: 0 0 12px 0;
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+.creations-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.creation-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.9rem;
+}
+
+.creation-item:last-child {
+  border-bottom: none;
+}
+
+.creation-type {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  min-width: 60px;
+  text-align: center;
+}
+
+.creation-title {
+  flex: 1;
+  margin: 0 8px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.creation-date {
+  color: #666;
+  font-size: 0.8rem;
+  min-width: 80px;
+  text-align: right;
+}
+
+.more-creations {
+  margin: 8px 0 0 0;
+  font-style: italic;
+  color: #666;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.no-creations {
+  margin: 8px 0;
+  color: #666;
+  font-style: italic;
+  text-align: center;
+}

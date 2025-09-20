@@ -24,17 +24,45 @@ export default function useSupabaseUser() {
         if (session?.user) {
           console.log('✅ FRIDAY: Session Supabase active:', session.user.email);
           
-          const userData = {
-            id: session.user.id,
-            email: session.user.email,
-            firstName: session.user.user_metadata?.firstName || session.user.email.split('@')[0],
-            lastName: session.user.user_metadata?.lastName || '',
-            name: session.user.user_metadata?.name || 
-                  `${session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${session.user.user_metadata?.lastName || ''}`.trim(),
-            user_metadata: session.user.user_metadata
-          };
-          
-          setUser(userData);
+          // Récupérer les données du profil depuis la table profiles
+          try {
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            if (profileError && profileError.code !== 'PGRST116') { // PGRST116 = pas de résultat
+              console.warn('⚠️ FRIDAY: Erreur récupération profil:', profileError.message);
+            }
+
+            const userData = {
+              id: session.user.id,
+              email: session.user.email,
+              firstName: profile?.first_name || session.user.user_metadata?.firstName || session.user.email.split('@')[0],
+              lastName: profile?.last_name || session.user.user_metadata?.lastName || '',
+              name: profile?.full_name || 
+                    `${profile?.first_name || session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${profile?.last_name || session.user.user_metadata?.lastName || ''}`.trim(),
+              user_metadata: session.user.user_metadata,
+              profile: profile // Ajouter les données complètes du profil
+            };
+            
+            console.log('👤 FRIDAY: Données utilisateur chargées:', userData);
+            setUser(userData);
+          } catch (error) {
+            console.error('❌ FRIDAY: Erreur chargement profil:', error);
+            // Fallback sur les métadonnées d'auth
+            const userData = {
+              id: session.user.id,
+              email: session.user.email,
+              firstName: session.user.user_metadata?.firstName || session.user.email.split('@')[0],
+              lastName: session.user.user_metadata?.lastName || '',
+              name: session.user.user_metadata?.name || 
+                    `${session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${session.user.user_metadata?.lastName || ''}`.trim(),
+              user_metadata: session.user.user_metadata
+            };
+            setUser(userData);
+          }
         } else {
           console.log('ℹ️ FRIDAY: Aucune session Supabase active');
           setUser(null);
@@ -57,18 +85,46 @@ export default function useSupabaseUser() {
       if (event === 'SIGNED_IN' && session?.user) {
         console.log('✅ FRIDAY: Utilisateur connecté:', session.user.email);
         
-        const userData = {
-          id: session.user.id,
-          email: session.user.email,
-          firstName: session.user.user_metadata?.firstName || session.user.email.split('@')[0],
-          lastName: session.user.user_metadata?.lastName || '',
-          name: session.user.user_metadata?.name || 
-                `${session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${session.user.user_metadata?.lastName || ''}`.trim(),
-          user_metadata: session.user.user_metadata
-        };
-        
-        setUser(userData);
-        setLoading(false);
+        // Récupérer les données du profil depuis la table profiles
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.warn('⚠️ FRIDAY: Erreur récupération profil lors connexion:', profileError.message);
+          }
+
+          const userData = {
+            id: session.user.id,
+            email: session.user.email,
+            firstName: profile?.first_name || session.user.user_metadata?.firstName || session.user.email.split('@')[0],
+            lastName: profile?.last_name || session.user.user_metadata?.lastName || '',
+            name: profile?.full_name || 
+                  `${profile?.first_name || session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${profile?.last_name || session.user.user_metadata?.lastName || ''}`.trim(),
+            user_metadata: session.user.user_metadata,
+            profile: profile
+          };
+          
+          setUser(userData);
+          setLoading(false);
+        } catch (error) {
+          console.error('❌ FRIDAY: Erreur chargement profil lors connexion:', error);
+          // Fallback
+          const userData = {
+            id: session.user.id,
+            email: session.user.email,
+            firstName: session.user.user_metadata?.firstName || session.user.email.split('@')[0],
+            lastName: session.user.user_metadata?.lastName || '',
+            name: session.user.user_metadata?.name || 
+                  `${session.user.user_metadata?.firstName || session.user.email.split('@')[0]} ${session.user.user_metadata?.lastName || ''}`.trim(),
+            user_metadata: session.user.user_metadata
+          };
+          setUser(userData);
+          setLoading(false);
+        }
         
         // Nettoyer localStorage (migration complète vers Supabase)
         localStorage.removeItem('userEmail');

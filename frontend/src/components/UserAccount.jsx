@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './UserAccount.css';
 import { supabase } from '../supabaseClient';
 import useSupabaseUser from '../hooks/useSupabaseUser';
+import useUserCreations from '../hooks/useUserCreations';
+import { updateUserProfile } from '../services/profileService';
 
 const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -17,8 +19,9 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
   const [error, setError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   
-  // Utiliser le hook useSupabaseUser
+  // Utiliser les hooks Supabase
   const { user, loading } = useSupabaseUser();
+  const { creations, loading: creationsLoading, refreshCreations } = useUserCreations(user?.id);
   
   // L'utilisateur est connecté si nous avons un objet user
   const isUserLoggedIn = !!user && !loading;
@@ -586,10 +589,31 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                   transition={{ duration: 0.2 }}
                 >
                   <h3>Mon profil</h3>
-                  <form onSubmit={(e) => {
+                  <form onSubmit={async (e) => {
                     e.preventDefault();
-                    // TODO: Implémenter la mise à jour du profil si nécessaire
-                    setShowProfileForm(false);
+                    setError('');
+                    setIsAuthenticating(true);
+
+                    try {
+                      console.log('💾 FRIDAY: Mise à jour profil...');
+                      
+                      await updateUserProfile(user.id, {
+                        firstName: profileFirstName.trim(),
+                        lastName: profileLastName.trim()
+                      });
+
+                      console.log('✅ FRIDAY: Profil mis à jour avec succès');
+                      setShowProfileForm(false);
+                      
+                      // Optionnel: recharger les données utilisateur
+                      // Le hook useSupabaseUser se rechargera automatiquement
+                      
+                    } catch (error) {
+                      console.error('❌ FRIDAY: Erreur mise à jour profil:', error);
+                      setError(error.message || 'Erreur lors de la mise à jour du profil');
+                    } finally {
+                      setIsAuthenticating(false);
+                    }
                   }}>
                     <input
                       type="email"
@@ -618,11 +642,38 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister }) => {
                       }}>
                         Annuler
                       </button>
-                      <button type="submit">
-                        Enregistrer
+                      <button type="submit" disabled={isAuthenticating}>
+                        {isAuthenticating ? 'Enregistrement...' : 'Enregistrer'}
                       </button>
                     </div>
                   </form>
+                  
+                  {/* Historique des créations */}
+                  <div className="user-creations-section">
+                    <h4>Mes créations ({creations?.length || 0})</h4>
+                    {creationsLoading ? (
+                      <p>Chargement de l'historique...</p>
+                    ) : creations?.length > 0 ? (
+                      <div className="creations-list">
+                        {creations.slice(0, 5).map((creation, index) => (
+                          <div key={creation.id || index} className="creation-item">
+                            <span className="creation-type">{creation.type || 'Création'}</span>
+                            <span className="creation-title">{creation.title || 'Sans titre'}</span>
+                            <span className="creation-date">
+                              {creation.created_at ? new Date(creation.created_at).toLocaleDateString('fr-FR') : ''}
+                            </span>
+                          </div>
+                        ))}
+                        {creations.length > 5 && (
+                          <p className="more-creations">
+                            ... et {creations.length - 5} autres créations
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="no-creations">Aucune création pour le moment</p>
+                    )}
+                  </div>
                 </motion.div>
               </motion.div>
             )}
