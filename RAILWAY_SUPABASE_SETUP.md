@@ -50,3 +50,4 @@ Cherchez dans la console:
 ```
 
 Si l'URL ou la clé sont incorrectes, les variables ne sont pas bien injectées.
+
