@@ -17,14 +17,14 @@ import openai
 from openai import AsyncOpenAI
 
 from datetime import datetime
-from services.tts import generate_speech
-from services.stt import transcribe_audio
+# from services.tts import generate_speech
+# from services.stt import transcribe_audio
 
 # Authentification gérée par Supabase - modules supprimés car inutiles avec Vercel
 from services.coloring_generator import ColoringGenerator
 from services.comic_generator import ComicGenerator
 from utils.translate import translate_text
-from models.animation import AnimationRequest
+# from models.animation import AnimationRequest
 # Validation et sécurité supprimées car gérées automatiquement par Vercel + Supabase
 
 # --- Chargement .env ---
@@ -562,8 +562,26 @@ async def generate_comic(request: dict):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erreur lors de la génération de la BD : {str(e)}")
 
+# --- Themes pour l'animation ---
+@app.get("/themes")
+async def get_themes():
+    """
+    Retourne la liste des thèmes disponibles pour les animations
+    """
+    themes = [
+        {"id": "space", "name": "Espace", "description": "Aventures dans l'espace"},
+        {"id": "ocean", "name": "Océan", "description": "Aventures sous-marines"},
+        {"id": "forest", "name": "Forêt", "description": "Aventures dans la nature"},
+        {"id": "city", "name": "Ville", "description": "Aventures urbaines"},
+        {"id": "adventure", "name": "Aventure", "description": "Aventures génériques"},
+        {"id": "fantasy", "name": "Fantasy", "description": "Monde fantastique"},
+        {"id": "cartoon", "name": "Cartoon", "description": "Style cartoon classique"}
+    ]
+    return {"themes": themes}
+
 # --- Animation ---
 @app.post("/generate_animation/")
+@app.post("/generate-quick")  # Route alternative pour compatibilité frontend
 async def generate_animation(request: dict):
     """
     Génère une animation avec IA
