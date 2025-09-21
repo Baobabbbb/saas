@@ -690,8 +690,8 @@ async def get_animation_status(task_id: str):
             current_time = time.time()
             elapsed_seconds = current_time - task_info["start_time"]
             
-            # Estimation temps réel : 5-7 minutes
-            estimated_duration = 400  # 6.5 minutes
+            # Estimation temps selon le mode
+            estimated_duration = 180  # 3 minutes en mode démo, 6.5 minutes en mode réel
             progress = min(int((elapsed_seconds / estimated_duration) * 100), 95)
             
             result = {
