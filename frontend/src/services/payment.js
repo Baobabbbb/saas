@@ -91,14 +91,46 @@ export const createPaymentSession = async (contentType, userId) => {
 // Obtenir le prix d'un contenu
 export const getContentPrice = (contentType) => {
   const prices = {
-    animation: { amount: 4.99, description: 'Animation IA personnalisée' },
-    coloring: { amount: 1.99, description: 'Coloriage personnalisé' },
-    comic: { amount: 2.99, description: 'Bande dessinée IA' },
-    story: { amount: 3.99, description: 'Histoire audio' },
-    rhyme: { amount: 2.49, description: 'Comptine musicale' }
+    'comptine': { amount: 299, name: 'Comptine Musicale', currency: 'EUR', display: '2,99€' },
+    'histoire': { amount: 399, name: 'Histoire Audio', currency: 'EUR', display: '3,99€' },
+    'coloriage': { amount: 199, name: 'Coloriage Personnalisé', currency: 'EUR', display: '1,99€' },
+    'bd': { amount: 499, name: 'Bande Dessinée', currency: 'EUR', display: '4,99€' },
+    animation: { amount: 499, name: 'Animation IA personnalisée', currency: 'EUR', display: '4,99€' },
+    coloring: { amount: 199, name: 'Coloriage personnalisé', currency: 'EUR', display: '1,99€' },
+    comic: { amount: 299, name: 'Bande dessinée IA', currency: 'EUR', display: '2,99€' },
+    story: { amount: 399, name: 'Histoire audio', currency: 'EUR', display: '3,99€' },
+    rhyme: { amount: 249, name: 'Comptine musicale', currency: 'EUR', display: '2,49€' }
   }
   
-  return prices[contentType] || prices.animation
+  return prices[contentType] || { amount: 299, name: 'Contenu Créatif', currency: 'EUR', display: '2,99€' }
+}
+
+// Fonction pour vérifier rapidement si l'utilisateur est admin (pour l'affichage du bouton)
+export const isUserAdmin = async (userId, userEmail) => {
+  try {
+    // Vérification rapide par email d'abord
+    if (userEmail === 'fredagathe77@gmail.com') {
+      return true
+    }
+    
+    // Vérification dans la table profiles
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
+    if (error) {
+      console.error('Erreur vérification admin:', error)
+      return false
+    }
+
+    return profile?.role === 'admin'
+    
+  } catch (error) {
+    console.error('Erreur isUserAdmin:', error)
+    return false
+  }
 }
 
 // Obtenir le rôle de l'utilisateur depuis la table profiles
@@ -141,13 +173,3 @@ export const grantPermission = async (userId, contentType, paymentIntentId, amou
   }
 }
 
-// Vérifier si un utilisateur est admin (utilisé pour l'affichage UI)
-export const isUserAdmin = async (userId) => {
-  try {
-    const role = await getUserRole(userId)
-    return role === 'admin'
-  } catch (error) {
-    console.error('Erreur vérification admin:', error)
-    return false
-  }
-}
