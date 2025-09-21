@@ -125,8 +125,8 @@ function App() {
   
   // Animation states
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
-  const [selectedDuration, setSelectedDuration] = useState(60);
-  const [selectedStyle, setSelectedStyle] = useState('cartoon');
+  const [selectedDuration, setSelectedDuration] = useState(null);
+  const [selectedStyle, setSelectedStyle] = useState(null);
   const [customStory, setCustomStory] = useState('');
   const [animationResult, setAnimationResult] = useState(null);
   const [showAnimationViewer, setShowAnimationViewer] = useState(false);
