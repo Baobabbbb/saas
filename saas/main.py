@@ -680,28 +680,60 @@ async def get_animation_status(task_id: str):
             }
             print(f"⏳ Task {task_id} en cours: {progress}%")
         else:
-            # Génération terminée
+            # Génération terminée avec URLs de démonstration réelles
+            demo_videos = [
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
+            ]
+            
+            # Sélectionner des vidéos selon le thème
+            theme = task_info.get("theme", "space")
+            if theme == "space":
+                clip_urls = [demo_videos[0], demo_videos[3]]  # BigBuckBunny + Sintel
+                titles = ["Scène 1 - Décollage spatial", "Scène 2 - Exploration galactique"]
+            elif theme == "ocean":
+                clip_urls = [demo_videos[1], demo_videos[2]]  # ElephantsDream + ForBiggerBlazes
+                titles = ["Scène 1 - Plongée sous-marine", "Scène 2 - Créatures marines"]
+            else:
+                clip_urls = [demo_videos[0], demo_videos[1]]  # Par défaut
+                titles = ["Scène 1 - Aventure commence", "Scène 2 - Grand final"]
+            
             result = {
                 "type": "result",
                 "data": {
                     "task_id": task_id,
                     "status": "completed",
-                    "final_video_url": f"https://example.com/animations/{task_id}.mp4",
+                    "final_video_url": clip_urls[0],  # Première vidéo comme vidéo principale
                     "clips": [
                         {
                             "id": "clip_1",
-                            "url": f"https://example.com/clips/{task_id}_1.mp4",
-                            "title": "Scène 1 - Voyage spatial"
+                            "url": clip_urls[0],
+                            "video_url": clip_urls[0],
+                            "title": titles[0],
+                            "duration": 15,
+                            "mediaUrl": clip_urls[0],
+                            "isVideo": True,
+                            "status": "success",
+                            "type": "real_video"
                         },
                         {
                             "id": "clip_2", 
-                            "url": f"https://example.com/clips/{task_id}_2.mp4",
-                            "title": "Scène 2 - Exploration"
+                            "url": clip_urls[1],
+                            "video_url": clip_urls[1],
+                            "title": titles[1],
+                            "duration": 15,
+                            "mediaUrl": clip_urls[1],
+                            "isVideo": True,
+                            "status": "success",
+                            "type": "real_video"
                         }
                     ],
                     "title": f"Animation {task_info.get('theme', 'Espace').title()}",
                     "duration": task_info.get("duration", 30),
-                    "theme": task_info.get("theme", "space")
+                    "theme": task_info.get("theme", "space"),
+                    "type": "animation"
                 }
             }
             print(f"✅ Task {task_id} terminée !")
