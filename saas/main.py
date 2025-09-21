@@ -695,6 +695,11 @@ async def get_animation_status(task_id: str):
                     "Exploration des profondeurs cosmiques et rencontre avec des créatures stellaires",
                     "Combat épique contre l'empereur galactique pour sauver l'univers"
                 ]
+                scene_images = [
+                    "https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop&auto=format&q=80",  # Espace
+                    "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&h=300&fit=crop&auto=format&q=80",  # Galaxie 
+                    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop&auto=format&q=80"   # Étoiles
+                ]
             elif theme == "ocean":
                 final_video_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
                 animation_title = "🌊 Mystères des Abysses Marins"
@@ -702,6 +707,11 @@ async def get_animation_status(task_id: str):
                     "Plongée dans les profondeurs mystérieuses de l'océan",
                     "Découverte d'une cité sous-marine peuplée de créatures magiques",
                     "Alliance avec les gardiens des mers pour protéger les océans"
+                ]
+                scene_images = [
+                    "https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=400&h=300&fit=crop&auto=format&q=80",  # Océan
+                    "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=400&h=300&fit=crop&auto=format&q=80",  # Sous-marin
+                    "https://images.unsplash.com/photo-1571167967366-4acbb7b5dd37?w=400&h=300&fit=crop&auto=format&q=80"   # Poissons
                 ]
             elif theme == "forest":
                 final_video_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
@@ -711,6 +721,11 @@ async def get_animation_status(task_id: str):
                     "Rencontre avec les esprits de la nature et animaux parlants",
                     "Protection de l'arbre de vie contre les forces du mal"
                 ]
+                scene_images = [
+                    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop&auto=format&q=80",  # Forêt
+                    "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop&auto=format&q=80",  # Animaux
+                    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop&auto=format&q=80"   # Arbre
+                ]
             else:
                 final_video_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
                 animation_title = f"✨ Aventure Magique - {theme_name}"
@@ -718,6 +733,11 @@ async def get_animation_status(task_id: str):
                     "Le début d'une aventure extraordinaire pleine de surprises",
                     "Défis et découvertes dans un monde fantastique",
                     "Triomphe final et retour héroïque"
+                ]
+                scene_images = [
+                    "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop&auto=format&q=80",  # Aventure
+                    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop&auto=format&q=80",  # Magique
+                    "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=400&h=300&fit=crop&auto=format&q=80"   # Héroïque
                 ]
             
             # Création des scènes détaillées
@@ -758,9 +778,9 @@ async def get_animation_status(task_id: str):
                             "duration": 10,
                             "status": "success",
                             "type": "animation_scene",
-                            # Images de démonstration qui fonctionnent vraiment
-                            "demo_image_url": f"https://picsum.photos/400/300?random={i+1}&blur=1",
-                            "image_url": f"https://picsum.photos/400/300?random={i+10}",
+                            # Images thématiques réelles qui fonctionnent
+                            "demo_image_url": scene_images[i] if i < len(scene_images) else scene_images[0],
+                            "image_url": scene_images[i] if i < len(scene_images) else scene_images[0],
                         }
                         for i, desc in enumerate(scene_descriptions)
                     ]
