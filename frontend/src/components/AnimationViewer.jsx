@@ -169,9 +169,9 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                               boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
                               margin: '1rem 0'
                             }}
-                            onLoadedData={() => console.log('✅ Animation finale chargée!')}
+                            onLoadedData={() => {/* console.log('✅ Animation finale chargée!') */}}
                             onError={(e) => {
-                              console.log('❌ Erreur vidéo finale:', e.target.src);
+                              // console.log('❌ Erreur vidéo finale:', e.target.src);
                               e.target.style.display = 'none';
                             }}
                           />
@@ -239,7 +239,7 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                                 : `${ANIMATION_API_BASE_URL}${clip.video_url}`;
                             }
                             
-                            console.log(`Clip ${index + 1}:`, { clip, mediaUrl, isVideo });
+                            // console.log(`Clip ${index + 1}:`, { clip, mediaUrl, isVideo });
                             
                             return (
                               <div key={index} className="scene-media-card">
@@ -251,9 +251,9 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                                     loop
                                     muted
                                     preload="metadata"
-                                    onLoadedData={() => console.log(`✅ Vidéo ${index + 1} chargée:`, mediaUrl)}
+                                    onLoadedData={() => {/* console.log(`✅ Vidéo ${index + 1} chargée:`, mediaUrl) */}}
                                     onError={(e) => {
-                                      console.log('❌ Erreur vidéo:', mediaUrl);
+                                      // console.log('❌ Erreur vidéo:', mediaUrl);
                                       e.target.style.display = 'none';
                                       e.target.nextSibling.style.display = 'flex';
                                     }}
@@ -263,9 +263,9 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                                     src={mediaUrl}
                                     alt={`Scène ${clip.scene_number}`}
                                     className="scene-image"
-                                    onLoad={() => console.log(`✅ Image ${index + 1} chargée:`, mediaUrl)}
+                                    onLoad={() => {/* console.log(`✅ Image ${index + 1} chargée:`, mediaUrl) */}}
                                     onError={(e) => {
-                                      console.log('❌ Erreur image:', mediaUrl);
+                                      // console.log('❌ Erreur image:', mediaUrl);
                                       e.target.style.display = 'none';
                                       e.target.nextSibling.style.display = 'flex';
                                     }}
@@ -327,7 +327,7 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                   <div className="no-video">
                     <div className="no-video-icon">{status === 'completed' ? '✅' : '⚠️'}</div>
                     <h3>{status === 'completed' ? 'Animation terminée !' : 'Génération en cours...'}</h3>
-                    <p style={{fontSize: '12px', color: '#666'}}>Debug: status={status}, hasVideo={hasVideo}</p>
+                    {/* <p style={{fontSize: '12px', color: '#666'}}>Debug: status={status}, hasVideo={hasVideo}</p> */}
                     <p>
                       {status === 'completed' 
                         ? 'Votre animation a été générée avec succès ! Thème: ' + (animationResult.theme || 'N/A')
@@ -337,18 +337,6 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                       <div className="video-controls">
                         <button className="play-btn" onClick={() => window.open(animationResult.final_video_url || animationResult.result?.final_video_url, '_blank')}>
                           🎬 Voir l'animation
-                        </button>
-                      </div>
-                    )}
-                    {/* Bouton de test temporaire */}
-                    {(animationResult.final_video_url || animationResult.result?.final_video_url) && (
-                      <div className="video-controls" style={{marginTop: '10px'}}>
-                        <button className="play-btn" style={{backgroundColor: '#ff6b6b'}} onClick={() => {
-                          const url = animationResult.final_video_url || animationResult.result?.final_video_url;
-                          console.log('Test vidéo URL:', url);
-                          window.open(url, '_blank');
-                        }}>
-                          🗏 Test Vidéo
                         </button>
                       </div>
                     )}
