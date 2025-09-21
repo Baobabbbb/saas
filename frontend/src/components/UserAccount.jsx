@@ -251,46 +251,28 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
     <div className="user-account" ref={userAccountRef}>
       {!isUserLoggedIn ? (
         <>
-          <div className="user-avatar" onClick={() => setShowDropdown(!showDropdown)}>
+          <div className="user-avatar" onClick={() => setShowLoginForm(true)}>
             <span>👤</span>
           </div>
 
           <AnimatePresence>
-            {showDropdown && (
-              <motion.div
-                className="user-dropdown"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="dropdown-actions">
-                  <button onClick={() => {
-                    setShowDropdown(false);
-                    setShowLoginForm(true);
-                    setError('');
-                  }}>
-                    Se connecter
-                  </button>
-                  <button onClick={() => {
-                    setShowDropdown(false);
-                    setShowRegisterForm(true);
-                    setError('');
-                  }}>
-                    Créer un compte
-                  </button>
-                </div>
-              </motion.div>
-            )}
-
             {showLoginForm && (
               <motion.div
-                className="auth-form"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                className="auth-form-container"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
+                onClick={() => setShowLoginForm(false)}
               >
+                <motion.div
+                  className="auth-form"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
                 <h3>Connexion</h3>
                 <form onSubmit={handleSignIn}>
                   <input
@@ -339,17 +321,27 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     Mot de passe oublié ?
                   </button>
                 </form>
+                </motion.div>
               </motion.div>
             )}
 
             {showRegisterForm && (
               <motion.div
-                className="auth-form"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                className="auth-form-container"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
+                onClick={() => setShowRegisterForm(false)}
               >
+                <motion.div
+                  className="auth-form"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
                 <h3>Créer un compte</h3>
                 <form onSubmit={handleSignUp}>
                   <input
@@ -403,17 +395,27 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     </button>
                   </div>
                 </form>
+                </motion.div>
               </motion.div>
             )}
 
             {showForgotPassword && (
               <motion.div
-                className="auth-form"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                className="auth-form-container"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
+                onClick={() => setShowForgotPassword(false)}
               >
+                <motion.div
+                  className="auth-form"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
                 <h3>Réinitialiser le mot de passe</h3>
                 {!resetEmailSent ? (
                   <form onSubmit={handleResetPassword}>
@@ -454,6 +456,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     </button>
                   </div>
                 )}
+                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>
