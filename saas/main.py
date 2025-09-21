@@ -631,6 +631,45 @@ async def generate_animation(request: AnimationRequest):
         print(f"❌ Erreur génération animation: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la génération de l'animation : {str(e)}")
 
+@app.get("/status/{task_id}")
+async def get_animation_status(task_id: str):
+    """
+    Récupère le statut d'une tâche d'animation
+    """
+    try:
+        # Pour l'instant, simuler un système de statut
+        # Dans une vraie implémentation, on vérifierait une base de données ou un système de queue
+        
+        # Simulation : après 30 secondes, la tâche est "complétée"
+        import time
+        
+        # Retourner un résultat simulé
+        result = {
+            "type": "result",
+            "data": {
+                "task_id": task_id,
+                "status": "completed",
+                "final_video_url": f"https://example.com/animations/{task_id}.mp4",
+                "clips": [
+                    {
+                        "id": "clip_1",
+                        "url": f"https://example.com/clips/{task_id}_1.mp4",
+                        "title": "Scène 1"
+                    }
+                ],
+                "title": "Animation Espace",
+                "duration": 30,
+                "theme": "space"
+            }
+        }
+        
+        print(f"📊 Statut demandé pour task_id: {task_id}")
+        return result
+        
+    except Exception as e:
+        print(f"❌ Erreur récupération statut: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération du statut : {str(e)}")
+
 # === ROUTES D'AUTHENTIFICATION JWT ===
 
 # === ENDPOINTS D'AUTHENTIFICATION ===

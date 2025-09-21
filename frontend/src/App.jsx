@@ -135,28 +135,47 @@ function App() {
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   // Polling du statut d'une animation jusqu'à complétion
-  const waitForAnimationCompletion = async (animationId, { intervalMs = 5000, maxAttempts = 240 } = {}) => {
+  const waitForAnimationCompletion = async (taskId, { intervalMs = 5000, maxAttempts = 240 } = {}) => {
     let attempts = 0;
+    console.log(`🔄 Démarrage polling pour task_id: ${taskId}`);
+    
     while (attempts < maxAttempts) {
       try {
-        const res = await fetch(`${ANIMATION_API_BASE_URL}/status/${animationId}`);
+        console.log(`🔍 Tentative ${attempts + 1}/${maxAttempts} - Vérification statut pour ${taskId}`);
+        const res = await fetch(`${ANIMATION_API_BASE_URL}/status/${taskId}`);
+        
         if (res.ok) {
           const statusPayload = await res.json();
+          console.log('📊 Réponse statut:', statusPayload);
+          
           if (statusPayload?.type === 'result') {
             const data = statusPayload.data;
-            if (data?.status === 'completed') return data;
-            if (data?.status === 'failed') throw new Error(data?.error_message || 'Génération échouée');
+            console.log('📋 Données reçues:', data);
+            
+            if (data?.status === 'completed') {
+              console.log('✅ Animation terminée !', data);
+              return data;
+            }
+            if (data?.status === 'failed') {
+              console.error('❌ Génération échouée:', data?.error_message);
+              throw new Error(data?.error_message || 'Génération échouée');
+            }
+            
+            console.log(`⏳ Status: ${data?.status}, attente ${intervalMs}ms...`);
           }
-          // Optionnel: on pourrait afficher la progression ici via statusPayload.data
+        } else {
+          console.warn(`⚠️ Erreur HTTP ${res.status} lors du polling`);
         }
       } catch (e) {
-        // On continue à réessayer, logs silencieux
-        console.warn('Polling statut animation erreur:', e?.message || e);
+        console.warn('🔄 Erreur polling (tentative continue):', e?.message || e);
       }
+      
       attempts += 1;
       await delay(intervalMs);
     }
-    throw new Error('Timeout de génération de l’animation');
+    
+    console.error('❌ Timeout de génération de l\'animation après', maxAttempts, 'tentatives');
+    throw new Error('Timeout de génération de l\'animation');
   };
 
   // Store the current generated title for use in UI
@@ -330,16 +349,27 @@ function App() {
 
       // Ne pas ouvrir le viewer tout de suite; attendre la complétion réelle
       let finalData = initialData;
-      const animationId = initialData?.animation_id;
+      const taskId = initialData?.task_id;
       const isCompleted = initialData?.status === 'completed' && (initialData?.final_video_url || (initialData?.clips?.length || 0) > 0);
 
-      if (animationId && !isCompleted) {
-        finalData = await waitForAnimationCompletion(animationId);
+      console.log('🎬 Génération démarrée, task_id:', taskId, 'status:', initialData?.status);
+
+      if (taskId && !isCompleted) {
+        console.log('⏳ Démarrage du polling pour task_id:', taskId);
+        // Rester en état de chargement pendant le polling
+        finalData = await waitForAnimationCompletion(taskId);
+        console.log('✅ Polling terminé, ouverture du viewer');
       }
 
-      setAnimationResult(finalData);
-      setShowAnimationViewer(true);
-      generatedContent = finalData; // Stocker pour l'historique
+      // Ne définir le résultat et ouvrir le viewer qu'après complétion
+      if (finalData?.status === 'completed') {
+        setAnimationResult(finalData);
+        setShowAnimationViewer(true);
+        generatedContent = finalData; // Stocker pour l'historique
+        console.log('🎬 Viewer ouvert avec animation complétée');
+      } else {
+        console.warn('⚠️ Animation non complétée, viewer non ouvert');
+      }
     }
 
     // 🔁 Enregistre le résultat généré pour affichage audio/texte
