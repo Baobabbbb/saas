@@ -154,7 +154,12 @@ function App() {
             
             if (data?.status === 'completed') {
               console.log('✅ Animation terminée !', data);
-              return data;
+              // Vérifier qu'il y a vraiment du contenu
+              if (data?.clips && data.clips.length > 0) {
+                return data;
+              } else {
+                console.warn('⚠️ Animation "completed" mais pas de clips, continuer le polling...');
+              }
             }
             if (data?.status === 'failed') {
               console.error('❌ Génération échouée:', data?.error_message);
@@ -361,14 +366,14 @@ function App() {
         console.log('✅ Polling terminé, ouverture du viewer');
       }
 
-      // Ne définir le résultat et ouvrir le viewer qu'après complétion
-      if (finalData?.status === 'completed') {
+      // Ne définir le résultat et ouvrir le viewer qu'après complétion avec contenu
+      if (finalData?.status === 'completed' && finalData?.clips && finalData.clips.length > 0) {
         setAnimationResult(finalData);
         setShowAnimationViewer(true);
         generatedContent = finalData; // Stocker pour l'historique
-        console.log('🎬 Viewer ouvert avec animation complétée');
+        console.log('🎬 Viewer ouvert avec animation complétée et clips:', finalData.clips.length);
       } else {
-        console.warn('⚠️ Animation non complétée, viewer non ouvert');
+        console.warn('⚠️ Animation non complétée ou sans clips, viewer non ouvert. Status:', finalData?.status, 'Clips:', finalData?.clips?.length);
       }
     }
 

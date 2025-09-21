@@ -608,10 +608,18 @@ async def generate_animation(request: AnimationRequest):
         import uuid
 
         task_id = str(uuid.uuid4())
-        print(f"📋 Task ID: {task_id}")
+        print(f"📋 Task ID créé: {task_id}")
 
-        # Simuler un délai de génération
-        time.sleep(2)
+        # Stocker les informations de la tâche pour le suivi
+        task_storage[task_id] = {
+            "start_time": time.time(),
+            "theme": theme,
+            "duration": duration,
+            "style": style,
+            "mode": mode
+        }
+
+        # Pas de délai ici - la simulation se fait dans /status/{task_id}
 
         # Retourner un résultat simulé
         result = {
@@ -631,41 +639,77 @@ async def generate_animation(request: AnimationRequest):
         print(f"❌ Erreur génération animation: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la génération de l'animation : {str(e)}")
 
+# Stockage temporaire des tâches en cours (en production, utiliser Redis/DB)
+task_storage = {}
+
 @app.get("/status/{task_id}")
 async def get_animation_status(task_id: str):
     """
     Récupère le statut d'une tâche d'animation
     """
     try:
-        # Pour l'instant, simuler un système de statut
-        # Dans une vraie implémentation, on vérifierait une base de données ou un système de queue
-        
-        # Simulation : après 30 secondes, la tâche est "complétée"
         import time
         
-        # Retourner un résultat simulé
-        result = {
-            "type": "result",
-            "data": {
-                "task_id": task_id,
-                "status": "completed",
-                "final_video_url": f"https://example.com/animations/{task_id}.mp4",
-                "clips": [
-                    {
-                        "id": "clip_1",
-                        "url": f"https://example.com/clips/{task_id}_1.mp4",
-                        "title": "Scène 1"
-                    }
-                ],
-                "title": "Animation Espace",
-                "duration": 30,
-                "theme": "space"
-            }
-        }
+        # Vérifier si la tâche existe dans notre stockage
+        if task_id not in task_storage:
+            print(f"❌ Task ID {task_id} non trouvé")
+            raise HTTPException(status_code=404, detail="Tâche non trouvée")
         
-        print(f"📊 Statut demandé pour task_id: {task_id}")
+        task_info = task_storage[task_id]
+        start_time = task_info["start_time"]
+        current_time = time.time()
+        elapsed_seconds = current_time - start_time
+        
+        print(f"📊 Statut demandé pour task_id: {task_id}, temps écoulé: {elapsed_seconds:.1f}s")
+        
+        # Simulation réaliste : 2-3 minutes de traitement
+        processing_duration = 150  # 2.5 minutes
+        
+        if elapsed_seconds < processing_duration:
+            # Encore en traitement
+            progress = int((elapsed_seconds / processing_duration) * 100)
+            result = {
+                "type": "result",
+                "data": {
+                    "task_id": task_id,
+                    "status": "processing",
+                    "progress": progress,
+                    "message": f"Génération en cours... {progress}%",
+                    "estimated_remaining": int(processing_duration - elapsed_seconds)
+                }
+            }
+            print(f"⏳ Task {task_id} en cours: {progress}%")
+        else:
+            # Génération terminée
+            result = {
+                "type": "result",
+                "data": {
+                    "task_id": task_id,
+                    "status": "completed",
+                    "final_video_url": f"https://example.com/animations/{task_id}.mp4",
+                    "clips": [
+                        {
+                            "id": "clip_1",
+                            "url": f"https://example.com/clips/{task_id}_1.mp4",
+                            "title": "Scène 1 - Voyage spatial"
+                        },
+                        {
+                            "id": "clip_2", 
+                            "url": f"https://example.com/clips/{task_id}_2.mp4",
+                            "title": "Scène 2 - Exploration"
+                        }
+                    ],
+                    "title": f"Animation {task_info.get('theme', 'Espace').title()}",
+                    "duration": task_info.get("duration", 30),
+                    "theme": task_info.get("theme", "space")
+                }
+            }
+            print(f"✅ Task {task_id} terminée !")
+            
         return result
         
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"❌ Erreur récupération statut: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération du statut : {str(e)}")
