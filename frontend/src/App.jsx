@@ -22,7 +22,7 @@ import { API_BASE_URL, ANIMATION_API_BASE_URL } from './config/api';
 import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
 import { checkPaymentPermission, isUserAdmin, getContentPrice } from './services/payment';
-import PaymentModal from './components/PaymentModal';
+import StripePaymentModal from './components/StripePaymentModal';
 
 // Fonction pour générer des titres attractifs pour les enfants
 const generateChildFriendlyTitle = (contentType, theme, content = '') => {
@@ -1181,14 +1181,14 @@ const downloadPDF = async (title, content) => {
       />
     )}
 
-    {/* Modal de paiement */}
+    {/* Modal de paiement Stripe */}
     {showPaymentModal && (
-      <PaymentModal
+      <StripePaymentModal
         contentType={paymentContentType}
         userId={user?.id}
         userEmail={user?.email}
         onSuccess={(result) => {
-          console.log('✅ Paiement réussi:', result);
+          console.log('✅ Paiement Stripe réussi:', result);
           setShowPaymentModal(false);
           // Lancer la génération automatiquement après paiement réussi
           setTimeout(() => {
