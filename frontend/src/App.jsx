@@ -297,11 +297,18 @@ function App() {
 
       // Fallback: si mode demo → utiliser endpoint simplifié /generate-quick
       const endpoint = generationMode === 'demo'
-        ? `${ANIMATION_API_BASE_URL}/generate-quick?theme=${encodeURIComponent(payload.theme)}&duration=${payload.duration}`
+        ? `${ANIMATION_API_BASE_URL}/generate-quick`
         : `${ANIMATION_API_BASE_URL}/generate`;
 
       const fetchOptions = generationMode === 'demo'
-        ? { method: 'POST' }
+        ? { 
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json; charset=utf-8',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          }
         : {
             method: 'POST',
             headers: {
