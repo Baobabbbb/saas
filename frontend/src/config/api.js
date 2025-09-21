@@ -1,7 +1,7 @@
 // Configuration de l'API
 // Utiliser des URLs relatives par défaut pour le déploiement (même domaine Railway)
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-export const ANIMATION_API_BASE_URL = import.meta.env.VITE_ANIMATION_API_BASE_URL || '';
+export const ANIMATION_API_BASE_URL = import.meta.env.VITE_ANIMATION_API_BASE_URL || 'https://da-production-6222.up.railway.app';
 
 // Endpoints de l'API
 export const API_ENDPOINTS = {
