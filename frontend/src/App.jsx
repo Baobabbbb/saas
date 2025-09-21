@@ -21,6 +21,8 @@ import { API_BASE_URL, ANIMATION_API_BASE_URL } from './config/api';
 
 import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
+import { checkPaymentPermission } from './services/payment';
+import PaymentModal from './components/PaymentModal';
 
 // Fonction pour générer des titres attractifs pour les enfants
 const generateChildFriendlyTitle = (contentType, theme, content = '') => {
@@ -131,6 +133,11 @@ function App() {
   // Nouveau: mode de génération (demo ou production)
   const [generationMode, setGenerationMode] = useState('demo');
 
+  // États pour le système de paiement
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentContentType, setPaymentContentType] = useState(null);
+  const [userRole, setUserRole] = useState('user');
+
   // Utilitaire d'attente
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -218,6 +225,44 @@ function App() {
   
   // Handle Generation
   const handleGenerate = async () => {
+    // Récupérer l'utilisateur connecté
+    if (!user) {
+      alert('Vous devez être connecté pour générer du contenu');
+      return;
+    }
+
+    // Vérifier les permissions (admin ou payé)
+    console.log('🔍 Vérification des permissions pour:', {
+      contentType,
+      userId: user.id,
+      userEmail: user.email
+    });
+
+    const permissionCheck = await checkPaymentPermission(
+      contentType, 
+      user.id, 
+      user.email
+    );
+    
+    console.log('📋 Résultat vérification permission:', permissionCheck);
+    
+    // Si c'est un admin, accès gratuit
+    if (permissionCheck.isAdmin) {
+      console.log('👑 Accès admin détecté - génération gratuite');
+      setUserRole('admin');
+      // Continuer avec la génération normale...
+    } else if (!permissionCheck.hasPermission) {
+      // Si utilisateur normal sans permission
+      console.log('💳 Paiement requis pour utilisateur normal');
+      setPaymentContentType(contentType);
+      setShowPaymentModal(true);
+      return;
+    } else {
+      // Si utilisateur normal avec permission
+      console.log('✅ Permission validée - génération autorisée');
+      setUserRole('user');
+    }
+
     setIsGenerating(true);
     setGeneratedResult(null);
     // setShowConfetti(true);
@@ -319,19 +364,18 @@ function App() {
         custom_prompt: story || undefined
       };
 
-      // Fallback: si mode demo → utiliser endpoint simplifié /generate-quick
+      // Adaptation temporaire pour Railway qui attend query parameters pour /generate-quick
       const endpoint = generationMode === 'demo'
-        ? `${ANIMATION_API_BASE_URL}/generate-quick`
+        ? `${ANIMATION_API_BASE_URL}/generate-quick?theme=${encodeURIComponent(selectedTheme)}&duration=${selectedDuration}`
         : `${ANIMATION_API_BASE_URL}/generate`;
 
       const fetchOptions = generationMode === 'demo'
         ? { 
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json; charset=utf-8',
               'Accept': 'application/json'
-            },
-            body: JSON.stringify(payload)
+            }
+            // Pas de body pour /generate-quick, les paramètres sont dans l'URL
           }
         : {
             method: 'POST',
@@ -1105,6 +1149,27 @@ const downloadPDF = async (title, content) => {
       <AnimationViewer
         animationResult={animationResult}
         onClose={() => setShowAnimationViewer(false)}
+      />
+    )}
+
+    {/* Modal de paiement */}
+    {showPaymentModal && (
+      <PaymentModal
+        contentType={paymentContentType}
+        userId={user?.id}
+        userEmail={user?.email}
+        onSuccess={(result) => {
+          console.log('✅ Paiement réussi:', result);
+          setShowPaymentModal(false);
+          // Relancer la génération après paiement réussi
+          setTimeout(() => {
+            handleGenerate();
+          }, 1000);
+        }}
+        onCancel={() => {
+          console.log('❌ Paiement annulé');
+          setShowPaymentModal(false);
+        }}
       />
     )}
   </div>
