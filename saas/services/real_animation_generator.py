@@ -318,21 +318,45 @@ class RealAnimationGenerator:
             return await self._generate_demo_animation(idea_data, theme, duration)
     
     async def _generate_demo_animation(self, idea_data: Dict[str, Any], theme: str, duration: int) -> Dict[str, Any]:
-        """Génère une animation de démonstration de haute qualité"""
+        """Génère une animation de démonstration qui simule un vrai dessin animé séquentiel"""
         
-        logger.info("Generating DEMO animation with high-quality videos...")
+        logger.info("Generating DEMO animation - Simulating complete animated story...")
         
-        # Vidéos de démonstration de haute qualité selon le thème
+        # Créer une séquence de clips thématiques pour simuler un vrai dessin animé
         if theme == "space":
+            # Séquence complète d'exploration spatiale
+            clip_videos = [
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",  # Clip 1: Décollage
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",         # Clip 2: Voyage spatial  
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"  # Clip 3: Atterrissage
+            ]
             final_video_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
             animation_title = f"🚀 {idea_data['idea']}"
         elif theme == "ocean":
+            # Séquence sous-marine complète
+            clip_videos = [
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",         # Clip 1: Plongée
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", # Clip 2: Exploration
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" # Clip 3: Découverte
+            ]
             final_video_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
             animation_title = f"🌊 {idea_data['idea']}"
         elif theme == "forest":
+            # Séquence forestière magique complète
+            clip_videos = [
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", # Clip 1: Entrée forêt
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", # Clip 2: Magie
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"    # Clip 3: Harmonie
+            ]
             final_video_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
             animation_title = f"🌲 {idea_data['idea']}"
         else:
+            # Séquence d'aventure par défaut
+            clip_videos = [
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", # Clip 1: Début aventure
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",    # Clip 2: Péripéties
+                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"          # Clip 3: Résolution
+            ]
             final_video_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
             animation_title = f"✨ {idea_data['idea']}"
         
@@ -375,9 +399,10 @@ class RealAnimationGenerator:
                     "scene_number": i + 1,
                     "title": f"Scène {i+1}",
                     "description": scene,
-                    "duration": 10,
+                    "duration": duration // 3,  # Durée égale par clip
                     "status": "success",
-                    "type": "animation_scene",
+                    "type": "video_sequence",
+                    "video_url": clip_videos[i] if i < len(clip_videos) else clip_videos[0],
                     "demo_image_url": scene_images[i] if i < len(scene_images) else scene_images[0],
                     "image_url": scene_images[i] if i < len(scene_images) else scene_images[0],
                 }
