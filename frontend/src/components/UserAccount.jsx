@@ -251,9 +251,38 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
     <div className="user-account" ref={userAccountRef}>
       {!isUserLoggedIn ? (
         <>
-          <div className="user-avatar" onClick={() => setShowLoginForm(true)}>
+          <div className="user-avatar" onClick={() => setShowDropdown(!showDropdown)}>
             <span>👤</span>
           </div>
+
+          <AnimatePresence>
+            {showDropdown && (
+              <motion.div
+                className="user-dropdown"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="dropdown-actions">
+                  <button onClick={() => {
+                    setShowDropdown(false);
+                    setShowLoginForm(true);
+                    setError('');
+                  }}>
+                    Se connecter
+                  </button>
+                  <button onClick={() => {
+                    setShowDropdown(false);
+                    setShowRegisterForm(true);
+                    setError('');
+                  }}>
+                    Créer un compte
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <AnimatePresence>
             {showLoginForm && (
