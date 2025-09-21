@@ -758,8 +758,9 @@ async def get_animation_status(task_id: str):
                             "duration": 10,
                             "status": "success",
                             "type": "animation_scene",
-                            # Pas de video_url individuelle - tout est dans final_video_url
-                            "image_url": f"https://via.placeholder.com/400x300/6366f1/white?text=Scene+{i+1}",
+                            # Images de démonstration qui fonctionnent vraiment
+                            "demo_image_url": f"https://picsum.photos/400/300?random={i+1}&blur=1",
+                            "image_url": f"https://picsum.photos/400/300?random={i+10}",
                         }
                         for i, desc in enumerate(scene_descriptions)
                     ]
