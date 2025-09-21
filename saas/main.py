@@ -23,6 +23,7 @@ from datetime import datetime
 # Authentification gérée par Supabase - modules supprimés car inutiles avec Vercel
 from services.coloring_generator import ColoringGenerator
 from services.comic_generator import ComicGenerator
+from services.real_animation_generator import RealAnimationGenerator
 from utils.translate import translate_text
 # from models.animation import AnimationRequest
 # Validation et sécurité supprimées car gérées automatiquement par Vercel + Supabase
@@ -592,7 +593,7 @@ async def get_themes():
 @app.post("/generate-quick")  # Route alternative pour compatibilité frontend
 async def generate_animation(request: AnimationRequest):
     """
-    Génère une animation avec IA
+    Génère une VRAIE animation avec les APIs Wavespeed et Fal AI
     """
     try:
         # Extraire les paramètres depuis le modèle Pydantic
@@ -601,38 +602,37 @@ async def generate_animation(request: AnimationRequest):
         duration = request.duration
         mode = request.mode
 
-        print(f"🎬 Génération animation: {theme} / {style} / {duration}s / mode: {mode}")
-
-        # Simulation de génération pour l'instant
-        import time
-        import uuid
+        print(f"🎬 VRAIE Génération animation: {theme} / {style} / {duration}s / mode: {mode}")
 
         task_id = str(uuid.uuid4())
         print(f"📋 Task ID créé: {task_id}")
 
-        # Stocker les informations de la tâche pour le suivi
+        # Stocker les informations de la tâche
         task_storage[task_id] = {
             "start_time": time.time(),
             "theme": theme,
             "duration": duration,
             "style": style,
-            "mode": mode
+            "mode": mode,
+            "status": "processing"
         }
 
-        # Pas de délai ici - la simulation se fait dans /status/{task_id}
+        # Lancer la génération en arrière-plan
+        import asyncio
+        asyncio.create_task(generate_real_animation_task(task_id, theme, duration))
 
-        # Retourner un résultat simulé
+        # Retourner immédiatement le task_id
         result = {
             "task_id": task_id,
             "status": "processing",
-            "message": f"Animation '{theme}' en cours de génération...",
-            "estimated_time": "2-3 minutes",
+            "message": f"Animation '{theme}' en cours de génération RÉELLE...",
+            "estimated_time": "5-7 minutes",
             "style": style,
             "theme": theme,
             "duration": duration
         }
 
-        print(f"✅ Animation générée: {result}")
+        print(f"✅ Task lancée: {result}")
         return result
 
     except Exception as e:
@@ -642,151 +642,102 @@ async def generate_animation(request: AnimationRequest):
 # Stockage temporaire des tâches en cours (en production, utiliser Redis/DB)
 task_storage = {}
 
+async def generate_real_animation_task(task_id: str, theme: str, duration: int):
+    """
+    Tâche en arrière-plan pour la génération réelle d'animation
+    """
+    try:
+        print(f"🚀 Démarrage génération réelle pour {task_id}")
+        
+        # Mettre à jour le statut
+        task_storage[task_id]["status"] = "generating"
+        
+        # Créer le générateur réel
+        generator = RealAnimationGenerator()
+        
+        # Générer l'animation complète (5-7 minutes)
+        animation_result = await generator.generate_complete_animation(theme, duration)
+        
+        # Stocker le résultat
+        task_storage[task_id]["result"] = animation_result
+        task_storage[task_id]["status"] = "completed"
+        
+        print(f"✅ Animation {task_id} générée avec succès!")
+        
+    except Exception as e:
+        print(f"❌ Erreur génération {task_id}: {e}")
+        task_storage[task_id]["status"] = "failed" 
+        task_storage[task_id]["error"] = str(e)
+
 @app.get("/status/{task_id}")
 async def get_animation_status(task_id: str):
     """
-    Récupère le statut d'une tâche d'animation
+    Récupère le statut RÉEL d'une tâche d'animation
     """
     try:
-        import time
-        
         # Vérifier si la tâche existe dans notre stockage
         if task_id not in task_storage:
             print(f"❌ Task ID {task_id} non trouvé")
             raise HTTPException(status_code=404, detail="Tâche non trouvée")
         
         task_info = task_storage[task_id]
-        start_time = task_info["start_time"]
-        current_time = time.time()
-        elapsed_seconds = current_time - start_time
+        status = task_info.get("status", "processing")
         
-        print(f"📊 Statut demandé pour task_id: {task_id}, temps écoulé: {elapsed_seconds:.1f}s")
+        print(f"📊 Statut RÉEL demandé pour {task_id}: {status}")
         
-        # Simulation réaliste : 2-3 minutes de traitement
-        processing_duration = 150  # 2.5 minutes
-        
-        if elapsed_seconds < processing_duration:
-            # Encore en traitement
-            progress = int((elapsed_seconds / processing_duration) * 100)
+        if status == "processing" or status == "generating":
+            # Encore en traitement RÉEL
+            current_time = time.time()
+            elapsed_seconds = current_time - task_info["start_time"]
+            
+            # Estimation temps réel : 5-7 minutes
+            estimated_duration = 400  # 6.5 minutes
+            progress = min(int((elapsed_seconds / estimated_duration) * 100), 95)
+            
             result = {
-                "type": "result",
+                "type": "result", 
                 "data": {
                     "task_id": task_id,
                     "status": "processing",
                     "progress": progress,
-                    "message": f"Génération en cours... {progress}%",
-                    "estimated_remaining": int(processing_duration - elapsed_seconds)
+                    "message": f"Génération RÉELLE en cours... {progress}%",
+                    "estimated_remaining": max(int(estimated_duration - elapsed_seconds), 30)
                 }
             }
-            print(f"⏳ Task {task_id} en cours: {progress}%")
-        else:
-            # Génération terminée avec vidéo finale assemblée
+            print(f"⏳ Task RÉEL {task_id} en cours: {progress}%")
+        elif status == "completed":
+            # Animation RÉELLE terminée !
+            animation_result = task_info.get("result", {})
+            result = {
+                "type": "result",
+                "data": animation_result
+            }
+            print(f"✅ Animation RÉELLE {task_id} terminée et retournée!")
             
-            # Sélection de vidéos de démonstration selon le thème
-            theme = task_info.get("theme", "space")
-            theme_name = theme.title() if theme else "Espace"
-            
-            # Vidéo finale assemblée (une seule vidéo complète)
-            if theme == "space":
-                final_video_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-                animation_title = "🚀 Aventure Spatiale Galactique"
-                scene_descriptions = [
-                    "Le héros découvre une mystérieuse station spatiale abandonnée",
-                    "Exploration des profondeurs cosmiques et rencontre avec des créatures stellaires",
-                    "Combat épique contre l'empereur galactique pour sauver l'univers"
-                ]
-                scene_images = [
-                    "https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop&auto=format&q=80",  # Espace
-                    "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&h=300&fit=crop&auto=format&q=80",  # Galaxie 
-                    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop&auto=format&q=80"   # Étoiles
-                ]
-            elif theme == "ocean":
-                final_video_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
-                animation_title = "🌊 Mystères des Abysses Marins"
-                scene_descriptions = [
-                    "Plongée dans les profondeurs mystérieuses de l'océan",
-                    "Découverte d'une cité sous-marine peuplée de créatures magiques",
-                    "Alliance avec les gardiens des mers pour protéger les océans"
-                ]
-                scene_images = [
-                    "https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=400&h=300&fit=crop&auto=format&q=80",  # Océan
-                    "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=400&h=300&fit=crop&auto=format&q=80",  # Sous-marin
-                    "https://images.unsplash.com/photo-1571167967366-4acbb7b5dd37?w=400&h=300&fit=crop&auto=format&q=80"   # Poissons
-                ]
-            elif theme == "forest":
-                final_video_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
-                animation_title = "🌲 Légendes de la Forêt Enchantée"
-                scene_descriptions = [
-                    "Aventure au cœur d'une forêt magique remplie de secrets",
-                    "Rencontre avec les esprits de la nature et animaux parlants",
-                    "Protection de l'arbre de vie contre les forces du mal"
-                ]
-                scene_images = [
-                    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop&auto=format&q=80",  # Forêt
-                    "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop&auto=format&q=80",  # Animaux
-                    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop&auto=format&q=80"   # Arbre
-                ]
-            else:
-                final_video_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
-                animation_title = f"✨ Aventure Magique - {theme_name}"
-                scene_descriptions = [
-                    "Le début d'une aventure extraordinaire pleine de surprises",
-                    "Défis et découvertes dans un monde fantastique",
-                    "Triomphe final et retour héroïque"
-                ]
-                scene_images = [
-                    "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop&auto=format&q=80",  # Aventure
-                    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop&auto=format&q=80",  # Magique
-                    "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=400&h=300&fit=crop&auto=format&q=80"   # Héroïque
-                ]
-            
-            # Création des scènes détaillées
-            scenes_details = []
-            for i, description in enumerate(scene_descriptions):
-                scenes_details.append({
-                    "scene_number": i + 1,
-                    "description": description,
-                    "style": task_info.get("style", "cartoon"),
-                    "duration": 10,
-                    "status": "success"
-                })
-            
+        elif status == "failed":
+            # Erreur de génération
+            error_msg = task_info.get("error", "Erreur inconnue")
             result = {
                 "type": "result",
                 "data": {
                     "task_id": task_id,
-                    "status": "completed",
-                    "final_video_url": final_video_url,  # VIDÉO FINALE ASSEMBLÉE
-                    "title": animation_title,
-                    "duration": task_info.get("duration", 30),
-                    "theme": task_info.get("theme", "space"),
-                    "type": "animation",
-                    "generation_time": 150,  # 2.5 minutes
-                    "total_duration": task_info.get("duration", 30),
-                    "successful_clips": len(scene_descriptions),
-                    "fallback_clips": 0,
-                    "pipeline_type": "animation_ai",
-                    
-                    # Scènes individuelles pour l'onglet "Scènes"
-                    "scenes_details": scenes_details,
-                    "clips": [
-                        {
-                            "id": f"scene_{i+1}",
-                            "scene_number": i + 1,
-                            "title": f"Scène {i+1}",
-                            "description": desc,
-                            "duration": 10,
-                            "status": "success",
-                            "type": "animation_scene",
-                            # Images thématiques réelles qui fonctionnent
-                            "demo_image_url": scene_images[i] if i < len(scene_images) else scene_images[0],
-                            "image_url": scene_images[i] if i < len(scene_images) else scene_images[0],
-                        }
-                        for i, desc in enumerate(scene_descriptions)
-                    ]
+                    "status": "failed",
+                    "error": error_msg,
+                    "message": f"Échec de la génération: {error_msg}"
                 }
             }
-            print(f"✅ Task {task_id} terminée !")
+            print(f"❌ Animation {task_id} échouée: {error_msg}")
+            
+        else:
+            # Statut inconnu - fallback
+            result = {
+                "type": "result", 
+                "data": {
+                    "task_id": task_id,
+                    "status": "unknown",
+                    "message": f"Statut inconnu: {status}"
+                }
+            }
             
         return result
         
