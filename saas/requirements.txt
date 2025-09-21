@@ -33,5 +33,3 @@ watchgod==0.8.2
 aiohttp==3.9.1
 PyJWT==2.8.0
 email-validator==2.1.0
-opencv-python==4.8.1.78
-numpy==1.24.3
