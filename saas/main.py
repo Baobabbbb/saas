@@ -34,6 +34,14 @@ TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
 
 app = FastAPI(title="API FRIDAY - Contenu Créatif IA", version="2.0", description="API pour générer du contenu créatif pour enfants : BD, coloriages, histoires, comptines")
 
+# Modèles pour l'API Animation
+class AnimationRequest(BaseModel):
+    theme: str
+    duration: Optional[int] = 30
+    style: Optional[str] = "cartoon"
+    mode: Optional[str] = "demo"
+    custom_prompt: Optional[str] = None
+
 # Gestionnaire d'erreurs pour la validation Pydantic
 @app.exception_handler(ValidationError)
 async def validation_exception_handler(request: Request, exc: ValidationError):
@@ -582,16 +590,16 @@ async def get_themes():
 # --- Animation ---
 @app.post("/generate_animation/")
 @app.post("/generate-quick")  # Route alternative pour compatibilité frontend
-async def generate_animation(request: dict):
+async def generate_animation(request: AnimationRequest):
     """
     Génère une animation avec IA
     """
     try:
-        # Extraire les paramètres
-        style = request.get("style", "cartoon")
-        theme = request.get("theme", "adventure")
-        duration = request.get("duration", 30)
-        mode = request.get("mode", "demo")
+        # Extraire les paramètres depuis le modèle Pydantic
+        style = request.style
+        theme = request.theme
+        duration = request.duration
+        mode = request.mode
 
         print(f"🎬 Génération animation: {theme} / {style} / {duration}s / mode: {mode}")
 
