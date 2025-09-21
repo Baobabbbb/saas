@@ -21,7 +21,7 @@ import { API_BASE_URL, ANIMATION_API_BASE_URL } from './config/api';
 
 import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
-import { checkPaymentPermission } from './services/payment';
+import { checkPaymentPermission, isUserAdmin, getContentPrice } from './services/payment';
 import PaymentModal from './components/PaymentModal';
 
 // Fonction pour générer des titres attractifs pour les enfants
@@ -137,6 +137,8 @@ function App() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentContentType, setPaymentContentType] = useState(null);
   const [userRole, setUserRole] = useState('user');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [buttonText, setButtonText] = useState('Générer');
 
   // Utilitaire d'attente
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -222,6 +224,32 @@ function App() {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  // Vérifier si l'utilisateur est admin et mettre à jour le bouton
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user) {
+        const adminStatus = await isUserAdmin(user.id, user.email);
+        setIsAdmin(adminStatus);
+        updateButtonText(adminStatus);
+      } else {
+        setIsAdmin(false);
+        updateButtonText(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user, contentType]);
+
+  // Mettre à jour le texte du bouton selon le statut admin et le type de contenu
+  const updateButtonText = (adminStatus) => {
+    if (adminStatus) {
+      setButtonText('Générer Gratuitement');
+    } else {
+      const priceInfo = getContentPrice(contentType);
+      setButtonText(`Acheter pour ${priceInfo.display}`);
+    }
+  };
   
   // Handle Generation
   const handleGenerate = async () => {
@@ -231,13 +259,15 @@ function App() {
       return;
     }
 
-    // Vérifier les permissions (admin ou payé)
-    console.log('🔍 Vérification des permissions pour:', {
-      contentType,
-      userId: user.id,
-      userEmail: user.email
-    });
+    // Si c'est un admin, génération directe
+    if (isAdmin) {
+      console.log('👑 Admin détecté - génération directe');
+      startGeneration();
+      return;
+    }
 
+    // Si utilisateur normal, vérifier les permissions
+    console.log('🔍 Vérification des permissions pour utilisateur normal');
     const permissionCheck = await checkPaymentPermission(
       contentType, 
       user.id, 
@@ -246,23 +276,21 @@ function App() {
     
     console.log('📋 Résultat vérification permission:', permissionCheck);
     
-    // Si c'est un admin, accès gratuit
-    if (permissionCheck.isAdmin) {
-      console.log('👑 Accès admin détecté - génération gratuite');
-      setUserRole('admin');
-      // Continuer avec la génération normale...
-    } else if (!permissionCheck.hasPermission) {
-      // Si utilisateur normal sans permission
-      console.log('💳 Paiement requis pour utilisateur normal');
+    if (!permissionCheck.hasPermission) {
+      // Ouvrir directement la modal de paiement
+      console.log('💳 Ouverture modal de paiement');
       setPaymentContentType(contentType);
       setShowPaymentModal(true);
       return;
     } else {
-      // Si utilisateur normal avec permission
+      // Permission accordée, génération directe
       console.log('✅ Permission validée - génération autorisée');
-      setUserRole('user');
+      startGeneration();
     }
+  };
 
+  // Fonction pour démarrer la génération (après vérification permissions)
+  const startGeneration = async () => {
     setIsGenerating(true);
     setGeneratedResult(null);
     // setShowConfetti(true);
@@ -814,6 +842,7 @@ const downloadPDF = async (title, content) => {
             isGenerating={isGenerating}
             isDisabled={!isFormValid()}
             contentType={contentType}
+            buttonText={buttonText}
           />
         </motion.div>
 
@@ -1161,10 +1190,10 @@ const downloadPDF = async (title, content) => {
         onSuccess={(result) => {
           console.log('✅ Paiement réussi:', result);
           setShowPaymentModal(false);
-          // Relancer la génération après paiement réussi
+          // Lancer la génération automatiquement après paiement réussi
           setTimeout(() => {
-            handleGenerate();
-          }, 1000);
+            startGeneration();
+          }, 500);
         }}
         onCancel={() => {
           console.log('❌ Paiement annulé');

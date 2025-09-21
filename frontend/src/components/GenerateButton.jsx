@@ -2,7 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import './GenerateButton.css';
 
-const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) => {  const getButtonText = () => {
+const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType, buttonText }) => {
+  const getButtonText = () => {
     if (isGenerating) {
       return contentType === 'story' 
         ? 'Création de la BD en cours...' 
@@ -17,6 +18,12 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType }) =
         : 'Création du contenu en cours...';
     }
     
+    // Si un texte personnalisé est fourni, l'utiliser
+    if (buttonText) {
+      return buttonText;
+    }
+    
+    // Sinon, utiliser les textes par défaut
     return contentType === 'story' 
       ? 'Créer ma bande dessinée' 
       : contentType === 'rhyme'
