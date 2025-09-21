@@ -24,6 +24,7 @@ from datetime import datetime
 from services.coloring_generator import ColoringGenerator
 from services.comic_generator import ComicGenerator
 from services.real_animation_generator import RealAnimationGenerator
+from services.local_animation_generator import LocalAnimationGenerator
 from utils.translate import translate_text
 # from models.animation import AnimationRequest
 # Validation et sécurité supprimées car gérées automatiquement par Vercel + Supabase
@@ -82,6 +83,16 @@ static_dir.mkdir(exist_ok=True)
 
 # Monter le répertoire static
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Servir les animations générées localement
+@app.get("/static/generated/{filename}")
+async def serve_generated_video(filename: str):
+    """Sert les vidéos générées localement"""
+    file_path = os.path.join("static", "generated", filename)
+    if os.path.exists(file_path):
+        return FileResponse(file_path, media_type="video/mp4")
+    else:
+        raise HTTPException(status_code=404, detail="Vidéo non trouvée")
 # Monter aussi /assets pour les fichiers générés par Vite (JS/CSS)
 assets_dir = static_dir / "assets"
 if assets_dir.exists():
@@ -652,10 +663,19 @@ async def generate_real_animation_task(task_id: str, theme: str, duration: int):
         # Mettre à jour le statut
         task_storage[task_id]["status"] = "generating"
         
-        # Créer le générateur réel
-        generator = RealAnimationGenerator()
+        # Vérifier si on a les API keys pour le vrai système
+        has_real_apis = bool(os.getenv("WAVESPEED_API_KEY") and os.getenv("FAL_API_KEY"))
         
-        # Générer l'animation complète (5-7 minutes)
+        if has_real_apis:
+            # Utiliser le générateur seedance réel
+            generator = RealAnimationGenerator()
+            print(f"🎬 Utilisation du VRAI système seedance")
+        else:
+            # Utiliser le générateur local complet
+            generator = LocalAnimationGenerator()
+            print(f"🎬 Utilisation du générateur LOCAL complet")
+        
+        # Générer l'animation complète
         animation_result = await generator.generate_complete_animation(theme, duration)
         
         # Stocker le résultat
