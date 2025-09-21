@@ -142,17 +142,76 @@ const AnimationViewer = ({ animationResult, onClose }) => {
               >
                 {hasVideo ? (
                   <div className="video-player">
-                    <div className="animation-gallery">
-                      <div className="video-icon">🎬</div>
-                      <h3>🎉 Votre dessin animé est prêt !</h3>
-                      <p>
-                        Animation de {formatTime(total_duration)} générée avec succès.
-                        {successful_clips > 0 && ` ${successful_clips} scènes créées avec l'IA.`}
-                      </p>
-                      
-                      {/* Galerie d'images des scènes - TOUJOURS AFFICHÉE */}
-                      <div className="scenes-gallery">
-                        <h4>🎨 Votre dessin animé en images :</h4>
+                    {/* VIDÉO FINALE ASSEMBLÉE EN PREMIER */}
+                    {(animationResult.final_video_url || animationResult.result?.final_video_url) ? (
+                      <div className="final-animation">
+                        <div className="video-icon">🎬</div>
+                        <h3>🎉 {animationResult.title || 'Votre dessin animé est prêt !'}</h3>
+                        <p>
+                          Animation complète de {formatTime(total_duration || animationResult.duration)} avec {successful_clips || clips.length} scènes.
+                        </p>
+                        
+                        {/* LECTEUR VIDÉO PRINCIPAL */}
+                        <div className="main-video-container">
+                          <video 
+                            src={animationResult.final_video_url || animationResult.result?.final_video_url}
+                            className="final-animation-video"
+                            controls
+                            autoPlay
+                            loop
+                            muted
+                            preload="metadata"
+                            style={{
+                              width: '100%',
+                              maxWidth: '600px',
+                              height: 'auto',
+                              borderRadius: '12px',
+                              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                              margin: '1rem 0'
+                            }}
+                            onLoadedData={() => console.log('✅ Animation finale chargée!')}
+                            onError={(e) => {
+                              console.log('❌ Erreur vidéo finale:', e.target.src);
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                        
+                        <div className="video-controls">
+                          <button 
+                            className="play-btn" 
+                            onClick={() => window.open(animationResult.final_video_url || animationResult.result?.final_video_url, '_blank')}
+                            style={{
+                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              color: 'white',
+                              border: 'none',
+                              padding: '12px 24px',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              fontWeight: '600',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              margin: '0 auto'
+                            }}
+                          >
+                            🎬 Ouvrir en plein écran
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="animation-gallery">
+                        <div className="video-icon">🎬</div>
+                        <h3>🎉 Votre dessin animé est prêt !</h3>
+                        <p>
+                          Animation de {formatTime(total_duration)} générée avec succès.
+                          {successful_clips > 0 && ` ${successful_clips} scènes créées avec l'IA.`}
+                        </p>
+                        
+                        {/* Galerie d'images des scènes - FALLBACK SI PAS DE VIDÉO FINALE */}
+                        <div className="scenes-gallery">
+                          <h4>🎨 Votre dessin animé en images :</h4>
                         <div className="gallery-grid">
                           {clips.map((clip, index) => {
                             // Gestion des médias : vidéo réelle ou image
@@ -260,8 +319,9 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                         <button className="share-btn">
                           🔗 Partager
                         </button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 ) : (
                   <div className="no-video">
