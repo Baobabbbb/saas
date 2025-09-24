@@ -43,7 +43,7 @@ const Footer = ({ onLegalClick }) => {
         </div>
         
         <div className="footer-info">
-          <p>© {new Date().getFullYear()} FRIDAY</p>
+          <p>© {new Date().getFullYear()} HERBBIE</p>
         </div>
       </div>
     </footer>

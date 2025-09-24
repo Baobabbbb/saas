@@ -20,7 +20,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <div className="legal-section">
         <h3>Éditeur du site</h3>
         <div className="info-block">
-          <p><strong>Nom :</strong> FRIDAY</p>
+          <p><strong>Nom :</strong> HERBBIE</p>
           <p><strong>Adresse :</strong> [À compléter selon votre situation]</p>
           <p><strong>Email :</strong> contact@friday.com</p>
           <p><strong>Téléphone :</strong> [À compléter]</p>
@@ -114,6 +114,73 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
     </div>
   );
 
+  const renderContact = () => (
+    <div className="legal-content">
+      <h2>📧 Contact</h2>
+
+      <div className="legal-section">
+        <h3>Informations de contact</h3>
+        <div className="info-block">
+          <p>Vous avez des questions, des suggestions ou des problèmes ? N'hésitez pas à nous contacter !</p>
+          <p><strong>📧 Email :</strong> <a href="mailto:contact@herbbie.com">contact@herbbie.com</a></p>
+          <p><strong>🏢 Nom de l'entreprise :</strong> HERBBIE</p>
+          <p><strong>📍 Adresse :</strong> [À compléter selon votre situation]</p>
+        </div>
+      </div>
+
+      <div className="legal-section">
+        <h3>Types de demandes</h3>
+        <div className="info-block">
+          <p><strong>🔧 Support technique :</strong></p>
+          <ul>
+            <li>Problèmes de génération de contenu</li>
+            <li>Bugs ou erreurs techniques</li>
+            <li>Questions sur l'utilisation du service</li>
+            <li>Compte utilisateur</li>
+          </ul>
+
+          <p><strong>💼 Partenariats et commercial :</strong></p>
+          <ul>
+            <li>Propositions de partenariat</li>
+            <li>Questions commerciales</li>
+            <li>Presse et médias</li>
+          </ul>
+
+          <p><strong>🔒 Sécurité et confidentialité :</strong></p>
+          <ul>
+            <li>Signalement de contenu inapproprié</li>
+            <li>Questions sur la confidentialité</li>
+            <li>Demande de suppression de données</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="legal-section">
+        <h3>Délais de réponse</h3>
+        <div className="info-block">
+          <p>Nous nous efforçons de répondre à toutes vos demandes dans les plus brefs délais :</p>
+          <ul>
+            <li><strong>Support technique :</strong> 24-48 heures</li>
+            <li><strong>Questions générales :</strong> 48-72 heures</li>
+            <li><strong>Partenariats :</strong> 5-7 jours ouvrés</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="legal-section">
+        <h3>Besoin d'aide immédiate ?</h3>
+        <div className="info-block">
+          <p>Pour une assistance rapide, vous pouvez également :</p>
+          <ul>
+            <li>Consulter notre <a href="#" onClick={(e) => { e.preventDefault(); setActiveSection('terms'); }}>FAQ et Conditions d'utilisation</a></li>
+            <li>Rejoindre notre communauté d'utilisateurs</li>
+            <li>Suivre nos actualités sur les réseaux sociaux</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderCookiesPolicy = () => (
     <div className="legal-content">
       <h2>🍪 Politique des Cookies</h2>
@@ -165,7 +232,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <div className="legal-section">
         <h3>Objet</h3>
         <div className="info-block">
-          <p>Les présentes conditions générales régissent l'utilisation du service FRIDAY, 
+          <p>Les présentes conditions générales régissent l'utilisation du service HERBBIE,
              plateforme de génération de contenu ludique pour enfants (comptines, histoires, coloriages, animations).</p>
         </div>
       </div>
@@ -195,8 +262,8 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
           <p><strong>Contenu généré :</strong></p>
           <ul>
             <li>Vous conservez la propriété de vos créations personnalisées</li>
-            <li>FRIDAY se réserve le droit d'améliorer ses algorithmes via l'analyse anonyme</li>
-            <li>Les modèles et templates restent propriété de FRIDAY</li>
+            <li>HERBBIE se réserve le droit d'améliorer ses algorithmes via l'analyse anonyme</li>
+            <li>Les modèles et templates restent propriété de HERBBIE</li>
           </ul>
         </div>
       </div>
@@ -204,7 +271,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <div className="legal-section">
         <h3>Responsabilité</h3>
         <div className="info-block">
-          <p>FRIDAY s'efforce de fournir un service de qualité mais :</p>
+          <p>HERBBIE s'efforce de fournir un service de qualité mais :</p>
           <ul>
             <li>Ne garantit pas la perfection du contenu généré</li>
             <li>Recommande la supervision parentale pour les jeunes enfants</li>
@@ -295,7 +362,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <div className="legal-section">
         <h3>Besoin d'aide ?</h3>
         <div className="info-block">
-          <p>Notre équipe de support est là pour vous aider avec toutes vos questions concernant FRIDAY.</p>
+          <p>Notre équipe de support est là pour vous aider avec toutes vos questions concernant HERBBIE.</p>
           <p><strong>📧 Email :</strong> <a href="mailto:contact@friday.com">contact@friday.com</a></p>
         </div>
       </div>
