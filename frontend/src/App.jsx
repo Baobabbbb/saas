@@ -23,6 +23,7 @@ import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
 import { checkPaymentPermission, isUserAdmin, getContentPrice } from './services/payment';
 import StripePaymentModal from './components/StripePaymentModal';
+import Footer from './components/Footer';
 
 // Fonction pour générer des titres attractifs pour les enfants
 const generateChildFriendlyTitle = (contentType, theme, content = '') => {
@@ -1201,6 +1202,11 @@ const downloadPDF = async (title, content) => {
         }}
       />
     )}
+    {/* Footer avec mentions légales et contact */}
+    <Footer onLegalClick={(section) => {
+      setShowLegalPages(true);
+      setLegalInitialSection(section);
+    }} />
   </div>
 );
 }
