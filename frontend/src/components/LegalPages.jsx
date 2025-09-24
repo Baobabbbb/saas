@@ -480,3 +480,4 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
 };
 
 export default LegalPages;
+Modification forcée
