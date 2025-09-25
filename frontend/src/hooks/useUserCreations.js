@@ -4,23 +4,23 @@ import { supabase } from "../supabaseClient";
 // Fonction pour migrer les anciennes créations vers l'utilisateur Supabase actuel
 async function attemptCreationsMigration(currentUserId) {
   try {
-    console.log('🔄 FRIDAY: Tentative de migration des créations...');
+    console.log('🔄 HERBBIE: Tentative de migration des créations...');
     
     // Récupérer l'email de l'utilisateur actuel
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user?.email) {
-      console.log('⚠️ FRIDAY: Pas d\'email utilisateur pour la migration');
+      console.log('⚠️ HERBBIE: Pas d\'email utilisateur pour la migration');
       return;
     }
     
     const userEmail = session.user.email;
-    console.log('📧 FRIDAY: Email utilisateur pour migration:', userEmail);
+    console.log('📧 HERBBIE: Email utilisateur pour migration:', userEmail);
     
     // Chercher les créations avec ancien format basé sur l'email
     const emailHash = btoa(userEmail).slice(0, 10);
     const legacyUserId = `friday-user-${emailHash}`;
     
-    console.log('🔍 FRIDAY: Recherche créations avec ancien ID:', legacyUserId);
+    console.log('🔍 HERBBIE: Recherche créations avec ancien ID:', legacyUserId);
     
     const { data: legacyCreations, error: legacyError } = await supabase
       .from('creations')
@@ -28,12 +28,12 @@ async function attemptCreationsMigration(currentUserId) {
       .eq('user_id', legacyUserId);
     
     if (legacyError) {
-      console.error('❌ FRIDAY: Erreur recherche créations legacy:', legacyError);
+      console.error('❌ HERBBIE: Erreur recherche créations legacy:', legacyError);
       return;
     }
     
     if (legacyCreations && legacyCreations.length > 0) {
-      console.log(`🔄 FRIDAY: ${legacyCreations.length} créations à migrer trouvées`);
+      console.log(`🔄 HERBBIE: ${legacyCreations.length} créations à migrer trouvées`);
       
       // Migrer chaque création vers le nouvel ID
       for (const creation of legacyCreations) {
@@ -43,17 +43,17 @@ async function attemptCreationsMigration(currentUserId) {
           .eq('id', creation.id);
           
         if (updateError) {
-          console.error('❌ FRIDAY: Erreur migration création:', creation.id, updateError);
+          console.error('❌ HERBBIE: Erreur migration création:', creation.id, updateError);
         }
       }
       
-      console.log('✅ FRIDAY: Migration terminée');
+      console.log('✅ HERBBIE: Migration terminée');
     } else {
-      console.log('ℹ️ FRIDAY: Aucune création legacy trouvée à migrer');
+      console.log('ℹ️ HERBBIE: Aucune création legacy trouvée à migrer');
     }
     
   } catch (error) {
-    console.error('❌ FRIDAY: Erreur critique migration:', error);
+    console.error('❌ HERBBIE: Erreur critique migration:', error);
   }
 }
 

@@ -2,7 +2,7 @@
 import { diagnoseSupabase } from '../supabaseClient'
 
 export function runFullDiagnostic() {
-  console.log('🔧 DIAGNOSTIC COMPLET FRIDAY');
+  console.log('🔧 DIAGNOSTIC COMPLET HERBBIE');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   
   // Diagnostic environnement

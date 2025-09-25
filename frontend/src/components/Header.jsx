@@ -33,7 +33,7 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory }) =>
               repeatDelay: 0.5
             }}
           />*/}
-          <h1>FRIDAY</h1>
+          <h1>HERBBIE</h1>
         </motion.div>
           <motion.h2 
           className="tagline"

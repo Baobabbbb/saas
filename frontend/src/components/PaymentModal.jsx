@@ -159,3 +159,8 @@ const PaymentModal = ({ contentType, userId, userEmail, onSuccess, onCancel }) =
 }
 
 export default PaymentModal
+
+
+
+
+
