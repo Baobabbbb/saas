@@ -24,6 +24,7 @@ import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
 import { checkPaymentPermission, isUserAdmin, getContentPrice } from './services/payment';
 import StripePaymentModal from './components/StripePaymentModal';
 import Footer from './components/Footer';
+import LegalPages from './components/LegalPages';
 
 // Fonction pour générer des titres attractifs pour les enfants
 const generateChildFriendlyTitle = (contentType, theme, content = '') => {
@@ -140,6 +141,10 @@ function App() {
   const [userRole, setUserRole] = useState('user');
   const [isAdmin, setIsAdmin] = useState(false);
   const [buttonText, setButtonText] = useState('Générer');
+
+  // États pour les pages légales
+  const [showLegalPages, setShowLegalPages] = useState(false);
+  const [legalInitialSection, setLegalInitialSection] = useState('mentions');
 
   // Utilitaire d'attente
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -1207,6 +1212,16 @@ const downloadPDF = async (title, content) => {
       setShowLegalPages(true);
       setLegalInitialSection(section);
     }} />
+
+    {/* Pages légales */}
+    <AnimatePresence>
+      {showLegalPages && (
+        <LegalPages
+          onClose={() => setShowLegalPages(false)}
+          initialSection={legalInitialSection}
+        />
+      )}
+    </AnimatePresence>
   </div>
 );
 }
