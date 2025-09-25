@@ -233,19 +233,15 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
               {isSubmitting ? (
                 <>
                   <span className="spinner"></span>
-                  Préparation de l'email...
+                  Envoi en cours...
                 </>
               ) : (
                 <>
-                  📧 Préparer l'email
+                  📧 Envoyer l'email
                 </>
               )}
             </button>
           </form>
-
-          <div className="contact-info">
-            <p><strong>💡 Astuce :</strong> Ce formulaire envoie votre message directement à notre équipe. Vous recevrez une confirmation une fois le message envoyé.</p>
-          </div>
         </div>
       </div>
 
