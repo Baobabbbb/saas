@@ -5,7 +5,8 @@ import './LegalPages.css';
 const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
   const [activeSection, setActiveSection] = useState(initialSection);
   const [contactForm, setContactForm] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     subject: '',
     message: ''
@@ -103,7 +104,8 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       // Créer le lien mailto avec les données du formulaire
       const subject = encodeURIComponent(contactForm.subject);
       const body = encodeURIComponent(
-        `Nom: ${contactForm.name}\n` +
+        `Prénom: ${contactForm.firstName}\n` +
+        `Nom: ${contactForm.lastName}\n` +
         `Email: ${contactForm.email}\n\n` +
         `Message:\n${contactForm.message}`
       );
@@ -140,28 +142,32 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <h2>📧 Contact</h2>
 
       <div className="legal-section">
-        <h3>Informations de contact</h3>
-        <div className="info-block">
-          <p><strong>📧 Email :</strong> <a href="mailto:contact@herbbie.com">contact@herbbie.com</a></p>
-          <p><strong>🏢 Nom de l'entreprise :</strong> HERBBIE</p>
-        </div>
-      </div>
-
-      <div className="legal-section">
         <h3>📝 Formulaire de contact</h3>
         <div className="info-block">
           <p>Vous pouvez nous contacter directement en remplissant le formulaire ci-dessous :</p>
 
           <form className="contact-form" onSubmit={handleContactFormSubmit}>
             <div className="form-group">
-              <label htmlFor="contact-name">Nom *</label>
+              <label htmlFor="contact-firstName">Prénom *</label>
               <input
                 type="text"
-                id="contact-name"
-                value={contactForm.name}
-                onChange={(e) => handleContactFormChange('name', e.target.value)}
+                id="contact-firstName"
+                value={contactForm.firstName}
+                onChange={(e) => handleContactFormChange('firstName', e.target.value)}
                 required
-                placeholder="Votre nom complet"
+                placeholder="Votre prénom"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="contact-lastName">Nom *</label>
+              <input
+                type="text"
+                id="contact-lastName"
+                value={contactForm.lastName}
+                onChange={(e) => handleContactFormChange('lastName', e.target.value)}
+                required
+                placeholder="Votre nom de famille"
               />
             </div>
 
@@ -234,6 +240,14 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
           <div className="contact-info">
             <p><strong>💡 Astuce :</strong> Ce formulaire ouvrira votre client email avec un message pré-rempli. Il vous suffira de cliquer sur "Envoyer".</p>
           </div>
+        </div>
+      </div>
+
+      <div className="legal-section">
+        <h3>Informations de contact</h3>
+        <div className="info-block">
+          <p><strong>📧 Email :</strong> <a href="mailto:contact@herbbie.com">contact@herbbie.com</a></p>
+          <p><strong>🏢 Nom de l'entreprise :</strong> HERBBIE</p>
         </div>
       </div>
     </div>
