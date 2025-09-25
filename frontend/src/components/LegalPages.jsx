@@ -101,37 +101,43 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
     setSubmitMessage('');
 
     try {
-      // Créer le lien mailto avec les données du formulaire
-      const subject = encodeURIComponent(contactForm.subject);
-      const body = encodeURIComponent(
-        `Prénom: ${contactForm.firstName}\n` +
-        `Nom: ${contactForm.lastName}\n` +
-        `Email: ${contactForm.email}\n\n` +
-        `Message:\n${contactForm.message}`
-      );
+      // Envoyer les données à l'API backend
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: contactForm.firstName,
+          lastName: contactForm.lastName,
+          email: contactForm.email,
+          subject: contactForm.subject,
+          message: contactForm.message
+        })
+      });
 
-      const mailtoLink = `mailto:contact@herbbie.com?subject=${subject}&body=${body}`;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Erreur lors de l\'envoi du message');
+      }
 
-      // Ouvrir le client email
-      window.location.href = mailtoLink;
+      const result = await response.json();
 
       // Afficher un message de succès
-      setSubmitMessage('✅ Votre email a été préparé ! Vérifiez votre client email et envoyez le message.');
+      setSubmitMessage('✅ Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.');
 
-      // Réinitialiser le formulaire après 3 secondes
-      setTimeout(() => {
-        setContactForm({
-          name: '',
-          email: '',
-          subject: '',
-          message: ''
-        });
-        setSubmitMessage('');
-      }, 3000);
+      // Réinitialiser le formulaire
+      setContactForm({
+        firstName: '',
+        lastName: '',
+        email: '',
+        subject: '',
+        message: ''
+      });
 
     } catch (error) {
-      console.error('Erreur lors de l\'envoi du formulaire:', error);
-      setSubmitMessage('❌ Une erreur s\'est produite. Veuillez réessayer.');
+      console.error('Erreur lors de l\'envoi du message:', error);
+      setSubmitMessage(`❌ Erreur lors de l'envoi : ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -238,7 +244,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
           </form>
 
           <div className="contact-info">
-            <p><strong>💡 Astuce :</strong> Ce formulaire ouvrira votre client email avec un message pré-rempli. Il vous suffira de cliquer sur "Envoyer".</p>
+            <p><strong>💡 Astuce :</strong> Ce formulaire envoie votre message directement à notre équipe. Vous recevrez une confirmation une fois le message envoyé.</p>
           </div>
         </div>
       </div>
