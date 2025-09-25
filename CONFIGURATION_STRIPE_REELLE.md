@@ -197,3 +197,8 @@ if (paymentIntent.status === 'succeeded') {
 🔄 **TODO : Remplacer simulation par vraies clés Stripe**  
 
 **Le système est prêt pour la production dès que vous ajouterez vos vraies clés Stripe !**
+
+
+
+
+
