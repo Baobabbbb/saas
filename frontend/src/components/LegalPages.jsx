@@ -4,6 +4,14 @@ import './LegalPages.css';
 
 const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
   const [activeSection, setActiveSection] = useState(initialSection);
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
 
   const sections = [
     { id: 'mentions', title: 'Mentions Légales', icon: '📄' },
@@ -79,14 +87,153 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
     </div>
   );
 
+  const handleContactFormChange = (field, value) => {
+    setContactForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleContactFormSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitMessage('');
+
+    try {
+      // Créer le lien mailto avec les données du formulaire
+      const subject = encodeURIComponent(contactForm.subject);
+      const body = encodeURIComponent(
+        `Nom: ${contactForm.name}\n` +
+        `Email: ${contactForm.email}\n\n` +
+        `Message:\n${contactForm.message}`
+      );
+
+      const mailtoLink = `mailto:contact@herbbie.com?subject=${subject}&body=${body}`;
+
+      // Ouvrir le client email
+      window.location.href = mailtoLink;
+
+      // Afficher un message de succès
+      setSubmitMessage('✅ Votre email a été préparé ! Vérifiez votre client email et envoyez le message.');
+
+      // Réinitialiser le formulaire après 3 secondes
+      setTimeout(() => {
+        setContactForm({
+          name: '',
+          email: '',
+          subject: '',
+          message: ''
+        });
+        setSubmitMessage('');
+      }, 3000);
+
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi du formulaire:', error);
+      setSubmitMessage('❌ Une erreur s\'est produite. Veuillez réessayer.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const renderContact = () => (
     <div className="legal-content">
       <h2>📧 Contact</h2>
+
       <div className="legal-section">
         <h3>Informations de contact</h3>
         <div className="info-block">
           <p><strong>📧 Email :</strong> <a href="mailto:contact@herbbie.com">contact@herbbie.com</a></p>
           <p><strong>🏢 Nom de l'entreprise :</strong> HERBBIE</p>
+        </div>
+      </div>
+
+      <div className="legal-section">
+        <h3>📝 Formulaire de contact</h3>
+        <div className="info-block">
+          <p>Vous pouvez nous contacter directement en remplissant le formulaire ci-dessous :</p>
+
+          <form className="contact-form" onSubmit={handleContactFormSubmit}>
+            <div className="form-group">
+              <label htmlFor="contact-name">Nom *</label>
+              <input
+                type="text"
+                id="contact-name"
+                value={contactForm.name}
+                onChange={(e) => handleContactFormChange('name', e.target.value)}
+                required
+                placeholder="Votre nom complet"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="contact-email">Email *</label>
+              <input
+                type="email"
+                id="contact-email"
+                value={contactForm.email}
+                onChange={(e) => handleContactFormChange('email', e.target.value)}
+                required
+                placeholder="votre.email@exemple.com"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="contact-subject">Sujet *</label>
+              <select
+                id="contact-subject"
+                value={contactForm.subject}
+                onChange={(e) => handleContactFormChange('subject', e.target.value)}
+                required
+              >
+                <option value="">Choisissez un sujet</option>
+                <option value="Support technique">🔧 Support technique</option>
+                <option value="Question générale">💬 Question générale</option>
+                <option value="Partenariat">🤝 Partenariat</option>
+                <option value="Signaler un bug">🐛 Signaler un bug</option>
+                <option value="Suggestion">💡 Suggestion</option>
+                <option value="Autre">📋 Autre</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="contact-message">Message *</label>
+              <textarea
+                id="contact-message"
+                value={contactForm.message}
+                onChange={(e) => handleContactFormChange('message', e.target.value)}
+                required
+                placeholder="Décrivez votre demande en détail..."
+                rows="5"
+              />
+            </div>
+
+            {submitMessage && (
+              <div className={`submit-message ${submitMessage.includes('✅') ? 'success' : 'error'}`}>
+                {submitMessage}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="contact-submit-btn"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="spinner"></span>
+                  Préparation de l'email...
+                </>
+              ) : (
+                <>
+                  📧 Préparer l'email
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="contact-info">
+            <p><strong>💡 Astuce :</strong> Ce formulaire ouvrira votre client email avec un message pré-rempli. Il vous suffira de cliquer sur "Envoyer".</p>
+          </div>
         </div>
       </div>
     </div>
