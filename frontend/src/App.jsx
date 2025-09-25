@@ -641,7 +641,7 @@ const downloadPDF = async (title, content) => {
       img.onload = () => resolve(img);
     });
 
-  const backgroundImageUrl = "/assets/bg-stars.png";
+  const backgroundImageUrl = "/assets/fond_etoiles.png";
   const backgroundImage = await loadImage(backgroundImageUrl);
 
   // ✂️ Texte découpé

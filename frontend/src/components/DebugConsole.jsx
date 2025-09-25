@@ -3,7 +3,7 @@ import React from 'react';
 const DebugConsole = () => {
   React.useEffect(() => {
     // Script de debug intégré
-    console.log('🔍 Debug Frontend FRIDAY');
+    console.log('🔍 Debug Frontend HERBBIE');
 
     // Vérifier React
     if (typeof React !== 'undefined') {

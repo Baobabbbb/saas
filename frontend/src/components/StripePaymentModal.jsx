@@ -283,3 +283,8 @@ const StripePaymentModal = ({ contentType, userId, userEmail, onSuccess, onCance
 }
 
 export default StripePaymentModal
+
+
+
+
+

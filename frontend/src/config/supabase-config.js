@@ -6,7 +6,7 @@ export const SUPABASE_CONFIG = {
 
 // Diagnostic des variables d'environnement
 export function diagnoseEnvironmentVariables() {
-  console.log('🔍 DIAGNOSTIC VARIABLES ENVIRONNEMENT FRIDAY');
+  console.log('🔍 DIAGNOSTIC VARIABLES ENVIRONNEMENT HERBBIE');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   
   // Vérifier toutes les variables d'environnement Vite

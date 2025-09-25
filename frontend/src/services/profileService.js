@@ -61,7 +61,7 @@ export async function updateUserProfile(userId, profileData) {
  * Crée un profil pour un nouvel utilisateur
  */
 export async function createUserProfile(userId, email, profileData = {}) {
-  console.log('👤 FRIDAY: Création profil utilisateur:', userId, email);
+  console.log('👤 HERBBIE: Création profil utilisateur:', userId, email);
   
   try {
     const newProfile = {
@@ -81,14 +81,14 @@ export async function createUserProfile(userId, email, profileData = {}) {
       .single();
 
     if (error) {
-      console.error('❌ FRIDAY: Erreur création profil:', error);
+      console.error('❌ HERBBIE: Erreur création profil:', error);
       throw new Error(`Erreur création profil: ${error.message}`);
     }
 
-    console.log('✅ FRIDAY: Profil créé avec succès:', data);
+    console.log('✅ HERBBIE: Profil créé avec succès:', data);
     return data;
   } catch (error) {
-    console.error('❌ FRIDAY: Erreur critique création profil:', error);
+    console.error('❌ HERBBIE: Erreur critique création profil:', error);
     throw error;
   }
 }

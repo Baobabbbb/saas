@@ -54,7 +54,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
     setIsAuthenticating(true);
     
     try {
-      console.log('🔐 FRIDAY: Tentative de connexion Supabase avec:', email);
+      console.log('🔐 HERBBIE: Tentative de connexion Supabase avec:', email);
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -62,7 +62,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       });
 
       if (error) {
-        console.error('❌ FRIDAY: Erreur connexion Supabase:', error.message);
+        console.error('❌ HERBBIE: Erreur connexion Supabase:', error.message);
         setError(error.message === 'Invalid login credentials' 
           ? 'Email ou mot de passe incorrect' 
           : error.message);
@@ -70,7 +70,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       }
 
       if (data?.user) {
-        console.log('✅ FRIDAY: Connexion Supabase réussie:', data.user.email);
+        console.log('✅ HERBBIE: Connexion Supabase réussie:', data.user.email);
         
         // Fermer les formulaires
         setShowLoginForm(false);
@@ -85,7 +85,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
         
       }
     } catch (error) {
-      console.error('❌ FRIDAY: Erreur critique connexion:', error);
+      console.error('❌ HERBBIE: Erreur critique connexion:', error);
       setError('Erreur de connexion. Vérifiez vos identifiants.');
     } finally {
       setIsAuthenticating(false);
@@ -98,7 +98,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
     setIsAuthenticating(true);
     
     try {
-      console.log('📝 FRIDAY: Tentative d\'inscription Supabase avec:', email);
+      console.log('📝 HERBBIE: Tentative d\'inscription Supabase avec:', email);
       
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
@@ -113,7 +113,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       });
 
       if (error) {
-        console.error('❌ FRIDAY: Erreur inscription Supabase:', error.message);
+        console.error('❌ HERBBIE: Erreur inscription Supabase:', error.message);
         setError(error.message === 'User already registered' 
           ? 'Un compte existe déjà avec cet email' 
           : error.message);
@@ -121,7 +121,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       }
 
       if (data?.user) {
-        console.log('✅ FRIDAY: Inscription Supabase réussie:', data.user.email);
+        console.log('✅ HERBBIE: Inscription Supabase réussie:', data.user.email);
         
         // Vérifier si l'email nécessite une confirmation
         if (!data.session) {
@@ -142,7 +142,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
         }
       }
     } catch (error) {
-      console.error('❌ FRIDAY: Erreur critique inscription:', error);
+      console.error('❌ HERBBIE: Erreur critique inscription:', error);
       setError('Erreur d\'inscription. Réessayez plus tard.');
     } finally {
       setIsAuthenticating(false);
@@ -151,17 +151,17 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
 
   const handleSignOut = async () => {
     try {
-      console.log('🚪 FRIDAY: Déconnexion Supabase...');
+      console.log('🚪 HERBBIE: Déconnexion Supabase...');
       
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        console.error('❌ FRIDAY: Erreur déconnexion:', error.message);
+        console.error('❌ HERBBIE: Erreur déconnexion:', error.message);
         setError('Erreur lors de la déconnexion');
         return;
       }
       
-      console.log('✅ FRIDAY: Déconnexion réussie');
+      console.log('✅ HERBBIE: Déconnexion réussie');
       
       // Nettoyer les états locaux
       setShowDropdown(false);
@@ -181,7 +181,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       window.location.reload();
       
     } catch (error) {
-      console.error('❌ FRIDAY: Erreur critique déconnexion:', error);
+      console.error('❌ HERBBIE: Erreur critique déconnexion:', error);
       setError('Erreur lors de la déconnexion');
     }
   };
