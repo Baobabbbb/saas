@@ -23,7 +23,7 @@ export default defineConfig({
     },
     proxy: {
       '/admin': {
-        target: 'http://localhost:5174',
+        target: 'https://panneau-production.up.railway.app',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/admin/, '')
       }
