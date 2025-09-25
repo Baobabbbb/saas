@@ -5,24 +5,23 @@
 }
 
 .user-avatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: var(--primary-light);
+  background: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--primary);
+  color: white;
   font-weight: 500;
-  font-size: 1rem;
-  border: 1px solid rgba(107, 78, 255, 0.2);
+  font-size: 0.9rem;
   transition: all 0.2s ease;
 }
 
 .user-avatar:hover {
-  background: var(--primary);
-  color: white;
+  background: var(--primary-dark, #5a4fcf);
+  transform: scale(1.05);
 }
 
 .user-dropdown {
