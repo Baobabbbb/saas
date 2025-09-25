@@ -140,14 +140,6 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <h2>📧 Contact</h2>
 
       <div className="legal-section">
-        <h3>Informations de contact</h3>
-        <div className="info-block">
-          <p><strong>📧 Email :</strong> <a href="mailto:contact@herbbie.com">contact@herbbie.com</a></p>
-          <p><strong>🏢 Nom de l'entreprise :</strong> HERBBIE</p>
-        </div>
-      </div>
-
-      <div className="legal-section">
         <h3>📝 Formulaire de contact</h3>
         <div className="info-block">
           <p>Vous pouvez nous contacter directement en remplissant le formulaire ci-dessous :</p>
@@ -234,6 +226,14 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
           <div className="contact-info">
             <p><strong>💡 Astuce :</strong> Ce formulaire ouvrira votre client email avec un message pré-rempli. Il vous suffira de cliquer sur "Envoyer".</p>
           </div>
+        </div>
+      </div>
+
+      <div className="legal-section">
+        <h3>Informations de contact</h3>
+        <div className="info-block">
+          <p><strong>📧 Email :</strong> <a href="mailto:contact@herbbie.com">contact@herbbie.com</a></p>
+          <p><strong>🏢 Nom de l'entreprise :</strong> HERBBIE</p>
         </div>
       </div>
     </div>
