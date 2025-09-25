@@ -512,7 +512,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                 
                 <div className="dropdown-actions">
                   {isAdmin() && (
-                    <button onClick={() => window.open('/admin', '_blank')}>
+                    <button onClick={() => window.open('https://panneau-production.up.railway.app', '_blank')}>
                       Administration
                     </button>
                   )}
