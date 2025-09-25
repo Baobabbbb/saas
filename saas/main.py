@@ -11,6 +11,11 @@ import json
 import time
 import uuid
 from fastapi import Form
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
+from email.utils import formataddr
 
 from dotenv import load_dotenv
 import openai
@@ -43,6 +48,14 @@ class AnimationRequest(BaseModel):
     style: Optional[str] = "cartoon"
     mode: Optional[str] = "demo"
     custom_prompt: Optional[str] = None
+
+# Modèle pour le formulaire de contact
+class ContactForm(BaseModel):
+    firstName: str
+    lastName: str
+    email: str
+    subject: str
+    message: str
 
 # Gestionnaire d'erreurs pour la validation Pydantic
 @app.exception_handler(ValidationError)
@@ -875,9 +888,77 @@ if __name__ == "__main__":
             }
             print(f"🌐 Serveur HTTP de secours sur http://{http_config['host']}:{http_config['port']}")
             uvicorn.run(**http_config)
-        
+
         # Lancer le serveur HTTP en arrière-plan
         http_thread = threading.Thread(target=run_http_server, daemon=True)
         http_thread.start()
-    
+
     uvicorn.run(**config)
+
+# Endpoint pour envoyer un email de contact
+@app.post("/api/contact")
+async def send_contact_email(contact_form: ContactForm):
+    """Envoie un email depuis le formulaire de contact"""
+
+    try:
+        # Configuration email
+        sender_email = os.getenv("CONTACT_EMAIL", "noreply@herbbie.com")
+        receiver_email = "contact@herbbie.com"
+        password = os.getenv("EMAIL_PASSWORD")
+
+        if not password:
+            raise HTTPException(status_code=500, detail="Configuration email manquante")
+
+        # Création du message
+        message = MIMEMultipart("alternative")
+        message["Subject"] = Header(f"HERBBIE - {contact_form.subject}", "utf-8")
+        message["From"] = formataddr((str(Header("HERBBIE", "utf-8")), sender_email))
+        message["To"] = receiver_email
+
+        # Corps du message
+        html_content = f"""
+        <html>
+        <body>
+            <h2>Nouveau message de contact - HERBBIE</h2>
+            <p><strong>Prénom:</strong> {contact_form.firstName}</p>
+            <p><strong>Nom:</strong> {contact_form.lastName}</p>
+            <p><strong>Email:</strong> {contact_form.email}</p>
+            <p><strong>Sujet:</strong> {contact_form.subject}</p>
+            <h3>Message:</h3>
+            <p>{contact_form.message.replace(chr(10), '<br>')}</p>
+        </body>
+        </html>
+        """
+
+        # Partie texte pour les clients email qui ne supportent pas HTML
+        text_content = f"""
+        Nouveau message de contact - HERBBIE
+
+        Prénom: {contact_form.firstName}
+        Nom: {contact_form.lastName}
+        Email: {contact_form.email}
+        Sujet: {contact_form.subject}
+
+        Message:
+        {contact_form.message}
+        """
+
+        # Attacher les parties
+        part1 = MIMEText(text_content, "plain")
+        part2 = MIMEText(html_content, "html")
+
+        message.attach(part1)
+        message.attach(part2)
+
+        # Connexion et envoi
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver_email, message.as_string())
+        server.quit()
+
+        return {"message": "Email envoyé avec succès"}
+
+    except smtplib.SMTPAuthenticationError:
+        raise HTTPException(status_code=500, detail="Erreur d'authentification email")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de l'envoi: {str(e)}")
