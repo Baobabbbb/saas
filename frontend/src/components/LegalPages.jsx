@@ -97,8 +97,6 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
           <p><strong>Adresse du siège social :</strong> 10 bis rue Félix Arnaudin, 40100 Dax</p>
           <p><strong>Numéro SIRET :</strong> En cours d'attribution</p>
           <p><strong>Directeur de la publication :</strong> Adrien Gaulin</p>
-          <p><strong>Contact :</strong> contact@herbbie.com</p>
-          <p><strong>Téléphone :</strong> 07 86 36 22 34</p>
         </div>
       </div>
     </div>
