@@ -47,12 +47,14 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
         <h3>Éditeur du site</h3>
         <div className="info-block">
           <p><strong>Dénomination sociale :</strong> HERBBIE</p>
-          <p><strong>Forme juridique :</strong> Entreprise individuelle / Auto-entrepreneur</p>
-          <p><strong>Adresse :</strong> [À compléter - Adresse du siège social]</p>
-          <p><strong>Téléphone :</strong> [À compléter]</p>
-          <p><strong>Email :</strong> contact@herbbie.com</p>
-          <p><strong>Numéro SIRET :</strong> [À compléter]</p>
-          <p><strong>Directeur de la publication :</strong> [Votre nom ou pseudonyme]</p>
+          <p><strong>Forme juridique :</strong> [À préciser - Entreprise individuelle, SAS, SARL, etc.]</p>
+          <p><strong>Adresse du siège social :</strong> [Adresse complète à renseigner]</p>
+          <p><strong>Numéro SIRET :</strong> [Numéro SIRET à 14 chiffres]</p>
+          <p><strong>Numéro RCS :</strong> [À préciser si société commerciale]</p>
+          <p><strong>Capital social :</strong> [À préciser si applicable]</p>
+          <p><strong>Directeur de la publication :</strong> [Nom du responsable légal]</p>
+          <p><strong>Contact :</strong> contact@herbbie.com</p>
+          <p><strong>Téléphone :</strong> [Numéro de téléphone professionnel]</p>
         </div>
       </div>
 
