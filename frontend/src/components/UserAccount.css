@@ -5,8 +5,8 @@
 }
 
 .user-avatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--primary);
   display: flex;
@@ -14,19 +14,18 @@
   justify-content: center;
   cursor: pointer;
   color: white;
-  font-weight: 500;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
+  font-weight: 400;
+  font-size: 0.85rem;
+  transition: background-color 0.15s ease;
 }
 
 .user-avatar:hover {
   background: var(--primary-dark, #5a4fcf);
-  transform: scale(1.05);
 }
 
 .user-dropdown {
   position: absolute;
-  top: 50px;
+  top: 44px;
   right: 0;
   background: white;
   border-radius: 12px;
