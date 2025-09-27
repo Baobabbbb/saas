@@ -252,7 +252,7 @@ function App() {
     if (contentType === 'rhyme') {
       setSelectedRhyme(null);
       setCustomRhyme('');
-      setMusicStyle('auto');
+      setMusicStyle('');
       setCustomMusicStyle('');
     }
   }, [contentType]);
