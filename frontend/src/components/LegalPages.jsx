@@ -44,21 +44,6 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <h2>📄 Mentions Légales</h2>
 
       <div className="legal-section">
-        <h3>Éditeur du site</h3>
-        <div className="info-block">
-          <p><strong>Dénomination sociale :</strong> HERBBIE</p>
-          <p><strong>Forme juridique :</strong> [À préciser - Entreprise individuelle, SAS, SARL, etc.]</p>
-          <p><strong>Adresse du siège social :</strong> [Adresse complète à renseigner]</p>
-          <p><strong>Numéro SIRET :</strong> [Numéro SIRET à 14 chiffres]</p>
-          <p><strong>Numéro RCS :</strong> [À préciser si société commerciale]</p>
-          <p><strong>Capital social :</strong> [À préciser si applicable]</p>
-          <p><strong>Directeur de la publication :</strong> [Nom du responsable légal]</p>
-          <p><strong>Contact :</strong> contact@herbbie.com</p>
-          <p><strong>Téléphone :</strong> [Numéro de téléphone professionnel]</p>
-        </div>
-      </div>
-
-      <div className="legal-section">
         <h3>Hébergement</h3>
         <div className="info-block">
           <p><strong>Hébergeur :</strong> Railway</p>
@@ -101,6 +86,19 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
         <div className="info-block">
           <p>Le site HERBBIE utilise des cookies pour améliorer votre expérience utilisateur et réaliser des statistiques de visite.</p>
           <p>Conformément à la réglementation, vous pouvez refuser le dépôt de cookies en configurant votre navigateur.</p>
+        </div>
+      </div>
+
+      <div className="legal-section">
+        <h3>Éditeur du site</h3>
+        <div className="info-block">
+          <p><strong>Dénomination sociale :</strong> HERBBIE</p>
+          <p><strong>Forme juridique :</strong> Auto-entreprise (en cours d'immatriculation)</p>
+          <p><strong>Adresse du siège social :</strong> 10 bis rue Félix Arnaudin, 40100 Dax</p>
+          <p><strong>Numéro SIRET :</strong> En cours d'attribution</p>
+          <p><strong>Directeur de la publication :</strong> Adrien Gaulin</p>
+          <p><strong>Contact :</strong> contact@herbbie.com</p>
+          <p><strong>Téléphone :</strong> 07 86 36 22 34</p>
         </div>
       </div>
     </div>
