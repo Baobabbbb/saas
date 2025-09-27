@@ -325,9 +325,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                   />
                   {error && <div className="error-message">{error}</div>}
                   <div className="form-buttons">
-                    <button type="submit" disabled={isAuthenticating}>
-                      {isAuthenticating ? 'Connexion...' : 'Se connecter'}
-                    </button>
                     <button
                       type="button"
                       onClick={() => {
@@ -338,6 +335,9 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                       disabled={isAuthenticating}
                     >
                       Créer un compte
+                    </button>
+                    <button type="submit" disabled={isAuthenticating}>
+                      {isAuthenticating ? 'Connexion...' : 'Se connecter'}
                     </button>
                   </div>
                   <button
@@ -411,9 +411,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                   />
                   {error && <div className="error-message">{error}</div>}
                   <div className="form-buttons">
-                    <button type="submit" disabled={isAuthenticating}>
-                      {isAuthenticating ? 'Création...' : 'Créer le compte'}
-                    </button>
                     <button
                       type="button"
                       onClick={() => {
@@ -424,6 +421,9 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                       disabled={isAuthenticating}
                     >
                       Déjà un compte ?
+                    </button>
+                    <button type="submit" disabled={isAuthenticating}>
+                      {isAuthenticating ? 'Création...' : 'Créer le compte'}
                     </button>
                   </div>
                 </form>
@@ -601,10 +601,10 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     {profileUpdateSuccess && <div className="success-message">Profil mis à jour avec succès !</div>}
                     
                     <div className="form-buttons">
-                      <button type="submit">Mettre à jour</button>
                       <button type="button" onClick={() => setShowProfileForm(false)}>
                         Fermer
                       </button>
+                      <button type="submit">Mettre à jour</button>
                     </div>
                   </form>
                 </motion.div>
