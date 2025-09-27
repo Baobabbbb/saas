@@ -27,6 +27,13 @@
   box-shadow: 0 2px 8px rgba(107, 78, 255, 0.15);
 }
 
+/* Style spécial pour les lettres des utilisateurs connectés */
+.user-avatar .user-initial {
+  font-size: 1.4rem !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+}
+
 .user-dropdown {
   position: absolute;
   top: 58px;

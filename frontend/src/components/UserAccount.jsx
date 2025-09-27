@@ -496,7 +496,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       ) : (
         <>
           <div className="user-avatar" onClick={() => setShowDropdown(!showDropdown)}>
-            <span>{user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '👤'}</span>
+            <span className="user-initial">{user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '👤'}</span>
           </div>
 
           <AnimatePresence>
