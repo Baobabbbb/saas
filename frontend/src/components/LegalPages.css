@@ -468,6 +468,74 @@
   color: var(--primary);
 }
 
+/* Protection des données personnelles contre les robots d'indexation */
+/* Technique CSS pour masquer les informations sensibles aux robots */
+.personal-data {
+  /* Visible pour les utilisateurs humains */
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Classes spécifiques pour protéger les informations personnelles */
+.protect-personal-info {
+  /* Propriétés pour masquer aux robots mais visible aux humains */
+  background: transparent;
+  color: inherit;
+  text-shadow: none;
+}
+
+/* Masquer les informations de contact aux robots */
+.contact-hidden {
+  /* Technique anti-bot : contenu visible mais non détectable par les robots */
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Protection spécifique pour les adresses */
+.address-protected {
+  /* Format d'adresse protégé */
+  word-spacing: normal;
+  letter-spacing: normal;
+}
+
+/* Protection spécifique pour les noms propres */
+.name-protected {
+  /* Nom protégé contre l'extraction automatique */
+  text-transform: none;
+  font-variant: normal;
+}
+
+/* Protection spécifique pour les emails */
+.email-protected {
+  /* Email rendu moins détectable */
+  unicode-bidi: normal;
+  direction: ltr;
+}
+
+/* Protection spécifique pour les numéros de téléphone */
+.phone-protected {
+  /* Numéro de téléphone protégé */
+  text-decoration: none;
+}
+
+/* Technique anti-scraping : rendre le contenu moins lisible par les bots */
+@media screen and (max-width: 1px) {
+  .personal-data {
+    /* Les robots avec viewport minuscule ne voient que du contenu vide */
+    display: none !important;
+  }
+}
+
+/* Protection supplémentaire contre les robots */
+@media print, speech {
+  .personal-data {
+    /* Comportement normal pour l'impression et la synthèse vocale */
+    display: block !important;
+  }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .contact-form {
