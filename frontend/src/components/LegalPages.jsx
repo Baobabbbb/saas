@@ -77,7 +77,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
         <h3>Données personnelles</h3>
         <div className="info-block">
           <p>Conformément à la loi n°78-17 du 6 janvier 1978 relative à l'informatique, aux fichiers et aux libertés, vous disposez d'un droit d'accès, de rectification et de suppression des données vous concernant.</p>
-          <p>Pour exercer ce droit, vous pouvez nous contacter par email à l'adresse : contact@herbbie.com</p>
+          <p>Pour exercer ce droit, vous pouvez nous contacter par email à l'adresse : <span className="email-protected personal-data">contact@herbbie.com</span></p>
         </div>
       </div>
 
@@ -91,12 +91,12 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
 
       <div className="legal-section">
         <h3>Éditeur du site</h3>
-        <div className="info-block">
-          <p><strong>Dénomination sociale :</strong> HERBBIE</p>
-          <p><strong>Forme juridique :</strong> Auto-entreprise (en cours d'immatriculation)</p>
-          <p><strong>Adresse du siège social :</strong> 10 bis rue Félix Arnaudin, 40100 Dax</p>
-          <p><strong>Numéro SIRET :</strong> En cours d'attribution</p>
-          <p><strong>Directeur de la publication :</strong> Adrien Gaulin</p>
+        <div className="info-block personal-data">
+          <p><strong>Dénomination sociale :</strong> <span className="protect-personal-info">HERBBIE</span></p>
+          <p><strong>Forme juridique :</strong> <span className="protect-personal-info">Auto-entreprise (en cours d'immatriculation)</span></p>
+          <p><strong>Adresse du siège social :</strong> <span className="address-protected personal-data">10 bis rue Félix Arnaudin, 40100 Dax</span></p>
+          <p><strong>Numéro SIRET :</strong> <span className="protect-personal-info">En cours d'attribution</span></p>
+          <p><strong>Directeur de la publication :</strong> <span className="name-protected personal-data">Adrien Gaulin</span></p>
         </div>
       </div>
     </div>
@@ -192,7 +192,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
             <li><strong>Droit à la portabilité :</strong> demander la récupération de vos données</li>
             <li><strong>Droit d'opposition :</strong> vous opposer au traitement de vos données</li>
           </ul>
-          <p>Pour exercer ces droits, contactez-nous à : contact@herbbie.com</p>
+          <p>Pour exercer ces droits, contactez-nous à : <span className="email-protected personal-data">contact@herbbie.com</span></p>
         </div>
       </div>
 
@@ -513,7 +513,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
         <div className="info-block">
           <p>Pour toute question relative à ces conditions d'utilisation :</p>
           <ul>
-            <li><strong>Email :</strong> contact@herbbie.com</li>
+            <li><strong>Email :</strong> <span className="email-protected personal-data">contact@herbbie.com</span></li>
             <li><strong>Objet :</strong> "Question CGU"</li>
             <li><strong>Délai de réponse :</strong> 48-72 heures</li>
           </ul>
@@ -681,9 +681,9 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
 
       <div className="legal-section">
         <h3>Informations de contact</h3>
-        <div className="info-block">
-          <p><strong>📧 Email :</strong> <a href="mailto:contact@herbbie.com">contact@herbbie.com</a></p>
-          <p><strong>🏢 Nom de l'entreprise :</strong> HERBBIE</p>
+        <div className="info-block personal-data">
+          <p><strong>📧 Email :</strong> <a href="mailto:contact@herbbie.com" className="email-protected"><span className="personal-data">contact@herbbie.com</span></a></p>
+          <p><strong>🏢 Nom de l'entreprise :</strong> <span className="protect-personal-info">HERBBIE</span></p>
         </div>
       </div>
     </div>
