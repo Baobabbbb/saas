@@ -247,6 +247,16 @@ function App() {
     checkAdminStatus();
   }, [user, contentType]);
 
+  // S'assurer qu'aucun bouton n'est sélectionné par défaut dans les comptines
+  useEffect(() => {
+    if (contentType === 'rhyme') {
+      setSelectedRhyme(null);
+      setCustomRhyme('');
+      setMusicStyle('auto');
+      setCustomMusicStyle('');
+    }
+  }, [contentType]);
+
   // Mettre à jour le texte du bouton selon le statut admin et le type de contenu
   const updateButtonText = (adminStatus) => {
     if (adminStatus) {
