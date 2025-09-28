@@ -39,10 +39,10 @@ export async function signIn({ email, password }) {
           .single();
 
         if (profile && !profileError) {
-          const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+          const fullName = `${profile.prenom || ''} ${profile.nom || ''}`.trim();
           localStorage.setItem('userName', fullName || data.user.email.split('@')[0]);
-          localStorage.setItem('userFirstName', profile.first_name || '');
-          localStorage.setItem('userLastName', profile.last_name || '');
+          localStorage.setItem('userFirstName', profile.prenom || '');
+          localStorage.setItem('userLastName', profile.nom || '');
         } else {
           // Fallback si pas de profil
           const fallbackName = data.user.email.split('@')[0];
@@ -94,15 +94,18 @@ export async function signUpWithProfile({ email, password, firstName, lastName }
         .insert([
           {
             id: data.user.id,
-            email: email,
-            first_name: firstName,
-            last_name: lastName,
+            prenom: firstName,        // ✅ Utiliser 'prenom' au lieu de 'first_name'
+            nom: lastName,            // ✅ Utiliser 'nom' au lieu de 'last_name'
+            role: 'user',             // ✅ Ajouter le rôle
             created_at: new Date().toISOString()
           }
         ]);
 
       if (profileError) {
+        console.error('Erreur création profil:', profileError);
         // Continuer même si le profil n'est pas créé
+      } else {
+        console.log('✅ Profil créé avec succès pour:', email);
       }
 
       // Sauvegarder dans localStorage
@@ -162,8 +165,8 @@ export async function updateUserProfile({ firstName, lastName }) {
     const { error: updateError } = await supabase
       .from('profiles')
       .update({
-        first_name: firstName,
-        last_name: lastName
+        prenom: firstName,
+        nom: lastName
       })
       .eq('id', userData.user.id);
 
@@ -234,8 +237,8 @@ export async function getCurrentUserProfile() {
 
     return { 
       data: {
-        firstName: profile.first_name || '',
-        lastName: profile.last_name || '',
+        firstName: profile.prenom || '',
+        lastName: profile.nom || '',
         email: userData.user.email
       }
     };
