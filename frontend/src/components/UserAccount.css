@@ -31,7 +31,12 @@
 .user-avatar .user-initial {
   font-size: 1.4rem !important;
   font-weight: 600 !important;
-  line-height: 1 !important;
+  line-height: 1.2 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  margin: 0 !important;
 }
 
 .user-dropdown {
