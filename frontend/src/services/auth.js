@@ -33,7 +33,7 @@ export async function signIn({ email, password }) {
       } else {
         // Pour les autres utilisateurs, essayer de récupérer le profil
         const { data: profile, error: profileError } = await supabase
-          .from('profiles')
+          .from('public.profiles')
           .select('*')
           .eq('id', data.user.id)
           .single();
@@ -90,7 +90,7 @@ export async function signUpWithProfile({ email, password, firstName, lastName }
     if (data.user) {
       // Créer le profil utilisateur dans la table profiles
       const { error: profileError } = await supabase
-        .from('profiles')
+        .from('public.profiles')
         .insert([
           {
             id: data.user.id,
@@ -163,7 +163,7 @@ export async function updateUserProfile({ firstName, lastName }) {
 
     // Mettre à jour le profil dans Supabase
     const { error: updateError } = await supabase
-      .from('profiles')
+      .from('public.profiles')
       .update({
         prenom: firstName,
         nom: lastName
@@ -216,7 +216,7 @@ export async function getCurrentUserProfile() {
 
     // Pour les autres utilisateurs, essayer de récupérer le profil depuis Supabase
     const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+      .from('public.profiles')
       .select('*')
       .eq('id', userData.user.id)
       .single();
