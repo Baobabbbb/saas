@@ -80,7 +80,13 @@ export async function signUpWithProfile({ email, password, firstName, lastName }
     // Inscription réelle avec Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email: email,
-      password: password
+      password: password,
+      options: {
+        data: {
+          prenom: firstName,
+          nom: lastName
+        }
+      }
     });
 
     if (error) {
@@ -88,25 +94,8 @@ export async function signUpWithProfile({ email, password, firstName, lastName }
     }
 
     if (data.user) {
-      // Créer le profil utilisateur dans la table profiles
-      const { error: profileError } = await supabase
-        .from('public.profiles')
-        .insert([
-          {
-            id: data.user.id,
-            prenom: firstName,        // ✅ Utiliser 'prenom' au lieu de 'first_name'
-            nom: lastName,            // ✅ Utiliser 'nom' au lieu de 'last_name'
-            role: 'user',             // ✅ Ajouter le rôle
-            created_at: new Date().toISOString()
-          }
-        ]);
-
-      if (profileError) {
-        console.error('Erreur création profil:', profileError);
-        // Continuer même si le profil n'est pas créé
-      } else {
-        console.log('✅ Profil créé avec succès pour:', email);
-      }
+      // Le profil sera créé automatiquement par le trigger
+      // Pas besoin de création manuelle
 
       // Sauvegarder dans localStorage
       localStorage.setItem('userEmail', email);
