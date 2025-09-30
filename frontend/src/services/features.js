@@ -10,11 +10,6 @@ const DEFAULT_FEATURES = {
   rhyme: { enabled: true, name: 'Comptine', icon: '🎵', description: 'Comptines musicales avec paroles et mélodies' }
 };
 
-// Cache pour éviter les appels répétés
-let featuresCache = null;
-let cacheTimestamp = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
 // Fonction pour charger les fonctionnalités depuis le localStorage
 const loadFeaturesFromStorage = () => {
   try {
@@ -33,23 +28,14 @@ const loadFeaturesFromStorage = () => {
 // Fonction pour récupérer les fonctionnalités (UNIQUEMENT depuis localStorage)
 export const getFeatures = async () => {
   try {
-    // Vérifier le cache
-    if (featuresCache && cacheTimestamp && (Date.now() - cacheTimestamp) < CACHE_DURATION) {
-      return featuresCache;
-    }
-
     // Charger depuis le localStorage
     const storedFeatures = loadFeaturesFromStorage();
     if (storedFeatures) {
-      featuresCache = storedFeatures;
-      cacheTimestamp = Date.now();
       return storedFeatures;
     }
 
     // Fallback vers les valeurs par défaut
     console.log('📋 Aucune configuration trouvée, utilisation des valeurs par défaut');
-    featuresCache = DEFAULT_FEATURES;
-    cacheTimestamp = Date.now();
     return DEFAULT_FEATURES;
   } catch (error) {
     console.warn('Erreur lors de la récupération des fonctionnalités:', error);
@@ -84,26 +70,13 @@ export const getEnabledFeatures = async () => {
   }
 };
 
-// Fonction pour récupérer toutes les fonctionnalités
+// Fonction pour récupérer toutes les fonctionnalités (y compris désactivées)
 export const getAllFeatures = async () => {
   return await getFeatures();
 };
 
-// Fonction utilitaire pour vérifier si toutes les fonctionnalités requises sont activées
-export const areRequiredFeaturesEnabled = async (requiredFeatures = []) => {
-  try {
-    const enabledFeatures = await getEnabledFeatures();
-    return requiredFeatures.every(feature => enabledFeatures[feature]);
-  } catch (error) {
-    console.warn('Erreur lors de la vérification des fonctionnalités requises:', error);
-    return false;
-  }
-};
-
 // Fonction pour forcer le rechargement du cache
 export const refreshFeatures = async () => {
-  featuresCache = null;
-  cacheTimestamp = null;
   return await getFeatures();
 };
 
@@ -114,10 +87,6 @@ export const listenForFeatureChanges = (callback) => {
       try {
         const newFeatures = JSON.parse(event.newValue);
         console.log('🔄 Fonctionnalités mises à jour depuis le panneau (storage):', newFeatures);
-        
-        // Invalider le cache
-        featuresCache = null;
-        cacheTimestamp = null;
         
         if (callback && typeof callback === 'function') {
           callback(newFeatures);
@@ -132,10 +101,6 @@ export const listenForFeatureChanges = (callback) => {
     if (event.detail) {
       console.log('🔄 Fonctionnalités mises à jour via événement personnalisé:', event.detail);
       
-      // Invalider le cache
-      featuresCache = null;
-      cacheTimestamp = null;
-      
       if (callback && typeof callback === 'function') {
         callback(event.detail);
       }
@@ -145,10 +110,8 @@ export const listenForFeatureChanges = (callback) => {
   // Vérifier périodiquement les changements (fallback)
   const checkForChanges = () => {
     const storedFeatures = loadFeaturesFromStorage();
-    if (storedFeatures && (!featuresCache || JSON.stringify(storedFeatures) !== JSON.stringify(featuresCache))) {
+    if (storedFeatures) {
       console.log('🔄 Changements détectés via vérification périodique:', storedFeatures);
-      featuresCache = null;
-      cacheTimestamp = null;
       if (callback && typeof callback === 'function') {
         callback(storedFeatures);
       }
@@ -180,7 +143,6 @@ export default {
   isFeatureEnabled,
   getEnabledFeatures,
   getAllFeatures,
-  areRequiredFeaturesEnabled,
   refreshFeatures,
   listenForFeatureChanges
 };
