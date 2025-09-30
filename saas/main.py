@@ -31,7 +31,7 @@ from services.comic_generator import ComicGenerator
 from services.real_animation_generator import RealAnimationGenerator
 from services.local_animation_generator import LocalAnimationGenerator
 from utils.translate import translate_text
-from routes.admin_features import router as admin_features_router
+from routes.admin_features import router as admin_features_router, load_features_config, CONFIG_FILE
 # from models.animation import AnimationRequest
 # Validation et sécurité supprimées car gérées automatiquement par Vercel + Supabase
 
@@ -177,6 +177,24 @@ async def diagnostic():
 
 # === ROUTES DES FONCTIONNALITÉS GÉRÉES PAR LE ROUTEUR ADMIN_FEATURES ===
 # Les routes /api/features sont maintenant gérées par le routeur admin_features_router
+
+# === ENDPOINT DE TEST POUR LES FONCTIONNALITÉS ===
+@app.get("/test-features")
+async def test_features():
+    """Test endpoint pour vérifier les fonctionnalités"""
+    try:
+        features = load_features_config()
+        return {
+            "status": "success",
+            "features": features,
+            "config_file_exists": os.path.exists(CONFIG_FILE)
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "config_file_exists": os.path.exists(CONFIG_FILE)
+        }
 
 # === ENDPOINTS VALIDÉS ===
 
