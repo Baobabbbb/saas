@@ -1,6 +1,5 @@
-// Service pour gérer l'état des fonctionnalités du site via API
-import { API_BASE_URL as BASE } from '../config/api';
-const API_BASE_URL = (BASE || '') + '/api';
+// Service pour gérer les fonctionnalités disponibles dans Herbbie
+const API_BASE_URL = 'https://saas-production.up.railway.app/api';
 
 // Configuration par défaut des fonctionnalités
 const DEFAULT_FEATURES = {
@@ -11,46 +10,32 @@ const DEFAULT_FEATURES = {
   rhyme: { enabled: true, name: 'Comptine', icon: '🎵' }
 };
 
+// Cache pour éviter les appels répétés
+let featuresCache = null;
+let cacheTimestamp = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 // Fonction pour récupérer les fonctionnalités depuis l'API
 export const getFeatures = async () => {
   try {
+    // Vérifier le cache
+    if (featuresCache && cacheTimestamp && (Date.now() - cacheTimestamp) < CACHE_DURATION) {
+      return featuresCache;
+    }
+
     const response = await fetch(`${API_BASE_URL}/features`);
     if (response.ok) {
       const features = await response.json();
+      featuresCache = features;
+      cacheTimestamp = Date.now();
       return features;
     } else {
+      console.warn('Impossible de récupérer les fonctionnalités, utilisation des valeurs par défaut');
       return DEFAULT_FEATURES;
     }
   } catch (error) {
+    console.warn('Erreur lors de la récupération des fonctionnalités:', error);
     return DEFAULT_FEATURES;
-  }
-};
-
-// Fonction pour mettre à jour une fonctionnalité via l'API
-export const updateFeature = async (featureKey, enabled) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/features/${featureKey}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ enabled })
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      
-      // Déclencher un événement personnalisé pour notifier les composants
-      window.dispatchEvent(new CustomEvent('featuresUpdated', { 
-        detail: result.features 
-      }));
-      
-      return result.features;
-    } else {
-      return null;
-    }
-  } catch (error) {
-    return null;
   }
 };
 
@@ -60,6 +45,7 @@ export const isFeatureEnabled = async (featureKey) => {
     const features = await getFeatures();
     return features[featureKey]?.enabled || false;
   } catch (error) {
+    console.warn(`Erreur lors de la vérification de la fonctionnalité ${featureKey}:`, error);
     return false;
   }
 };
@@ -75,34 +61,8 @@ export const getEnabledFeatures = async () => {
         return enabled;
       }, {});
   } catch (error) {
+    console.warn('Erreur lors de la récupération des fonctionnalités activées:', error);
     return {};
-  }
-};
-
-// Fonction pour réinitialiser les fonctionnalités
-export const resetFeatures = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/features/reset`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      
-      // Déclencher un événement personnalisé pour notifier les composants
-      window.dispatchEvent(new CustomEvent('featuresUpdated', { 
-        detail: result.features 
-      }));
-      
-      return result.features;
-    } else {
-      return DEFAULT_FEATURES;
-    }
-  } catch (error) {
-    return DEFAULT_FEATURES;
   }
 };
 
@@ -117,52 +77,24 @@ export const areRequiredFeaturesEnabled = async (requiredFeatures = []) => {
     const enabledFeatures = await getEnabledFeatures();
     return requiredFeatures.every(feature => enabledFeatures[feature]);
   } catch (error) {
+    console.warn('Erreur lors de la vérification des fonctionnalités requises:', error);
     return false;
   }
 };
 
-// Polling pour synchroniser les changements
-let pollingInterval = null;
-
-// Démarrer le polling pour synchroniser les changements
-export const startPolling = () => {
-  if (pollingInterval) {
-    clearInterval(pollingInterval);
-  }
-  
-  pollingInterval = setInterval(async () => {
-    try {
-      const features = await getFeatures();
-      // Déclencher l'événement pour notifier les composants
-      window.dispatchEvent(new CustomEvent('featuresUpdated', { 
-        detail: features 
-      }));
-    } catch (error) {
-      // Erreur silencieuse
-    }
-  }, 2000); // Vérifier toutes les 2 secondes
+// Fonction pour forcer le rechargement du cache
+export const refreshFeatures = async () => {
+  featuresCache = null;
+  cacheTimestamp = null;
+  return await getFeatures();
 };
-
-// Arrêter le polling
-export const stopPolling = () => {
-  if (pollingInterval) {
-    clearInterval(pollingInterval);
-    pollingInterval = null;
-  }
-};
-
-// Démarrer le polling au chargement
-startPolling();
 
 // Export par défaut pour compatibilité
 export default {
   getFeatures,
-  updateFeature,
   isFeatureEnabled,
   getEnabledFeatures,
-  resetFeatures,
   getAllFeatures,
   areRequiredFeaturesEnabled,
-  startPolling,
-  stopPolling
+  refreshFeatures
 };
