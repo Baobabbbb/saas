@@ -1,4 +1,4 @@
-// Service pour gérer les fonctionnalités disponibles dans Herbbie
+// Service pour gérer les fonctionnalités disponibles dans Herbbie (version localStorage uniquement)
 const STORAGE_KEY = 'herbbie_features_config';
 
 // Configuration par défaut des fonctionnalités
@@ -30,7 +30,7 @@ const loadFeaturesFromStorage = () => {
   return null;
 };
 
-// Fonction pour récupérer les fonctionnalités
+// Fonction pour récupérer les fonctionnalités (UNIQUEMENT depuis localStorage)
 export const getFeatures = async () => {
   try {
     // Vérifier le cache
@@ -38,7 +38,7 @@ export const getFeatures = async () => {
       return featuresCache;
     }
 
-    // Essayer de charger depuis le localStorage d'abord
+    // Charger depuis le localStorage
     const storedFeatures = loadFeaturesFromStorage();
     if (storedFeatures) {
       featuresCache = storedFeatures;
@@ -47,7 +47,7 @@ export const getFeatures = async () => {
     }
 
     // Fallback vers les valeurs par défaut
-    console.warn('Aucune configuration trouvée, utilisation des valeurs par défaut');
+    console.log('📋 Aucune configuration trouvée, utilisation des valeurs par défaut');
     featuresCache = DEFAULT_FEATURES;
     cacheTimestamp = Date.now();
     return DEFAULT_FEATURES;
