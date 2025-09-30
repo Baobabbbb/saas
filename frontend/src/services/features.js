@@ -113,7 +113,7 @@ export const listenForFeatureChanges = (callback) => {
     if (event.key === STORAGE_KEY && event.newValue) {
       try {
         const newFeatures = JSON.parse(event.newValue);
-        console.log('🔄 Fonctionnalités mises à jour depuis le panneau:', newFeatures);
+        console.log('🔄 Fonctionnalités mises à jour depuis le panneau (storage):', newFeatures);
         
         // Invalider le cache
         featuresCache = null;
@@ -142,6 +142,19 @@ export const listenForFeatureChanges = (callback) => {
     }
   };
   
+  // Vérifier périodiquement les changements (fallback)
+  const checkForChanges = () => {
+    const storedFeatures = loadFeaturesFromStorage();
+    if (storedFeatures && (!featuresCache || JSON.stringify(storedFeatures) !== JSON.stringify(featuresCache))) {
+      console.log('🔄 Changements détectés via vérification périodique:', storedFeatures);
+      featuresCache = null;
+      cacheTimestamp = null;
+      if (callback && typeof callback === 'function') {
+        callback(storedFeatures);
+      }
+    }
+  };
+  
   // Écouter les changements de localStorage
   window.addEventListener('storage', handleStorageChange);
   
@@ -149,11 +162,15 @@ export const listenForFeatureChanges = (callback) => {
   window.addEventListener('herbbieFeaturesUpdate', handleCustomEvent);
   window.addEventListener('featuresUpdated', handleCustomEvent);
   
+  // Vérification périodique toutes les 2 secondes
+  const intervalId = setInterval(checkForChanges, 2000);
+  
   // Retourner une fonction pour nettoyer les écouteurs
   return () => {
     window.removeEventListener('storage', handleStorageChange);
     window.removeEventListener('herbbieFeaturesUpdate', handleCustomEvent);
     window.removeEventListener('featuresUpdated', handleCustomEvent);
+    clearInterval(intervalId);
   };
 };
 

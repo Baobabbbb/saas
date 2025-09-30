@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import './ContentTypeSelector.css';
-import { getEnabledFeatures } from '../services/features';
+import { getEnabledFeatures, listenForFeatureChanges } from '../services/features';
 
 const ContentTypeSelector = ({ contentType, setContentType }) => {
   const [enabledFeatures, setEnabledFeatures] = useState({});
@@ -11,26 +11,32 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
     // Charger les fonctionnalités activées
     loadEnabledFeatures();
 
-    // Écouter les changements de fonctionnalités
-    const handleFeaturesUpdate = async (event) => {
-      const features = await getEnabledFeatures();
-      setEnabledFeatures(features);
+    // Écouter les changements de fonctionnalités depuis le panneau
+    const cleanup = listenForFeatureChanges(async (features) => {
+      console.log('🔄 ContentTypeSelector: Fonctionnalités mises à jour:', features);
+      
+      // Filtrer les fonctionnalités activées
+      const enabled = Object.entries(features)
+        .filter(([key, feature]) => feature.enabled)
+        .reduce((enabled, [key, feature]) => {
+          enabled[key] = feature;
+          return enabled;
+        }, {});
+      
+      setEnabledFeatures(enabled);
       
       // Si la fonctionnalité actuellement sélectionnée est désactivée, 
       // basculer vers la première fonctionnalité disponible
-      if (!event.detail[contentType]?.enabled) {
-        const firstEnabled = Object.keys(event.detail).find(key => event.detail[key].enabled);
+      if (!enabled[contentType]) {
+        const firstEnabled = Object.keys(enabled).find(key => enabled[key].enabled);
         if (firstEnabled) {
+          console.log(`🔄 Basculement de ${contentType} vers ${firstEnabled}`);
           setContentType(firstEnabled);
         }
       }
-    };
-
-    window.addEventListener('featuresUpdated', handleFeaturesUpdate);
+    });
     
-    return () => {
-      window.removeEventListener('featuresUpdated', handleFeaturesUpdate);
-    };
+    return cleanup;
   }, [contentType, setContentType]);
 
   const loadEnabledFeatures = async () => {
