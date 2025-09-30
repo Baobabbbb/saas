@@ -115,10 +115,16 @@ if assets_dir.exists():
 # CORS avec support UTF-8
 app.add_middleware(
     CORSMiddleware,
-    # En production sur Railway, le frontend est servi par le même domaine → on autorise tout par simplicité
-    allow_origins=["*"],
+    # Autoriser les domaines spécifiques du panneau et d'Herbbie
+    allow_origins=[
+        "https://panneau-production.up.railway.app",
+        "https://herbbie.com",
+        "https://www.herbbie.com",
+        "http://localhost:3000",  # Pour le développement local
+        "http://localhost:5173"    # Pour Vite en développement
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -169,50 +175,8 @@ async def diagnostic():
         "fal_key_preview": f"{fal_key[:10]}..." if fal_key else "Non configurée"
     }
 
-# === ROUTE DES FONCTIONNALITÉS ===
-
-@app.get("/api/features")
-async def get_features():
-    """Route pour récupérer l'état des fonctionnalités du site"""
-    return {
-        "animation": {"enabled": True, "name": "Dessin animé", "icon": "🎬"},
-        "comic": {"enabled": True, "name": "Bande dessinée", "icon": "💬"},
-        "coloring": {"enabled": True, "name": "Coloriage", "icon": "🎨"},
-        "audio": {"enabled": True, "name": "Histoire", "icon": "📖"},
-        "rhyme": {"enabled": True, "name": "Comptine", "icon": "🎵"}
-    }
-
-@app.put("/api/features/{feature_key}")
-async def update_feature(feature_key: str, request: dict):
-    """Route pour mettre à jour l'état d'une fonctionnalité"""
-    enabled = request.get("enabled", True)
-    # Ici vous pourriez sauvegarder en base de données
-    return {
-        "success": True,
-        "feature": feature_key,
-        "enabled": enabled,
-        "features": {
-            "animation": {"enabled": True, "name": "Dessin animé", "icon": "🎬"},
-            "comic": {"enabled": True, "name": "Bande dessinée", "icon": "💬"},
-            "coloring": {"enabled": True, "name": "Coloriage", "icon": "🎨"},
-            "audio": {"enabled": True, "name": "Histoire", "icon": "📖"},
-            "rhyme": {"enabled": True, "name": "Comptine", "icon": "🎵"}
-        }
-    }
-
-@app.post("/api/features/reset")
-async def reset_features():
-    """Route pour réinitialiser toutes les fonctionnalités"""
-    return {
-        "success": True,
-        "features": {
-            "animation": {"enabled": True, "name": "Dessin animé", "icon": "🎬"},
-            "comic": {"enabled": True, "name": "Bande dessinée", "icon": "💬"},
-            "coloring": {"enabled": True, "name": "Coloriage", "icon": "🎨"},
-            "audio": {"enabled": True, "name": "Histoire", "icon": "📖"},
-            "rhyme": {"enabled": True, "name": "Comptine", "icon": "🎵"}
-        }
-    }
+# === ROUTES DES FONCTIONNALITÉS GÉRÉES PAR LE ROUTEUR ADMIN_FEATURES ===
+# Les routes /api/features sont maintenant gérées par le routeur admin_features_router
 
 # === ENDPOINTS VALIDÉS ===
 
