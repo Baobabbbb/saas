@@ -31,6 +31,7 @@ from services.comic_generator import ComicGenerator
 from services.real_animation_generator import RealAnimationGenerator
 from services.local_animation_generator import LocalAnimationGenerator
 from utils.translate import translate_text
+from routes.admin_features import router as admin_features_router
 # from models.animation import AnimationRequest
 # Validation et sécurité supprimées car gérées automatiquement par Vercel + Supabase
 
@@ -120,6 +121,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Inclusion des routes d'administration
+app.include_router(admin_features_router)
 
 # Validation des requêtes supprimée car gérée automatiquement par Vercel
 
