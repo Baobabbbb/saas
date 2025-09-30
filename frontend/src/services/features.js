@@ -1,6 +1,9 @@
 // Service pour gérer les fonctionnalités disponibles dans Herbbie
 const STORAGE_KEY = 'herbbie_features_config';
 
+// Clé pour partager avec le panneau d'administration (même domaine)
+const SHARED_STORAGE_KEY = 'admin_features_config';
+
 // Configuration par défaut des fonctionnalités
 const DEFAULT_FEATURES = {
   animation: { enabled: true, name: 'Dessin animé', icon: '🎬', description: 'Génération de dessins animés personnalisés avec IA' },
@@ -13,12 +16,26 @@ const DEFAULT_FEATURES = {
 // Fonction pour charger les fonctionnalités depuis le localStorage
 const loadFeaturesFromStorage = () => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    // Essayer d'abord la clé principale
+    let stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      console.log('📋 Fonctionnalités chargées depuis le localStorage:', parsed);
+      console.log('📋 Fonctionnalités chargées depuis le localStorage (clé principale):', parsed);
       return parsed;
     }
+
+    // Essayer la clé partagée avec le panneau d'administration
+    stored = localStorage.getItem(SHARED_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      console.log('📋 Fonctionnalités chargées depuis le localStorage (clé partagée):', parsed);
+
+      // Sauvegarder dans la clé principale pour la prochaine fois
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+      return parsed;
+    }
+
+    console.log('📋 Aucune configuration trouvée dans le localStorage');
   } catch (error) {
     console.warn('Erreur lors du chargement des fonctionnalités depuis le localStorage:', error);
   }
@@ -116,10 +133,16 @@ export const syncFeatures = async () => {
 // Fonction pour écouter les changements de fonctionnalités depuis le panneau
 export const listenForFeatureChanges = (callback) => {
   const handleStorageChange = (event) => {
-    if (event.key === STORAGE_KEY && event.newValue) {
+    // Écouter les changements des deux clés de stockage
+    if ((event.key === STORAGE_KEY || event.key === SHARED_STORAGE_KEY) && event.newValue) {
       try {
         const newFeatures = JSON.parse(event.newValue);
-        console.log('🔄 Changements détectés dans localStorage:', newFeatures);
+        console.log('🔄 Changements détectés dans localStorage:', event.key, newFeatures);
+
+        // Sauvegarder dans la clé principale si c'est la clé partagée
+        if (event.key === SHARED_STORAGE_KEY) {
+          localStorage.setItem(STORAGE_KEY, event.newValue);
+        }
 
         if (callback && typeof callback === 'function') {
           callback(newFeatures);
@@ -151,15 +174,15 @@ export const listenForFeatureChanges = (callback) => {
     }
   };
 
-  // Écouter les changements de localStorage (événements cross-domain)
+  // Écouter les changements de localStorage pour les deux clés
   window.addEventListener('storage', handleStorageChange);
 
   // Écouter les événements personnalisés (événements locaux)
   window.addEventListener('herbbieFeaturesUpdate', handleCustomEvent);
   window.addEventListener('featuresUpdated', handleCustomEvent);
 
-  // Vérification périodique toutes les 3 secondes
-  const intervalId = setInterval(checkForChanges, 3000);
+  // Vérification périodique toutes les 2 secondes
+  const intervalId = setInterval(checkForChanges, 2000);
 
   // Retourner une fonction pour nettoyer les écouteurs
   return () => {
