@@ -9,10 +9,12 @@ from datetime import datetime
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise ValueError("SUPABASE_URL et SUPABASE_ANON_KEY doivent être définis")
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Initialisation conditionnelle de Supabase
+supabase = None
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+else:
+    print("⚠️ Variables d'environnement Supabase non définies - mode fallback activé")
 
 router = APIRouter(prefix="/api", tags=["admin"])
 
@@ -43,6 +45,11 @@ DEFAULT_FEATURES = {
 async def get_features():
     """Récupérer toutes les fonctionnalités depuis la base de données"""
     try:
+        # Si Supabase n'est pas disponible, retourner les valeurs par défaut
+        if not supabase:
+            print("Supabase non disponible - retour des valeurs par défaut")
+            return DEFAULT_FEATURES
+            
         # Récupérer les fonctionnalités depuis Supabase
         response = supabase.table("feature_config").select("*").execute()
         
@@ -68,6 +75,15 @@ async def get_features():
 async def update_feature(feature_key: str, feature_update: FeatureUpdate):
     """Mettre à jour une fonctionnalité spécifique"""
     try:
+        # Si Supabase n'est pas disponible, simuler la mise à jour
+        if not supabase:
+            print(f"Supabase non disponible - simulation de mise à jour pour {feature_key}")
+            # Retourner les fonctionnalités par défaut avec la modification simulée
+            features = DEFAULT_FEATURES.copy()
+            if feature_key in features:
+                features[feature_key]["enabled"] = feature_update.enabled
+            return {"features": features}
+            
         # Vérifier que la fonctionnalité existe
         response = supabase.table("feature_config").select("*").eq("feature_key", feature_key).execute()
         
