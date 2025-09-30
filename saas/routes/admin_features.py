@@ -1,20 +1,12 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Dict, Any, List
+from typing import Dict, Any
+import json
 import os
-from supabase import create_client, Client
 from datetime import datetime
 
-# Configuration Supabase
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
-
-# Initialisation conditionnelle de Supabase
-supabase = None
-if SUPABASE_URL and SUPABASE_KEY:
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-else:
-    print("⚠️ Variables d'environnement Supabase non définies - mode fallback activé")
+# Fichier de stockage local pour les configurations
+CONFIG_FILE = "features_config.json"
 
 router = APIRouter(prefix="/api", tags=["admin"])
 
@@ -22,51 +14,48 @@ router = APIRouter(prefix="/api", tags=["admin"])
 class FeatureUpdate(BaseModel):
     enabled: bool
 
-class FeatureResponse(BaseModel):
-    feature_key: str
-    enabled: bool
-    name: str
-    icon: str
-    description: str
-
 class FeaturesResponse(BaseModel):
     features: Dict[str, Any]
 
 # Configuration par défaut des fonctionnalités
 DEFAULT_FEATURES = {
-    "animation": {"enabled": True, "name": "Dessin animé", "icon": "🎬"},
-    "comic": {"enabled": True, "name": "Bande dessinée", "icon": "💬"},
-    "coloring": {"enabled": True, "name": "Coloriage", "icon": "🎨"},
-    "audio": {"enabled": True, "name": "Histoire", "icon": "📖"},
-    "rhyme": {"enabled": True, "name": "Comptine", "icon": "🎵"}
+    "animation": {"enabled": True, "name": "Dessin animé", "icon": "🎬", "description": "Génération de dessins animés personnalisés avec IA"},
+    "comic": {"enabled": True, "name": "Bande dessinée", "icon": "💬", "description": "Création de bandes dessinées avec bulles de dialogue"},
+    "coloring": {"enabled": True, "name": "Coloriage", "icon": "🎨", "description": "Pages de coloriage à imprimer pour les enfants"},
+    "audio": {"enabled": True, "name": "Histoire", "icon": "📖", "description": "Histoires audio avec narration automatique"},
+    "rhyme": {"enabled": True, "name": "Comptine", "icon": "🎵", "description": "Comptines musicales avec paroles et mélodies"}
 }
+
+def load_features_config():
+    """Charger la configuration depuis le fichier JSON"""
+    try:
+        if os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        else:
+            # Créer le fichier avec les valeurs par défaut
+            save_features_config(DEFAULT_FEATURES)
+            return DEFAULT_FEATURES
+    except Exception as e:
+        print(f"Erreur lors du chargement de la configuration: {e}")
+        return DEFAULT_FEATURES
+
+def save_features_config(features):
+    """Sauvegarder la configuration dans le fichier JSON"""
+    try:
+        with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+            json.dump(features, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        print(f"Erreur lors de la sauvegarde de la configuration: {e}")
+        return False
 
 @router.get("/features")
 async def get_features():
-    """Récupérer toutes les fonctionnalités depuis la base de données"""
+    """Récupérer toutes les fonctionnalités"""
     try:
-        # Si Supabase n'est pas disponible, retourner les valeurs par défaut
-        if not supabase:
-            print("Supabase non disponible - retour des valeurs par défaut")
-            return DEFAULT_FEATURES
-            
-        # Récupérer les fonctionnalités depuis Supabase
-        response = supabase.table("feature_config").select("*").execute()
-        
-        if response.data:
-            features = {}
-            for feature in response.data:
-                features[feature["feature_key"]] = {
-                    "enabled": feature["enabled"],
-                    "name": feature["name"],
-                    "icon": feature["icon"],
-                    "description": feature.get("description", "")
-                }
-            return features
-        else:
-            # Si aucune donnée, retourner les valeurs par défaut
-            return DEFAULT_FEATURES
-            
+        features = load_features_config()
+        return features
     except Exception as e:
         print(f"Erreur lors de la récupération des fonctionnalités: {e}")
         return DEFAULT_FEATURES
@@ -75,33 +64,22 @@ async def get_features():
 async def update_feature(feature_key: str, feature_update: FeatureUpdate):
     """Mettre à jour une fonctionnalité spécifique"""
     try:
-        # Si Supabase n'est pas disponible, simuler la mise à jour
-        if not supabase:
-            print(f"Supabase non disponible - simulation de mise à jour pour {feature_key}")
-            # Retourner les fonctionnalités par défaut avec la modification simulée
-            features = DEFAULT_FEATURES.copy()
-            if feature_key in features:
-                features[feature_key]["enabled"] = feature_update.enabled
-            return {"features": features}
-            
-        # Vérifier que la fonctionnalité existe
-        response = supabase.table("feature_config").select("*").eq("feature_key", feature_key).execute()
+        # Charger la configuration actuelle
+        features = load_features_config()
         
-        if not response.data:
+        # Vérifier que la fonctionnalité existe
+        if feature_key not in features:
             raise HTTPException(status_code=404, detail="Fonctionnalité non trouvée")
         
         # Mettre à jour la fonctionnalité
-        update_response = supabase.table("feature_config").update({
-            "enabled": feature_update.enabled,
-            "updated_at": datetime.now().isoformat()
-        }).eq("feature_key", feature_key).execute()
+        features[feature_key]["enabled"] = feature_update.enabled
+        features[feature_key]["updated_at"] = datetime.now().isoformat()
         
-        if update_response.data:
-            # Récupérer toutes les fonctionnalités mises à jour
-            all_features = await get_features()
-            return {"features": all_features}
+        # Sauvegarder la configuration
+        if save_features_config(features):
+            return {"features": features}
         else:
-            raise HTTPException(status_code=500, detail="Erreur lors de la mise à jour")
+            raise HTTPException(status_code=500, detail="Erreur lors de la sauvegarde")
             
     except HTTPException:
         raise
@@ -114,16 +92,17 @@ async def reset_features():
     """Réinitialiser toutes les fonctionnalités à leur état par défaut"""
     try:
         # Réinitialiser toutes les fonctionnalités à True
-        for feature_key in DEFAULT_FEATURES.keys():
-            supabase.table("feature_config").update({
-                "enabled": True,
-                "updated_at": datetime.now().isoformat()
-            }).eq("feature_key", feature_key).execute()
+        features = load_features_config()
+        for feature_key in features:
+            features[feature_key]["enabled"] = True
+            features[feature_key]["updated_at"] = datetime.now().isoformat()
         
-        # Récupérer toutes les fonctionnalités mises à jour
-        all_features = await get_features()
-        return {"features": all_features}
-        
+        # Sauvegarder la configuration
+        if save_features_config(features):
+            return {"features": features}
+        else:
+            raise HTTPException(status_code=500, detail="Erreur lors de la sauvegarde")
+            
     except Exception as e:
         print(f"Erreur lors de la réinitialisation des fonctionnalités: {e}")
         raise HTTPException(status_code=500, detail="Erreur interne du serveur")
@@ -132,17 +111,10 @@ async def reset_features():
 async def get_feature(feature_key: str):
     """Récupérer une fonctionnalité spécifique"""
     try:
-        response = supabase.table("feature_config").select("*").eq("feature_key", feature_key).execute()
+        features = load_features_config()
         
-        if response.data:
-            feature = response.data[0]
-            return {
-                "feature_key": feature["feature_key"],
-                "enabled": feature["enabled"],
-                "name": feature["name"],
-                "icon": feature["icon"],
-                "description": feature.get("description", "")
-            }
+        if feature_key in features:
+            return features[feature_key]
         else:
             raise HTTPException(status_code=404, detail="Fonctionnalité non trouvée")
             
