@@ -1,13 +1,13 @@
 // Service pour gérer les fonctionnalités disponibles dans Herbbie
-const API_BASE_URL = 'https://saas-production.up.railway.app/api';
+const STORAGE_KEY = 'herbbie_features_config';
 
 // Configuration par défaut des fonctionnalités
 const DEFAULT_FEATURES = {
-  animation: { enabled: true, name: 'Dessin animé', icon: '🎬' },
-  comic: { enabled: true, name: 'Bande dessinée', icon: '💬' },
-  coloring: { enabled: true, name: 'Coloriage', icon: '🎨' },
-  audio: { enabled: true, name: 'Histoire', icon: '📖' },
-  rhyme: { enabled: true, name: 'Comptine', icon: '🎵' }
+  animation: { enabled: true, name: 'Dessin animé', icon: '🎬', description: 'Génération de dessins animés personnalisés avec IA' },
+  comic: { enabled: true, name: 'Bande dessinée', icon: '💬', description: 'Création de bandes dessinées avec bulles de dialogue' },
+  coloring: { enabled: true, name: 'Coloriage', icon: '🎨', description: 'Pages de coloriage à imprimer pour les enfants' },
+  audio: { enabled: true, name: 'Histoire', icon: '📖', description: 'Histoires audio avec narration automatique' },
+  rhyme: { enabled: true, name: 'Comptine', icon: '🎵', description: 'Comptines musicales avec paroles et mélodies' }
 };
 
 // Cache pour éviter les appels répétés
@@ -15,7 +15,22 @@ let featuresCache = null;
 let cacheTimestamp = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// Fonction pour récupérer les fonctionnalités depuis l'API
+// Fonction pour charger les fonctionnalités depuis le localStorage
+const loadFeaturesFromStorage = () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      console.log('📋 Fonctionnalités chargées depuis le localStorage:', parsed);
+      return parsed;
+    }
+  } catch (error) {
+    console.warn('Erreur lors du chargement des fonctionnalités depuis le localStorage:', error);
+  }
+  return null;
+};
+
+// Fonction pour récupérer les fonctionnalités
 export const getFeatures = async () => {
   try {
     // Vérifier le cache
@@ -23,16 +38,19 @@ export const getFeatures = async () => {
       return featuresCache;
     }
 
-    const response = await fetch(`${API_BASE_URL}/features`);
-    if (response.ok) {
-      const features = await response.json();
-      featuresCache = features;
+    // Essayer de charger depuis le localStorage d'abord
+    const storedFeatures = loadFeaturesFromStorage();
+    if (storedFeatures) {
+      featuresCache = storedFeatures;
       cacheTimestamp = Date.now();
-      return features;
-    } else {
-      console.warn('Impossible de récupérer les fonctionnalités, utilisation des valeurs par défaut');
-      return DEFAULT_FEATURES;
+      return storedFeatures;
     }
+
+    // Fallback vers les valeurs par défaut
+    console.warn('Aucune configuration trouvée, utilisation des valeurs par défaut');
+    featuresCache = DEFAULT_FEATURES;
+    cacheTimestamp = Date.now();
+    return DEFAULT_FEATURES;
   } catch (error) {
     console.warn('Erreur lors de la récupération des fonctionnalités:', error);
     return DEFAULT_FEATURES;
@@ -67,8 +85,8 @@ export const getEnabledFeatures = async () => {
 };
 
 // Fonction pour récupérer toutes les fonctionnalités
-export const getAllFeatures = () => {
-  return { ...DEFAULT_FEATURES };
+export const getAllFeatures = async () => {
+  return await getFeatures();
 };
 
 // Fonction utilitaire pour vérifier si toutes les fonctionnalités requises sont activées
@@ -89,6 +107,56 @@ export const refreshFeatures = async () => {
   return await getFeatures();
 };
 
+// Fonction pour écouter les changements de fonctionnalités depuis le panneau
+export const listenForFeatureChanges = (callback) => {
+  const handleStorageChange = (event) => {
+    if (event.key === STORAGE_KEY && event.newValue) {
+      try {
+        const newFeatures = JSON.parse(event.newValue);
+        console.log('🔄 Fonctionnalités mises à jour depuis le panneau:', newFeatures);
+        
+        // Invalider le cache
+        featuresCache = null;
+        cacheTimestamp = null;
+        
+        if (callback && typeof callback === 'function') {
+          callback(newFeatures);
+        }
+      } catch (error) {
+        console.error('Erreur lors du parsing des nouvelles fonctionnalités:', error);
+      }
+    }
+  };
+  
+  const handleCustomEvent = (event) => {
+    if (event.detail) {
+      console.log('🔄 Fonctionnalités mises à jour via événement personnalisé:', event.detail);
+      
+      // Invalider le cache
+      featuresCache = null;
+      cacheTimestamp = null;
+      
+      if (callback && typeof callback === 'function') {
+        callback(event.detail);
+      }
+    }
+  };
+  
+  // Écouter les changements de localStorage
+  window.addEventListener('storage', handleStorageChange);
+  
+  // Écouter les événements personnalisés
+  window.addEventListener('herbbieFeaturesUpdate', handleCustomEvent);
+  window.addEventListener('featuresUpdated', handleCustomEvent);
+  
+  // Retourner une fonction pour nettoyer les écouteurs
+  return () => {
+    window.removeEventListener('storage', handleStorageChange);
+    window.removeEventListener('herbbieFeaturesUpdate', handleCustomEvent);
+    window.removeEventListener('featuresUpdated', handleCustomEvent);
+  };
+};
+
 // Export par défaut pour compatibilité
 export default {
   getFeatures,
@@ -96,5 +164,6 @@ export default {
   getEnabledFeatures,
   getAllFeatures,
   areRequiredFeaturesEnabled,
-  refreshFeatures
+  refreshFeatures,
+  listenForFeatureChanges
 };
