@@ -26,5 +26,30 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <!-- Script pour forcer le nettoyage du cache -->
+    <script>
+      // Nettoyage agressif du cache au chargement
+      console.log('🧹 Nettoyage du cache au chargement...');
+      
+      // Vider les anciennes clés de stockage
+      try {
+        localStorage.removeItem('fridayFeatures');
+        localStorage.removeItem('herbbie_features_config');
+        localStorage.removeItem('herbbie_admin_session');
+        console.log('✅ Anciennes clés supprimées');
+      } catch (e) {
+        console.error('❌ Erreur lors du nettoyage:', e);
+      }
+      
+      // Vider le cache du service worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+            console.log('✅ Service worker supprimé');
+          }
+        });
+      }
+    </script>
   </body>
 </html>
