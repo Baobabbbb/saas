@@ -15,26 +15,38 @@ const DEFAULT_FEATURES = {
 const loadFeaturesFromAPI = async () => {
   try {
     console.log('🔄 Chargement des fonctionnalités depuis l\'API...');
-    const response = await fetch(`${API_BASE_URL}/features`);
-
-    if (response.ok) {
-      const features = await response.json();
-      console.log('📋 Fonctionnalités chargées depuis l\'API:', features);
-
-      // Sauvegarder dans localStorage pour le cache
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(features));
-      } catch (error) {
-        console.warn('Erreur lors de la sauvegarde dans localStorage:', error);
+    const response = await fetch(`${API_BASE_URL}/features`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       }
+    });
 
-      return features;
+    // Vérifier si la réponse est du JSON
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      if (response.ok) {
+        const features = await response.json();
+        console.log('📋 Fonctionnalités chargées depuis l\'API:', features);
+
+        // Sauvegarder dans localStorage pour le cache
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(features));
+        } catch (error) {
+          console.warn('Erreur lors de la sauvegarde dans localStorage:', error);
+        }
+
+        return features;
+      } else {
+        console.warn(`API erreur ${response.status}, utilisation du cache local`);
+        throw new Error(`API error: ${response.status}`);
+      }
     } else {
-      console.warn('API non disponible, utilisation du cache local');
-      throw new Error('API not available');
+      console.warn('Réponse API n\'est pas du JSON, utilisation du cache local');
+      throw new Error('API returned HTML instead of JSON');
     }
   } catch (error) {
-    console.warn('Erreur lors du chargement depuis l\'API:', error);
+    console.warn('Erreur lors du chargement depuis l\'API:', error.message);
     throw error;
   }
 };
