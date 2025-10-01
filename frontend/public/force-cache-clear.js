@@ -35,3 +35,4 @@ setTimeout(() => {
     console.log('🔄 Rechargement forcé...');
     window.location.reload(true);
 }, 1000);
+
