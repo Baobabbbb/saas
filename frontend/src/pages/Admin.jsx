@@ -9,35 +9,32 @@ const AdminContent = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const autoAuth = searchParams.get('auth');
+  const [autoAuthGranted, setAutoAuthGranted] = React.useState(false);
 
-  // Gestion de la session au montage
+  // Gestion de l'auto-authentification
   useEffect(() => {
-    // Si paramètre auth=auto, créer une session automatique
-    if (autoAuth === 'auto' && !user) {
-      console.log('🔑 Auto-authentification détectée, création de session...');
-      const adminSession = {
-        user: { email: 'admin@herbbie.com', id: 'auto-admin' },
-        isAdmin: true,
-        session: { expires_at: Date.now() + (5 * 60 * 1000) } // 5 minutes
-      };
-      localStorage.setItem('herbbie_admin_session', JSON.stringify(adminSession));
+    // Si paramètre auth=auto, accorder l'accès automatiquement
+    if (autoAuth === 'auto') {
+      console.log('🔑 Auto-authentification détectée - Accès accordé sans formulaire');
+      setAutoAuthGranted(true);
       
-      // Retirer le paramètre auth de l'URL et recharger
+      // Retirer le paramètre auth de l'URL
       navigate('/admin', { replace: true });
-      window.location.reload();
     } 
-    // Si pas d'auto-auth et pas d'utilisateur, nettoyer les sessions
-    else if (!autoAuth && !user) {
+    // Si pas d'auto-auth, nettoyer les sessions
+    else if (!autoAuth) {
+      setAutoAuthGranted(false);
       localStorage.removeItem('herbbie_admin_session');
-      console.log('🧹 Session admin nettoyée (accès direct sans auto-auth)');
+      console.log('🧹 Accès direct - Authentification requise');
     }
-  }, [autoAuth, user, navigate]);
+  }, [autoAuth, navigate]);
 
-  // Nettoyer la session quand on quitte la page
+  // Nettoyer l'auto-auth quand on quitte la page
   useEffect(() => {
     const handleBeforeUnload = () => {
+      setAutoAuthGranted(false);
       localStorage.removeItem('herbbie_admin_session');
-      console.log('🧹 Session admin nettoyée (fermeture de page)');
+      console.log('🧹 Session nettoyée (fermeture de page)');
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -47,7 +44,7 @@ const AdminContent = () => {
     };
   }, []);
 
-  if (loading) {
+  if (loading && !autoAuthGranted) {
     return (
       <div style={{ 
         minHeight: '100vh', 
@@ -62,8 +59,12 @@ const AdminContent = () => {
     );
   }
 
-  // Si pas connecté et pas d'auto-auth, afficher le formulaire de connexion
-  if (!user || !isAdmin) {
+  // Si auto-auth accordé, bypasser la vérification normale
+  // OU si connecté normalement avec user et isAdmin
+  const hasAccess = autoAuthGranted || (user && isAdmin);
+
+  // Si pas d'accès, afficher le formulaire de connexion
+  if (!hasAccess) {
     return <AdminLogin />;
   }
 
