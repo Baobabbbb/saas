@@ -516,18 +516,10 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                 <div className="dropdown-actions">
                   {isAdmin() && (
                     <button onClick={() => {
-                      // Récupérer le token de session Supabase
-                      const session = JSON.parse(localStorage.getItem('supabase.auth.token') || '{}');
-                      const accessToken = session?.access_token || session?.accessToken;
-                      
-                      // Ouvrir le panneau avec le token d'authentification
-                      const adminUrl = accessToken 
-                        ? `https://panneau-production.up.railway.app?token=${accessToken}&source=herbbie`
-                        : 'https://panneau-production.up.railway.app';
-                      
-                      window.open(adminUrl, '_blank');
+                      // Accès direct au panneau d'administration intégré avec auto-auth
+                      window.location.href = '/admin?auth=auto';
                     }}>
-                      Administration
+                      ⚙️ Administration
                     </button>
                   )}
                   
