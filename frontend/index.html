@@ -2,10 +2,10 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <!-- Logo d'onglet retourné - utilisation du vrai logo_v.png -->
-    <link id="favicon" rel="icon" type="image/png" href="/logo_v.png?v=4" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/logo_v.png?v=4" />
-    <meta name="msapplication-TileImage" content="/logo_v.png?v=4" />
+    <!-- Logo d'onglet retourné - utilisation du vrai logo_v.png retourné -->
+    <link rel="icon" type="image/png" href="/logo_v_flipped.png?v=5" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/logo_v_flipped.png?v=5" />
+    <meta name="msapplication-TileImage" content="/logo_v_flipped.png?v=5" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Protection des données personnelles - Configuration des robots -->
     <meta name="robots" content="index, follow, noarchive, nosnippet" />
@@ -66,40 +66,6 @@
         };
 
         console.log('✅ Protection anti-appels API activée');
-
-        // Retourner le logo d'onglet dynamiquement
-        function flipFavicon() {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          img.onload = function() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
-
-            // Retourner verticalement
-            ctx.translate(0, img.height);
-            ctx.scale(1, -1);
-            ctx.drawImage(img, 0, 0);
-
-            // Créer la nouvelle URL de données
-            const flippedDataUrl = canvas.toDataURL('image/png');
-
-            // Mettre à jour le favicon
-            const favicon = document.getElementById('favicon');
-            if (favicon) {
-              favicon.href = flippedDataUrl;
-              console.log('🔄 Logo d\'onglet retourné avec succès');
-            }
-          };
-          img.onerror = function() {
-            console.log('⚠️ Impossible de charger l\'image du logo, utilisation du logo normal');
-          };
-          img.src = '/logo_v.png?v=' + Date.now();
-        }
-
-        // Retourner le favicon après un court délai
-        setTimeout(flipFavicon, 100);
       })();
     </script>
   </body>
