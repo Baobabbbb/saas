@@ -10,14 +10,23 @@ const AdminContent = () => {
   const navigate = useNavigate();
   const autoAuth = searchParams.get('auth');
 
+  // Nettoyer la session au chargement SAUF si autoAuth est présent
+  useEffect(() => {
+    if (!autoAuth) {
+      // Pas d'auto-auth = accès direct, donc nettoyer toute session existante
+      localStorage.removeItem('herbbie_admin_session');
+      console.log('🧹 Session admin nettoyée (accès direct)');
+    }
+  }, []); // Exécuté une seule fois au montage
+
   // Si paramètre auth=auto (venant du bouton Herbbie), auto-authentifier
   useEffect(() => {
     if (autoAuth === 'auto' && !user) {
-      // Créer une session admin automatique
+      // Créer une session admin automatique TEMPORAIRE (valide 5 minutes)
       const adminSession = {
         user: { email: 'admin@herbbie.com', id: 'auto-admin' },
         isAdmin: true,
-        session: { expires_at: Date.now() + 86400000 }
+        session: { expires_at: Date.now() + (5 * 60 * 1000) } // 5 minutes seulement
       };
       localStorage.setItem('herbbie_admin_session', JSON.stringify(adminSession));
       
@@ -26,6 +35,20 @@ const AdminContent = () => {
       window.location.reload();
     }
   }, [autoAuth, user, navigate]);
+
+  // Nettoyer la session quand on quitte la page
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      localStorage.removeItem('herbbie_admin_session');
+      console.log('🧹 Session admin nettoyée (fermeture de page)');
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -76,6 +99,12 @@ const AdminContent = () => {
         }}>
           <a 
             href="/" 
+            onClick={(e) => {
+              e.preventDefault();
+              // Nettoyer la session avant de partir
+              localStorage.removeItem('herbbie_admin_session');
+              window.location.href = '/';
+            }}
             style={{ 
               color: 'white', 
               textDecoration: 'none',
@@ -83,7 +112,8 @@ const AdminContent = () => {
               background: 'rgba(255,255,255,0.2)',
               borderRadius: '25px',
               display: 'inline-block',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
+              cursor: 'pointer'
             }}
           >
             ← Retour à Herbbie
@@ -91,6 +121,8 @@ const AdminContent = () => {
           <button
             onClick={async () => {
               await signOut();
+              // Nettoyer complètement la session
+              localStorage.removeItem('herbbie_admin_session');
               navigate('/admin');
             }}
             style={{ 
