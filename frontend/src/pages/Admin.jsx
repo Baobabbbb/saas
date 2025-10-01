@@ -10,29 +10,26 @@ const AdminContent = () => {
   const navigate = useNavigate();
   const autoAuth = searchParams.get('auth');
 
-  // Nettoyer la session au chargement SAUF si autoAuth est présent
+  // Gestion de la session au montage
   useEffect(() => {
-    if (!autoAuth) {
-      // Pas d'auto-auth = accès direct, donc nettoyer toute session existante
-      localStorage.removeItem('herbbie_admin_session');
-      console.log('🧹 Session admin nettoyée (accès direct)');
-    }
-  }, []); // Exécuté une seule fois au montage
-
-  // Si paramètre auth=auto (venant du bouton Herbbie), auto-authentifier
-  useEffect(() => {
+    // Si paramètre auth=auto, créer une session automatique
     if (autoAuth === 'auto' && !user) {
-      // Créer une session admin automatique TEMPORAIRE (valide 5 minutes)
+      console.log('🔑 Auto-authentification détectée, création de session...');
       const adminSession = {
         user: { email: 'admin@herbbie.com', id: 'auto-admin' },
         isAdmin: true,
-        session: { expires_at: Date.now() + (5 * 60 * 1000) } // 5 minutes seulement
+        session: { expires_at: Date.now() + (5 * 60 * 1000) } // 5 minutes
       };
       localStorage.setItem('herbbie_admin_session', JSON.stringify(adminSession));
       
       // Retirer le paramètre auth de l'URL et recharger
       navigate('/admin', { replace: true });
       window.location.reload();
+    } 
+    // Si pas d'auto-auth et pas d'utilisateur, nettoyer les sessions
+    else if (!autoAuth && !user) {
+      localStorage.removeItem('herbbie_admin_session');
+      console.log('🧹 Session admin nettoyée (accès direct sans auto-auth)');
     }
   }, [autoAuth, user, navigate]);
 
