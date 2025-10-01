@@ -20,9 +20,12 @@ const AdminContent = () => {
         session: { expires_at: Date.now() + 86400000 }
       };
       localStorage.setItem('herbbie_admin_session', JSON.stringify(adminSession));
+      
+      // Retirer le paramètre auth de l'URL et recharger
+      navigate('/admin', { replace: true });
       window.location.reload();
     }
-  }, [autoAuth, user]);
+  }, [autoAuth, user, navigate]);
 
   if (loading) {
     return (
