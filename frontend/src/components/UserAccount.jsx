@@ -38,13 +38,45 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetEmailSent, setResetEmailSent] = useState(false);
-
-  // Email de l'administrateur
-  const ADMIN_EMAIL = 'fredagathe77@gmail.com';
+  const [isAdminUser, setIsAdminUser] = useState(false);
   
-  // Vérifier si l'utilisateur connecté est l'administrateur
+  // Vérifier si l'utilisateur connecté est administrateur (en vérifiant le rôle dans la base)
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user || !user.id) {
+        setIsAdminUser(false);
+        return;
+      }
+
+      try {
+        // Vérifier le rôle dans la table profiles
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Erreur vérification rôle admin:', error);
+          setIsAdminUser(false);
+          return;
+        }
+
+        const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
+        setIsAdminUser(isAdmin);
+        console.log(`👑 Vérification admin pour ${user.email}: ${isAdmin ? 'OUI' : 'NON'} (rôle: ${profile?.role})`);
+      } catch (error) {
+        console.error('Erreur lors de la vérification du rôle:', error);
+        setIsAdminUser(false);
+      }
+    };
+
+    checkAdminRole();
+  }, [user]);
+
+  // Fonction helper pour vérifier si admin (synchrone)
   const isAdmin = () => {
-    return user?.email === ADMIN_EMAIL;
+    return isAdminUser;
   };
 
   // AUTHENTIFICATION SUPABASE RÉELLE - Plus de localStorage !
