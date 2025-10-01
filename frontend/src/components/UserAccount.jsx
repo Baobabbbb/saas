@@ -516,8 +516,8 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                 <div className="dropdown-actions">
                   {isAdmin() && (
                     <button onClick={() => {
-                      // Accès direct au panneau d'administration intégré avec auto-auth
-                      window.location.href = '/admin?auth=auto';
+                      // Accès direct au panneau d'administration intégré avec auto-auth dans un nouvel onglet
+                      window.open('/admin?auth=auto', '_blank');
                     }}>
                       ⚙️ Administration
                     </button>
