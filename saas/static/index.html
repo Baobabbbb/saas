@@ -17,12 +17,16 @@
     <meta name="format-detection" content="telephone=no, email=no, address=no" />
     <!-- Politique de référencement restrictive pour les données sensibles -->
     <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <!-- Force le navigateur à ne pas utiliser le cache -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>HERBBIE</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/assets/main-72c10795.js"></script>
+    <script type="module" crossorigin src="/assets/main-89ef73c3.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/preload-helper-8235fac6.js">
     <link rel="modulepreload" crossorigin href="/assets/supabaseClient-76c3910e.js">
     <link rel="modulepreload" crossorigin href="/assets/creations-822d4935.js">
@@ -31,5 +35,45 @@
   <body>
     <div id="root"></div>
     
+    <!-- Script pour forcer le nettoyage du cache au chargement -->
+    <script>
+      (function() {
+        console.log('🧹 Vérification du cache au chargement...');
+        
+        // Supprimer les anciennes clés de stockage problématiques
+        try {
+          localStorage.removeItem('fridayFeatures');
+          console.log('✅ Anciennes clés supprimées');
+        } catch (e) {
+          console.error('❌ Erreur lors du nettoyage:', e);
+        }
+        
+        // Vider le cache du service worker
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+              registration.unregister();
+              console.log('✅ Service worker supprimé');
+            }
+          });
+        }
+
+        // Empêcher tout appel API non autorisé
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+          const url = args[0];
+          
+          // Bloquer les appels à saas-production.up.railway.app/api/features
+          if (typeof url === 'string' && url.includes('saas-production.up.railway.app/api/features')) {
+            console.warn('🚫 Appel API bloqué:', url);
+            return Promise.reject(new Error('Appel API bloqué - utilisation du localStorage uniquement'));
+          }
+          
+          return originalFetch.apply(this, args);
+        };
+
+        console.log('✅ Protection anti-appels API activée');
+      })();
+    </script>
   </body>
 </html>
