@@ -16,3 +16,4 @@ localStorage.removeItem('herbbie_features_config');
 
 // Forcer le rechargement de la page
 window.location.reload(true);
+
