@@ -124,7 +124,13 @@ export const updateFeature = (featureKey, enabled) => {
   }
 };
 
-// Fonction pour synchroniser manuellement les fonctionnalités (solution temporaire)
+// Fonction pour rafraîchir les fonctionnalités
+export const refreshFeatures = async () => {
+  console.log('🔄 Rafraîchissement des fonctionnalités...');
+  return await getFeatures();
+};
+
+// Fonction pour synchroniser manuellement les fonctionnalités
 export const syncFeatures = async () => {
   console.log('🔄 Tentative de synchronisation...');
   return await getFeatures();
