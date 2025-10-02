@@ -59,3 +59,8 @@ cache/
 saas/cache/
 backend/saas/cache/
 **/cache/
+
+# --- Fichiers volumineux dans docs ---
+docs/images/*.gif
+docs/images/mlflow-tracing.gif
+docs/images/weave-tracing.gif
