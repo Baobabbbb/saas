@@ -1,0 +1,8 @@
+🚀 FORCE REDEPLOY - Nettoyage repository effectué
+
+Date: 02/10/2025
+Raison: Déploiement bloqué par fichiers volumineux (16MB + 13MB GIF)
+Solution: Suppression des gros fichiers du suivi Git
+Résultat: Repository beaucoup plus léger pour Railway
+
+Logo favicon: logo_violet.png maintenant configuré
