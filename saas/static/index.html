@@ -2,10 +2,10 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <!-- Logo d'onglet retourné - utilisation du vrai logo_v.png retourné -->
-    <link rel="icon" type="image/png" href="/logo_v_upside_down.png?v=6" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/logo_v_upside_down.png?v=6" />
-    <meta name="msapplication-TileImage" content="/logo_v_upside_down.png?v=6" />
+    <!-- Logo d'onglet - utilisation du logo_violet.png -->
+    <link rel="icon" type="image/png" href="/logo_violet.png?v=7" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/logo_violet.png?v=7" />
+    <meta name="msapplication-TileImage" content="/logo_violet.png?v=7" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Protection des données personnelles - Configuration des robots -->
     <meta name="robots" content="index, follow, noarchive, nosnippet" />
@@ -71,16 +71,6 @@
         };
 
         console.log('✅ Protection anti-appels API activée');
-
-        // Forcer le rechargement du favicon pour voir le logo retourné
-        const faviconLinks = document.querySelectorAll('link[rel*="icon"]');
-        faviconLinks.forEach(link => {
-          const href = link.getAttribute('href');
-          if (href && href.includes('logo_v_upside_down.png')) {
-            link.setAttribute('href', href + (href.includes('?') ? '&' : '?') + 'force=' + Date.now());
-            console.log('🔄 Favicon rechargé pour afficher le logo retourné');
-          }
-        });
       })();
     </script>
   </body>
