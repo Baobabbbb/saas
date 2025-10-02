@@ -15,7 +15,6 @@ const AdminContent = () => {
   useEffect(() => {
     // Si paramètre auth=auto, accorder l'accès automatiquement
     if (autoAuth === 'auto') {
-      console.log('🔑 Auto-authentification détectée - Accès accordé sans formulaire');
       setAutoAuthGranted(true);
       
       // Retirer le paramètre auth de l'URL SANS redéclencher le useEffect
@@ -24,7 +23,6 @@ const AdminContent = () => {
     // Si pas d'auto-auth ET pas déjà accordé, nettoyer
     else if (!autoAuth && !autoAuthGranted) {
       localStorage.removeItem('herbbie_admin_session');
-      console.log('🧹 Accès direct - Authentification requise');
     }
   }, [autoAuth]);
 
@@ -33,7 +31,6 @@ const AdminContent = () => {
     const handleBeforeUnload = () => {
       setAutoAuthGranted(false);
       localStorage.removeItem('herbbie_admin_session');
-      console.log('🧹 Session nettoyée (fermeture de page)');
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);

@@ -13,7 +13,6 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
 
     // Écouter les changements de fonctionnalités depuis le panneau
     const cleanup = listenForFeatureChanges(async (features) => {
-      console.log('🔄 ContentTypeSelector: Fonctionnalités mises à jour:', features);
       
       // Filtrer les fonctionnalités activées
       const enabled = Object.entries(features)
@@ -30,7 +29,6 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
       if (!enabled[contentType]) {
         const firstEnabled = Object.keys(enabled).find(key => enabled[key].enabled);
         if (firstEnabled) {
-          console.log(`🔄 Basculement de ${contentType} vers ${firstEnabled}`);
           setContentType(firstEnabled);
         }
       }

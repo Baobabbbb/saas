@@ -64,7 +64,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
 
         const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
         setIsAdminUser(isAdmin);
-        console.log(`👑 Vérification admin pour ${user.email}: ${isAdmin ? 'OUI' : 'NON'} (rôle: ${profile?.role})`);
       } catch (error) {
         console.error('Erreur lors de la vérification du rôle:', error);
         setIsAdminUser(false);
@@ -86,8 +85,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
     setIsAuthenticating(true);
     
     try {
-      console.log('🔐 HERBBIE: Tentative de connexion Supabase avec:', email);
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password.trim(),
@@ -102,7 +99,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       }
 
       if (data?.user) {
-        console.log('✅ HERBBIE: Connexion Supabase réussie:', data.user.email);
         
         // Fermer les formulaires
         setShowLoginForm(false);
@@ -130,7 +126,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
     setIsAuthenticating(true);
     
     try {
-      console.log('📝 HERBBIE: Tentative d\'inscription Supabase avec:', email);
       
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
@@ -153,7 +148,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       }
 
       if (data?.user) {
-        console.log('✅ HERBBIE: Inscription Supabase réussie:', data.user.email);
         
         // Vérifier si l'email nécessite une confirmation
         if (!data.session) {
@@ -183,8 +177,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
 
   const handleSignOut = async () => {
     try {
-      console.log('🚪 HERBBIE: Déconnexion Supabase...');
-      
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -192,8 +184,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
         setError('Erreur lors de la déconnexion');
         return;
       }
-      
-      console.log('✅ HERBBIE: Déconnexion réussie');
       
       // Nettoyer les états locaux
       setShowDropdown(false);
