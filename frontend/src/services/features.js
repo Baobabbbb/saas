@@ -20,7 +20,6 @@ const loadFeaturesFromStorage = () => {
     let stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      console.log('📋 Fonctionnalités chargées depuis le localStorage (clé principale):', parsed);
       return parsed;
     }
 
@@ -28,14 +27,11 @@ const loadFeaturesFromStorage = () => {
     stored = localStorage.getItem(SHARED_STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      console.log('📋 Fonctionnalités chargées depuis le localStorage (clé partagée):', parsed);
 
       // Sauvegarder dans la clé principale pour la prochaine fois
       localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
       return parsed;
     }
-
-    console.log('📋 Aucune configuration trouvée dans le localStorage');
   } catch (error) {
     console.warn('Erreur lors du chargement des fonctionnalités depuis le localStorage:', error);
   }
@@ -52,7 +48,6 @@ export const getFeatures = async () => {
     }
 
     // Fallback vers les valeurs par défaut
-    console.log('📋 Aucune configuration trouvée, utilisation des valeurs par défaut');
     return DEFAULT_FEATURES;
   } catch (error) {
     console.warn('Erreur lors de la récupération des fonctionnalités:', error);
@@ -96,7 +91,6 @@ export const getAllFeatures = async () => {
 export const saveFeatures = (features) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(features));
-    console.log('💾 Fonctionnalités sauvegardées dans localStorage');
     return true;
   } catch (error) {
     console.error('Erreur lors de la sauvegarde des fonctionnalités:', error);
@@ -126,13 +120,11 @@ export const updateFeature = (featureKey, enabled) => {
 
 // Fonction pour rafraîchir les fonctionnalités
 export const refreshFeatures = async () => {
-  console.log('🔄 Rafraîchissement des fonctionnalités...');
   return await getFeatures();
 };
 
 // Fonction pour synchroniser manuellement les fonctionnalités
 export const syncFeatures = async () => {
-  console.log('🔄 Tentative de synchronisation...');
   return await getFeatures();
 };
 
@@ -143,7 +135,6 @@ export const listenForFeatureChanges = (callback) => {
     if ((event.key === STORAGE_KEY || event.key === SHARED_STORAGE_KEY) && event.newValue) {
       try {
         const newFeatures = JSON.parse(event.newValue);
-        console.log('🔄 Changements détectés dans localStorage:', event.key, newFeatures);
 
         // Sauvegarder dans la clé principale si c'est la clé partagée
         if (event.key === SHARED_STORAGE_KEY) {
@@ -161,8 +152,6 @@ export const listenForFeatureChanges = (callback) => {
 
   const handleCustomEvent = (event) => {
     if (event.detail) {
-      console.log('🔄 Événement personnalisé reçu:', event.detail);
-
       if (callback && typeof callback === 'function') {
         callback(event.detail);
       }
@@ -173,7 +162,6 @@ export const listenForFeatureChanges = (callback) => {
   const checkForChanges = () => {
     const storedFeatures = loadFeaturesFromStorage();
     if (storedFeatures) {
-      console.log('🔄 Vérification périodique des fonctionnalités');
       if (callback && typeof callback === 'function') {
         callback(storedFeatures);
       }

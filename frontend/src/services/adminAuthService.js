@@ -70,7 +70,6 @@ export const authService = {
       // Stocker la session
       this.storeSession({ user, isAdmin: true, session });
 
-      console.log('✅ Connexion admin réussie:', email);
       return { user, session, isAdmin: true };
     } catch (error) {
       console.error('Erreur de connexion:', error);
@@ -83,7 +82,6 @@ export const authService = {
     try {
       // Supprimer la session stockée
       localStorage.removeItem(SESSION_KEY);
-      console.log('✅ Déconnexion réussie');
     } catch (error) {
       console.error('Erreur de déconnexion:', error);
       throw error;
@@ -114,12 +112,6 @@ export const authService = {
       // Vérifier si l'email est dans la liste des admins
       const isAdmin = ADMIN_EMAILS.includes(user.email);
       
-      if (isAdmin) {
-        console.log(`👑 Utilisateur ${user.email} - Rôle: admin - Admin: true`);
-      } else {
-        console.log(`👤 Utilisateur ${user.email} - Rôle: user - Admin: false`);
-      }
-      
       return isAdmin;
     } catch (error) {
       console.error('Erreur lors de la vérification du rôle admin:', error);
@@ -130,7 +122,6 @@ export const authService = {
   // Authentification automatique via token URL (version simplifiée)
   async authenticateWithToken(token) {
     try {
-      console.log('🔑 Authentification automatique avec token');
       
       // Vérifier si le token est valide (version simplifiée)
       if (!token || !token.includes('admin')) {
@@ -157,7 +148,6 @@ export const authService = {
       // Stocker la session
       this.storeSession({ user, isAdmin: true, session });
 
-      console.log('✅ Authentification automatique réussie:', user.email);
       return { user, isAdmin: true, session };
     } catch (error) {
       console.error('Erreur authentification automatique:', error);
