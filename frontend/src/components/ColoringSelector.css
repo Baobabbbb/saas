@@ -149,3 +149,170 @@
 .custom-input::placeholder {
   color: #999;
 }
+
+/* Styles pour l'upload de photos */
+.photo-upload-option {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.photo-upload-option .theme-icon {
+  font-size: 2.5rem;
+}
+
+.photo-upload-option .theme-info h4,
+.photo-upload-option .theme-info p {
+  color: white;
+}
+
+.photo-upload-option:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.photo-upload-option.selected {
+  border-color: white;
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+}
+
+.photo-upload-container {
+  background: #f8f9fa;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.upload-section {
+  text-align: center;
+}
+
+.upload-section h4 {
+  margin: 0 0 0.5rem 0;
+  color: #4a3b8c;
+  font-size: 1.1rem;
+}
+
+.upload-hint {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0 0 1.5rem 0;
+}
+
+.upload-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+}
+
+.upload-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.upload-icon {
+  font-size: 1.5rem;
+}
+
+.photo-preview-container {
+  position: relative;
+  display: inline-block;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.photo-preview {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: block;
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 0, 0, 0.8);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
+  font-weight: bold;
+}
+
+.remove-photo-btn:hover {
+  background: rgba(255, 0, 0, 1);
+  transform: scale(1.1);
+}
+
+.style-selector {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.style-selector h4 {
+  margin: 0 0 1rem 0;
+  text-align: center;
+  color: #4a3b8c;
+}
+
+.style-options {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.style-btn {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #4a3b8c;
+}
+
+.style-btn:hover {
+  border-color: #6B4EFF;
+  background: #f5f0ff;
+}
+
+.style-btn.selected {
+  border-color: #6B4EFF;
+  background: #6B4EFF;
+  color: white;
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.3);
+}
+
+.style-description {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+  padding: 0.5rem;
+  background: rgba(107, 78, 255, 0.05);
+  border-radius: 8px;
+}

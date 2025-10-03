@@ -26,7 +26,7 @@ from datetime import datetime
 # from services.stt import transcribe_audio
 
 # Authentification gérée par Supabase - modules supprimés car inutiles avec Vercel
-from services.coloring_generator import ColoringGenerator
+from services.coloring_generator_sd3_controlnet import ColoringGeneratorSD3ControlNet
 from services.comic_generator import ComicGenerator
 from services.real_animation_generator import RealAnimationGenerator
 from services.local_animation_generator import LocalAnimationGenerator
@@ -458,18 +458,18 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
 # --- Coloriage ---
 # Ancien modèle remplacé par ValidatedColoringRequest dans validators.py
 
-# Instance globale du générateur de coloriage
-coloring_generator_instance = ColoringGenerator()
+# Instance globale du générateur de coloriage (SD3 + ControlNet)
+coloring_generator_instance = ColoringGeneratorSD3ControlNet()
 
 @app.post("/generate_coloring/")
 async def generate_coloring(request: dict):
     """
-    Génère un coloriage basé sur un thème
+    Génère un coloriage basé sur un thème avec Stable Diffusion 3
     """
     try:
         # Validation des données d'entrée
         theme = request.get("theme", "animaux")
-        print(f"🎨 Génération coloriage: {theme}")
+        print(f"🎨 Génération coloriage SD3: {theme}")
         
         # Vérifier la clé API Stability AI
         stability_key = os.getenv("STABILITY_API_KEY")
@@ -479,16 +479,17 @@ async def generate_coloring(request: dict):
                 detail="❌ Clé API Stability AI non configurée. Veuillez configurer STABILITY_API_KEY dans le fichier .env"
             )
         
-        # Générer le coloriage
-        result = await coloring_generator_instance.generate_coloring_pages(theme)
+        # Générer le coloriage avec SD3
+        result = await coloring_generator_instance.generate_coloring_from_theme(theme)
         
-        if result.get("success") == True:  # Le service retourne "success" au lieu de "status"
+        if result.get("success") == True:
             return {
                 "status": "success",
                 "theme": theme,
                 "images": result.get("images", []),
-                "message": "Coloriage généré avec succès !",
-                "type": "coloring"
+                "message": "Coloriage généré avec succès avec Stable Diffusion 3 !",
+                "type": "coloring",
+                "model": "sd3-medium"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la génération du coloriage")
@@ -502,6 +503,114 @@ async def generate_coloring(request: dict):
     except Exception as e:
         print(f"❌ Erreur génération coloriage: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
+
+
+@app.post("/upload_photo_for_coloring/")
+async def upload_photo_for_coloring(file: UploadFile = File(...)):
+    """
+    Upload une photo pour la convertir en coloriage
+    """
+    try:
+        print(f"📸 Upload photo pour coloriage: {file.filename}")
+        
+        # Vérifier le type de fichier
+        allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+        file_ext = Path(file.filename).suffix.lower()
+        
+        if file_ext not in allowed_extensions:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Format de fichier non supporté. Formats acceptés: {', '.join(allowed_extensions)}"
+            )
+        
+        # Créer un nom de fichier unique
+        unique_filename = f"upload_{uuid.uuid4().hex[:8]}{file_ext}"
+        upload_path = Path("static/uploads/coloring") / unique_filename
+        upload_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Sauvegarder le fichier
+        with open(upload_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        
+        print(f"✅ Photo sauvegardée: {unique_filename}")
+        
+        return {
+            "status": "success",
+            "message": "Photo uploadée avec succès",
+            "file_path": str(upload_path),
+            "filename": unique_filename,
+            "url": f"http://localhost:8006/static/uploads/coloring/{unique_filename}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur upload photo: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de l'upload : {str(e)}")
+
+
+@app.post("/convert_photo_to_coloring/")
+async def convert_photo_to_coloring(request: dict):
+    """
+    Convertit une photo uploadée en coloriage avec SD3 + ControlNet
+    """
+    try:
+        # Récupérer les paramètres
+        photo_path = request.get("photo_path")
+        control_mode = request.get("control_mode", "canny")  # canny ou scribble
+        control_strength = float(request.get("control_strength", 0.7))  # 0.5-1.0
+        custom_prompt = request.get("custom_prompt")
+        
+        if not photo_path:
+            raise HTTPException(
+                status_code=400,
+                detail="Le chemin de la photo est requis (photo_path)"
+            )
+        
+        print(f"🎨 Conversion photo en coloriage: {photo_path}")
+        print(f"   - Mode ControlNet: {control_mode}")
+        print(f"   - Force: {control_strength}")
+        
+        # Vérifier que le fichier existe
+        if not Path(photo_path).exists():
+            raise HTTPException(
+                status_code=404,
+                detail=f"Photo introuvable: {photo_path}"
+            )
+        
+        # Convertir avec SD3 + ControlNet
+        result = await coloring_generator_instance.generate_coloring_from_photo(
+            photo_path=photo_path,
+            control_mode=control_mode,
+            control_strength=control_strength,
+            custom_prompt=custom_prompt
+        )
+        
+        if result.get("success") == True:
+            return {
+                "status": "success",
+                "images": result.get("images", []),
+                "control_image_url": result.get("control_image_url"),
+                "message": "Photo convertie en coloriage avec succès !",
+                "type": "coloring",
+                "source": "photo",
+                "model": "sd3-controlnet",
+                "control_mode": control_mode,
+                "control_strength": control_strength
+            }
+        else:
+            error_message = result.get("error", "Erreur inconnue lors de la conversion")
+            raise HTTPException(
+                status_code=500,
+                detail=f"❌ La conversion a échoué : {error_message}"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur conversion photo: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la conversion : {str(e)}")
 
 # --- Bandes Dessinées ---
 
