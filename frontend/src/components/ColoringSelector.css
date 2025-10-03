@@ -157,6 +157,13 @@
   border: 2px solid transparent;
 }
 
+/* Règle pour garantir que le contour reste violet même sur les éléments spéciaux */
+.theme-option.selected,
+.photo-upload-option.selected,
+.custom-coloring.selected {
+  border-color: var(--primary) !important;
+}
+
 .photo-upload-option .theme-icon {
   font-size: 2.5rem;
 }
@@ -172,8 +179,8 @@
 }
 
 .photo-upload-option.selected {
-  border-color: white;
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+  border-color: var(--primary);
+  box-shadow: 0 8px 20px rgba(107, 78, 255, 0.6);
 }
 
 .photo-upload-container {
