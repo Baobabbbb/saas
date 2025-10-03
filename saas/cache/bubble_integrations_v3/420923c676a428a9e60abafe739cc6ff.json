@@ -1,0 +1,105 @@
+{
+  "image_path": "static\\generated_comics\\comic_20250718_133803\\page_4_bubble_2_sd3_pro_v1.png",
+  "bubble_integration_status": "sd3_complete_success",
+  "scene_analysis": {
+    "total_bubbles": 2,
+    "bubble_plan": [
+      {
+        "bubble_id": "bubble_1",
+        "speaker": "léo",
+        "text": "Je n'ai jamais vu quelque chose comme ça !",
+        "type": "speech",
+        "emotion": "joie",
+        "speaker_position": "left",
+        "speaker_confidence": "low",
+        "bubble_zone": "upper_center",
+        "bubble_area": "top center area above the main action",
+        "placement_coords": {
+          "x": 0.5,
+          "y": 0.12,
+          "safe_zone": true,
+          "priority": 10
+        },
+        "priority": 21,
+        "art_style": "vibrant cartoon comic book style with bright colors",
+        "emotion_style": {
+          "color": "#FFF9E6",
+          "outline": "#FFD700",
+          "description": "Bright, cheerful bubble with warm yellow tint and smooth rounded edges",
+          "shape": "rounded"
+        }
+      },
+      {
+        "bubble_id": "bubble_2",
+        "speaker": "léo",
+        "text": "Je me sens plus fort qu'avant !",
+        "type": "thought",
+        "emotion": "joie",
+        "speaker_position": "background",
+        "speaker_confidence": "low",
+        "bubble_zone": "upper_right",
+        "bubble_area": "upper right corner of the image",
+        "placement_coords": {
+          "x": 0.88,
+          "y": 0.12,
+          "safe_zone": true,
+          "priority": 9
+        },
+        "priority": 17,
+        "art_style": "vibrant cartoon comic book style with bright colors",
+        "emotion_style": {
+          "color": "#FFF9E6",
+          "outline": "#FFD700",
+          "description": "Bright, cheerful bubble with warm yellow tint and smooth rounded edges",
+          "shape": "rounded"
+        }
+      }
+    ],
+    "character_positions": {},
+    "art_style": "vibrant cartoon comic book style with bright colors",
+    "emotion_context": {
+      "emotions": [
+        "joie",
+        "joie"
+      ],
+      "dominant_emotion": "joie",
+      "emotion_diversity": 1,
+      "total_dialogues": 2
+    },
+    "scene_description": "Scène d'aventure avec Léo dans un environnement cartoon",
+    "zones_used": [
+      "upper_right",
+      "upper_center"
+    ],
+    "complexity_score": 0.45233333333333337,
+    "recommended_processing": "sd3"
+  },
+  "integration_details": {
+    "status": "sd3_complete_success",
+    "method": "hybrid",
+    "sd3_successes": 2,
+    "pil_fallbacks": 0,
+    "total_bubbles": 2,
+    "processing_details": [
+      {
+        "bubble_id": "bubble_1",
+        "speaker": "léo",
+        "method": "sd3",
+        "success": true,
+        "processing_time": 9.092286,
+        "emotion": "joie"
+      },
+      {
+        "bubble_id": "bubble_2",
+        "speaker": "léo",
+        "method": "sd3",
+        "success": true,
+        "processing_time": 10.251816,
+        "emotion": "joie"
+      }
+    ],
+    "final_image_path": "static\\generated_comics\\comic_20250718_133803\\page_4_bubble_2_sd3_pro_v1.png"
+  },
+  "cached_at": "2025-07-18T13:39:28.043795",
+  "cache_version": "3.0"
+}

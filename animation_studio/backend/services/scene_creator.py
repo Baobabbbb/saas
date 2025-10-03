@@ -12,66 +12,67 @@ class SceneCreator:
         self.client = AsyncOpenAI(api_key=config.OPENAI_API_KEY)
     
     def calculate_scene_distribution(self, total_duration: int) -> List[int]:
-        """Calcule la distribution optimale des scènes selon la durée totale"""
-        if total_duration <= 30:
-            # 3 scènes pour les courtes durées
-            return [total_duration // 3] * 3
-        elif total_duration <= 60:
-            # 4 scènes pour 1 minute
-            base_duration = total_duration // 4
-            return [base_duration] * 4
-        elif total_duration <= 120:
-            # 5 scènes pour 2 minutes
-            base_duration = total_duration // 5
-            return [base_duration] * 5
-        else:
-            # 6-8 scènes pour les plus longues durées
-            num_scenes = min(8, max(6, total_duration // 30))
-            base_duration = total_duration // num_scenes
-            return [base_duration] * num_scenes
+        """
+        Calcule la distribution optimale des scènes pour Wan 2.5
+        Wan 2.5 limite: clips de 5s ou 10s uniquement
+        """
+        return config.get_clip_durations(total_duration)
 
     def create_scene_system_prompt(self) -> str:
-        """Prompt système pour la génération de scènes inspiré de zseedance.json"""
-        return f"""✅ Générateur de Scènes Cinématographiques pour Dessins Animés Enfants
+        """Prompt système optimisé pour Wan 2.5 avec cohérence narrative"""
+        return f"""✅ Générateur de Scènes pour Dessins Animés Wan 2.5 (Alibaba)
 
-Rôle: Tu es un générateur de prompts cinématographiques qui produit des scènes ultra-réalistes pour dessins animés, conçues pour la génération vidéo haute définition.
+Rôle: Tu es un scénariste expert en animations pour enfants qui crée des scènes cohérentes et narratives pour Wan 2.5, le modèle de génération vidéo d'Alibaba.
 
-ÉLÉMENTS OBLIGATOIRES (pour chaque scène):
-- Décrire l'action/mouvement principal en cours
-- Inclure des détails visuels spécifiques et colorés
-- Utiliser des termes cinématographiques techniques (plan rapproché, travelling, zoom)
-- Optimisé pour le style: {config.CARTOON_STYLE}
-- Personnages en mouvement constant, jamais statiques
-- Environnement interactif avec effets visuels
+🎯 OBJECTIF PRINCIPAL: COHÉRENCE NARRATIVE
+- Chaque scène doit s'enchaîner naturellement avec la précédente
+- Les personnages doivent être reconnaissables d'une scène à l'autre
+- L'environnement doit rester cohérent tout au long de l'histoire
+- L'histoire doit avoir un début, un milieu et une fin clairs
 
-STYLE VISUEL:
-- Toujours décrire comme une vraie prise, capturée par un équipement cinématographique professionnel
-- Utiliser des termes visuels cinématographiques (panoramique lent, plan moyen, dolly aérien, zoom arrière)
-- Éviter le langage poétique ou métaphorique. Utiliser uniquement le réalisme visuel et scientifique
-- Explorer différentes phases: approche, arrivée, interaction, réaction de l'environnement, révélation
+🎨 STYLE WAN 2.5 OPTIMISÉ:
+- Style: {config.WAN25_PROMPT_STYLE}
+- Format: clips de 10 secondes maximum
+- Audio: intégré automatiquement (lip-sync et effets sonores)
+- Résolution: HD 720p/1080p
+- Public: enfants de 3-8 ans
 
-EXIGENCES TECHNIQUES:
-- Chaque scène doit avoir une action claire et spécifique
-- Décrire les mouvements de caméra et les angles
-- Inclure les interactions avec l'environnement
-- Style cohérent: animation 2D colorée, style Disney/cartoon
-- Éviter les répétitions entre les scènes
+📝 ÉLÉMENTS OBLIGATOIRES PAR SCÈNE:
+1. PERSONNAGES: Décrire clairement les personnages (apparence, vêtements, expressions)
+2. ACTION: Mouvement ou action précise en cours
+3. ENVIRONNEMENT: Décor détaillé et cohérent
+4. CAMÉRA: Angle et mouvement cinématographique
+5. ÉMOTION: État émotionnel des personnages
+6. CONTINUITÉ: Référence à la scène précédente pour enchaînement fluide
 
-PROBLÈMES À ÉVITER:
-- Pas de descriptions statiques ou d'images fixes
-- Ne pas réutiliser les mêmes mouvements à travers les scènes
-- Les personnages ne doivent jamais être inactifs - toujours faire quelque chose de cinématographique
-- Ne pas se contenter de décrire des jeux de lumière. Inclure des phénomènes tactiles et interactifs
+🎬 STRUCTURE NARRATIVE (adaptée à la durée):
+- DÉBUT (1-2 premières scènes): Introduction du personnage et du contexte
+- MILIEU (scènes centrales): Développement de l'action, problème ou découverte
+- FIN (2 dernières scènes): Résolution positive et conclusion satisfaisante
+
+🚫 À ÉVITER ABSOLUMENT:
+- Personnages qui changent d'apparence entre les scènes
+- Environnements incohérents (ex: forêt → désert sans transition)
+- Actions statiques ou personnages immobiles
+- Scènes sans lien narratif avec les autres
+- Violence, peur, contenu inapproprié pour enfants
+
+✅ BONNES PRATIQUES WAN 2.5:
+- Utiliser des descriptions visuelles précises
+- Mentionner les couleurs vives et contrastées
+- Décrire les expressions faciales des personnages
+- Inclure des mouvements fluides et naturels
+- Créer des transitions logiques entre scènes
 
 FORMAT DE SORTIE:
 json
 {{
   "Idea": "L'idée principale de l'histoire",
-  "Environment": "L'environnement général",
+  "Environment": "L'environnement général cohérent",
   "Sound": "Description audio globale",
-  "Scene 1": "Description technique de la première scène avec mouvements et actions spécifiques",
-  "Scene 2": "Description technique de la deuxième scène...",
-  "Scene N": "Description de la dernière scène..."
+  "Scene 1": "Description détaillée avec personnages, action, environnement",
+  "Scene 2": "Suite logique avec continuité visuelle et narrative",
+  "Scene N": "Conclusion satisfaisante de l'histoire"
 }}"""
 
     async def create_scenes_from_idea(self, story_idea: StoryIdea, duration: int) -> List[Scene]:
@@ -96,11 +97,19 @@ L'histoire doit être divisée en {num_scenes} scènes cohérentes qui racontent
 - Conclusion satisfaisante (dernières scènes)
 
 Chaque scène doit:
-- Être optimisée pour la génération vidéo SeedANce/Wavespeed
-- Inclure des mouvements et actions spécifiques
-- Utiliser des termes cinématographiques précis
-- Être adaptée aux enfants de 3-8 ans
-- Avoir une progression narrative claire
+- Être optimisée pour Wan 2.5 (Alibaba) avec cohérence visuelle
+- Maintenir les MÊMES personnages reconnaissables tout au long
+- Garder le MÊME environnement cohérent (pas de changements brusques)
+- Inclure mouvements fluides et expressions faciales
+- S'enchaîner naturellement avec la scène précédente
+- Durée: exactement {scene_durations} secondes par scène
+- Public: enfants 3-8 ans, contenu joyeux et positif
+
+IMPORTANT COHÉRENCE:
+- Scene 1: Introduction claire du/des personnage(s) principal(aux) avec description précise
+- Scènes suivantes: RÉUTILISER ces mêmes personnages, ne PAS en créer de nouveaux
+- Environnement: Rester dans le même lieu ou faire des transitions logiques
+- Continuité: Chaque scène continue l'histoire de la précédente
 
 Respecte exactement le format JSON demandé avec Scene 1, Scene 2, etc."""
 
@@ -135,18 +144,25 @@ Respecte exactement le format JSON demandé avec Scene 1, Scene 2, etc."""
                     raw_value = scenes_data[scene_key]
                     description_text = self._coerce_scene_text(raw_value)
 
-                    # Créer le prompt optimisé pour SeedANce
-                    optimized_prompt = self.optimize_prompt_for_seedance(
+                    # Créer le prompt optimisé pour Wan 2.5
+                    optimized_prompt = self.optimize_prompt_for_wan25(
                         description_text,
-                        story_idea.environment,
+                        story_idea,
                         i + 1
                     )
+                    
+                    # Extraire personnages et actions pour la scène
+                    characters, action, environment = self._parse_scene_elements(description_text, story_idea)
                     
                     scene = Scene(
                         scene_number=i + 1,
                         description=description_text,
                         duration=scene_durations[i],
-                        prompt=optimized_prompt
+                        prompt=optimized_prompt,
+                        characters=characters,
+                        action=action,
+                        environment=environment,
+                        audio_description=story_idea.sound
                     )
                     scenes.append(scene)
             
@@ -178,22 +194,50 @@ Respecte exactement le format JSON demandé avec Scene 1, Scene 2, etc."""
         # Types inattendus
         return str(value)
 
-    def optimize_prompt_for_seedance(self, scene_description: str, environment: str, scene_number: int) -> str:
-        """Optimise le prompt pour la génération vidéo SeedANce/Wavespeed"""
+    def optimize_prompt_for_wan25(self, scene_description: str, story_idea: StoryIdea, scene_number: int) -> str:
+        """
+        Optimise le prompt pour Wan 2.5 avec cohérence narrative maximale
+        Format inspiré de zseedance.json mais adapté pour Wan 2.5
+        """
         
-        # Préfixe spécifique au style cartoon pour enfants
-        style_prefix = f"VIDEO THEME: {config.CARTOON_STYLE}, bright colors, child-friendly"
+        # Style Wan 2.5 optimisé
+        style_prefix = f"STYLE: {config.WAN25_PROMPT_STYLE}"
         
-        # Description de la scène optimisée
-        scene_optimized = f"WHAT HAPPENS IN THE VIDEO: {scene_description}"
+        # Thème général pour cohérence
+        theme = f"STORY THEME: {story_idea.idea}"
         
-        # Environnement contextualisé
-        environment_optimized = f"WHERE THE VIDEO IS SHOT: {environment}, animated cartoon style"
+        # Description de la scène avec numéro pour continuité
+        scene_info = f"SCENE {scene_number}: {scene_description}"
         
-        # Assemblage final selon le format du workflow zseedance.json
-        final_prompt = f"{style_prefix} | {scene_optimized} | {environment_optimized}"
+        # Environnement cohérent
+        environment_info = f"ENVIRONMENT: {story_idea.environment}, consistent visual style"
+        
+        # Audio sync hint pour Wan 2.5
+        audio_hint = f"AUDIO: {story_idea.sound}, synchronized sound effects"
+        
+        # Continuité visuelle
+        continuity = "CONTINUITY: maintain same characters and setting from previous scenes"
+        
+        # Assemblage optimisé pour Wan 2.5
+        final_prompt = f"{style_prefix} | {theme} | {scene_info} | {environment_info} | {audio_hint} | {continuity}"
         
         return final_prompt
+    
+    def _parse_scene_elements(self, scene_description: str, story_idea: StoryIdea) -> tuple:
+        """
+        Extrait les éléments clés de la scène pour cohérence
+        Returns: (characters, action, environment)
+        """
+        # Personnages par défaut basés sur l'idée
+        characters = "animated character from the story"
+        
+        # Action extraite de la description
+        action = scene_description[:100] if len(scene_description) > 100 else scene_description
+        
+        # Environnement de l'histoire
+        environment = story_idea.environment
+        
+        return characters, action, environment
 
     def create_fallback_scenes(self, story_idea: StoryIdea, scene_durations: List[int]) -> List[Scene]:
         """Crée des scènes de fallback en cas d'erreur"""
@@ -215,11 +259,15 @@ Respecte exactement le format JSON demandé avec Scene 1, Scene 2, etc."""
                 scene_number=i + 1,
                 description=f"{template} - {story_idea.idea}",
                 duration=duration,
-                prompt=self.optimize_prompt_for_seedance(
+                prompt=self.optimize_prompt_for_wan25(
                     template,
-                    story_idea.environment,
+                    story_idea,
                     i + 1
-                )
+                ),
+                characters="main character",
+                action=template,
+                environment=story_idea.environment,
+                audio_description=story_idea.sound
             )
             scenes.append(scene)
         

@@ -1,0 +1,14 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#FFB6C1"/>
+  <circle cx="150" cy="150" r="25" fill="#FF69B4"/>
+  <circle cx="145" cy="140" r="3" fill="#000"/>
+  <circle cx="155" cy="140" r="3" fill="#000"/>
+  <path d="M 140 155 Q 150 165 160 155" stroke="#000" stroke-width="2" fill="none"/>
+  <circle cx="250" cy="150" r="25" fill="#98FB98"/>
+  <circle cx="245" cy="140" r="3" fill="#000"/>
+  <circle cx="255" cy="140" r="3" fill="#000"/>
+  <path d="M 240 155 Q 250 165 260 155" stroke="#000" stroke-width="2" fill="none"/>
+  <path d="M 175 150 L 225 150" stroke="#FF1493" stroke-width="4"/>
+  <path d="M 200 100 L 190 120 L 210 120 Z" fill="#FFD700"/>
+  <text x="120" y="50" font-family="Arial" font-size="18" fill="#4B0082">Scène 5 - Nouvelle Amitié</text>
+</svg>

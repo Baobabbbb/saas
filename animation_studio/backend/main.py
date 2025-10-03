@@ -59,31 +59,33 @@ pipeline = AnimationPipeline()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Gestion du cycle de vie de l'application"""
+    """Gestion du cycle de vie de l'application (Wan 2.5)"""
     # Startup
-    print("🎬 Animation Studio - Démarrage du serveur...")
+    print("🎬 Animation Studio Wan 2.5 - Démarrage du serveur...")
     
     # Mode rapide par défaut
     print("⚡ Mode démarrage rapide")
     # Validation ultra-rapide des clés
     if config.OPENAI_API_KEY:
-        print("✅ Clé OpenAI détectée")
+        print("✅ Clé OpenAI détectée (génération idées)")
     if config.WAVESPEED_API_KEY:
-        print("✅ Clé Wavespeed détectée")
-    if config.FAL_API_KEY:
-        print("✅ Clé FAL AI détectée")
+        print(f"✅ Clé Wavespeed détectée (Wan 2.5: {config.WAN25_MODEL})")
+    
+    print(f"🎨 Résolution par défaut: {config.WAN25_DEFAULT_RESOLUTION}")
+    print(f"🎵 Audio intégré: {config.WAN25_AUDIO_INTEGRATED}")
+    print("🚀 Prêt pour génération Wan 2.5!")
     
     yield
     
     # Shutdown
-    print("🛑 Arrêt du serveur...")
+    print("🛑 Arrêt du serveur Wan 2.5...")
     pipeline.cleanup_old_animations()
 
 # Création de l'app FastAPI
 app = FastAPI(
-    title="Animation Studio API",
-    description="API de génération de dessins animés pour enfants basée sur l'IA",
-    version="1.0.0",
+    title="Animation Studio API (Wan 2.5)",
+    description="API de génération de dessins animés pour enfants avec Wan 2.5 (Alibaba) - Audio intégré",
+    version="2.0.0-wan25",
     lifespan=lifespan
 )
 
@@ -116,19 +118,19 @@ async def root():
 
 @app.get("/diagnostic", response_model=DiagnosticResponse)
 async def diagnostic():
-    """Diagnostic complet de l'état des APIs et services"""
+    """Diagnostic complet de l'état des APIs et services (Wan 2.5)"""
     try:
         health = await pipeline.validate_pipeline_health()
         
         return DiagnosticResponse(
             openai_configured=bool(config.OPENAI_API_KEY),
             wavespeed_configured=bool(config.WAVESPEED_API_KEY),
-            fal_configured=bool(config.FAL_API_KEY),
+            wan25_model=config.WAN25_MODEL,
             all_systems_operational=health["pipeline_operational"],
             details=health
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur diagnostic: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur diagnostic Wan 2.5: {str(e)}")
 
 @app.get("/themes")
 async def get_themes():

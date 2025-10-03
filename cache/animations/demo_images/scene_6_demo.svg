@@ -1,0 +1,12 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="150" fill="#87CEEB"/>
+  <rect width="400" height="150" y="150" fill="#32CD32"/>
+  <polygon points="50,200 100,120 150,200" fill="#696969"/>
+  <polygon points="200,180 280,100 360,180" fill="#2F4F4F"/>
+  <circle cx="200" cy="220" r="15" fill="#FF4500"/>
+  <rect x="190" y="235" width="20" height="15" fill="#8B4513"/>
+  <rect x="185" y="250" width="10" height="20" fill="#8B4513"/>
+  <rect x="205" y="250" width="10" height="20" fill="#8B4513"/>
+  <path d="M 100 50 Q 150 30 200 50 T 300 50" stroke="#FFD700" stroke-width="5" fill="none"/>
+  <text x="80" y="30" font-family="Arial" font-size="16" fill="#000">Scène 6 - Le Grand Défi</text>
+</svg>

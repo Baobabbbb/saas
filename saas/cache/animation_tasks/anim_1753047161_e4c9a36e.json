@@ -1,0 +1,63 @@
+{
+  "id": "anim_1753047161_e4c9a36e",
+  "status": "completed",
+  "progress": 100,
+  "current_step": "✅ Animation créée avec succès !",
+  "story": "Test rapide",
+  "style_preferences": {
+    "duration": 10,
+    "style": "cartoon"
+  },
+  "created_at": "2025-07-20T23:32:41.178725",
+  "started_at": "2025-07-20T23:32:42.464309",
+  "completed_at": "2025-07-20T23:42:05.384558",
+  "result": {
+    "status": "success",
+    "animation_id": "seedance_1753047162",
+    "video_url": "https://v3.fal.media/files/rabbit/2h5Jgbb4oyfpHKwg1vrGM_output.mp4",
+    "video_path": "https://v3.fal.media/files/rabbit/2h5Jgbb4oyfpHKwg1vrGM_output.mp4",
+    "title": "🎬 L'Atelier des Étoiles Magiques #enfants #animation #magie",
+    "scenes_count": 3,
+    "total_duration": 30,
+    "generation_time": 562.9202494621277,
+    "scenes_details": [
+      {
+        "description": "Plan cinématographique 1: Animation colorée et joyeuse pour enfants avec Dans un monde féerique, un petit dragon nommé Flamme découvre un arbre magique qui fait briller les étoiles. En touchant ses feuilles, il libère des étoiles dansantes qui l'entourent et illuminent son aventure. dans Un paysage enchanteur avec un arbre gigantesque aux feuilles scintillantes, des fleurs colorées qui chantent et un ciel rempli d'étoiles lumineuses. Des créatures amicales comme des lucioles et des papillons colorés volent autour, créant une atmosphère joyeuse et interactive., mouvement fluide et effets visuels doux.",
+        "scene_number": 1,
+        "duration": 10,
+        "style": "cinematic children animation"
+      },
+      {
+        "description": "Plan cinématographique 2: Animation colorée et joyeuse pour enfants avec Dans un monde féerique, un petit dragon nommé Flamme découvre un arbre magique qui fait briller les étoiles. En touchant ses feuilles, il libère des étoiles dansantes qui l'entourent et illuminent son aventure. dans Un paysage enchanteur avec un arbre gigantesque aux feuilles scintillantes, des fleurs colorées qui chantent et un ciel rempli d'étoiles lumineuses. Des créatures amicales comme des lucioles et des papillons colorés volent autour, créant une atmosphère joyeuse et interactive., mouvement fluide et effets visuels doux.",
+        "scene_number": 2,
+        "duration": 10,
+        "style": "cinematic children animation"
+      },
+      {
+        "description": "Plan cinématographique 3: Animation colorée et joyeuse pour enfants avec Dans un monde féerique, un petit dragon nommé Flamme découvre un arbre magique qui fait briller les étoiles. En touchant ses feuilles, il libère des étoiles dansantes qui l'entourent et illuminent son aventure. dans Un paysage enchanteur avec un arbre gigantesque aux feuilles scintillantes, des fleurs colorées qui chantent et un ciel rempli d'étoiles lumineuses. Des créatures amicales comme des lucioles et des papillons colorés volent autour, créant une atmosphère joyeuse et interactive., mouvement fluide et effets visuels doux.",
+        "scene_number": 3,
+        "duration": 10,
+        "style": "cinematic children animation"
+      }
+    ],
+    "idea_data": {
+      "Caption": "🎬 L'Atelier des Étoiles Magiques #enfants #animation #magie",
+      "Idea": "Dans un monde féerique, un petit dragon nommé Flamme découvre un arbre magique qui fait briller les étoiles. En touchant ses feuilles, il libère des étoiles dansantes qui l'entourent et illuminent son aventure.",
+      "Environment": "Un paysage enchanteur avec un arbre gigantesque aux feuilles scintillantes, des fleurs colorées qui chantent et un ciel rempli d'étoiles lumineuses. Des créatures amicales comme des lucioles et des papillons colorés volent autour, créant une atmosphère joyeuse et interactive.",
+      "Sound": "Des mélodies douces de flûte et de harpe, accompagnées de sons de clochettes légères et de rires d'enfants, apportant une ambiance magique et joyeuse.",
+      "Status": "for production"
+    },
+    "audio_url": "https://v3.fal.media/files/panda/0yED0y5BSPeNZAYdw2P8X_1.mp4",
+    "timestamp": "2025-07-20T23:42:05.384558",
+    "pipeline_type": "seedance_wavespeed_fal"
+  },
+  "error": null,
+  "steps": [
+    "🧠 Génération de l'idée créative",
+    "📝 Création des scènes",
+    "🎥 Génération des clips vidéo",
+    "🔊 Ajout de l'audio",
+    "🎬 Assemblage final"
+  ],
+  "updated_at": "2025-07-20T23:41:04.622537"
+}

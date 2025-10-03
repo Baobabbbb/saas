@@ -10,22 +10,27 @@ from models.schemas import (
 )
 from .idea_generator import IdeaGenerator
 from .scene_creator import SceneCreator
-from .video_generator import VideoGenerator
-from .audio_generator import AudioGenerator
+from .wan25_generator import Wan25Generator
 from .video_assembler import VideoAssembler
 
 class AnimationPipeline:
-    """Pipeline principal de génération de dessins animés (inspiré de zseedance.json)"""
+    """
+    Pipeline 100% Wan 2.5 pour génération de dessins animés
+    Basé sur zseedance.json mais adapté pour Wan 2.5 (Alibaba)
+    Audio intégré automatiquement - pas besoin de génération séparée
+    """
     
     def __init__(self):
         self.idea_generator = IdeaGenerator()
         self.scene_creator = SceneCreator()
-        self.video_generator = VideoGenerator()
-        self.audio_generator = AudioGenerator()
+        self.wan25_generator = Wan25Generator()  # Remplace VideoGenerator
         self.video_assembler = VideoAssembler()
+        # Plus besoin d'AudioGenerator - audio intégré dans Wan 2.5
         
         # Cache pour suivre les animations en cours
         self.active_animations: Dict[str, AnimationResult] = {}
+        
+        print("🎬 Pipeline Wan 2.5 initialisé (audio intégré)")
     
     async def generate_animation(
         self,
@@ -33,7 +38,17 @@ class AnimationPipeline:
         progress_callback: Optional[Callable[[AnimationProgress], None]] = None,
         forced_animation_id: Optional[str] = None,
     ) -> AnimationResult:
-        """Génère un dessin animé complet selon le workflow zseedance.json"""
+        """
+        Génère un dessin animé complet avec Wan 2.5
+        
+        Workflow inspiré de zseedance.json mais adapté:
+        1. Ideas AI Agent (OpenAI) → Génération idée
+        2. Prompts AI Agent (OpenAI) → Création scènes cohérentes
+        3. Wan 2.5 Generation → Clips vidéo avec audio intégré
+        4. Video Assembly → Assemblage final simple
+        
+        Note: Pas besoin d'audio séparé - Wan 2.5 l'intègre automatiquement
+        """
         
         # Initialiser le résultat
         animation_id = forced_animation_id or str(uuid.uuid4())
@@ -67,56 +82,51 @@ class AnimationPipeline:
             scenes = await self.scene_creator.create_scenes_from_idea(story_idea, request.duration)
             result.scenes = scenes
             
-            # Étape 3: Génération des clips vidéo (équivalent "Create Clips" -> "Get Clips" dans n8n)
+            # Étape 3: Génération des clips Wan 2.5 avec audio intégré
             await self._update_progress(animation_id, AnimationStatus.GENERATING_CLIPS, 40,
-                                      "Génération des clips vidéo...", progress_callback)
+                                      f"Génération de {len(scenes)} clips Wan 2.5 avec audio intégré...", 
+                                      progress_callback)
             
-            video_clips = await self.video_generator.generate_all_clips(scenes)
+            # Générer tous les clips avec Wan 2.5 (audio inclus automatiquement)
+            video_clips = await self.wan25_generator.generate_all_clips(scenes)
             result.video_clips = video_clips
             
             # Vérifier qu'au moins un clip a été généré avec succès
             valid_clips = [clip for clip in video_clips if clip.status == "completed"]
             if not valid_clips:
-                # Agréger les erreurs pour diagnostic frontend + conseils utiles
+                # Agréger les erreurs pour diagnostic
                 failed_details = "; ".join(
                     [f"scene {c.scene_number}: {c.status}" for c in video_clips if c.status and c.status.startswith("failed")]
                 ) or "aucun détail"
-                hints = "Vérifiez WAVESPEED_API_KEY, WAVESPEED_MODEL et WAVESPEED_BASE_URL; voir logs pour headers/HTTP."
-                result.error_message = f"Aucun clip vidéo n'a pu être généré ({failed_details}). {hints}"
+                hints = "Vérifiez WAVESPEED_API_KEY et la connexion à l'API Wan 2.5"
+                result.error_message = f"Aucun clip Wan 2.5 n'a pu être généré ({failed_details}). {hints}"
                 raise Exception(result.error_message)
             
-            # Étape 4: Génération audio (équivalent "Create Sounds" -> "Get Sounds" dans n8n)
-            await self._update_progress(animation_id, AnimationStatus.GENERATING_AUDIO, 70,
-                                      "Génération des effets sonores...", progress_callback)
+            print(f"✅ {len(valid_clips)}/{len(scenes)} clips Wan 2.5 générés avec succès (audio inclus)")
             
-            try:
-                audio_track = await self.audio_generator.generate_audio_for_video(
-                    story_idea, video_clips, request.duration
-                )
-                result.audio_track = audio_track
-            except Exception as e:
-                # Audio optionnel - continuer sans audio en cas d'échec
-                print(f"Avertissement: Échec génération audio: {e}")
-                result.audio_track = None
+            # Note: Pas d'étape audio séparée - Wan 2.5 l'intègre automatiquement
             
-            # Étape 5: Assemblage final (équivalent "Sequence Video" -> "Get Final Video" dans n8n)
+            # Étape 4: Assemblage final simplifié (clips Wan 2.5 déjà complets avec audio)
             await self._update_progress(animation_id, AnimationStatus.ASSEMBLING_VIDEO, 85,
                                       "Assemblage de la vidéo finale...", progress_callback)
             
             try:
-                final_video_url = await self.video_assembler.assemble_final_video(
-                    video_clips, result.audio_track
+                # Assemblage simple - clips Wan 2.5 ont déjà l'audio intégré
+                final_video_url = await self.video_assembler.assemble_wan25_clips(
+                    valid_clips, request.duration
                 )
             except Exception as e:
-                # Fallback: créer une séquence simple sans audio
+                # Fallback: créer une séquence simple des clips
                 print(f"Échec assemblage complet, essai séquence simple: {e}")
-                final_video_url = await self.video_assembler.create_simple_sequence(video_clips)
+                final_video_url = await self.video_assembler.create_simple_wan25_sequence(valid_clips)
             
             if not final_video_url:
                 # Dernière solution: retourner le premier clip valide
+                print("⚠️ Assemblage impossible, retour du premier clip")
                 final_video_url = next((clip.video_url for clip in valid_clips), "")
             
             result.final_video_url = final_video_url
+            result.audio_track = None  # Pas d'audio séparé avec Wan 2.5
             
             # Finalisation
             processing_time = time.time() - start_time
@@ -206,16 +216,19 @@ class AnimationPipeline:
         return self.active_animations.get(animation_id)
 
     def estimate_total_generation_time(self) -> int:
-        """Estime le temps total de génération en secondes"""
+        """
+        Estime le temps total de génération en secondes (Wan 2.5)
         
-        # Basé sur l'expérience du workflow zseedance.json
+        Wan 2.5 est plus rapide que Seedance et inclut l'audio
+        """
+        
         idea_time = 30          # Génération d'idée: 30s
         scenes_time = 45        # Création scènes: 45s
-        video_time = 300        # Génération vidéo: 5 minutes (le plus long)
-        audio_time = 90         # Génération audio: 1.5 minutes
-        assembly_time = 120     # Assemblage: 2 minutes
+        video_time = 240        # Génération Wan 2.5: 4 minutes (plus rapide que Seedance)
+        # Plus d'audio séparé - intégré dans Wan 2.5
+        assembly_time = 60      # Assemblage simple: 1 minute
         
-        return idea_time + scenes_time + video_time + audio_time + assembly_time
+        return idea_time + scenes_time + video_time + assembly_time  # ~6 minutes total
 
     async def validate_pipeline_health(self) -> Dict[str, Any]:
         """Valide que tous les services du pipeline sont opérationnels"""
@@ -226,32 +239,37 @@ class AnimationPipeline:
             "estimated_generation_time": self.estimate_total_generation_time()
         }
         
-        # Tester OpenAI (vérification de clé seulement, pas d'appel API)
+        # Tester OpenAI (génération idées)
         try:
-            # Vérification rapide des clés sans appel API
             if config.OPENAI_API_KEY and config.OPENAI_API_KEY.startswith("sk-"):
-                health_check["services"]["idea_generator"] = {"status": "configured", "test": "key_valid"}
+                health_check["services"]["idea_generator"] = {"status": "configured", "model": config.TEXT_MODEL}
             else:
                 raise ValueError("Clé OpenAI invalide ou manquante")
         except Exception as e:
             health_check["services"]["idea_generator"] = {"status": "failed", "error": str(e)}
             health_check["pipeline_operational"] = False
         
-        # Tester Wavespeed (génération vidéo)
-        health_check["services"]["video_generator"] = {
-            "status": "configured" if config.WAVESPEED_API_KEY else "missing_api_key",
-            "model": config.WAVESPEED_MODEL
-        }
+        # Tester Wan 2.5 (génération vidéo avec audio intégré)
+        try:
+            if config.WAVESPEED_API_KEY:
+                health_check["services"]["wan25_generator"] = {
+                    "status": "configured",
+                    "model": config.WAN25_MODEL,
+                    "max_duration": config.WAN25_MAX_DURATION,
+                    "resolution": config.WAN25_DEFAULT_RESOLUTION,
+                    "audio_integrated": True
+                }
+            else:
+                raise ValueError("Clé Wavespeed manquante")
+        except Exception as e:
+            health_check["services"]["wan25_generator"] = {"status": "failed", "error": str(e)}
+            health_check["pipeline_operational"] = False
         
-        # Tester FAL AI (audio et assemblage)
-        health_check["services"]["audio_generator"] = {
-            "status": "configured" if config.FAL_API_KEY else "missing_api_key",
-            "model": config.FAL_AUDIO_MODEL
-        }
-        
+        # Tester Video Assembler (assemblage simple pour Wan 2.5)
         health_check["services"]["video_assembler"] = {
-            "status": "configured" if config.FAL_API_KEY else "missing_api_key",
-            "model": config.FAL_FFMPEG_MODEL
+            "status": "ready",
+            "type": "wan25_simple_assembly",
+            "note": "Assemblage simplifié - audio déjà intégré dans clips Wan 2.5"
         }
         
         return health_check

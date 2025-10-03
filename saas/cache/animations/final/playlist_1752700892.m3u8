@@ -1,0 +1,175 @@
+{
+  "clips": [
+    {
+      "scene_number": 1,
+      "scene_id": 1,
+      "video_path": "cache\\animations\\clips\\scene_1_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_1_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_1_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_1_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "A cute little kitten with bright eyes joyfully leaps out of a wooden door into a sunny garden filled with colorful flowers. The atmosphere is magical and inviting, with soft pastel colors and rounded shapes. As the kitten jumps, the camera smoothly pans to follow its movement, capturing the joy and excitement. The animation is fluid and dynamic, creating a friendly and cheerful vibe in this enchanting setting.",
+      "metadata": {
+        "scene_id": 1,
+        "prompt": "A cute little kitten with bright eyes joyfully leaps out of a wooden door into a sunny garden filled with colorful flowers. The atmosphere is magical and inviting, with soft pastel colors and rounded shapes. As the kitten jumps, the camera smoothly pans to follow its movement, capturing the joy and excitement. The animation is fluid and dynamic, creating a friendly and cheerful vibe in this enchanting setting.",
+        "duration": 2,
+        "seed": 12345,
+        "status": "demo_generated",
+        "timestamp": 1752700892.3426163
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 2,
+      "scene_id": 2,
+      "video_path": "cache\\animations\\clips\\scene_2_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_2_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_2_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_2_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "An adorable animated kitten playfully frolicking in lush green grass, making small, joyful leaps. Surrounding it is a vibrant garden filled with colorful flowers, bushes, and trees. The scene is soft and welcoming, with pastel colors and rounded contours. The camera slowly pans around the kitten, capturing its expressive features and the enchanting atmosphere of nature. This 2-second clip exudes a magical, child-friendly ambiance, perfect for a cartoon.",
+      "metadata": {
+        "scene_id": 2,
+        "prompt": "An adorable animated kitten playfully frolicking in lush green grass, making small, joyful leaps. Surrounding it is a vibrant garden filled with colorful flowers, bushes, and trees. The scene is soft and welcoming, with pastel colors and rounded contours. The camera slowly pans around the kitten, capturing its expressive features and the enchanting atmosphere of nature. This 2-second clip exudes a magical, child-friendly ambiance, perfect for a cartoon.",
+        "duration": 2,
+        "seed": 12345,
+        "status": "demo_generated",
+        "timestamp": 1752700892.343668
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 3,
+      "scene_id": 3,
+      "video_path": "cache\\animations\\clips\\scene_3_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_3_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_3_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_3_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "In a vibrant, enchanted garden filled with colorful flowers, a cute, curious kitten spots a fluttering butterfly. The kitten, with exaggerated features expressing excitement, begins to chase the butterfly as it dances around the blooms under a clear blue sky. The animation is fluid and dynamic, capturing the joy of the chase. The camera gently pans and zooms to follow the playful action, enhancing the magical atmosphere. Soft pastel colors create a warm, inviting scene, perfect for children.",
+      "metadata": {
+        "scene_id": 3,
+        "prompt": "In a vibrant, enchanted garden filled with colorful flowers, a cute, curious kitten spots a fluttering butterfly. The kitten, with exaggerated features expressing excitement, begins to chase the butterfly as it dances around the blooms under a clear blue sky. The animation is fluid and dynamic, capturing the joy of the chase. The camera gently pans and zooms to follow the playful action, enhancing the magical atmosphere. Soft pastel colors create a warm, inviting scene, perfect for children.",
+        "duration": 2,
+        "seed": 12345,
+        "status": "demo_generated",
+        "timestamp": 1752700892.3441856
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 4,
+      "scene_id": 4,
+      "video_path": "cache\\animations\\clips\\scene_4_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_4_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_4_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_4_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "A cute, animated kitten gracefully leaps to catch a colorful butterfly in a lush, soft grass area. As the kitten lands, it makes a gentle 'plop' sound, surrounded by vibrant flowers and greenery. The scene is filled with pastel colors, creating a magical atmosphere. The camera pans in slightly to capture the kitten's surprised expression and the fluttering butterfly. The style is child-friendly with rounded edges and exaggerated features, evoking joy and playfulness.",
+      "metadata": {
+        "scene_id": 4,
+        "prompt": "A cute, animated kitten gracefully leaps to catch a colorful butterfly in a lush, soft grass area. As the kitten lands, it makes a gentle 'plop' sound, surrounded by vibrant flowers and greenery. The scene is filled with pastel colors, creating a magical atmosphere. The camera pans in slightly to capture the kitten's surprised expression and the fluttering butterfly. The style is child-friendly with rounded edges and exaggerated features, evoking joy and playfulness.",
+        "duration": 2,
+        "seed": 12345,
+        "status": "demo_generated",
+        "timestamp": 1752700892.3447068
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 5,
+      "scene_id": 5,
+      "video_path": "cache\\animations\\clips\\scene_5_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_5_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_5_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_5_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "An animated, cute kitten named Ravi stands up, energetically shaking his fluffy fur, looking around with wide, expressive eyes. The scene is set in a magical garden, with pastel-colored flowers gently swaying in the breeze. The camera pans smoothly around Ravi, capturing the joyful atmosphere. The colors are soft and welcoming, enhancing the vibrant, child-friendly cartoon style, full of life and detail.",
+      "metadata": {
+        "scene_id": 5,
+        "prompt": "An animated, cute kitten named Ravi stands up, energetically shaking his fluffy fur, looking around with wide, expressive eyes. The scene is set in a magical garden, with pastel-colored flowers gently swaying in the breeze. The camera pans smoothly around Ravi, capturing the joyful atmosphere. The colors are soft and welcoming, enhancing the vibrant, child-friendly cartoon style, full of life and detail.",
+        "duration": 2,
+        "seed": 12345,
+        "status": "demo_generated",
+        "timestamp": 1752700892.3457437
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 6,
+      "scene_id": 6,
+      "video_path": "cache\\animations\\clips\\scene_6_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_6_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_6_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_6_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "In a colorful animated garden, a cute kitten gently crawls behind a small, quick-moving ant on the ground, surrounded by tiny pebbles and leaves. The camera smoothly pans to follow the kitten's playful pursuit, capturing the magic of the moment. The atmosphere is light and joyful, with pastel colors emphasizing the whimsical nature of the scene, creating a child-friendly cartoon vibe with expressive characters and fluid motion.",
+      "metadata": {
+        "scene_id": 6,
+        "prompt": "In a colorful animated garden, a cute kitten gently crawls behind a small, quick-moving ant on the ground, surrounded by tiny pebbles and leaves. The camera smoothly pans to follow the kitten's playful pursuit, capturing the magic of the moment. The atmosphere is light and joyful, with pastel colors emphasizing the whimsical nature of the scene, creating a child-friendly cartoon vibe with expressive characters and fluid motion.",
+        "duration": 2,
+        "seed": 12345,
+        "status": "demo_generated",
+        "timestamp": 1752700892.3462539
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 7,
+      "scene_id": 7,
+      "video_path": "cache\\animations\\clips\\scene_7_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_7_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_7_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_7_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "A cute, animated kitten suddenly discovers a sparkling little stream. The kitten jumps back in surprise, its big eyes wide with wonder. The scene is set in a detailed enchanted garden with soft pastel colors, featuring sunny reflections on the water. The camera gently zooms in on the kitten's expressive face, capturing its joyful surprise. The atmosphere is magical and friendly, inviting young viewers to share in the kitten's delightful moment.",
+      "metadata": {
+        "scene_id": 7,
+        "prompt": "A cute, animated kitten suddenly discovers a sparkling little stream. The kitten jumps back in surprise, its big eyes wide with wonder. The scene is set in a detailed enchanted garden with soft pastel colors, featuring sunny reflections on the water. The camera gently zooms in on the kitten's expressive face, capturing its joyful surprise. The atmosphere is magical and friendly, inviting young viewers to share in the kitten's delightful moment.",
+        "duration": 2,
+        "seed": 12345,
+        "status": "demo_generated",
+        "timestamp": 1752700892.346773
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 8,
+      "scene_id": 8,
+      "video_path": "cache\\animations\\clips\\scene_8_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_8_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_8_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_8_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "An animated scene featuring a cute kitten curiously leaning over to look at its reflection in a shimmering stream surrounded by vibrant flowers and greenery. The kitten gently touches the water with its paw, creating ripples that dance across the surface. The atmosphere is magical and inviting, with soft pastel colors and rounded contours. The camera slowly pans in to capture the kitten's expressive face and the enchanting details of the garden. This joyful moment lasts for 2 seconds.",
+      "metadata": {
+        "scene_id": 8,
+        "prompt": "An animated scene featuring a cute kitten curiously leaning over to look at its reflection in a shimmering stream surrounded by vibrant flowers and greenery. The kitten gently touches the water with its paw, creating ripples that dance across the surface. The atmosphere is magical and inviting, with soft pastel colors and rounded contours. The camera slowly pans in to capture the kitten's expressive face and the enchanting details of the garden. This joyful moment lasts for 2 seconds.",
+        "duration": 2,
+        "seed": 12345,
+        "status": "demo_generated",
+        "timestamp": 1752700892.3478088
+      },
+      "type": "local_image"
+    }
+  ],
+  "format": "demo_playlist",
+  "timestamp": 1752700892.3488383,
+  "note": "Mode démonstration - utilisez des vraies vidéos pour un MP4 final"
+}
