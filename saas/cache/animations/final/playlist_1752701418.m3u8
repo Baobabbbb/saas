@@ -1,0 +1,175 @@
+{
+  "clips": [
+    {
+      "scene_number": 1,
+      "scene_id": 1,
+      "video_path": "cache\\animations\\clips\\scene_1_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_1_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_1_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_1_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "An adorable, soft-furred, spotted kitten playfully rubs against a wooden garden door, eyes sparkling with curiosity. It pushes the door open with its paw, revealing a colorful flower garden. The camera slowly zooms in on the kitten's expressive face, capturing its playful demeanor. The vibrant colors create a cheerful, magical atmosphere, making this an enchanting animated scene perfect for children.",
+      "metadata": {
+        "scene_id": 1,
+        "prompt": "An adorable, soft-furred, spotted kitten playfully rubs against a wooden garden door, eyes sparkling with curiosity. It pushes the door open with its paw, revealing a colorful flower garden. The camera slowly zooms in on the kitten's expressive face, capturing its playful demeanor. The vibrant colors create a cheerful, magical atmosphere, making this an enchanting animated scene perfect for children.",
+        "duration": 2,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1752701418.6831238
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 2,
+      "scene_id": 2,
+      "video_path": "cache\\animations\\clips\\scene_2_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_2_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_2_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_2_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "In a vibrant, magical garden full of giant colorful flowers and dancing butterflies, a curious little cat leaps with wonder. The camera pans smoothly to capture the cat's joyful expression and the enchanting surroundings. The atmosphere is playful and cheerful, with bright, saturated colors. The animation style is soft and rounded, enhancing the cuteness of the characters. This 2-second clip showcases a delightful moment in a whimsical, child-friendly cartoon world.",
+      "metadata": {
+        "scene_id": 2,
+        "prompt": "In a vibrant, magical garden full of giant colorful flowers and dancing butterflies, a curious little cat leaps with wonder. The camera pans smoothly to capture the cat's joyful expression and the enchanting surroundings. The atmosphere is playful and cheerful, with bright, saturated colors. The animation style is soft and rounded, enhancing the cuteness of the characters. This 2-second clip showcases a delightful moment in a whimsical, child-friendly cartoon world.",
+        "duration": 2,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1752701418.6841662
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 3,
+      "scene_id": 3,
+      "video_path": "cache\\animations\\clips\\scene_3_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_3_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_3_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_3_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "A playful cartoon scene where a small, cute cat joyfully chases a butterfly fluttering around vibrant flowers under a bright blue sky. The cat leaps and bounds excitedly, its paws flailing in the air. The camera smoothly tracks the cat's motion, zooming in on its expressive face as it follows the butterfly. The atmosphere is magical and cheerful, with a colorful, child-friendly animation style that emphasizes the whimsical nature of the garden.",
+      "metadata": {
+        "scene_id": 3,
+        "prompt": "A playful cartoon scene where a small, cute cat joyfully chases a butterfly fluttering around vibrant flowers under a bright blue sky. The cat leaps and bounds excitedly, its paws flailing in the air. The camera smoothly tracks the cat's motion, zooming in on its expressive face as it follows the butterfly. The atmosphere is magical and cheerful, with a colorful, child-friendly animation style that emphasizes the whimsical nature of the garden.",
+        "duration": 2,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1752701418.6846862
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 4,
+      "scene_id": 4,
+      "video_path": "cache\\animations\\clips\\scene_4_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_4_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_4_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_4_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "An adorable little cat curiously observes frogs jumping around a vibrant pond filled with floating lily pads. The scene captures the magic of nature, with the cat's expressive eyes wide open in wonder. The camera gently pans from the cat to the frogs, emphasizing their playful leaps. The colors are bright and cheerful, creating a delightful atmosphere. This child-friendly cartoon animation features rounded outlines and fluid movements, inviting viewers into a whimsical world.",
+      "metadata": {
+        "scene_id": 4,
+        "prompt": "An adorable little cat curiously observes frogs jumping around a vibrant pond filled with floating lily pads. The scene captures the magic of nature, with the cat's expressive eyes wide open in wonder. The camera gently pans from the cat to the frogs, emphasizing their playful leaps. The colors are bright and cheerful, creating a delightful atmosphere. This child-friendly cartoon animation features rounded outlines and fluid movements, inviting viewers into a whimsical world.",
+        "duration": 2,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1752701418.6857302
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 5,
+      "scene_id": 5,
+      "video_path": "cache\\animations\\clips\\scene_5_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_5_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_5_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_5_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "In a magical garden, a cute little cat jumps back in surprise as a colorful frog leaps near it. The camera pans to capture the vibrant lily pads and lush reeds by the pond, emphasizing the playful atmosphere. The cat's exaggerated expression of feigned fear adds to the humorous moment. The scene is animated in a soft, child-friendly cartoon style, with bright colors and smooth, exaggerated movements that enhance the joyful vibe.",
+      "metadata": {
+        "scene_id": 5,
+        "prompt": "In a magical garden, a cute little cat jumps back in surprise as a colorful frog leaps near it. The camera pans to capture the vibrant lily pads and lush reeds by the pond, emphasizing the playful atmosphere. The cat's exaggerated expression of feigned fear adds to the humorous moment. The scene is animated in a soft, child-friendly cartoon style, with bright colors and smooth, exaggerated movements that enhance the joyful vibe.",
+        "duration": 2,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1752701418.686247
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 6,
+      "scene_id": 6,
+      "video_path": "cache\\animations\\clips\\scene_6_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_6_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_6_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_6_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "A cute, animated kitten, surprised, gently approaches a giant, colorful flower in a magical garden. The camera slowly zooms in as the kitten sniffs the flower, showcasing its expressive eyes and soft fur. Bright, vibrant colors create a joyful atmosphere, with exaggerated movements emphasizing the kitten's curiosity. The background is stylized, rich in detail but not distracting, enhancing the whimsical scene. This child-friendly cartoon captures a moment of wonder and exploration.",
+      "metadata": {
+        "scene_id": 6,
+        "prompt": "A cute, animated kitten, surprised, gently approaches a giant, colorful flower in a magical garden. The camera slowly zooms in as the kitten sniffs the flower, showcasing its expressive eyes and soft fur. Bright, vibrant colors create a joyful atmosphere, with exaggerated movements emphasizing the kitten's curiosity. The background is stylized, rich in detail but not distracting, enhancing the whimsical scene. This child-friendly cartoon captures a moment of wonder and exploration.",
+        "duration": 2,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1752701418.686765
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 7,
+      "scene_id": 7,
+      "video_path": "cache\\animations\\clips\\scene_7_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_7_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_7_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_7_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "In a whimsical garden, a gentle breeze stirs as colorful flower petals begin to dance in the air. A curious little cat watches in awe, its eyes wide with wonder. The camera pans smoothly around the cat and the swirling petals, capturing the magic of the moment. The scene is animated in a soft, playful cartoon style, featuring vibrant colors and expressive character movements, creating a joyful and enchanting atmosphere.",
+      "metadata": {
+        "scene_id": 7,
+        "prompt": "In a whimsical garden, a gentle breeze stirs as colorful flower petals begin to dance in the air. A curious little cat watches in awe, its eyes wide with wonder. The camera pans smoothly around the cat and the swirling petals, capturing the magic of the moment. The scene is animated in a soft, playful cartoon style, featuring vibrant colors and expressive character movements, creating a joyful and enchanting atmosphere.",
+        "duration": 2,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1752701418.6880417
+      },
+      "type": "local_image"
+    },
+    {
+      "scene_number": 8,
+      "scene_id": 8,
+      "video_path": "cache\\animations\\clips\\scene_8_metadata.json",
+      "video_url": "/cache/animations/demo_images/scene_8_demo.svg",
+      "image_url": "/cache/animations/demo_images/scene_8_demo.svg",
+      "demo_image_url": "/cache/animations/demo_images/scene_8_demo.svg",
+      "status": "success",
+      "statut": "demo_ok",
+      "duration": 2,
+      "prompt": "A cute, animated kitten joyfully leaps and rolls in the green grass under a sunny sky. The scene is vibrant and colorful, with exaggerated movements that express pure happiness. The camera gently pans around the kitten, capturing its playful antics while focusing on the lush, stylized background. The atmosphere is magical and inviting, perfect for children. The colors are bright and saturated, enhancing the cheerful mood of the scene.",
+      "metadata": {
+        "scene_id": 8,
+        "prompt": "A cute, animated kitten joyfully leaps and rolls in the green grass under a sunny sky. The scene is vibrant and colorful, with exaggerated movements that express pure happiness. The camera gently pans around the kitten, capturing its playful antics while focusing on the lush, stylized background. The atmosphere is magical and inviting, perfect for children. The colors are bright and saturated, enhancing the cheerful mood of the scene.",
+        "duration": 2,
+        "seed": 54321,
+        "status": "demo_generated",
+        "timestamp": 1752701418.6885612
+      },
+      "type": "local_image"
+    }
+  ],
+  "format": "demo_playlist",
+  "timestamp": 1752701418.689597,
+  "note": "Mode démonstration - utilisez des vraies vidéos pour un MP4 final"
+}

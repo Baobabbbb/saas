@@ -1,0 +1,63 @@
+{
+  "id": "anim_1753127591_5c7bd77c",
+  "status": "completed",
+  "progress": 100,
+  "current_step": "✅ Animation créée avec succès !",
+  "story": "Un voyage extraordinaire à travers les étoiles et les planètes",
+  "style_preferences": {
+    "duration": 30,
+    "style": "cartoon"
+  },
+  "created_at": "2025-07-21T21:53:11.952432",
+  "started_at": "2025-07-21T21:53:11.955684",
+  "completed_at": "2025-07-21T22:02:36.414444",
+  "result": {
+    "status": "success",
+    "animation_id": "seedance_1753127591",
+    "video_url": "https://v3.fal.media/files/koala/i6eb6vIhbYpWiXTcTcUhH_output.mp4",
+    "video_path": "https://v3.fal.media/files/koala/i6eb6vIhbYpWiXTcTcUhH_output.mp4",
+    "title": "🎬 Voyage Étoilé : Un Aventure Magique dans l'Univers ! #enfants #animation #magie",
+    "scenes_count": 3,
+    "total_duration": 30,
+    "generation_time": 564.4587593078613,
+    "scenes_details": [
+      {
+        "description": "Plan cinématographique 1: Animation colorée et joyeuse pour enfants avec Deux amis, Luna la petite étoile et Astro le joyeux robot, embarquent dans leur vaisseau en forme de nuage pour un voyage intergalactique, découvrant des planètes colorées et rencontrant des créatures amusantes en cours de route. dans Un ciel nocturne scintillant rempli de étoiles brillantes et de nébuleuses colorées. Chaque planète qu'ils visitent est unique : une planète faite de bonbons, une autre avec des arbres dansants et des rivières de lumière. Les interactions permettent aux enfants de voir des éclats de lumière et des particules qui s'envolent en touchant les éléments de l'environnement., mouvement fluide et effets visuels doux.",
+        "scene_number": 1,
+        "duration": 10,
+        "style": "cinematic children animation"
+      },
+      {
+        "description": "Plan cinématographique 2: Animation colorée et joyeuse pour enfants avec Deux amis, Luna la petite étoile et Astro le joyeux robot, embarquent dans leur vaisseau en forme de nuage pour un voyage intergalactique, découvrant des planètes colorées et rencontrant des créatures amusantes en cours de route. dans Un ciel nocturne scintillant rempli de étoiles brillantes et de nébuleuses colorées. Chaque planète qu'ils visitent est unique : une planète faite de bonbons, une autre avec des arbres dansants et des rivières de lumière. Les interactions permettent aux enfants de voir des éclats de lumière et des particules qui s'envolent en touchant les éléments de l'environnement., mouvement fluide et effets visuels doux.",
+        "scene_number": 2,
+        "duration": 10,
+        "style": "cinematic children animation"
+      },
+      {
+        "description": "Plan cinématographique 3: Animation colorée et joyeuse pour enfants avec Deux amis, Luna la petite étoile et Astro le joyeux robot, embarquent dans leur vaisseau en forme de nuage pour un voyage intergalactique, découvrant des planètes colorées et rencontrant des créatures amusantes en cours de route. dans Un ciel nocturne scintillant rempli de étoiles brillantes et de nébuleuses colorées. Chaque planète qu'ils visitent est unique : une planète faite de bonbons, une autre avec des arbres dansants et des rivières de lumière. Les interactions permettent aux enfants de voir des éclats de lumière et des particules qui s'envolent en touchant les éléments de l'environnement., mouvement fluide et effets visuels doux.",
+        "scene_number": 3,
+        "duration": 10,
+        "style": "cinematic children animation"
+      }
+    ],
+    "idea_data": {
+      "Caption": "🎬 Voyage Étoilé : Un Aventure Magique dans l'Univers ! #enfants #animation #magie",
+      "Idea": "Deux amis, Luna la petite étoile et Astro le joyeux robot, embarquent dans leur vaisseau en forme de nuage pour un voyage intergalactique, découvrant des planètes colorées et rencontrant des créatures amusantes en cours de route.",
+      "Environment": "Un ciel nocturne scintillant rempli de étoiles brillantes et de nébuleuses colorées. Chaque planète qu'ils visitent est unique : une planète faite de bonbons, une autre avec des arbres dansants et des rivières de lumière. Les interactions permettent aux enfants de voir des éclats de lumière et des particules qui s'envolent en touchant les éléments de l'environnement.",
+      "Sound": "Des mélodies douces avec des flûtes et des chimes, accompagnées de sons de rire d'enfants et de clochettes, créant une atmosphère joyeuse et magique.",
+      "Status": "for production"
+    },
+    "audio_url": "https://v3.fal.media/files/kangaroo/Q3_YXPlpooiZga1oGe0bv_1.mp4",
+    "timestamp": "2025-07-21T22:02:36.414444",
+    "pipeline_type": "seedance_wavespeed_fal"
+  },
+  "error": null,
+  "steps": [
+    "🧠 Génération de l'idée créative",
+    "📝 Création des scènes",
+    "🎥 Génération des clips vidéo",
+    "🔊 Ajout de l'audio",
+    "🎬 Assemblage final"
+  ],
+  "updated_at": "2025-07-21T22:01:35.663106"
+}

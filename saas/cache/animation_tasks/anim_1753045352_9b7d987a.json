@@ -1,0 +1,54 @@
+{
+  "id": "anim_1753045352_9b7d987a",
+  "status": "completed",
+  "progress": 100,
+  "current_step": "✅ Animation créée avec succès !",
+  "story": "Un petit chat qui explore le jardin",
+  "style_preferences": {
+    "duration": 15,
+    "style": "cartoon"
+  },
+  "created_at": "2025-07-20T23:02:32.591373",
+  "started_at": "2025-07-20T23:02:33.600821",
+  "completed_at": "2025-07-20T23:11:50.404864",
+  "result": {
+    "status": "success",
+    "animation_id": "seedance_1753045353",
+    "video_url": "https://v3.fal.media/files/lion/RrbjxqH60zR3TneCx293B_output.mp4",
+    "video_path": "https://v3.fal.media/files/lion/RrbjxqH60zR3TneCx293B_output.mp4",
+    "title": "🌼 Le Jardin Magique du Petit Chat ! #enfants #animation #magie",
+    "scenes_count": 3,
+    "total_duration": 30,
+    "generation_time": 556.8035125732422,
+    "scenes_details": [
+      {
+        "description": "Belle scène d'animation colorée pour enfants - scène 1"
+      },
+      {
+        "description": "Belle scène d'animation colorée pour enfants - scène 2"
+      },
+      {
+        "description": "Belle scène d'animation colorée pour enfants - scène 3"
+      }
+    ],
+    "idea_data": {
+      "Caption": "🌼 Le Jardin Magique du Petit Chat ! #enfants #animation #magie",
+      "Idea": "Un petit chat curieux, nommé Mimou, s'aventure dans un jardin magique où chaque fleur raconte une histoire, et où les papillons dansent en rythme avec la musique. Il rencontre des amis colorés comme une grenouille chanteuse et un escargot peintre, créant ensemble des souvenirs inoubliables.",
+      "Environment": "Un jardin éclatant rempli de fleurs aux couleurs vives, d'arbres aux feuilles scintillantes et de petits chemins sinueux, le tout sous un ciel bleu parsemé de nuages en forme de bonbons.",
+      "Sound": "Des sons doux de flûte, de harpiste et de rires d'enfants, accompagnés de chants d'oiseaux joyeux et du murmure d'une petite fontaine.",
+      "Status": "for production"
+    },
+    "audio_url": "https://v3.fal.media/files/lion/2Bmy7iwpScnoo3o31qB9n_1.mp4",
+    "timestamp": "2025-07-20T23:11:50.404864",
+    "pipeline_type": "seedance_wavespeed_fal"
+  },
+  "error": null,
+  "steps": [
+    "🧠 Génération de l'idée créative",
+    "📝 Création des scènes",
+    "🎥 Génération des clips vidéo",
+    "🔊 Ajout de l'audio",
+    "🎬 Assemblage final"
+  ],
+  "updated_at": "2025-07-20T23:10:49.642429"
+}

@@ -21,13 +21,12 @@ class AnimationDuration(int, Enum):
     FIVE_MIN = 300
 
 class AnimationStatus(str, Enum):
-    """États de traitement de l'animation"""
+    """États de traitement de l'animation (Wan 2.5)"""
     PENDING = "pending"
     GENERATING_IDEA = "generating_idea"
     CREATING_SCENES = "creating_scenes"
-    GENERATING_CLIPS = "generating_clips"
-    GENERATING_AUDIO = "generating_audio"
-    ASSEMBLING_VIDEO = "assembling_video"
+    GENERATING_CLIPS = "generating_clips"  # Wan 2.5 avec audio intégré
+    ASSEMBLING_VIDEO = "assembling_video"   # Assemblage simple des clips
     COMPLETED = "completed"
     FAILED = "failed"
 
@@ -47,18 +46,23 @@ class StoryIdea(BaseModel):
     status: str = "for production"
 
 class Scene(BaseModel):
-    """Scène individuelle de l'animation"""
+    """Scène individuelle de l'animation (Wan 2.5 optimisée)"""
     scene_number: int
     description: str
     duration: int
     prompt: str
+    characters: Optional[str] = "animated character"
+    action: Optional[str] = ""
+    environment: Optional[str] = ""
+    audio_description: Optional[str] = ""
 
 class VideoClip(BaseModel):
-    """Clip vidéo généré"""
+    """Clip vidéo Wan 2.5 (audio intégré)"""
     scene_number: int
     video_url: str
     duration: int
     status: str
+    prompt: Optional[str] = ""
 
 class AudioTrack(BaseModel):
     """Piste audio générée"""
@@ -89,9 +93,9 @@ class AnimationProgress(BaseModel):
     details: Optional[Dict[str, Any]] = None
 
 class DiagnosticResponse(BaseModel):
-    """Réponse de diagnostic des APIs"""
+    """Réponse de diagnostic des APIs (Wan 2.5)"""
     openai_configured: bool
-    wavespeed_configured: bool
-    fal_configured: bool
+    wavespeed_configured: bool  # Pour Wan 2.5
+    wan25_model: str = "alibaba/wan-2.5/text-to-video-fast"
     all_systems_operational: bool
     details: Dict[str, Any] 
