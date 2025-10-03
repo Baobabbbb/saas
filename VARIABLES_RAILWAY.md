@@ -29,8 +29,10 @@ Ajoutez ces variables dans Railway → Service "saas" → Variables :
 
 ### **Essentielles pour Coloriages**
 ```env
-# Pas de nouvelle variable requise ! 
-# STABILITY_API_KEY est déjà configurée ✅
+# URL de base pour les images générées (OBLIGATOIRE pour éviter Mixed Content)
+BASE_URL=https://herbbie.com
+
+# Note: STABILITY_API_KEY est déjà configurée ✅
 ```
 
 ### **Optionnelles (Recommandées)**
