@@ -123,6 +123,9 @@ function App() {
 
   // Coloring states
   const [selectedTheme, setSelectedTheme] = useState(null);
+  const [customColoringTheme, setCustomColoringTheme] = useState('');
+  const [uploadedPhoto, setUploadedPhoto] = useState(null);
+  const [controlNetMode, setControlNetMode] = useState('canny');
   const [coloringResult, setColoringResult] = useState(null);
   
   // Animation states
@@ -348,22 +351,61 @@ function App() {
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
     } else if (contentType === 'coloring') {
-      const payload = {
-        theme: selectedTheme
-      };
-      
+      // Si l'utilisateur a uploadé une photo, utiliser l'endpoint de conversion
+      if (uploadedPhoto) {
+        // 1. Upload de la photo
+        const formData = new FormData();
+        formData.append('file', uploadedPhoto);
+        
+        const uploadResponse = await fetch(`${API_BASE_URL}/upload_photo_for_coloring/`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!uploadResponse.ok) throw new Error(`Erreur upload : ${uploadResponse.status}`);
+        
+        const uploadData = await uploadResponse.json();
+        console.log('✅ Photo uploadée:', uploadData);
+        
+        // 2. Conversion en coloriage avec ControlNet
+        const conversionPayload = {
+          photo_path: uploadData.file_path,
+          control_mode: controlNetMode,
+          control_strength: 0.7
+        };
+        
+        const conversionResponse = await fetch(`${API_BASE_URL}/convert_photo_to_coloring/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(conversionPayload)
+        });
+        
+        if (!conversionResponse.ok) throw new Error(`Erreur conversion : ${conversionResponse.status}`);
+        
+        const coloringData = await conversionResponse.json();
+        console.log('✅ Coloriage généré depuis photo:', coloringData);
+        
+        setColoringResult(coloringData);
+        generatedContent = coloringData;
+      } else {
+        // Génération classique par thème
+        const payload = {
+          theme: selectedTheme
+        };
+        
         const response = await fetch(`${API_BASE_URL}/generate_coloring/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
-      
-      const coloringData = await response.json();
-      
-      setColoringResult(coloringData);
-      generatedContent = coloringData; // Stocker pour l'historique
+        if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+        
+        const coloringData = await response.json();
+        
+        setColoringResult(coloringData);
+        generatedContent = coloringData; // Stocker pour l'historique
+      }
     } else if (contentType === 'animation') {
       // Déterminer le contenu de l'histoire
       let story;
@@ -604,7 +646,10 @@ const handleSelectCreation = (creation) => {
       if (selectedAudioStory === 'custom' && !customAudioStory.trim()) return false;
       // La voix est optionnelle
     } else if (contentType === 'coloring') {
-      if (!selectedTheme) return false;
+      // Valide si thème sélectionné OU photo uploadée
+      if (!selectedTheme && !uploadedPhoto) return false;
+      // Si thème custom, vérifier le texte personnalisé
+      if (selectedTheme === 'custom' && !customColoringTheme.trim()) return false;
     } else if (contentType === 'animation') {
       // Pour les animations, soit un thème soit une histoire personnalisée
       if (!selectedAnimationTheme && !customStory.trim()) return false;
@@ -824,6 +869,12 @@ const downloadPDF = async (title, content) => {
               >                <ColoringSelector
                   selectedTheme={selectedTheme}
                   setSelectedTheme={setSelectedTheme}
+                  customColoringTheme={customColoringTheme}
+                  setCustomColoringTheme={setCustomColoringTheme}
+                  uploadedPhoto={uploadedPhoto}
+                  setUploadedPhoto={setUploadedPhoto}
+                  photoStyle={controlNetMode}
+                  setPhotoStyle={setControlNetMode}
                 />
               </motion.div>
             ) : contentType === 'animation' ? (
