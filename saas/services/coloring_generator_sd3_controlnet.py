@@ -44,6 +44,9 @@ class ColoringGeneratorSD3ControlNet:
         self.sd3_api_url = "https://api.stability.ai/v2beta/stable-image/control/sketch"
         self.sd3_model = "sd3-medium"  # ou sd3-large
         
+        # URL de base pour les images (production Railway ou local)
+        self.base_url = os.getenv("BASE_URL", "https://herbbie.com")
+        
         # Prompts optimisés pour coloriages
         self.base_prompt = """Convert this image into a black-and-white coloring book page. 
 Clean outlines, simple cartoon-like drawing style, no shading, no gray areas, 
@@ -111,12 +114,12 @@ no text, no logos, no watermarks, no realistic textures, no gradients, no shadow
                 "success": True,
                 "source_photo": photo_path,
                 "images": [{
-                    "image_url": f"http://localhost:8006/static/coloring/{final_path.name}",
+                    "image_url": f"{self.base_url}/static/coloring/{final_path.name}",
                     "control_mode": control_mode,
                     "control_strength": control_strength,
                     "source": "sd3_controlnet"
                 }],
-                "control_image_url": f"http://localhost:8006/static/coloring/{control_path.name}",
+                "control_image_url": f"{self.base_url}/static/coloring/{control_path.name}",
                 "total_images": 1,
                 "metadata": {
                     "source_photo": photo_path,
@@ -423,7 +426,7 @@ no text, no logos, no watermarks, no realistic textures, no gradients, no shadow
                     "success": True,
                     "theme": theme,
                     "images": [{
-                        "image_url": f"http://localhost:8006/static/coloring/{final_path.name}",
+                        "image_url": f"{self.base_url}/static/coloring/{final_path.name}",
                         "theme": theme,
                         "source": "sd3_standard"
                     }],
