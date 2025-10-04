@@ -471,7 +471,15 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
 # Ancien modèle remplacé par ValidatedColoringRequest dans validators.py
 
 # Instance globale du générateur de coloriage (GPT-4o-mini + DALL-E 3)
-coloring_generator_instance = ColoringGeneratorGPT4o()
+# Utilisation de l'initialisation paresseuse pour éviter les erreurs au démarrage
+coloring_generator_instance = None
+
+def get_coloring_generator():
+    """Obtient l'instance du générateur de coloriage (lazy initialization)"""
+    global coloring_generator_instance
+    if coloring_generator_instance is None:
+        coloring_generator_instance = ColoringGeneratorGPT4o()
+    return coloring_generator_instance
 
 @app.post("/generate_coloring/")
 async def generate_coloring(request: dict):
@@ -491,8 +499,11 @@ async def generate_coloring(request: dict):
                 detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
             )
         
+        # Obtenir l'instance du générateur
+        generator = get_coloring_generator()
+        
         # Générer le coloriage avec GPT-4o-mini + DALL-E 3
-        result = await coloring_generator_instance.generate_coloring_from_theme(theme)
+        result = await generator.generate_coloring_from_theme(theme)
         
         if result.get("success") == True:
             return {
@@ -601,8 +612,11 @@ async def convert_photo_to_coloring(request: dict):
                 detail=f"Photo introuvable: {photo_path}"
             )
         
+        # Obtenir l'instance du générateur
+        generator = get_coloring_generator()
+        
         # Convertir avec GPT-4o-mini + DALL-E 3
-        result = await coloring_generator_instance.generate_coloring_from_photo(
+        result = await generator.generate_coloring_from_photo(
             photo_path=photo_path,
             custom_prompt=custom_prompt
         )
