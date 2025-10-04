@@ -608,9 +608,10 @@ async def convert_photo_to_coloring(request: dict):
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la conversion")
+            print(f"❌ Échec conversion: {error_message}")
             raise HTTPException(
                 status_code=500,
-                detail=f"❌ La conversion a échoué : {error_message}"
+                detail=f"Erreur conversion : {error_message}"
             )
             
     except HTTPException:
