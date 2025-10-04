@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 from PIL import Image
 import io
-import openai
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 
@@ -25,32 +24,38 @@ class ColoringGeneratorGPT4o:
     """
     
     def __init__(self):
-        self.output_dir = Path("static/coloring")
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-        
-        self.upload_dir = Path("static/uploads/coloring")
-        self.upload_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Configuration OpenAI
-        self.api_key = os.getenv("OPENAI_API_KEY")
-        if not self.api_key:
-            print("❌ ERREUR: OPENAI_API_KEY non trouvée dans .env")
-            raise ValueError("OPENAI_API_KEY manquante")
-        
-        self.client = AsyncOpenAI(api_key=self.api_key)
-        
-        # URL de base pour les images (production Railway ou local)
-        self.base_url = os.getenv("BASE_URL", "https://herbbie.com")
-        
-        # Prompt spécial pour les coloriages (fourni par l'utilisateur)
-        self.coloring_prompt_template = """A black and white line drawing coloring illustration, suitable for direct printing on standard size (8.5x11 inch) paper, without paper borders. The overall illustration style is fresh and simple, using clear and smooth black outline lines, without shadows, grayscale, or color filling, with a pure white background for easy coloring. [At the same time, for the convenience of users who are not good at coloring, please generate a complete colored version in the lower right corner as a small image for reference] Suitable for: [6-9 year old children]
+        try:
+            self.output_dir = Path("static/coloring")
+            self.output_dir.mkdir(parents=True, exist_ok=True)
+            
+            self.upload_dir = Path("static/uploads/coloring")
+            self.upload_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Configuration OpenAI
+            self.api_key = os.getenv("OPENAI_API_KEY")
+            if not self.api_key:
+                print("❌ ERREUR: OPENAI_API_KEY non trouvée dans .env")
+                raise ValueError("OPENAI_API_KEY manquante")
+            
+            self.client = AsyncOpenAI(api_key=self.api_key)
+            
+            # URL de base pour les images (production Railway ou local)
+            self.base_url = os.getenv("BASE_URL", "https://herbbie.com")
+            
+            # Prompt spécial pour les coloriages (fourni par l'utilisateur)
+            self.coloring_prompt_template = """A black and white line drawing coloring illustration, suitable for direct printing on standard size (8.5x11 inch) paper, without paper borders. The overall illustration style is fresh and simple, using clear and smooth black outline lines, without shadows, grayscale, or color filling, with a pure white background for easy coloring. [At the same time, for the convenience of users who are not good at coloring, please generate a complete colored version in the lower right corner as a small image for reference] Suitable for: [6-9 year old children]
 
 Subject: {subject}"""
-        
-        print(f"✅ ColoringGeneratorGPT4o initialisé")
-        print(f"   - Modèle analyse: gpt-4o-mini")
-        print(f"   - Modèle génération: DALL-E 3")
-        print(f"   - API Key présente: Oui")
+            
+            print(f"✅ ColoringGeneratorGPT4o initialisé")
+            print(f"   - Modèle analyse: gpt-4o-mini")
+            print(f"   - Modèle génération: DALL-E 3")
+            print(f"   - API Key présente: Oui")
+        except Exception as e:
+            print(f"❌ Erreur initialisation ColoringGeneratorGPT4o: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
     
     async def generate_coloring_from_photo(
         self, 
