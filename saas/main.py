@@ -132,6 +132,17 @@ app.add_middleware(
 # Inclusion des routes d'administration
 app.include_router(admin_features_router)
 
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    """Endpoint de santé pour vérifier si le serveur répond"""
+    return {
+        "status": "healthy",
+        "service": "herbbie-backend",
+        "base_url": BASE_URL,
+        "timestamp": datetime.now().isoformat()
+    }
+
 # Validation des requêtes supprimée car gérée automatiquement par Vercel
 
 # Middleware pour afficher les erreurs (avec gestion des déconnexions client)
@@ -513,6 +524,7 @@ async def upload_photo_for_coloring(file: UploadFile = File(...)):
     """
     try:
         print(f"📸 Upload photo pour coloriage: {file.filename}")
+        print(f"   Type MIME: {file.content_type}")
         
         # Vérifier le type de fichier
         allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
@@ -529,10 +541,16 @@ async def upload_photo_for_coloring(file: UploadFile = File(...)):
         upload_path = Path("static/uploads/coloring") / unique_filename
         upload_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Sauvegarder le fichier
+        print(f"   Sauvegarde vers: {upload_path}")
+        
+        # Sauvegarder le fichier en chunks pour éviter timeout
+        file_size = 0
         with open(upload_path, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
+            while chunk := await file.read(1024 * 1024):  # 1MB chunks
+                buffer.write(chunk)
+                file_size += len(chunk)
+        
+        print(f"   Taille: {file_size} bytes")
         
         print(f"✅ Photo sauvegardée: {unique_filename}")
         
