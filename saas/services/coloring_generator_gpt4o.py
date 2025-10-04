@@ -208,6 +208,7 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             print(f"📝 Prompt DALL-E 3: {final_prompt[:150]}...")
             
             # Appeler DALL-E 3
+            print(f"📡 Appel API OpenAI DALL-E 3...")
             response = await self.client.images.generate(
                 model="dall-e-3",
                 prompt=final_prompt,
@@ -216,13 +217,17 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
                 n=1
             )
             
+            print(f"📥 Réponse reçue de DALL-E 3")
             image_url = response.data[0].url
-            print(f"✅ Image DALL-E 3 générée")
+            print(f"✅ Image DALL-E 3 générée: {image_url[:50]}...")
             
             return image_url
             
         except Exception as e:
             print(f"❌ Erreur génération DALL-E 3: {e}")
+            print(f"   Type d'erreur: {type(e).__name__}")
+            import traceback
+            traceback.print_exc()
             raise
     
     async def _download_and_save_image(self, image_url: str) -> Path:
@@ -291,14 +296,19 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             
             # Obtenir la description ou utiliser le thème directement
             description = theme_descriptions.get(theme.lower(), f"A {theme} scene")
+            print(f"📝 Description: {description}")
             
             # Générer avec DALL-E 3
+            print(f"🎨 Appel DALL-E 3...")
             coloring_url = await self._generate_coloring_with_dalle3(description)
             
             if not coloring_url:
-                raise Exception("Échec de la génération DALL-E 3")
+                raise Exception("Échec de la génération DALL-E 3 - URL vide")
+            
+            print(f"✅ URL DALL-E 3 reçue: {coloring_url[:50]}...")
             
             # Télécharger et sauvegarder
+            print(f"📥 Téléchargement de l'image...")
             coloring_path = await self._download_and_save_image(coloring_url)
             
             # Construire la réponse
