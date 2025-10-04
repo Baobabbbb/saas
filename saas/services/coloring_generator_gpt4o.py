@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 from PIL import Image
 import io
+import requests
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
 
@@ -241,8 +242,6 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             Path vers l'image sauvegardée
         """
         try:
-            import requests
-            
             # Télécharger l'image
             response = requests.get(image_url, timeout=30)
             response.raise_for_status()
