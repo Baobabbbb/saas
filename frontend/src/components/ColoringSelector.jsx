@@ -8,9 +8,7 @@ const ColoringSelector = ({
   customColoringTheme,
   setCustomColoringTheme,
   uploadedPhoto,
-  setUploadedPhoto,
-  photoStyle,
-  setPhotoStyle
+  setUploadedPhoto
 }) => {
   const [showCustomTheme, setShowCustomTheme] = useState(false);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
@@ -138,7 +136,7 @@ const ColoringSelector = ({
             )}
           </div>
 
-          {/* Sélection du mode ControlNet */}
+          {/* Message de confirmation */}
           {uploadPreview && (
             <motion.div
               className="style-selector"
@@ -146,23 +144,10 @@ const ColoringSelector = ({
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <h4>🎨 Mode de conversion</h4>
-              <div className="style-options">
-                {['canny', 'scribble'].map((mode) => (
-                  <button
-                    key={mode}
-                    className={`style-btn ${photoStyle === mode ? 'selected' : ''}`}
-                    onClick={() => setPhotoStyle && setPhotoStyle(mode)}
-                  >
-                    {mode === 'canny' && '🔍 Canny (Contours nets)'}
-                    {mode === 'scribble' && '✏️ Scribble (Croquis)'}
-                  </button>
-                ))}
+              <div className="conversion-info">
+                <span className="info-icon">✨</span>
+                <p>Votre photo sera automatiquement convertie en coloriage avec des contours nets et propres</p>
               </div>
-              <p className="style-description">
-                {photoStyle === 'canny' && 'Détection de contours précise - Idéal pour photos détaillées'}
-                {photoStyle === 'scribble' && 'Style croquis simplifié - Idéal pour un rendu dessin enfant'}
-              </p>
             </motion.div>
           )}
         </motion.div>

@@ -272,54 +272,28 @@
 
 .style-selector {
   margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e0e0e0;
 }
 
-.style-selector h4 {
-  margin: 0 0 1rem 0;
-  text-align: center;
-  color: #4a3b8c;
-}
-
-.style-options {
+.conversion-info {
   display: flex;
-  gap: 0.75rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 0.75rem;
-}
-
-.style-btn {
-  padding: 0.75rem 1.5rem;
-  border: 2px solid #e0e0e0;
-  background: white;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #4a3b8c;
-}
-
-.style-btn:hover {
-  border-color: #6B4EFF;
-  background: #f5f0ff;
-}
-
-.style-btn.selected {
-  border-color: #6B4EFF;
-  background: #6B4EFF;
-  color: white;
-  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.3);
-}
-
-.style-description {
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  border: 2px solid #667eea40;
+  border-radius: 12px;
   text-align: center;
-  font-size: 0.85rem;
-  color: #666;
+}
+
+.info-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.conversion-info p {
   margin: 0;
-  padding: 0.5rem;
-  background: rgba(107, 78, 255, 0.05);
-  border-radius: 8px;
+  color: #4a3b8c;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-weight: 500;
 }

@@ -873,8 +873,6 @@ const downloadPDF = async (title, content) => {
                   setCustomColoringTheme={setCustomColoringTheme}
                   uploadedPhoto={uploadedPhoto}
                   setUploadedPhoto={setUploadedPhoto}
-                  photoStyle={controlNetMode}
-                  setPhotoStyle={setControlNetMode}
                 />
               </motion.div>
             ) : contentType === 'animation' ? (
