@@ -510,9 +510,9 @@ async def generate_coloring(request: dict):
                 "status": "success",
                 "theme": theme,
                 "images": result.get("images", []),
-                "message": "Coloriage généré avec succès avec DALL-E 3 !",
+                "message": "Coloriage généré avec succès avec gpt-image-1 !",
                 "type": "coloring",
-                "model": "dall-e-3"
+                "model": "gpt-image-1"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la génération du coloriage")
@@ -629,7 +629,7 @@ async def convert_photo_to_coloring(request: dict):
                 "message": "Photo convertie en coloriage avec succès !",
                 "type": "coloring",
                 "source": "photo",
-                "model": "dall-e-3"
+                "model": "gpt-image-1"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la conversion")
