@@ -125,7 +125,6 @@ function App() {
   const [selectedTheme, setSelectedTheme] = useState(null);
   const [customColoringTheme, setCustomColoringTheme] = useState('');
   const [uploadedPhoto, setUploadedPhoto] = useState(null);
-  const [controlNetMode, setControlNetMode] = useState('canny');
   const [coloringResult, setColoringResult] = useState(null);
   
   // Animation states
@@ -367,11 +366,9 @@ function App() {
         const uploadData = await uploadResponse.json();
         console.log('✅ Photo uploadée:', uploadData);
         
-        // 2. Conversion en coloriage avec ControlNet
+        // 2. Conversion en coloriage avec GPT-4o-mini + DALL-E 3
         const conversionPayload = {
-          photo_path: uploadData.file_path,
-          control_mode: controlNetMode,
-          control_strength: 0.7
+          photo_path: uploadData.file_path
         };
         
         const conversionResponse = await fetch(`${API_BASE_URL}/convert_photo_to_coloring/`, {
@@ -383,7 +380,7 @@ function App() {
         if (!conversionResponse.ok) throw new Error(`Erreur conversion : ${conversionResponse.status}`);
         
         const coloringData = await conversionResponse.json();
-        console.log('✅ Coloriage généré depuis photo:', coloringData);
+        console.log('✅ Coloriage généré depuis photo avec GPT-4o-mini:', coloringData);
         
         setColoringResult(coloringData);
         generatedContent = coloringData;

@@ -26,7 +26,7 @@ from datetime import datetime
 # from services.stt import transcribe_audio
 
 # Authentification gérée par Supabase - modules supprimés car inutiles avec Vercel
-from services.coloring_generator_sd3_controlnet import ColoringGeneratorSD3ControlNet
+from services.coloring_generator_gpt4o import ColoringGeneratorGPT4o
 from services.comic_generator import ComicGenerator
 from services.real_animation_generator import RealAnimationGenerator
 from services.local_animation_generator import LocalAnimationGenerator
@@ -470,28 +470,28 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
 # --- Coloriage ---
 # Ancien modèle remplacé par ValidatedColoringRequest dans validators.py
 
-# Instance globale du générateur de coloriage (SD3 + ControlNet)
-coloring_generator_instance = ColoringGeneratorSD3ControlNet()
+# Instance globale du générateur de coloriage (GPT-4o-mini + DALL-E 3)
+coloring_generator_instance = ColoringGeneratorGPT4o()
 
 @app.post("/generate_coloring/")
 async def generate_coloring(request: dict):
     """
-    Génère un coloriage basé sur un thème avec Stable Diffusion 3
+    Génère un coloriage basé sur un thème avec GPT-4o-mini + DALL-E 3
     """
     try:
         # Validation des données d'entrée
         theme = request.get("theme", "animaux")
-        print(f"🎨 Génération coloriage SD3: {theme}")
+        print(f"🎨 Génération coloriage GPT-4o-mini: {theme}")
         
-        # Vérifier la clé API Stability AI
-        stability_key = os.getenv("STABILITY_API_KEY")
-        if not stability_key or stability_key.startswith("sk-votre"):
+        # Vérifier la clé API OpenAI
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key or openai_key.startswith("sk-votre"):
             raise HTTPException(
                 status_code=400, 
-                detail="❌ Clé API Stability AI non configurée. Veuillez configurer STABILITY_API_KEY dans le fichier .env"
+                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
             )
         
-        # Générer le coloriage avec SD3
+        # Générer le coloriage avec GPT-4o-mini + DALL-E 3
         result = await coloring_generator_instance.generate_coloring_from_theme(theme)
         
         if result.get("success") == True:
@@ -499,9 +499,9 @@ async def generate_coloring(request: dict):
                 "status": "success",
                 "theme": theme,
                 "images": result.get("images", []),
-                "message": "Coloriage généré avec succès avec Stable Diffusion 3 !",
+                "message": "Coloriage généré avec succès avec GPT-4o-mini + DALL-E 3 !",
                 "type": "coloring",
-                "model": "sd3-medium"
+                "model": "gpt-4o-mini + dalle3"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la génération du coloriage")
@@ -572,13 +572,11 @@ async def upload_photo_for_coloring(file: UploadFile = File(...)):
 @app.post("/convert_photo_to_coloring/")
 async def convert_photo_to_coloring(request: dict):
     """
-    Convertit une photo uploadée en coloriage avec SD3 + ControlNet
+    Convertit une photo uploadée en coloriage avec GPT-4o-mini + DALL-E 3
     """
     try:
         # Récupérer les paramètres
         photo_path = request.get("photo_path")
-        control_mode = request.get("control_mode", "canny")  # canny ou scribble
-        control_strength = float(request.get("control_strength", 0.7))  # 0.5-1.0
         custom_prompt = request.get("custom_prompt")
         
         if not photo_path:
@@ -594,9 +592,7 @@ async def convert_photo_to_coloring(request: dict):
         
         photo_path = str(photo_path_obj)
         
-        print(f"🎨 Conversion photo en coloriage: {photo_path}")
-        print(f"   - Mode ControlNet: {control_mode}")
-        print(f"   - Force: {control_strength}")
+        print(f"🎨 Conversion photo en coloriage avec GPT-4o-mini: {photo_path}")
         
         # Vérifier que le fichier existe
         if not photo_path_obj.exists():
@@ -605,11 +601,9 @@ async def convert_photo_to_coloring(request: dict):
                 detail=f"Photo introuvable: {photo_path}"
             )
         
-        # Convertir avec SD3 + ControlNet
+        # Convertir avec GPT-4o-mini + DALL-E 3
         result = await coloring_generator_instance.generate_coloring_from_photo(
             photo_path=photo_path,
-            control_mode=control_mode,
-            control_strength=control_strength,
             custom_prompt=custom_prompt
         )
         
@@ -617,13 +611,11 @@ async def convert_photo_to_coloring(request: dict):
             return {
                 "status": "success",
                 "images": result.get("images", []),
-                "control_image_url": result.get("control_image_url"),
+                "description": result.get("description"),
                 "message": "Photo convertie en coloriage avec succès !",
                 "type": "coloring",
                 "source": "photo",
-                "model": "sd3-controlnet",
-                "control_mode": control_mode,
-                "control_strength": control_strength
+                "model": "gpt-4o-mini + dalle3"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la conversion")
