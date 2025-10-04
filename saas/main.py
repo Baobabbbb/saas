@@ -39,6 +39,7 @@ from routes.admin_features import router as admin_features_router, load_features
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
+BASE_URL = os.getenv("BASE_URL", "https://herbbie.com")
 
 app = FastAPI(title="API FRIDAY - Contenu Créatif IA", version="2.0", description="API pour générer du contenu créatif pour enfants : BD, coloriages, histoires, comptines")
 
@@ -540,7 +541,7 @@ async def upload_photo_for_coloring(file: UploadFile = File(...)):
             "message": "Photo uploadée avec succès",
             "file_path": str(upload_path),
             "filename": unique_filename,
-            "url": f"http://localhost:8006/static/uploads/coloring/{unique_filename}"
+            "url": f"{BASE_URL}/static/uploads/coloring/{unique_filename}"
         }
         
     except HTTPException:
