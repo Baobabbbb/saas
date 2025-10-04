@@ -41,7 +41,8 @@ class ColoringGeneratorSD3ControlNet:
         print(f"✅ Clé Stability AI détectée: {self.stability_key[:15]}...")
         
         # Configuration Stable Diffusion 3
-        self.sd3_api_url = "https://api.stability.ai/v2beta/stable-image/control/sketch"
+        # Note: Utilisation de l'endpoint control/structure (ControlNet officiel)
+        self.sd3_api_url = "https://api.stability.ai/v2beta/stable-image/control/structure"
         self.sd3_model = "sd3-medium"  # ou sd3-large
         
         # URL de base pour les images (production Railway ou local)
