@@ -568,12 +568,19 @@ async def convert_photo_to_coloring(request: dict):
                 detail="Le chemin de la photo est requis (photo_path)"
             )
         
+        # Convertir en chemin absolu si c'est un chemin relatif
+        photo_path_obj = Path(photo_path)
+        if not photo_path_obj.is_absolute():
+            photo_path_obj = Path.cwd() / photo_path
+        
+        photo_path = str(photo_path_obj)
+        
         print(f"🎨 Conversion photo en coloriage: {photo_path}")
         print(f"   - Mode ControlNet: {control_mode}")
         print(f"   - Force: {control_strength}")
         
         # Vérifier que le fichier existe
-        if not Path(photo_path).exists():
+        if not photo_path_obj.exists():
             raise HTTPException(
                 status_code=404,
                 detail=f"Photo introuvable: {photo_path}"
