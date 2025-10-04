@@ -295,6 +295,9 @@ no text, no logos, no watermarks, no realistic textures, no gradients, no shadow
             
             # Appeler l'API Stability AI
             print(f"📡 Appel API Stability AI...")
+            print(f"   - URL: {self.sd3_api_url}")
+            print(f"   - API Key présente: {'Oui' if self.stability_key else 'Non'}")
+            
             response = requests.post(
                 self.sd3_api_url,
                 headers=headers,
@@ -302,6 +305,8 @@ no text, no logos, no watermarks, no realistic textures, no gradients, no shadow
                 data=data,
                 timeout=60
             )
+            
+            print(f"📥 Réponse API: {response.status_code}")
             
             if response.status_code == 200:
                 # Sauvegarder l'image générée
@@ -312,9 +317,16 @@ no text, no logos, no watermarks, no realistic textures, no gradients, no shadow
                 print(f"✅ Image SD3 générée: {output_path.name}")
                 return output_path
             else:
-                print(f"❌ Erreur API Stability: {response.status_code}")
-                print(f"   - Réponse: {response.text}")
-                return None
+                error_msg = f"Erreur API Stability: {response.status_code}"
+                try:
+                    error_detail = response.json()
+                    error_msg += f" - {error_detail}"
+                except:
+                    error_detail = response.text[:500]
+                    error_msg += f" - {error_detail}"
+                
+                print(f"❌ {error_msg}")
+                raise Exception(error_msg)
                 
         except Exception as e:
             print(f"❌ Erreur génération SD3: {e}")
