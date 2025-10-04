@@ -366,7 +366,7 @@ function App() {
         const uploadData = await uploadResponse.json();
         console.log('✅ Photo uploadée:', uploadData);
         
-        // 2. Conversion en coloriage avec GPT-4o-mini + DALL-E 3
+        // 2. Conversion en coloriage avec GPT-4o-mini + gpt-image-1
         const conversionPayload = {
           photo_path: uploadData.file_path
         };
@@ -380,7 +380,7 @@ function App() {
         if (!conversionResponse.ok) throw new Error(`Erreur conversion : ${conversionResponse.status}`);
         
         const coloringData = await conversionResponse.json();
-        console.log('✅ Coloriage généré depuis photo avec GPT-4o-mini:', coloringData);
+        console.log('✅ Coloriage généré depuis photo avec gpt-image-1:', coloringData);
         
         setColoringResult(coloringData);
         generatedContent = coloringData;
