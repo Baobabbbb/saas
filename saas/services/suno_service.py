@@ -84,10 +84,14 @@ class SunoService:
         self.api_key = SUNO_API_KEY
         self.base_url = SUNO_BASE_URL or "https://api.sunoapi.org/api/v1"
         
-        if not self.api_key or self.api_key.startswith("your_suno"):
+        if not self.api_key or self.api_key.startswith("your_suno") or self.api_key == "None":
             print("⚠️ ATTENTION: Clé API Suno non configurée correctement")
+            print(f"   SUNO_API_KEY actuel: {self.api_key}")
+            print(f"   SUNO_BASE_URL actuel: {self.base_url}")
+            print("   ❌ Veuillez configurer SUNO_API_KEY dans les variables d'environnement Railway")
         else:
             print(f"✅ Service Suno initialisé avec succès")
+            print(f"   Base URL: {self.base_url}")
         
     async def generate_musical_nursery_rhyme(
         self, 
