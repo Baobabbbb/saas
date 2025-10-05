@@ -50,12 +50,12 @@ class ColoringGeneratorGPT4o:
 
 Subject: {subject}"""
             
-            print(f"✅ ColoringGeneratorGPT4o initialisé")
-            print(f"   - Modèle analyse: gpt-4o-mini")
-            print(f"   - Modèle génération: gpt-image-1")
-            print(f"   - API Key présente: Oui")
+            print(f"OK: ColoringGeneratorGPT4o initialise")
+            print(f"   - Modele analyse: gpt-4o-mini")
+            print(f"   - Modele generation: gpt-image-1")
+            print(f"   - API Key presente: Oui")
         except Exception as e:
-            print(f"❌ Erreur initialisation ColoringGeneratorGPT4o: {e}")
+            print(f"ERREUR: Initialisation ColoringGeneratorGPT4o: {e}")
             import traceback
             traceback.print_exc()
             raise
@@ -76,7 +76,7 @@ Subject: {subject}"""
             Dict avec le résultat
         """
         try:
-            print(f"🎨 Conversion photo en coloriage: {photo_path}")
+            print(f"[COLORING] Conversion photo en coloriage: {photo_path}")
             
             # 1. Analyser la photo avec GPT-4o-mini pour extraire une description
             print(f"🔍 Analyse de la photo avec GPT-4o-mini...")
@@ -115,7 +115,7 @@ Subject: {subject}"""
             return result
             
         except Exception as e:
-            print(f"❌ Erreur conversion photo: {e}")
+            print(f"[ERROR] Erreur conversion photo: {e}")
             import traceback
             traceback.print_exc()
             return {
@@ -208,11 +208,11 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             else:
                 final_prompt = self.coloring_prompt_template.format(subject=subject)
             
-            print(f"📝 Prompt gpt-image-1: {final_prompt[:150]}...")
+            print(f"[PROMPT] gpt-image-1: {final_prompt[:150]}...")
             
             # Appeler gpt-image-1 (modèle OpenAI avancé pour génération d'images)
             # Organisation vérifiée requise
-            print(f"📡 Appel API OpenAI gpt-image-1...")
+            print(f"[API] Appel OpenAI gpt-image-1...")
             response = await self.client.images.generate(
                 model="gpt-image-1",
                 prompt=final_prompt,
@@ -221,14 +221,14 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
                 n=1
             )
             
-            print(f"📥 Réponse reçue de gpt-image-1")
+            print(f"[RESPONSE] Reponse recue de gpt-image-1")
             image_url = response.data[0].url
-            print(f"✅ Image gpt-image-1 générée: {image_url[:50]}...")
+            print(f"[OK] Image gpt-image-1 generee: {image_url[:50]}...")
             
             return image_url
             
         except Exception as e:
-            print(f"❌ Erreur génération gpt-image-1: {e}")
+            print(f"[ERROR] Erreur generation gpt-image-1: {e}")
             print(f"   Type d'erreur: {type(e).__name__}")
             import traceback
             traceback.print_exc()
@@ -260,7 +260,7 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             return output_path
             
         except Exception as e:
-            print(f"❌ Erreur téléchargement image: {e}")
+            print(f"[ERROR] Erreur telechargement image: {e}")
             raise
     
     async def generate_coloring_from_theme(self, theme: str) -> Dict[str, Any]:
@@ -298,19 +298,19 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             
             # Obtenir la description ou utiliser le thème directement
             description = theme_descriptions.get(theme.lower(), f"A {theme} scene")
-            print(f"📝 Description: {description}")
+            print(f"[DESCRIPTION] {description}")
             
             # Générer avec gpt-image-1
-            print(f"🎨 Appel gpt-image-1...")
+            print(f"[API] Appel gpt-image-1...")
             coloring_url = await self._generate_coloring_with_dalle3(description)
             
             if not coloring_url:
                 raise Exception("Échec de la génération gpt-image-1 - URL vide")
             
-            print(f"✅ URL gpt-image-1 reçue: {coloring_url[:50]}...")
+            print(f"[OK] URL gpt-image-1 recue: {coloring_url[:50]}...")
             
             # Télécharger et sauvegarder
-            print(f"📥 Téléchargement de l'image...")
+            print(f"[DOWNLOAD] Telechargement de l'image...")
             coloring_path = await self._download_and_save_image(coloring_url)
             
             # Construire la réponse
