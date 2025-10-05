@@ -481,8 +481,8 @@ def get_coloring_generator():
         coloring_generator_instance = ColoringGeneratorGPT4o()
     return coloring_generator_instance
 
-@app.post("/generate_coloring/")
-async def generate_coloring(request: dict):
+@app.post("/generate_coloring/{content_type_id}")
+async def generate_coloring(content_type_id: int, request: dict):
     """
     Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1
     """
