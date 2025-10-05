@@ -41,6 +41,17 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
 BASE_URL = os.getenv("BASE_URL", "https://herbbie.com")
 
+# Logging des variables d'environnement au démarrage
+print("=" * 60)
+print("🚀 DÉMARRAGE API FRIDAY - Contenu Créatif IA")
+print("=" * 60)
+print(f"📝 TEXT_MODEL: {TEXT_MODEL}")
+print(f"🌐 BASE_URL: {BASE_URL}")
+print(f"✅ OPENAI_API_KEY: {'Configurée' if os.getenv('OPENAI_API_KEY') else '❌ NON CONFIGURÉE'}")
+print(f"🎵 SUNO_API_KEY: {'Configurée' if os.getenv('SUNO_API_KEY') else '❌ NON CONFIGURÉE'}")
+print(f"🎨 STABILITY_API_KEY: {'Configurée' if os.getenv('STABILITY_API_KEY') else '❌ NON CONFIGURÉE'}")
+print("=" * 60)
+
 app = FastAPI(title="API FRIDAY - Contenu Créatif IA", version="2.0", description="API pour générer du contenu créatif pour enfants : BD, coloriages, histoires, comptines")
 
 # Modèles pour l'API Animation
@@ -262,16 +273,11 @@ async def generate_rhyme(request: dict):
         if not openai_key or openai_key.startswith("sk-votre"):
             raise HTTPException(
                 status_code=400, 
-                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
+                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans les variables d'environnement Railway"
             )
         
-        # Vérifier la clé API Suno
-        suno_key = os.getenv("SUNO_API_KEY")
-        if not suno_key or suno_key.startswith("your_suno"):
-            raise HTTPException(
-                status_code=400, 
-                detail="❌ Clé API Suno non configurée. Veuillez configurer SUNO_API_KEY dans le fichier .env"
-            )
+        # Note: La validation de la clé Suno sera faite dans le service suno_service
+        # pour éviter les problèmes d'initialisation
         
         # 1. Générer les paroles avec OpenAI
         theme = request.get("theme", "animaux")

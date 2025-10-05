@@ -113,8 +113,13 @@ class SunoService:
             Dict contenant les informations de la tâche
         """
         try:
-            if not self.api_key or self.api_key.startswith("your_suno"):
-                raise ValueError("❌ Clé API Suno non configurée. Veuillez configurer SUNO_API_KEY dans le fichier .env")
+            if not self.api_key or self.api_key.startswith("your_suno") or self.api_key == "None" or str(self.api_key).lower() == "none":
+                error_msg = "❌ Clé API Suno non configurée. Veuillez configurer SUNO_API_KEY dans les variables d'environnement Railway"
+                print(f"❌ {error_msg}")
+                return {
+                    "status": "error",
+                    "error": error_msg
+                }
 
             # Récupérer le style prédéfini ou utiliser le style personnalisé
             style_config = NURSERY_RHYME_STYLES.get(rhyme_type, NURSERY_RHYME_STYLES["custom"])
