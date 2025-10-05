@@ -137,6 +137,7 @@ class SunoService:
             
             # Préparer le payload pour l'API Suno
             # Documentation: https://docs.sunoapi.org/suno-api/generate-music
+            # Note: callBackUrl est requis mais nous utiliserons le polling via check_task_status
             payload = {
                 "prompt": lyrics_truncated,  # Les paroles de la comptine
                 "style": style_truncated,  # Le style musical
@@ -146,9 +147,7 @@ class SunoService:
                 "model": style_config["model"],  # V4_5 pour meilleure qualité
                 "vocalGender": style_config["vocal_gender"],  # Voix féminine
                 "negativeTags": style_config.get("negative_tags", ""),  # Styles à éviter
-                "styleWeight": 0.7,  # Poids du style (0.7 = bon équilibre)
-                "weirdnessConstraint": 0.3,  # Contrainte de créativité (0.3 = pas trop bizarre)
-                "audioWeight": 0.6  # Poids de l'influence audio
+                "callBackUrl": f"{os.getenv('BASE_URL', 'https://herbbie.com')}/suno-callback"  # Required by API
             }
             
             print(f"🎵 Génération Suno lancée:")
@@ -156,6 +155,7 @@ class SunoService:
             print(f"   - Style: {style_config['mood']}")
             print(f"   - Modèle: {style_config['model']}")
             print(f"   - Paroles: {len(lyrics_truncated)} caractères")
+            print(f"   - Payload: {json.dumps(payload, ensure_ascii=False, indent=2)}")
             
             # Faire la requête à l'API Suno
             headers = {

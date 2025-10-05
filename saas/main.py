@@ -401,6 +401,20 @@ async def diagnostic_suno():
         "status": "ready" if (suno_key and suno_key != "None" and not suno_key.startswith("your_suno")) else "not_configured"
     }
 
+@app.post("/suno-callback")
+async def suno_callback(request: Request):
+    """
+    Endpoint de callback pour recevoir les notifications de Suno AI
+    Requis par l'API Suno mais nous utilisons le polling avec check_task_status
+    """
+    try:
+        data = await request.json()
+        print(f"📩 Callback Suno reçu: {json.dumps(data, ensure_ascii=False, indent=2)}")
+        return {"status": "received"}
+    except Exception as e:
+        print(f"❌ Erreur callback Suno: {e}")
+        return {"status": "error", "error": str(e)}
+
 # --- Histoire Audio ---
 # Ancien modèle remplacé par ValidatedAudioStoryRequest dans validators.py
 
