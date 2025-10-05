@@ -415,6 +415,34 @@ async def suno_callback(request: Request):
         print(f"❌ Erreur callback Suno: {e}")
         return {"status": "error", "error": str(e)}
 
+@app.post("/test-suno")
+async def test_suno():
+    """
+    Endpoint de test pour vérifier l'appel direct à l'API Suno
+    """
+    try:
+        test_lyrics = "Petit escargot, porte sur son dos, sa maisonnette. Aussitôt qu'il pleut, il est tout heureux, il sort sa tête."
+        
+        result = await suno_service.generate_musical_nursery_rhyme(
+            lyrics=test_lyrics,
+            rhyme_type="animal",
+            title="Test Petit Escargot"
+        )
+        
+        return {
+            "test": "Suno API",
+            "result": result,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "test": "Suno API",
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+            "timestamp": datetime.now().isoformat()
+        }
+
 # --- Histoire Audio ---
 # Ancien modèle remplacé par ValidatedAudioStoryRequest dans validators.py
 
