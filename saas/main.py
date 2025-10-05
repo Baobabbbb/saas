@@ -348,9 +348,11 @@ COMPTINE: [texte de la comptine]"""
                 "title": title,
                 "content": rhyme_content,
                 "type": "rhyme",
-                "music_task_id": task_id,
+                "task_id": task_id,  # Frontend cherche "task_id"
+                "music_task_id": task_id,  # Rétrocompatibilité
                 "music_status": "processing",
                 "service": "suno",
+                "has_music": True,
                 "message": "Comptine générée, musique Suno AI en cours de création (2 chansons)..."
             }
         else:
