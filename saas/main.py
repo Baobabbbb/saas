@@ -382,6 +382,25 @@ async def check_task_status(task_id: str):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erreur lors de la vérification : {str(e)}")
 
+@app.get("/diagnostic/suno")
+async def diagnostic_suno():
+    """
+    Endpoint de diagnostic pour vérifier la configuration Suno
+    """
+    suno_key = os.getenv("SUNO_API_KEY")
+    suno_url = os.getenv("SUNO_BASE_URL")
+    
+    return {
+        "service": "Suno AI",
+        "api_key_configured": bool(suno_key and suno_key != "None" and not suno_key.startswith("your_suno")),
+        "api_key_value": f"{suno_key[:10]}..." if suno_key and len(suno_key) > 10 else suno_key,
+        "base_url": suno_url,
+        "service_initialized": bool(suno_service.api_key),
+        "service_api_key": f"{suno_service.api_key[:10]}..." if suno_service.api_key and len(str(suno_service.api_key)) > 10 else str(suno_service.api_key),
+        "service_base_url": suno_service.base_url,
+        "status": "ready" if (suno_key and suno_key != "None" and not suno_key.startswith("your_suno")) else "not_configured"
+    }
+
 # --- Histoire Audio ---
 # Ancien modèle remplacé par ValidatedAudioStoryRequest dans validators.py
 
