@@ -510,9 +510,12 @@ function App() {
     setCurrentPageIndex(0); // Reviens à la première page
 
     // 🎵 Démarrer le polling automatique si c'est une comptine avec task_id
+    // IMPORTANT : On garde isGenerating = true jusqu'à ce que la musique soit prête
     if (contentType === 'rhyme' && generatedContent.task_id && generateMusic) {
       console.log('🎵 Démarrage du polling automatique pour task_id:', generatedContent.task_id);
+      // NE PAS arrêter isGenerating ici, le polling le fera quand la musique est prête
       pollTaskStatus(generatedContent.task_id);
+      return; // Sortir de la fonction pour garder isGenerating = true
     }    // Déterminer le titre avec des noms attractifs pour les enfants
     let title;
     if (contentType === 'rhyme') {
@@ -762,6 +765,7 @@ const downloadPDF = async (title, content) => {
             has_music: true,
             service: 'suno'
           }));
+          setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement
           return true; // Arrêter le polling
         } else if (status.status === 'failed') {
           // Tâche échouée
@@ -771,6 +775,7 @@ const downloadPDF = async (title, content) => {
             music_error: status.error,
             has_music: false
           }));
+          setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement même en cas d'erreur
           return true; // Arrêter le polling
         } else if (status.status === 'processing') {
           // En cours de traitement

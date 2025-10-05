@@ -284,9 +284,14 @@ class SunoService:
                 "Content-Type": "application/json"
             }
             
+            # Essayer avec l'endpoint de détails de génération musicale
+            # Documentation: https://docs.sunoapi.org/suno-api/generate-music (Get Music Generation Details)
+            url = f"{self.base_url}/query/{task_id}"
+            print(f"🔍 Vérification statut Suno: {url}")
+            
             async with aiohttp.ClientSession() as session:
                 async with session.get(
-                    f"{self.base_url}/get/{task_id}",
+                    url,
                     headers=headers,
                     timeout=aiohttp.ClientTimeout(total=30)
                 ) as response:
