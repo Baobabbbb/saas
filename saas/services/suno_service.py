@@ -10,7 +10,7 @@ import os
 import json
 from datetime import datetime
 from typing import Dict, Any, Optional, List
-from config import OPENAI_API_KEY
+from config import SUNO_API_KEY, SUNO_BASE_URL
 
 # Configuration optimisée pour les comptines enfant avec Suno
 NURSERY_RHYME_STYLES = {
@@ -81,8 +81,8 @@ NURSERY_RHYME_STYLES = {
 
 class SunoService:
     def __init__(self):
-        self.api_key = os.getenv("SUNO_API_KEY")
-        self.base_url = os.getenv("SUNO_BASE_URL", "https://api.sunoapi.org/api/v1")
+        self.api_key = SUNO_API_KEY
+        self.base_url = SUNO_BASE_URL or "https://api.sunoapi.org/api/v1"
         
         if not self.api_key or self.api_key.startswith("your_suno"):
             print("⚠️ ATTENTION: Clé API Suno non configurée correctement")
