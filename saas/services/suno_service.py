@@ -95,19 +95,23 @@ class SunoService:
         
     async def generate_musical_nursery_rhyme(
         self, 
-        lyrics: str, 
+        lyrics: Optional[str] = None,
         rhyme_type: str = "custom",
         custom_style: Optional[str] = None,
-        title: Optional[str] = None
+        title: Optional[str] = None,
+        custom_mode: bool = True,
+        prompt_description: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Génère une comptine musicale avec Suno AI
+        Génère une comptine musicale avec Suno AI (Mode Custom ou Non-Custom)
         
         Args:
-            lyrics: Les paroles de la comptine (utilisées comme prompt en mode custom)
+            lyrics: Les paroles exactes (mode custom uniquement)
             rhyme_type: Type de comptine (lullaby, counting, animal, etc.)
             custom_style: Style musical personnalisé optionnel
             title: Titre de la comptine
+            custom_mode: True = paroles exactes (lyrics), False = Suno génère les paroles
+            prompt_description: Description pour Suno en mode non-custom (max 500 chars)
             
         Returns:
             Dict contenant les informations de la tâche
@@ -129,32 +133,65 @@ class SunoService:
             if not title:
                 title = f"Comptine {rhyme_type.capitalize()}"
             
-            # Limiter la longueur selon les specs de l'API
-            # V4_5 supporte jusqu'à 5000 caractères pour le prompt
-            lyrics_truncated = lyrics[:5000] if len(lyrics) > 5000 else lyrics
-            style_truncated = base_style[:1000] if len(base_style) > 1000 else base_style
             title_truncated = title[:80] if len(title) > 80 else title
             
-            # Préparer le payload pour l'API Suno
+            # Préparer le payload selon le mode (Custom ou Non-Custom)
             # Documentation: https://docs.sunoapi.org/suno-api/generate-music
-            # Note: callBackUrl est requis mais nous utiliserons le polling via check_task_status
-            payload = {
-                "prompt": lyrics_truncated,  # Les paroles de la comptine
-                "style": style_truncated,  # Le style musical
-                "title": title_truncated,  # Le titre
-                "customMode": True,  # Mode custom pour contrôler les paroles
-                "instrumental": style_config["instrumental"],  # False pour avoir des paroles
-                "model": style_config["model"],  # V4_5 pour meilleure qualité
-                "vocalGender": style_config["vocal_gender"],  # Voix féminine
-                "negativeTags": style_config.get("negative_tags", ""),  # Styles à éviter
-                "callBackUrl": f"{os.getenv('BASE_URL', 'https://herbbie.com')}/suno-callback"  # Required by API
-            }
             
-            print(f"🎵 Génération Suno lancée:")
-            print(f"   - Titre: {title_truncated}")
-            print(f"   - Style: {style_config['mood']}")
-            print(f"   - Modèle: {style_config['model']}")
-            print(f"   - Paroles: {len(lyrics_truncated)} caractères")
+            if custom_mode:
+                # MODE CUSTOM : Paroles exactes fournies par GPT-4o-mini
+                # Utilisé quand personnalisation (prénom, détails spécifiques)
+                if not lyrics:
+                    return {
+                        "status": "error",
+                        "error": "Mode custom nécessite des paroles (lyrics)"
+                    }
+                
+                lyrics_truncated = lyrics[:5000] if len(lyrics) > 5000 else lyrics
+                style_truncated = base_style[:1000] if len(base_style) > 1000 else base_style
+                
+                payload = {
+                    "prompt": lyrics_truncated,  # Paroles exactes
+                    "style": style_truncated,
+                    "title": title_truncated,
+                    "customMode": True,
+                    "instrumental": style_config["instrumental"],
+                    "model": style_config["model"],
+                    "vocalGender": style_config["vocal_gender"],
+                    "negativeTags": style_config.get("negative_tags", ""),
+                    "callBackUrl": f"{os.getenv('BASE_URL', 'https://herbbie.com')}/suno-callback"
+                }
+                
+                print(f"🎵 Génération Suno (MODE CUSTOM) lancée:")
+                print(f"   - Titre: {title_truncated}")
+                print(f"   - Style: {style_config['mood']}")
+                print(f"   - Modèle: {style_config['model']}")
+                print(f"   - Paroles fournies: {len(lyrics_truncated)} caractères")
+            else:
+                # MODE NON-CUSTOM : Suno génère les paroles automatiquement
+                # Utilisé pour demandes génériques (pas de personnalisation)
+                if not prompt_description:
+                    return {
+                        "status": "error",
+                        "error": "Mode non-custom nécessite une description (prompt_description)"
+                    }
+                
+                # Max 500 caractères pour mode non-custom
+                prompt_truncated = prompt_description[:500] if len(prompt_description) > 500 else prompt_description
+                
+                payload = {
+                    "prompt": prompt_truncated,  # Description du thème
+                    "customMode": False,
+                    "instrumental": style_config["instrumental"],
+                    "model": style_config["model"],
+                    "callBackUrl": f"{os.getenv('BASE_URL', 'https://herbbie.com')}/suno-callback"
+                }
+                
+                print(f"🎵 Génération Suno (MODE AUTO) lancée:")
+                print(f"   - Description: {prompt_truncated}")
+                print(f"   - Modèle: {style_config['model']}")
+                print(f"   - Suno générera les paroles automatiquement")
+            
             print(f"   - Payload: {json.dumps(payload, ensure_ascii=False, indent=2)}")
             
             # Faire la requête à l'API Suno
