@@ -742,8 +742,8 @@ const downloadPDF = async (title, content) => {
   doc.save(`${safeTitle}.pdf`);
 };
 
- // Fonction de polling automatique pour vérifier le statut des tâches musicales
-  const pollTaskStatus = async (taskId, maxAttempts = 20, interval = 5000) => {
+ // Fonction de polling automatique pour vérifier le statut des tâches musicales Suno
+  const pollTaskStatus = async (taskId, maxAttempts = 40, interval = 5000) => {
     let attempts = 0;
     
     const checkStatus = async () => {
@@ -751,23 +751,33 @@ const downloadPDF = async (title, content) => {
         const response = await fetch(`${API_BASE_URL}/check_task_status/${taskId}`);
         const status = await response.json();
         
-        console.log(`Polling tentative ${attempts + 1}/${maxAttempts}:`, status);
+        console.log(`🎵 Suno polling tentative ${attempts + 1}/${maxAttempts}:`, status);
         
-        if (status.status === 'completed' && status.audio_path) {
-          // Tâche terminée avec succès
+        if (status.status === 'completed' && status.songs && status.songs.length > 0) {
+          // Tâche Suno terminée avec succès - retourne 2 chansons
+          console.log('✅ Génération Suno terminée avec succès:', status.songs.length, 'chansons');
           setGeneratedResult(prev => ({
             ...prev,
-            audio_path: status.audio_path,
-            has_music: true
+            songs: status.songs,
+            has_music: true,
+            service: 'suno'
           }));
           return true; // Arrêter le polling
         } else if (status.status === 'failed') {
           // Tâche échouée
-          console.error('La génération musicale a échoué:', status);
+          console.error('❌ La génération musicale Suno a échoué:', status.error);
+          setGeneratedResult(prev => ({
+            ...prev,
+            music_error: status.error,
+            has_music: false
+          }));
           return true; // Arrêter le polling
+        } else if (status.status === 'processing') {
+          // En cours de traitement
+          console.log(`⏳ Génération Suno en cours... ${status.progress || 0}%`);
         } else if (attempts >= maxAttempts - 1) {
           // Timeout atteint
-          console.warn('Timeout atteint pour la génération musicale');
+          console.warn('⚠️ Timeout atteint pour la génération musicale Suno');
           return true; // Arrêter le polling
         }
         
@@ -777,7 +787,7 @@ const downloadPDF = async (title, content) => {
         return false;
         
       } catch (error) {
-        console.error('Erreur lors du polling:', error);
+        console.error('❌ Erreur lors du polling Suno:', error);
         attempts++;
         if (attempts < maxAttempts) {
           setTimeout(checkStatus, interval);
@@ -1026,8 +1036,38 @@ const downloadPDF = async (title, content) => {
           </div>
         )}
         
-        {/* Audio si disponible */}
-        {generatedResult.audio_path && (
+        {/* Audio si disponible - Suno retourne plusieurs chansons */}
+        {generatedResult.songs && generatedResult.songs.length > 0 && (
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' }}>
+            <p style={{ fontSize: '14px', color: '#667eea', fontWeight: 600, textAlign: 'center' }}>
+              ✨ {generatedResult.songs.length} version{generatedResult.songs.length > 1 ? 's' : ''} générée{generatedResult.songs.length > 1 ? 's' : ''} avec Suno AI
+            </p>
+            {generatedResult.songs.map((song, index) => (
+              <div key={song.id || index} style={{ 
+                background: '#f8f9fa', 
+                padding: '15px', 
+                borderRadius: '10px',
+                border: '2px solid #e9ecef'
+              }}>
+                <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#333' }}>
+                  🎼 Version {index + 1}
+                </h4>
+                <audio
+                  controls
+                  style={{ width: '100%' }}
+                  src={song.audio_url}
+                />
+                {song.duration && (
+                  <p style={{ fontSize: '12px', color: '#666', marginTop: '5px', fontStyle: 'italic' }}>
+                    ⏱️ Durée: {Math.floor(song.duration)}s
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {/* Fallback pour l'ancien format (audio_path) */}
+        {generatedResult.audio_path && !generatedResult.songs && (
           <audio
             controls
             style={{ width: '100%', maxWidth: '300px' }}
@@ -1035,8 +1075,8 @@ const downloadPDF = async (title, content) => {
           />
         )}
         
-        {/* Statut de génération musicale */}
-        {generatedResult.task_id && !generatedResult.audio_path && (
+        {/* Statut de génération musicale Suno */}
+        {generatedResult.task_id && !generatedResult.songs && !generatedResult.audio_path && (
           <div style={{ 
             padding: '0.5rem 1rem',
             backgroundColor: '#fff3cd',
@@ -1046,7 +1086,7 @@ const downloadPDF = async (title, content) => {
             textAlign: 'center',
             border: '1px solid #ffeaa7'
           }}>
-            🎵 Génération musicale en cours...
+            🎵 Génération musicale Suno AI en cours... (2-3 minutes)
           </div>
         )}
         

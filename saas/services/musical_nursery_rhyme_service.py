@@ -1,6 +1,6 @@
 """
 Service de Comptines Musicales
-Combine la génération de paroles (OpenAI) avec la génération musicale (Udio)
+Combine la génération de paroles (OpenAI) avec la génération musicale (Suno AI)
 """
 
 import asyncio
@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from openai import AsyncOpenAI
 from config import OPENAI_API_KEY, TEXT_MODEL
-from services.udio_service import udio_service, NURSERY_RHYME_STYLES
+from services.suno_service import suno_service, NURSERY_RHYME_STYLES
 
 class MusicalNurseryRhymeService:
     def __init__(self):
@@ -58,12 +58,12 @@ class MusicalNurseryRhymeService:
                 "generation_time": lyrics_result.get("generation_time", 0)
             }
             
-            # Étape 2: Générer la musique (si demandé)
+            # Étape 2: Générer la musique avec Suno AI (si demandé)
             if generate_music:
-                print(f"🎼 Génération musique pour: {title}")
+                print(f"🎼 Génération musique Suno AI pour: {title}")
                 
                 music_result = await self._generate_music(
-                    lyrics, rhyme_type, custom_style
+                    lyrics, rhyme_type, custom_style, title
                 )
                 
                 if music_result["status"] == "success":
@@ -71,19 +71,22 @@ class MusicalNurseryRhymeService:
                         "has_music": True,
                         "task_id": music_result.get("task_id"),  # Exposer le task_id
                         "music_status": "pending",
-                        "style_used": music_result.get("style_used")
+                        "style_used": music_result.get("style_used"),
+                        "service": "suno"  # Indiquer que c'est Suno
                     })
-                    print(f"🎵 Génération musicale lancée (task_id: {music_result.get('task_id')})")
+                    print(f"🎵 Génération musicale Suno lancée (task_id: {music_result.get('task_id')})")
                     
                     # NE PAS attendre - retourner immédiatement pour éviter les timeouts
                     # Le frontend utilisera le task_id pour faire du polling
                     
                 else:
+                    # En cas d'erreur, retourner l'erreur complète
+                    error_msg = music_result.get("error", "Erreur inconnue")
                     result.update({
                         "music_status": "failed",
-                        "music_error": music_result.get("error")
+                        "music_error": error_msg
                     })
-                    print(f"⚠️ Impossible de générer la musique: {music_result.get('error')}")
+                    print(f"❌ Erreur génération musique Suno: {error_msg}")
             
             return result
             
@@ -153,24 +156,24 @@ class MusicalNurseryRhymeService:
         self, 
         lyrics: str, 
         rhyme_type: str, 
-        custom_style: Optional[str] = None
+        custom_style: Optional[str] = None,
+        title: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Génère la musique avec DiffRhythm
+        Génère la musique avec Suno AI
         """
         try:
-            # Formater les paroles pour Udio
-            formatted_lyrics = udio_service.format_lyrics_for_udio(lyrics)
-            
-            # Générer la musique avec Udio
-            result = await udio_service.generate_musical_nursery_rhyme(
-                formatted_lyrics, rhyme_type, custom_style
+            # Générer la musique avec Suno AI
+            result = await suno_service.generate_musical_nursery_rhyme(
+                lyrics, rhyme_type, custom_style, title
             )
             
             return result
             
         except Exception as e:
-            print(f"❌ Erreur génération musique: {e}")
+            print(f"❌ Erreur génération musique Suno: {e}")
+            import traceback
+            traceback.print_exc()
             return {
                 "status": "error",
                 "error": str(e)

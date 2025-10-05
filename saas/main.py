@@ -249,7 +249,7 @@ async def stt_endpoint(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- Comptine ---
-from services.udio_service import udio_service
+from services.suno_service import suno_service
 
 # Ancien modèle remplacé par ValidatedRhymeRequest dans validators.py
 
@@ -265,12 +265,12 @@ async def generate_rhyme(request: dict):
                 detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
             )
         
-        # Vérifier la clé API Udio
-        goapi_key = os.getenv("GOAPI_API_KEY")
-        if not goapi_key or goapi_key.startswith("votre_cle"):
+        # Vérifier la clé API Suno
+        suno_key = os.getenv("SUNO_API_KEY")
+        if not suno_key or suno_key.startswith("your_suno"):
             raise HTTPException(
                 status_code=400, 
-                detail="❌ Clé API GoAPI Udio non configurée. Veuillez configurer GOAPI_API_KEY dans le fichier .env"
+                detail="❌ Clé API Suno non configurée. Veuillez configurer SUNO_API_KEY dans le fichier .env"
             )
         
         # 1. Générer les paroles avec OpenAI
@@ -326,16 +326,17 @@ COMPTINE: [texte de la comptine]"""
                 # En cas d'erreur, utiliser le contenu complet
                 pass
         
-        # 2. Lancer la génération musicale avec Udio
-        print(f"🎵 Lancement génération musicale pour: {title}")
-        udio_result = await udio_service.generate_musical_nursery_rhyme(
+        # 2. Lancer la génération musicale avec Suno AI
+        print(f"🎵 Lancement génération musicale Suno AI pour: {title}")
+        suno_result = await suno_service.generate_musical_nursery_rhyme(
             lyrics=rhyme_content,
-            rhyme_type=theme
+            rhyme_type=theme,
+            title=title
         )
         
-        if udio_result.get("status") == "success":
-            task_id = udio_result.get("task_id")
-            print(f"✅ Tâche musicale créée: {task_id}")
+        if suno_result.get("status") == "success":
+            task_id = suno_result.get("task_id")
+            print(f"✅ Tâche musicale Suno créée: {task_id}")
             
             return {
                 "title": title,
@@ -343,15 +344,16 @@ COMPTINE: [texte de la comptine]"""
                 "type": "rhyme",
                 "music_task_id": task_id,
                 "music_status": "processing",
-                "message": "Comptine générée, musique en cours de création..."
+                "service": "suno",
+                "message": "Comptine générée, musique Suno AI en cours de création (2 chansons)..."
             }
         else:
             # Si la génération musicale échoue, retourner une erreur HTTP
-            error_message = udio_result.get("error", "Erreur inconnue lors de la génération musicale")
-            print(f"❌ Erreur génération musicale: {error_message}")
+            error_message = suno_result.get("error", "Erreur inconnue lors de la génération musicale")
+            print(f"❌ Erreur génération musicale Suno: {error_message}")
             raise HTTPException(
                 status_code=500, 
-                detail=f"❌ La création de l'audio a échoué : {error_message}"
+                detail=f"❌ La création de l'audio Suno a échoué : {error_message}"
             )
             
     except HTTPException:
@@ -363,13 +365,15 @@ COMPTINE: [texte de la comptine]"""
 @app.get("/check_task_status/{task_id}")
 async def check_task_status(task_id: str):
     """
-    Vérifie le statut d'une tâche musicale Udio
+    Vérifie le statut d'une tâche musicale Suno AI
     """
     try:
-        result = await udio_service.check_task_status(task_id)
+        result = await suno_service.check_task_status(task_id)
         return result
     except Exception as e:
-        print(f"❌ Erreur vérification statut: {e}")
+        print(f"❌ Erreur vérification statut Suno: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erreur lors de la vérification : {str(e)}")
 
 # --- Histoire Audio ---
