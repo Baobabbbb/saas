@@ -1,9 +1,9 @@
 """
-Service de génération de coloriages avec GPT-4o-mini + DALL-E 3
+Service de génération de coloriages avec GPT-4o-mini + gpt-image-1
 Transforme des thèmes ou des photos en pages de coloriage noir et blanc
-Utilise gpt-4o-mini pour l'analyse et DALL-E 3 pour la génération
+Utilise gpt-4o-mini pour l'analyse et gpt-image-1 pour la génération
 Avec un prompt optimisé pour des coloriages de qualité professionnelle
-Note: gpt-image-1 nécessite une organisation OpenAI vérifiée
+Organisation OpenAI vérifiée requise pour gpt-image-1
 """
 import os
 import uuid
@@ -52,7 +52,7 @@ Subject: {subject}"""
             
             print(f"✅ ColoringGeneratorGPT4o initialisé")
             print(f"   - Modèle analyse: gpt-4o-mini")
-            print(f"   - Modèle génération: DALL-E 3")
+            print(f"   - Modèle génération: gpt-image-1")
             print(f"   - API Key présente: Oui")
         except Exception as e:
             print(f"❌ Erreur initialisation ColoringGeneratorGPT4o: {e}")
@@ -208,27 +208,27 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             else:
                 final_prompt = self.coloring_prompt_template.format(subject=subject)
             
-            print(f"📝 Prompt DALL-E 3: {final_prompt[:150]}...")
+            print(f"📝 Prompt gpt-image-1: {final_prompt[:150]}...")
             
-            # Appeler DALL-E 3 (modèle OpenAI officiel pour génération d'images)
-            # Note: gpt-image-1 nécessite une organisation vérifiée
-            print(f"📡 Appel API OpenAI DALL-E 3...")
+            # Appeler gpt-image-1 (modèle OpenAI avancé pour génération d'images)
+            # Organisation vérifiée requise
+            print(f"📡 Appel API OpenAI gpt-image-1...")
             response = await self.client.images.generate(
-                model="dall-e-3",
+                model="gpt-image-1",
                 prompt=final_prompt,
                 size="1024x1024",
-                quality="standard",  # DALL-E 3 accepte: standard, hd
+                quality="medium",  # gpt-image-1 accepte: low, medium, high, auto
                 n=1
             )
             
-            print(f"📥 Réponse reçue de DALL-E 3")
+            print(f"📥 Réponse reçue de gpt-image-1")
             image_url = response.data[0].url
-            print(f"✅ Image DALL-E 3 générée: {image_url[:50]}...")
+            print(f"✅ Image gpt-image-1 générée: {image_url[:50]}...")
             
             return image_url
             
         except Exception as e:
-            print(f"❌ Erreur génération DALL-E 3: {e}")
+            print(f"❌ Erreur génération gpt-image-1: {e}")
             print(f"   Type d'erreur: {type(e).__name__}")
             import traceback
             traceback.print_exc()
@@ -300,14 +300,14 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             description = theme_descriptions.get(theme.lower(), f"A {theme} scene")
             print(f"📝 Description: {description}")
             
-            # Générer avec DALL-E 3
-            print(f"🎨 Appel DALL-E 3...")
+            # Générer avec gpt-image-1
+            print(f"🎨 Appel gpt-image-1...")
             coloring_url = await self._generate_coloring_with_dalle3(description)
             
             if not coloring_url:
-                raise Exception("Échec de la génération DALL-E 3 - URL vide")
+                raise Exception("Échec de la génération gpt-image-1 - URL vide")
             
-            print(f"✅ URL DALL-E 3 reçue: {coloring_url[:50]}...")
+            print(f"✅ URL gpt-image-1 reçue: {coloring_url[:50]}...")
             
             # Télécharger et sauvegarder
             print(f"📥 Téléchargement de l'image...")

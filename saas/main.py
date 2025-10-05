@@ -485,9 +485,9 @@ def get_coloring_generator():
 @app.post("/generate_coloring/{content_type_id}")
 async def generate_coloring(request: dict, content_type_id: int = None):
     """
-    Génère un coloriage basé sur un thème avec GPT-4o-mini + DALL-E 3
+    Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1
     Supporte deux formats d'URL pour compatibilité frontend
-    Note: gpt-image-1 nécessite une organisation OpenAI vérifiée, donc on utilise DALL-E 3
+    Organisation OpenAI vérifiée requise pour gpt-image-1
     """
     try:
         # Validation des données d'entrée
@@ -513,9 +513,9 @@ async def generate_coloring(request: dict, content_type_id: int = None):
                 "status": "success",
                 "theme": theme,
                 "images": result.get("images", []),
-                "message": "Coloriage généré avec succès avec DALL-E 3 !",
+                "message": "Coloriage généré avec succès avec gpt-image-1 !",
                 "type": "coloring",
-                "model": "dall-e-3"
+                "model": "gpt-image-1"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la génération du coloriage")
@@ -632,7 +632,7 @@ async def convert_photo_to_coloring(request: dict):
                 "message": "Photo convertie en coloriage avec succès !",
                 "type": "coloring",
                 "source": "photo",
-                "model": "dall-e-3"
+                "model": "gpt-image-1"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la conversion")
