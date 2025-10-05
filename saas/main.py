@@ -481,15 +481,18 @@ def get_coloring_generator():
         coloring_generator_instance = ColoringGeneratorGPT4o()
     return coloring_generator_instance
 
+@app.post("/generate_coloring/")
 @app.post("/generate_coloring/{content_type_id}")
-async def generate_coloring(content_type_id: int, request: dict):
+async def generate_coloring(request: dict, content_type_id: int = None):
     """
-    Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1
+    Génère un coloriage basé sur un thème avec GPT-4o-mini + DALL-E 3
+    Supporte deux formats d'URL pour compatibilité frontend
+    Note: gpt-image-1 nécessite une organisation OpenAI vérifiée, donc on utilise DALL-E 3
     """
     try:
         # Validation des données d'entrée
         theme = request.get("theme", "animaux")
-        print(f"🎨 Génération coloriage GPT-4o-mini: {theme}")
+        print(f"🎨 Génération coloriage GPT-4o-mini: {theme} (content_type_id={content_type_id})")
         
         # Vérifier la clé API OpenAI
         openai_key = os.getenv("OPENAI_API_KEY")
@@ -510,9 +513,9 @@ async def generate_coloring(content_type_id: int, request: dict):
                 "status": "success",
                 "theme": theme,
                 "images": result.get("images", []),
-                "message": "Coloriage généré avec succès avec gpt-image-1 !",
+                "message": "Coloriage généré avec succès avec DALL-E 3 !",
                 "type": "coloring",
-                "model": "gpt-image-1"
+                "model": "dall-e-3"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la génération du coloriage")
@@ -629,7 +632,7 @@ async def convert_photo_to_coloring(request: dict):
                 "message": "Photo convertie en coloriage avec succès !",
                 "type": "coloring",
                 "source": "photo",
-                "model": "gpt-image-1"
+                "model": "dall-e-3"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la conversion")
