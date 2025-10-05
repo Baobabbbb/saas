@@ -52,7 +52,7 @@ Subject: {subject}"""
             
             print(f"OK: ColoringGeneratorGPT4o initialise")
             print(f"   - Modele analyse: gpt-4o-mini")
-            print(f"   - Modele generation: gpt-image-1")
+            print(f"   - Modele generation: DALL-E 3 (temporaire)")
             print(f"   - API Key presente: Oui")
         except Exception as e:
             print(f"ERREUR: Initialisation ColoringGeneratorGPT4o: {e}")
@@ -210,25 +210,25 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             
             print(f"[PROMPT] gpt-image-1: {final_prompt[:150]}...")
             
-            # Appeler gpt-image-1 (modèle OpenAI avancé pour génération d'images)
-            # Organisation vérifiée requise
-            print(f"[API] Appel OpenAI gpt-image-1...")
+            # Appeler DALL-E 3 (modèle OpenAI pour génération d'images)
+            # Note: Retour temporaire à DALL-E 3 pour diagnostic
+            print(f"[API] Appel OpenAI DALL-E 3...")
             response = await self.client.images.generate(
-                model="gpt-image-1",
+                model="dall-e-3",
                 prompt=final_prompt,
                 size="1024x1024",
-                quality="medium",  # gpt-image-1 accepte: low, medium, high, auto
+                quality="standard",  # DALL-E 3 accepte: standard, hd
                 n=1
             )
             
-            print(f"[RESPONSE] Reponse recue de gpt-image-1")
+            print(f"[RESPONSE] Reponse recue de DALL-E 3")
             image_url = response.data[0].url
-            print(f"[OK] Image gpt-image-1 generee: {image_url[:50]}...")
+            print(f"[OK] Image DALL-E 3 generee: {image_url[:50]}...")
             
             return image_url
             
         except Exception as e:
-            print(f"[ERROR] Erreur generation gpt-image-1: {e}")
+            print(f"[ERROR] Erreur generation image: {e}")
             print(f"   Type d'erreur: {type(e).__name__}")
             import traceback
             traceback.print_exc()
