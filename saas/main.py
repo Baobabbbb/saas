@@ -260,13 +260,12 @@ async def stt_endpoint(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- Comptine ---
+from services.suno_service import suno_service
 from routes.rhyme_routes import router as rhyme_router
 app.include_router(rhyme_router)
 
 # ANCIEN ENDPOINT COMPTINE SUPPRIMÉ
 # Voir routes/rhyme_routes.py pour le nouveau code propre
-
-# Tout le code de génération de comptine est maintenant dans routes/rhyme_routes.py
 
 @app.get("/check_task_status/{task_id}")
 async def check_task_status(task_id: str):
