@@ -40,22 +40,13 @@ def detect_customization(custom_request: str) -> bool:
 @router.post("/generate_rhyme/")
 async def generate_rhyme_endpoint(request: Dict[str, Any]):
     """Génère une comptine musicale"""
-    print("=" * 60)
-    print("🎵 GÉNÉRATION COMPTINE - DÉBUT")
-    print("=" * 60)
-    
     try:
         theme = request.get("theme", "animaux")
         custom_request = request.get("custom_request", "")
         
-        print(f"Theme: {theme}")
-        print(f"Custom: {bool(custom_request)}")
-        
         needs_custom = detect_customization(custom_request)
-        print(f"Personnalisation: {needs_custom}")
         
         if needs_custom:
-            print("→ MODE PERSONNALISÉ (GPT + Suno)")
             
             openai_key = os.getenv("OPENAI_API_KEY")
             if not openai_key:
@@ -94,9 +85,6 @@ async def generate_rhyme_endpoint(request: Dict[str, Any]):
                 except:
                     pass
             
-            print(f"Titre: {title_text[:30]}")
-            print(f"Paroles: {len(lyrics_text)} caractères")
-            
             suno_res = await suno_service.generate_musical_nursery_rhyme(
                 lyrics=lyrics_text,
                 rhyme_type=theme,
@@ -105,8 +93,6 @@ async def generate_rhyme_endpoint(request: Dict[str, Any]):
             )
             
         else:
-            print("→ MODE AUTOMATIQUE (Suno seul)")
-            
             descriptions = {
                 "lullaby": "Berceuse douce française pour enfants",
                 "counting": "Comptine éducative française pour compter",
@@ -120,8 +106,6 @@ async def generate_rhyme_endpoint(request: Dict[str, Any]):
             title_text = f"Comptine {theme.capitalize()}"
             lyrics_text = ""  # Pas de paroles en mode auto, Suno génère tout
             
-            print(f"Description: {desc[:50]}")
-            
             suno_res = await suno_service.generate_musical_nursery_rhyme(
                 rhyme_type=theme,
                 title=title_text,
@@ -131,9 +115,8 @@ async def generate_rhyme_endpoint(request: Dict[str, Any]):
         
         if suno_res.get("status") == "success":
             task_id = suno_res.get("task_id")
-            print(f"✅ Suno task créé: {task_id}")
             
-            result = {
+            return {
                 "title": title_text,
                 "content": lyrics_text,
                 "type": "rhyme",
@@ -145,21 +128,12 @@ async def generate_rhyme_endpoint(request: Dict[str, Any]):
                 "custom_mode": needs_custom,
                 "message": "Comptine générée, musique en cours..."
             }
-            
-            print("=" * 60)
-            print("✅ GÉNÉRATION COMPTINE - SUCCESS")
-            print("=" * 60)
-            return result
         else:
             err = suno_res.get("error", "Unknown")
-            print(f"❌ Suno error: {err}")
             raise HTTPException(500, f"Suno: {err}")
             
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ EXCEPTION: {type(e).__name__}: {e}")
-        import traceback
-        traceback.print_exc()
         raise HTTPException(500, f"Error: {str(e)}")
 

@@ -4,46 +4,74 @@ import './MusicalRhymeSelector.css';
 
 const rhymeTypes = [
   { 
-    id: 'lullaby', 
-    title: 'Berceuse musicale', 
-    description: 'Une douce berceuse avec mélodie apaisante pour endormir', 
-    emoji: '🌙',
-    musicStyle: 'gentle lullaby'
-  },
-  { 
-    id: 'counting', 
-    title: 'Comptine à compter', 
-    description: 'Une comptine rythmée pour apprendre à compter en musique', 
-    emoji: '🔢',
-    musicStyle: 'upbeat educational'
-  },
-  { 
     id: 'animal', 
     title: 'Comptine animalière', 
-    description: 'Une comptine avec des animaux et leurs sons sur fond musical', 
+    description: 'Une comptine joyeuse avec des animaux et leurs sons', 
     emoji: '🐘',
     musicStyle: 'playful with animal sounds'
   },
   { 
+    id: 'counting', 
+    title: 'Comptine à compter', 
+    description: 'Apprendre les chiffres en chanson', 
+    emoji: '🔢',
+    musicStyle: 'upbeat educational'
+  },
+  { 
+    id: 'colors', 
+    title: 'Comptine des couleurs', 
+    description: 'Découvrir les couleurs en musique', 
+    emoji: '🌈',
+    musicStyle: 'cheerful and colorful'
+  },
+  { 
+    id: 'alphabet', 
+    title: 'Comptine de l\'alphabet', 
+    description: 'Apprendre les lettres en chantant', 
+    emoji: '🔤',
+    musicStyle: 'educational and catchy'
+  },
+  { 
+    id: 'family', 
+    title: 'Comptine familiale', 
+    description: 'Une chanson sur la famille et l\'amour', 
+    emoji: '👨‍👩‍👧‍👦',
+    musicStyle: 'warm and loving'
+  },
+  { 
+    id: 'nature', 
+    title: 'Comptine de la nature', 
+    description: 'Explorer les plantes, arbres et fleurs', 
+    emoji: '🌳',
+    musicStyle: 'peaceful and natural'
+  },
+  { 
     id: 'seasonal', 
     title: 'Comptine saisonnière', 
-    description: 'Une comptine festive sur les saisons avec mélodie joyeuse', 
+    description: 'Célébrer les saisons et leurs merveilles', 
     emoji: '🍂',
     musicStyle: 'festive and warm'
   },
   { 
-    id: 'educational', 
-    title: 'Comptine éducative', 
-    description: 'Une comptine pour apprendre avec musique mnémotechnique', 
-    emoji: '🎨',
-    musicStyle: 'educational and memorable'
-  },
-  { 
     id: 'movement', 
     title: 'Comptine de mouvement', 
-    description: 'Une comptine énergique pour bouger et danser', 
+    description: 'Bouger, sauter et danser en musique', 
     emoji: '💃',
     musicStyle: 'energetic dance rhythm'
+  },
+  { 
+    id: 'emotions', 
+    title: 'Comptine des émotions', 
+    description: 'Comprendre et exprimer ses sentiments', 
+    emoji: '😊',
+    musicStyle: 'expressive and gentle'
+  },
+  { 
+    id: 'lullaby', 
+    title: 'Berceuse douce', 
+    description: 'Une mélodie apaisante pour s\'endormir', 
+    emoji: '🌙',
+    musicStyle: 'gentle lullaby'
   }
 ];
 

@@ -154,23 +154,18 @@ function App() {
   // Polling du statut d'une animation jusqu'à complétion
   const waitForAnimationCompletion = async (taskId, { intervalMs = 5000, maxAttempts = 240 } = {}) => {
     let attempts = 0;
-    console.log(`🔄 Démarrage polling pour task_id: ${taskId}`);
     
     while (attempts < maxAttempts) {
       try {
-        console.log(`🔍 Tentative ${attempts + 1}/${maxAttempts} - Vérification statut pour ${taskId}`);
         const res = await fetch(`${ANIMATION_API_BASE_URL}/status/${taskId}`);
         
         if (res.ok) {
           const statusPayload = await res.json();
-          console.log('📊 Réponse statut:', statusPayload);
           
           if (statusPayload?.type === 'result') {
             const data = statusPayload.data;
-            console.log('📋 Données reçues:', data);
             
             if (data?.status === 'completed') {
-              console.log('✅ Animation terminée !', data);
               // Vérifier qu'il y a vraiment du contenu
               if (data?.clips && data.clips.length > 0) {
                 return data;
@@ -182,8 +177,6 @@ function App() {
               console.error('❌ Génération échouée:', data?.error_message);
               throw new Error(data?.error_message || 'Génération échouée');
             }
-            
-            console.log(`⏳ Status: ${data?.status}, attente ${intervalMs}ms...`);
           }
         } else {
           console.warn(`⚠️ Erreur HTTP ${res.status} lors du polling`);
@@ -293,30 +286,24 @@ function App() {
 
     // Si c'est un admin, génération directe
     if (isAdmin) {
-      console.log('👑 Admin détecté - génération directe');
       startGeneration();
       return;
     }
 
     // Si utilisateur normal, vérifier les permissions
-    console.log('🔍 Vérification des permissions pour utilisateur normal');
     const permissionCheck = await checkPaymentPermission(
       contentType, 
       user.id, 
       user.email
     );
     
-    console.log('📋 Résultat vérification permission:', permissionCheck);
-    
     if (!permissionCheck.hasPermission) {
       // Ouvrir directement la modal de paiement
-      console.log('💳 Ouverture modal de paiement');
       setPaymentContentType(contentType);
       setShowPaymentModal(true);
       return;
     } else {
       // Permission accordée, génération directe
-      console.log('✅ Permission validée - génération autorisée');
       startGeneration();
     }
   };
@@ -338,9 +325,6 @@ function App() {
           custom_request: customRequest,
           language: 'fr'
         };
-
-        console.log('🎵 Payload envoyé au backend:', payload);
-
         // Utiliser l'endpoint correct pour les comptines
         const response = await fetch(`${API_BASE_URL}/generate_rhyme/`, {
           method: 'POST',
@@ -378,7 +362,6 @@ function App() {
         if (!uploadResponse.ok) throw new Error(`Erreur upload : ${uploadResponse.status}`);
         
         const uploadData = await uploadResponse.json();
-        console.log('✅ Photo uploadée:', uploadData);
         
         // 2. Conversion en coloriage avec GPT-4o-mini + gpt-image-1
         const conversionPayload = {
@@ -394,7 +377,6 @@ function App() {
         if (!conversionResponse.ok) throw new Error(`Erreur conversion : ${conversionResponse.status}`);
         
         const coloringData = await conversionResponse.json();
-        console.log('✅ Coloriage généré depuis photo avec gpt-image-1:', coloringData);
         
         setColoringResult(coloringData);
         generatedContent = coloringData;
@@ -498,13 +480,9 @@ function App() {
       const taskId = initialData?.task_id;
       const isCompleted = initialData?.status === 'completed' && (initialData?.final_video_url || (initialData?.clips?.length || 0) > 0);
 
-      console.log('🎬 Génération démarrée, task_id:', taskId, 'status:', initialData?.status);
-
       if (taskId && !isCompleted) {
-        console.log('⏳ Démarrage du polling pour task_id:', taskId);
         // Rester en état de chargement pendant le polling
         finalData = await waitForAnimationCompletion(taskId);
-        console.log('✅ Polling terminé, ouverture du viewer');
       }
 
       // Ne définir le résultat et ouvrir le viewer qu'après complétion avec contenu
@@ -512,7 +490,6 @@ function App() {
         setAnimationResult(finalData);
         setShowAnimationViewer(true);
         generatedContent = finalData; // Stocker pour l'historique
-        console.log('🎬 Viewer ouvert avec animation complétée et clips:', finalData.clips.length);
       } else {
         console.warn('⚠️ Animation non complétée ou sans clips, viewer non ouvert. Status:', finalData?.status, 'Clips:', finalData?.clips?.length);
       }
@@ -526,7 +503,6 @@ function App() {
     // 🎵 Démarrer le polling automatique si c'est une comptine avec task_id
     // IMPORTANT : On garde isGenerating = true jusqu'à ce que la musique soit prête
     if (contentType === 'rhyme' && generatedContent.task_id && generateMusic) {
-      console.log('🎵 Démarrage du polling automatique pour task_id:', generatedContent.task_id);
       // NE PAS arrêter isGenerating ici, le polling le fera quand la musique est prête
       pollTaskStatus(generatedContent.task_id);
       return; // Sortir de la fonction pour garder isGenerating = true
@@ -766,11 +742,8 @@ const downloadPDF = async (title, content) => {
         const response = await fetch(`${API_BASE_URL}/check_task_status/${taskId}`);
         const status = await response.json();
         
-        console.log(`🎵 Suno polling tentative ${attempts + 1}/${maxAttempts}:`, status);
-        
         if (status.status === 'completed' && status.songs && status.songs.length > 0) {
-          // Tâche Suno terminée avec succès - retourne 2 chansons
-          console.log('✅ Génération Suno terminée avec succès:', status.songs.length, 'chansons');
+          // Tâche Suno terminée avec succès
           setGeneratedResult(prev => {
             const updatedResult = {
               ...prev,
@@ -818,7 +791,6 @@ const downloadPDF = async (title, content) => {
           return true; // Arrêter le polling
         } else if (status.status === 'processing') {
           // En cours de traitement
-          console.log(`⏳ Génération Suno en cours... ${status.progress || 0}%`);
         } else if (attempts >= maxAttempts - 1) {
           // Timeout atteint
           console.warn('⚠️ Timeout atteint pour la génération musicale Suno');
@@ -1088,17 +1060,10 @@ const downloadPDF = async (title, content) => {
                   controlsList="nodownload"
                   style={{ 
                     width: '100%', 
-                    height: '54px',
+                    height: '60px',
                     outline: 'none'
                   }}
                   src={song.audio_url}
-                  onLoadedMetadata={(e) => {
-                    console.log('Audio duration:', e.target.duration);
-                  }}
-                  onError={(e) => {
-                    // Erreur silencieuse - l'audio fonctionne quand même
-                    console.log('Note: Erreur de préchargement audio (normal avec certains CDN)');
-                  }}
                 >
                   Votre navigateur ne supporte pas l'élément audio.
                 </audio>
@@ -1107,18 +1072,24 @@ const downloadPDF = async (title, content) => {
             
             {/* Bouton Télécharger unique */}
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (generatedResult.songs && generatedResult.songs.length > 0) {
                   const song = generatedResult.songs[0];
-                  // Téléchargement direct via un lien simple (évite les problèmes CORS)
-                  const link = document.createElement('a');
-                  link.href = song.audio_url;
-                  link.download = `${currentTitle || 'Comptine'}.mp3`;
-                  link.target = '_blank';
-                  link.rel = 'noopener noreferrer';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
+                  try {
+                    const response = await fetch(song.audio_url);
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `${currentTitle || 'Comptine'}.mp3`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                  } catch (error) {
+                    // Fallback si CORS bloque
+                    window.open(song.audio_url, '_blank');
+                  }
                 }
               }}
               style={{
@@ -1288,7 +1259,6 @@ const downloadPDF = async (title, content) => {
         userId={user?.id}
         userEmail={user?.email}
         onSuccess={(result) => {
-          console.log('✅ Paiement Stripe réussi:', result);
           setShowPaymentModal(false);
           // Lancer la génération automatiquement après paiement réussi
           setTimeout(() => {
@@ -1296,7 +1266,6 @@ const downloadPDF = async (title, content) => {
           }, 500);
         }}
         onCancel={() => {
-          console.log('❌ Paiement annulé');
           setShowPaymentModal(false);
         }}
       />
