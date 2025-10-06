@@ -27,6 +27,8 @@
   gap: 1rem;
   padding-right: 0;
   margin-bottom: 1rem;
+  grid-auto-rows: min-content;
+  width: 100%;
 }
 
 .rhyme-card {
