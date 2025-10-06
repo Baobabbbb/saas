@@ -284,9 +284,9 @@ class SunoService:
                 "Content-Type": "application/json"
             }
             
-            # Utiliser l'endpoint /feed qui permet de récupérer les tâches générées
-            # Documentation: https://docs.sunoapi.org/suno-api/generate-music
-            url = f"{self.base_url}/feed/{task_id}"
+            # Utiliser l'endpoint officiel /generate/record-info avec taskId en paramètre
+            # Documentation: https://docs.sunoapi.org/suno-api/quickstart
+            url = f"{self.base_url}/generate/record-info?taskId={task_id}"
             print(f"🔍 Vérification statut Suno: {url}")
             
             async with aiohttp.ClientSession() as session:
@@ -304,18 +304,27 @@ class SunoService:
                             if data.get("code") == 200:
                                 task_data = data.get("data", {})
                                 
-                                # L'API Suno retourne une liste de clips (généralement 2)
-                                clips = task_data if isinstance(task_data, list) else [task_data]
+                                # Vérifier le statut global de la tâche
+                                # Documentation: status peut être "GENERATING", "SUCCESS", "FAILED", "PENDING"
+                                task_status = task_data.get("status", "")
                                 
-                                # Analyser le statut de tous les clips
-                                all_completed = all(clip.get("status") == "completed" for clip in clips if clip)
-                                any_failed = any(clip.get("status") == "error" for clip in clips if clip)
+                                print(f"📊 Statut tâche Suno: {task_status}")
                                 
-                                if all_completed and len(clips) > 0:
-                                    # Tous les clips sont terminés
+                                if task_status == "SUCCESS":
+                                    # Tâche terminée avec succès
+                                    response_data = task_data.get("response", {})
+                                    clips = response_data.get("data", [])
+                                    
+                                    if not clips:
+                                        return {
+                                            "status": "failed",
+                                            "error": "Aucun audio généré",
+                                            "message": "❌ Aucune chanson retournée"
+                                        }
+                                    # Extraire les chansons générées
                                     songs = []
                                     for clip in clips:
-                                        if clip and clip.get("status") == "completed":
+                                        if clip:
                                             songs.append({
                                                 "id": clip.get("id"),
                                                 "title": clip.get("title", "Comptine"),
@@ -328,6 +337,8 @@ class SunoService:
                                                 "prompt": clip.get("prompt", "")
                                             })
                                     
+                                    print(f"✅ {len(songs)} chanson(s) Suno extraite(s)")
+                                    
                                     return {
                                         "status": "completed",
                                         "task_id": task_id,
@@ -335,35 +346,21 @@ class SunoService:
                                         "total_songs": len(songs),
                                         "message": f"✅ {len(songs)} chanson(s) générée(s) avec succès"
                                     }
-                                elif any_failed:
-                                    # Au moins un clip a échoué
-                                    error_messages = [
-                                        clip.get("error_message", "Erreur inconnue") 
-                                        for clip in clips 
-                                        if clip and clip.get("status") == "error"
-                                    ]
+                                elif task_status == "FAILED":
+                                    # Tâche échouée
+                                    error_message = task_data.get("errorMessage", "Erreur inconnue")
                                     return {
                                         "status": "failed",
                                         "task_id": task_id,
-                                        "error": "; ".join(error_messages),
+                                        "error": error_message,
                                         "message": "❌ La génération a échoué"
                                     }
                                 else:
-                                    # Génération en cours
-                                    # Calculer la progression moyenne
-                                    total_progress = sum(
-                                        clip.get("progress", 0) 
-                                        for clip in clips 
-                                        if clip
-                                    )
-                                    avg_progress = total_progress / len(clips) if clips else 0
-                                    
+                                    # Génération en cours (GENERATING, PENDING)
                                     return {
                                         "status": "processing",
                                         "task_id": task_id,
-                                        "progress": int(avg_progress),
-                                        "clips_count": len(clips),
-                                        "message": f"🔄 Génération en cours... ({int(avg_progress)}%)"
+                                        "message": f"🔄 Génération Suno en cours... (statut: {task_status})"
                                     }
                             else:
                                 error_msg = data.get("msg", "Erreur inconnue")
