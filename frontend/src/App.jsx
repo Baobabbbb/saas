@@ -1058,27 +1058,32 @@ const downloadPDF = async (title, content) => {
           <>
             {generatedResult.songs.map((song, index) => (
               <div key={song.id || index} style={{ 
-                background: '#f8f9fa', 
-                padding: '15px', 
-                borderRadius: '12px',
-                border: '2px solid #e9ecef',
-                width: '100%'
+                background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', 
+                padding: '20px', 
+                borderRadius: '15px',
+                border: '2px solid #dee2e6',
+                width: '100%',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
               }}>
                 <div style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
-                  gap: '8px', 
-                  marginBottom: '10px' 
+                  gap: '10px', 
+                  marginBottom: '12px' 
                 }}>
-                  <span style={{ fontSize: '20px' }}>🎵</span>
-                  <h4 style={{ margin: 0, fontSize: '14px', color: '#333', fontWeight: '600' }}>
+                  <span style={{ fontSize: '24px' }}>🎵</span>
+                  <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
                     Votre comptine est prête !
                   </h4>
                 </div>
                 <audio
                   controls
                   preload="metadata"
-                  style={{ width: '100%', height: '45px' }}
+                  style={{ 
+                    width: '100%', 
+                    height: '50px',
+                    outline: 'none'
+                  }}
                   src={song.audio_url}
                 >
                   Votre navigateur ne supporte pas l'élément audio.
@@ -1088,30 +1093,42 @@ const downloadPDF = async (title, content) => {
             
             {/* Bouton Télécharger unique */}
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (generatedResult.songs && generatedResult.songs.length > 0) {
-                  // Télécharger la première version
-                  const song = generatedResult.songs[0];
-                  const link = document.createElement('a');
-                  link.href = song.audio_url;
-                  link.download = `${currentTitle || 'Comptine'}.mp3`;
-                  link.target = '_blank';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
+                  try {
+                    const song = generatedResult.songs[0];
+                    const response = await fetch(song.audio_url);
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `${currentTitle || 'Comptine'}.mp3`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                  } catch (error) {
+                    console.error('Erreur téléchargement:', error);
+                    // Fallback: ouvrir dans un nouvel onglet
+                    window.open(generatedResult.songs[0].audio_url, '_blank');
+                  }
                 }
               }}
               style={{
-                padding: '0.7rem 1.5rem',
+                padding: '0.8rem 2rem',
                 backgroundColor: '#6B4EFF',
                 color: '#fff',
                 border: 'none',
-                borderRadius: '0.5rem',
+                borderRadius: '10px',
                 cursor: 'pointer',
                 fontWeight: '600',
-                fontSize: '13px',
-                marginTop: '0.5rem'
+                fontSize: '14px',
+                marginTop: '0.8rem',
+                boxShadow: '0 4px 12px rgba(107, 78, 255, 0.3)',
+                transition: 'all 0.3s ease'
               }}
+              onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+              onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
             >
               📥 Télécharger
             </button>
