@@ -294,115 +294,107 @@ def _detect_customization(custom_request: str) -> bool:
 @app.post("/generate_rhyme/")
 async def generate_rhyme(request: dict):
     """Génère une comptine musicale avec Suno AI"""
+    print("🔵 START /generate_rhyme/")
+    
     try:
+        print("🔵 Step 1: Parsing request...")
         theme = request.get("theme", "animaux")
         custom_request = request.get("custom_request", "")
+        print(f"🔵 Theme={theme}, Custom={bool(custom_request)}")
         
-        print(f"📥 Requête comptine: theme={theme}, custom={bool(custom_request)}")
-        
-        # Détection simple de personnalisation
+        print("🔵 Step 2: Detection personnalisation...")
         needs_customization = _detect_customization(custom_request)
-        
-        print(f"📊 Détection: {needs_customization}")
-        print(f"   Thème: {theme}")
-        print(f"   Demande: {custom_request[:100] if custom_request else 'Aucune'}")
+        print(f"🔵 needs_customization={needs_customization}")
         
         if needs_customization:
-            # ✅ MODE PERSONNALISÉ : GPT-4o-mini + Suno Custom Mode
-            print("🎨 MODE PERSONNALISÉ activé (GPT + Suno Custom)")
+            print("🔵 Step 3: MODE PERSONNALISÉ")
             
+            print("🔵 Step 3.1: Check OpenAI key...")
             openai_key = os.getenv("OPENAI_API_KEY")
             if not openai_key or openai_key.startswith("sk-votre"):
-                raise HTTPException(
-                    status_code=400, 
-                    detail="❌ Clé API OpenAI non configurée"
-                )
+                raise HTTPException(status_code=400, detail="OpenAI key missing")
             
-            # Générer les paroles avec GPT-4o-mini
-            prompt = f"Écris une comptine courte, joyeuse et rythmée pour enfants sur le thème : {theme}.\n"
+            print("🔵 Step 3.2: Generate lyrics with GPT...")
+            gpt_prompt = f"Écris une courte comptine joyeuse en français pour enfants de 3-8 ans sur: {theme}"
             if custom_request:
-                prompt += f"Demande spécifique : {custom_request}\n"
-            prompt += """La comptine doit être en français, adaptée aux enfants de 3 à 8 ans, avec des rimes simples et un rythme enjoué.
-
-IMPORTANT : Génère aussi un titre court et attractif pour cette comptine (maximum 4-5 mots), qui plaira aux enfants de 3-8 ans. Le titre doit être simple et joyeux.
-
-Format de réponse attendu :
-TITRE: [titre de la comptine]
-COMPTINE: [texte de la comptine]"""
-
-            client = AsyncOpenAI(api_key=openai_key)
-            response = await client.chat.completions.create(
+                gpt_prompt += f". Demande: {custom_request}"
+            gpt_prompt += "\nFormat: TITRE: [titre]\nCOMPTINE: [texte]"
+            
+            print("🔵 Step 3.3: Call OpenAI API...")
+            openai_client = AsyncOpenAI(api_key=openai_key)
+            gpt_response = await openai_client.chat.completions.create(
                 model=TEXT_MODEL,
                 messages=[
-                    {"role": "system", "content": "Tu es un spécialiste des comptines pour enfants. Tu écris des textes courts, amusants et éducatifs."},
-                    {"role": "user", "content": prompt}
+                    {"role": "system", "content": "Tu es un spécialiste des comptines pour enfants."},
+                    {"role": "user", "content": gpt_prompt}
                 ],
                 max_tokens=300,
                 temperature=0.8
             )
             
-            content = response.choices[0].message.content.strip() if response.choices[0].message.content else ""
+            print("🔵 Step 3.4: Parse GPT response...")
+            gpt_content = gpt_response.choices[0].message.content.strip() if gpt_response.choices[0].message.content else ""
             
-            # Extraire titre et contenu
             title = f"Comptine {theme}"
-            rhyme_content = content
+            rhyme_content = gpt_content
             
-            if "TITRE:" in content and "COMPTINE:" in content:
+            if "TITRE:" in gpt_content and "COMPTINE:" in gpt_content:
                 try:
-                    lines = content.split('\n')
-                    for line in lines:
+                    for line in gpt_content.split('\n'):
                         if line.startswith("TITRE:"):
                             title = line.replace("TITRE:", "").strip()
                             break
-                    
-                    comptine_start = content.find("COMPTINE:")
+                    comptine_start = gpt_content.find("COMPTINE:")
                     if comptine_start != -1:
-                        rhyme_content = content[comptine_start + 9:].strip()
-                except:
-                    pass
+                        rhyme_content = gpt_content[comptine_start + 9:].strip()
+                except Exception as parse_error:
+                    print(f"🔵 Parse error (ignored): {parse_error}")
             
-            # Suno en mode Custom avec paroles exactes
+            print(f"🔵 Step 3.5: Title={title[:30]}, Lyrics length={len(rhyme_content)}")
+            
+            print("🔵 Step 3.6: Call Suno Custom Mode...")
             suno_result = await suno_service.generate_musical_nursery_rhyme(
                 lyrics=rhyme_content,
                 rhyme_type=theme,
                 title=title,
-                custom_mode=True  # Mode custom
+                custom_mode=True
             )
+            print("🔵 Step 3.7: Suno result received")
             
         else:
-            # ✅ MODE AUTOMATIQUE : Suno seul (Non-Custom Mode)
-            print("🤖 MODE AUTOMATIQUE activé (Suno génère tout)")
+            print("🔵 Step 4: MODE AUTOMATIQUE")
             
-            # Générer une description optimisée pour Suno
-            rhyme_descriptions = {
-                "lullaby": "Une berceuse douce et apaisante en français pour endormir les bébés et jeunes enfants, avec des paroles douces et une mélodie calme",
-                "counting": "Une comptine éducative en français pour apprendre à compter de 1 à 10, joyeuse et rythmée, pour enfants de 3 à 8 ans",
-                "animal": "Une comptine joyeuse en français sur les animaux de la ferme et de la forêt, avec des sons d'animaux, pour enfants de 3 à 8 ans",
-                "seasonal": "Une comptine festive en français sur les saisons et les fêtes, joyeuse et entraînante, pour enfants de 3 à 8 ans",
-                "educational": "Une comptine éducative en français pour apprendre les couleurs, les formes ou l'alphabet, ludique et pédagogique, pour enfants de 3 à 8 ans",
-                "movement": "Une comptine énergique en français pour danser et bouger, dynamique et entraînante, pour enfants de 3 à 8 ans"
+            print("🔵 Step 4.1: Generate description...")
+            descriptions = {
+                "lullaby": "Berceuse douce française pour enfants",
+                "counting": "Comptine éducative française pour compter",
+                "animal": "Comptine joyeuse française sur les animaux",
+                "seasonal": "Comptine festive française sur les saisons",
+                "educational": "Comptine éducative française ludique",
+                "movement": "Comptine énergique française pour danser"
             }
             
-            description = rhyme_descriptions.get(theme, f"Une comptine joyeuse en français pour enfants de 3 à 8 ans sur le thème {theme}, avec des rimes simples et un rythme enjoué")
+            description = descriptions.get(theme, f"Comptine joyeuse française pour enfants sur {theme}")
             title = f"Comptine {theme.capitalize()}"
+            rhyme_content = f"🎵 Suno AI génère les paroles automatiquement sur: {theme}"
             
-            # Suno en mode Non-Custom (génère les paroles automatiquement)
+            print(f"🔵 Step 4.2: Title={title}, Description={description[:50]}")
+            
+            print("🔵 Step 4.3: Call Suno Auto Mode...")
             suno_result = await suno_service.generate_musical_nursery_rhyme(
                 rhyme_type=theme,
                 title=title,
-                custom_mode=False,  # Mode automatique
+                custom_mode=False,
                 prompt_description=description
             )
-            
-            # Pas de contenu de paroles car Suno les génère
-            rhyme_content = f"🎵 Suno AI génère automatiquement les paroles pour cette comptine sur le thème : {theme}"
+            print("🔵 Step 4.4: Suno result received")
         
-        # Vérifier le résultat Suno
+        print("🔵 Step 5: Check Suno result...")
         if suno_result.get("status") == "success":
             task_id = suno_result.get("task_id")
-            print(f"✅ Tâche musicale Suno créée: {task_id}")
+            print(f"🔵 Step 5.1: Success! Task ID={task_id}")
             
-            return {
+            result = {
                 "title": title,
                 "content": rhyme_content,
                 "type": "rhyme",
@@ -412,23 +404,23 @@ COMPTINE: [texte de la comptine]"""
                 "service": "suno",
                 "has_music": True,
                 "custom_mode": needs_customization,
-                "message": "Comptine générée, musique Suno AI en cours de création (2 chansons)..."
+                "message": "Comptine générée, musique Suno en cours..."
             }
+            print("🔵 Step 5.2: Returning result")
+            return result
         else:
-            error_message = suno_result.get("error", "Erreur inconnue lors de la génération musicale")
-            print(f"❌ Erreur génération musicale Suno: {error_message}")
-            raise HTTPException(
-                status_code=500, 
-                detail=f"❌ La création de l'audio Suno a échoué : {error_message}"
-            )
+            error_msg = suno_result.get("error", "Unknown error")
+            print(f"🔵 Step 5.3: Suno failed: {error_msg}")
+            raise HTTPException(status_code=500, detail=f"Suno error: {error_msg}")
             
-    except HTTPException:
+    except HTTPException as http_err:
+        print(f"🔵 HTTP Exception: {http_err.detail}")
         raise
-    except Exception as e:
-        print(f"❌ Erreur génération comptine: {e}")
+    except Exception as ex:
+        print(f"🔵 EXCEPTION: {type(ex).__name__}: {ex}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(ex)}")
 
 @app.get("/check_task_status/{task_id}")
 async def check_task_status(task_id: str):
