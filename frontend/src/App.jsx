@@ -975,7 +975,7 @@ const downloadPDF = async (title, content) => {
         <div className="dot"></div>
         <div className="dot"></div>
       </div>      <p>        {contentType === 'rhyme'
-          ? 'Création de la comptine en cours...'
+          ? '🎵 Votre comptine est en cours de création...'
           : contentType === 'audio'
           ? 'Création de l\'histoire en cours...'
           : contentType === 'coloring'
@@ -1059,7 +1059,7 @@ const downloadPDF = async (title, content) => {
             {generatedResult.songs.map((song, index) => (
               <div key={song.id || index} style={{ 
                 background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', 
-                padding: '20px', 
+                padding: '22px', 
                 borderRadius: '15px',
                 border: '2px solid #dee2e6',
                 width: '100%',
@@ -1069,7 +1069,7 @@ const downloadPDF = async (title, content) => {
                   display: 'flex', 
                   alignItems: 'center', 
                   gap: '10px', 
-                  marginBottom: '12px' 
+                  marginBottom: '14px' 
                 }}>
                   <span style={{ fontSize: '24px' }}>🎵</span>
                   <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
@@ -1079,12 +1079,16 @@ const downloadPDF = async (title, content) => {
                 <audio
                   controls
                   preload="metadata"
+                  controlsList="nodownload"
                   style={{ 
                     width: '100%', 
-                    height: '50px',
+                    height: '54px',
                     outline: 'none'
                   }}
                   src={song.audio_url}
+                  onLoadedMetadata={(e) => {
+                    console.log('Audio duration:', e.target.duration);
+                  }}
                 >
                   Votre navigateur ne supporte pas l'élément audio.
                 </audio>
@@ -1093,25 +1097,18 @@ const downloadPDF = async (title, content) => {
             
             {/* Bouton Télécharger unique */}
             <button
-              onClick={async () => {
+              onClick={() => {
                 if (generatedResult.songs && generatedResult.songs.length > 0) {
-                  try {
-                    const song = generatedResult.songs[0];
-                    const response = await fetch(song.audio_url);
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `${currentTitle || 'Comptine'}.mp3`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    window.URL.revokeObjectURL(url);
-                  } catch (error) {
-                    console.error('Erreur téléchargement:', error);
-                    // Fallback: ouvrir dans un nouvel onglet
-                    window.open(generatedResult.songs[0].audio_url, '_blank');
-                  }
+                  const song = generatedResult.songs[0];
+                  // Téléchargement direct via un lien simple (évite les problèmes CORS)
+                  const link = document.createElement('a');
+                  link.href = song.audio_url;
+                  link.download = `${currentTitle || 'Comptine'}.mp3`;
+                  link.target = '_blank';
+                  link.rel = 'noopener noreferrer';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
                 }
               }}
               style={{
