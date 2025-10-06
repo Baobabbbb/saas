@@ -1004,7 +1004,7 @@ const downloadPDF = async (title, content) => {
         📄 Télécharger le coloriage
       </button>
     </motion.div>
-  ) : generatedResult && contentType === 'rhyme' ? (
+  ) : generatedResult && contentType === 'rhyme' && generatedResult.songs && generatedResult.songs.length > 0 ? (
     <motion.div
       className="generated-result"
       initial={{ opacity: 0 }}

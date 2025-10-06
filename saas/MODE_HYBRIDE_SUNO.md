@@ -198,3 +198,4 @@ TEXT_MODEL=gpt-4o-mini
 
 **🎉 Système prêt à l'emploi ! Testez maintenant sur https://herbbie.com**
 
+
