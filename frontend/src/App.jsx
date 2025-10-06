@@ -107,7 +107,7 @@ function App() {
   
   // Musical rhyme states (nouveau)
   const [generateMusic, setGenerateMusic] = useState(true);
-  const [musicStyle, setMusicStyle] = useState('auto');
+  const [musicStyle, setMusicStyle] = useState(''); // Changé de 'auto' à '' pour éviter la sélection par défaut
   const [customMusicStyle, setCustomMusicStyle] = useState('');
   
   const [selectedAudioStory, setSelectedAudioStory] = useState(null);
@@ -249,12 +249,28 @@ function App() {
     checkAdminStatus();
   }, [user, contentType]);
 
-  // S'assurer qu'aucun bouton n'est sélectionné par défaut dans les comptines
+  // S'assurer qu'aucun bouton n'est sélectionné par défaut quand on change de type de contenu
   useEffect(() => {
-    if (contentType === 'rhyme') {
-      setSelectedRhyme(null);
-      setCustomRhyme('');
-    }
+    // Remettre à zéro toutes les sélections quand on change de type de contenu
+    setSelectedRhyme(null);
+    setCustomRhyme('');
+    setGenerateMusic(true);
+    setMusicStyle(''); // Remettre à zéro au lieu de 'auto'
+    setCustomMusicStyle('');
+    setSelectedAudioStory(null);
+    setCustomAudioStory('');
+    setSelectedVoice(null);
+    setSelectedTheme(null);
+    setCustomColoringTheme('');
+    setUploadedPhoto(null);
+    setSelectedAnimationTheme(null);
+    setSelectedDuration(null);
+    setSelectedStyle(null);
+    setCustomStory('');
+    setGeneratedResult(null);
+    setColoringResult(null);
+    setAnimationResult(null);
+    setCurrentTitle(null);
   }, [contentType]);
 
   // Mettre à jour le texte du bouton selon le statut admin et le type de contenu
