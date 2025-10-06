@@ -331,8 +331,14 @@ class SunoService:
                                         }
                                     # Extraire les chansons générées
                                     songs = []
-                                    for clip in clips:
+                                    for idx, clip in enumerate(clips):
                                         if clip:
+                                            print(f"🎵 Clip {idx+1} keys: {list(clip.keys())}")
+                                            print(f"   - id: {clip.get('id')}")
+                                            print(f"   - title: {clip.get('title')}")
+                                            print(f"   - audio_url: {clip.get('audio_url', 'MISSING')[:80] if clip.get('audio_url') else 'None'}")
+                                            print(f"   - duration: {clip.get('duration')}")
+                                            
                                             songs.append({
                                                 "id": clip.get("id"),
                                                 "title": clip.get("title", "Comptine"),
