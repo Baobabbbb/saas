@@ -309,8 +309,13 @@ class SunoService:
                                 task_status = task_data.get("status", "")
                                 
                                 print(f"📊 Statut tâche Suno: {task_status}")
+                                print(f"📊 DEBUG - Structure complète:")
+                                print(f"   task_data keys: {list(task_data.keys())}")
+                                if task_data.get("response"):
+                                    print(f"   response keys: {list(task_data.get('response', {}).keys())}")
+                                    print(f"   data length: {len(task_data.get('response', {}).get('data', []))}")
                                 
-                                if task_status == "SUCCESS":
+                                if task_status == "SUCCESS" or task_status == "TEXT_SUCCESS":
                                     # Tâche terminée avec succès
                                     response_data = task_data.get("response", {})
                                     clips = response_data.get("data", [])
