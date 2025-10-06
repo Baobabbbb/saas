@@ -271,32 +271,31 @@ async def generate_rhyme(request: dict):
         custom_request = request.get("custom_request", "")
         
         # 🎯 LOGIQUE INTELLIGENTE : Détecter si personnalisation nécessaire
-        # Détecte : prénoms, demandes spécifiques, détails personnalisés
-        needs_customization = False
-        personalization_indicators = [
-            # Prénoms/noms
-            r'\b[A-Z][a-zéèêàâûôîïü]+\b',  # Mots qui commencent par majuscule (prénoms)
-            # Mots-clés de personnalisation
-            'prénom', 'nom', 's\'appelle', "s'appelle", 'appelé', 'appelée',
-            'mon', 'ma', 'mes', 'notre', 'nos',
-            # Détails très spécifiques
-            'ans', 'année', 'anniversaire', 'ville', 'maison'
-        ]
-        
         import re
-        for indicator in personalization_indicators:
-            if isinstance(indicator, str):
-                if indicator.lower() in custom_request.lower():
-                    needs_customization = True
-                    break
-            else:  # regex pattern
-                if re.search(indicator, custom_request):
-                    needs_customization = True
-                    break
         
-        # Forcer personnalisation si custom_request est long (>30 caractères)
-        if len(custom_request) > 30:
-            needs_customization = True
+        needs_customization = False
+        
+        if custom_request:
+            # Liste de mots-clés simples
+            simple_keywords = ['prénom', 'nom', 's\'appelle', 'appelé', 'appelée',
+                             'mon', 'ma', 'mes', 'notre', 'nos',
+                             'ans', 'année', 'anniversaire', 'ville', 'maison']
+            
+            # Vérifier les mots-clés simples
+            for keyword in simple_keywords:
+                if keyword.lower() in custom_request.lower():
+                    needs_customization = True
+                    break
+            
+            # Détecter les prénoms (mots commençant par majuscule)
+            if not needs_customization:
+                pattern = r'\b[A-Z][a-zéèêàâûôîïü]+\b'
+                if re.search(pattern, custom_request):
+                    needs_customization = True
+            
+            # Forcer personnalisation si custom_request est long (>30 caractères)
+            if len(custom_request) > 30:
+                needs_customization = True
         
         print(f"📊 Détection personnalisation: {needs_customization}")
         print(f"   Thème: {theme}")
