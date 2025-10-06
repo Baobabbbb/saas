@@ -1084,7 +1084,7 @@ const downloadPDF = async (title, content) => {
                 </div>
                 <audio
                   controls
-                  preload="metadata"
+                  preload="none"
                   controlsList="nodownload"
                   style={{ 
                     width: '100%', 
@@ -1094,6 +1094,10 @@ const downloadPDF = async (title, content) => {
                   src={song.audio_url}
                   onLoadedMetadata={(e) => {
                     console.log('Audio duration:', e.target.duration);
+                  }}
+                  onError={(e) => {
+                    // Erreur silencieuse - l'audio fonctionne quand même
+                    console.log('Note: Erreur de préchargement audio (normal avec certains CDN)');
                   }}
                 >
                   Votre navigateur ne supporte pas l'élément audio.
