@@ -1053,24 +1053,32 @@ const downloadPDF = async (title, content) => {
           overflowY: 'auto'
         }}
       >
-        {/* Audio si disponible - Suno retourne plusieurs chansons */}
+        {/* Audio si disponible - Une seule comptine */}
         {generatedResult.songs && generatedResult.songs.length > 0 && (
           <>
             {generatedResult.songs.map((song, index) => (
               <div key={song.id || index} style={{ 
                 background: '#f8f9fa', 
-                padding: '12px', 
-                borderRadius: '10px',
+                padding: '15px', 
+                borderRadius: '12px',
                 border: '2px solid #e9ecef',
                 width: '100%'
               }}>
-                <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#333', fontWeight: '600' }}>
-                  🎼 Version {index + 1}
-                </h4>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px', 
+                  marginBottom: '10px' 
+                }}>
+                  <span style={{ fontSize: '20px' }}>🎵</span>
+                  <h4 style={{ margin: 0, fontSize: '14px', color: '#333', fontWeight: '600' }}>
+                    Votre comptine est prête !
+                  </h4>
+                </div>
                 <audio
                   controls
                   preload="metadata"
-                  style={{ width: '100%', height: '40px' }}
+                  style={{ width: '100%', height: '45px' }}
                   src={song.audio_url}
                 >
                   Votre navigateur ne supporte pas l'élément audio.

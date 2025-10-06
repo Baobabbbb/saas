@@ -329,9 +329,9 @@ class SunoService:
                                             "error": "Aucun audio généré",
                                             "message": "❌ Aucune chanson retournée"
                                         }
-                                    # Extraire les chansons générées
+                                    # Extraire les chansons générées (limité à 1 seule chanson)
                                     songs = []
-                                    for idx, clip in enumerate(clips):
+                                    for idx, clip in enumerate(clips[:1]):  # Ne prendre que la première chanson
                                         if clip:
                                             audio_url_val = clip.get('audioUrl') or clip.get('streamAudioUrl')
                                             print(f"🎵 Clip {idx+1}:")
