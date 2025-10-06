@@ -264,40 +264,46 @@ from services.suno_service import suno_service
 
 # Ancien modèle remplacé par ValidatedRhymeRequest dans validators.py
 
+def _detect_customization(custom_request: str) -> bool:
+    """Détecte si la demande nécessite une personnalisation"""
+    import re
+    
+    if not custom_request:
+        return False
+    
+    # Mots-clés de personnalisation
+    keywords = ['prénom', 'nom', 'appelle', 'appelé', 'appelée',
+                'mon', 'ma', 'mes', 'notre', 'nos',
+                'ans', 'année', 'anniversaire', 'ville', 'maison']
+    
+    # Vérifier les mots-clés
+    for keyword in keywords:
+        if keyword.lower() in custom_request.lower():
+            return True
+    
+    # Détecter les prénoms (mots commençant par majuscule)
+    if re.search(r'\b[A-Z][a-zéèêàâûôîïü]+\b', custom_request):
+        return True
+    
+    # Demande longue = personnalisée
+    if len(custom_request) > 30:
+        return True
+    
+    return False
+
 @app.post("/generate_rhyme/")
 async def generate_rhyme(request: dict):
+    """Génère une comptine musicale avec Suno AI"""
     try:
         theme = request.get("theme", "animaux")
         custom_request = request.get("custom_request", "")
         
-        # 🎯 LOGIQUE INTELLIGENTE : Détecter si personnalisation nécessaire
-        import re
+        print(f"📥 Requête comptine: theme={theme}, custom={bool(custom_request)}")
         
-        needs_customization = False
+        # Détection simple de personnalisation
+        needs_customization = _detect_customization(custom_request)
         
-        if custom_request:
-            # Liste de mots-clés simples
-            simple_keywords = ['prénom', 'nom', 's\'appelle', 'appelé', 'appelée',
-                             'mon', 'ma', 'mes', 'notre', 'nos',
-                             'ans', 'année', 'anniversaire', 'ville', 'maison']
-            
-            # Vérifier les mots-clés simples
-            for keyword in simple_keywords:
-                if keyword.lower() in custom_request.lower():
-                    needs_customization = True
-                    break
-            
-            # Détecter les prénoms (mots commençant par majuscule)
-            if not needs_customization:
-                pattern = r'\b[A-Z][a-zéèêàâûôîïü]+\b'
-                if re.search(pattern, custom_request):
-                    needs_customization = True
-            
-            # Forcer personnalisation si custom_request est long (>30 caractères)
-            if len(custom_request) > 30:
-                needs_customization = True
-        
-        print(f"📊 Détection personnalisation: {needs_customization}")
+        print(f"📊 Détection: {needs_customization}")
         print(f"   Thème: {theme}")
         print(f"   Demande: {custom_request[:100] if custom_request else 'Aucune'}")
         
@@ -437,6 +443,23 @@ async def check_task_status(task_id: str):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erreur lors de la vérification : {str(e)}")
+
+@app.post("/test_rhyme_simple/")
+async def test_rhyme_simple():
+    """
+    Endpoint de test ultra-simple pour diagnostiquer les erreurs
+    """
+    try:
+        return {
+            "status": "ok",
+            "message": "Test endpoint fonctionne",
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
 
 @app.get("/diagnostic/suno")
 async def diagnostic_suno():
