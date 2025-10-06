@@ -118,7 +118,7 @@ async def generate_rhyme_endpoint(request: Dict[str, Any]):
             
             desc = descriptions.get(theme, f"Comptine joyeuse française pour enfants sur {theme}")
             title_text = f"Comptine {theme.capitalize()}"
-            lyrics_text = f"🎵 Suno AI génère les paroles sur: {theme}"
+            lyrics_text = ""  # Pas de paroles en mode auto, Suno génère tout
             
             print(f"Description: {desc[:50]}")
             

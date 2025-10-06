@@ -1048,135 +1048,67 @@ const downloadPDF = async (title, content) => {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          gap: '1rem',
-          padding: '1rem'
+          gap: '0.8rem',
+          padding: '1rem',
+          overflowY: 'auto'
         }}
       >
-        {/* Affichage des paroles */}
-        {(generatedResult.content || generatedResult.rhyme) && (
-          <div style={{ 
-            maxHeight: '120px', 
-            overflowY: 'auto', 
-            padding: '0.8rem',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '8px',
-            width: '100%',
-            textAlign: 'center',
-            border: '1px solid #dee2e6'
-          }}>
-            <p style={{ margin: 0, fontSize: '13px', lineHeight: '1.4' }}>
-              {generatedResult.content || generatedResult.rhyme}
-            </p>
-          </div>
-        )}
-        
         {/* Audio si disponible - Suno retourne plusieurs chansons */}
         {generatedResult.songs && generatedResult.songs.length > 0 && (
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' }}>
-            <p style={{ fontSize: '14px', color: '#667eea', fontWeight: 600, textAlign: 'center' }}>
-              ✨ {generatedResult.songs.length} version{generatedResult.songs.length > 1 ? 's' : ''} générée{generatedResult.songs.length > 1 ? 's' : ''} avec Suno AI
-            </p>
+          <>
             {generatedResult.songs.map((song, index) => (
               <div key={song.id || index} style={{ 
                 background: '#f8f9fa', 
-                padding: '15px', 
+                padding: '12px', 
                 borderRadius: '10px',
-                border: '2px solid #e9ecef'
+                border: '2px solid #e9ecef',
+                width: '100%'
               }}>
-                <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#333' }}>
+                <h4 style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#333', fontWeight: '600' }}>
                   🎼 Version {index + 1}
                 </h4>
                 <audio
                   controls
-                  style={{ width: '100%' }}
+                  preload="metadata"
+                  style={{ width: '100%', height: '40px' }}
                   src={song.audio_url}
-                />
-                {song.duration && (
-                  <p style={{ fontSize: '12px', color: '#666', marginTop: '5px', fontStyle: 'italic' }}>
-                    ⏱️ Durée: {Math.floor(song.duration)}s
-                  </p>
-                )}
+                >
+                  Votre navigateur ne supporte pas l'élément audio.
+                </audio>
               </div>
             ))}
-          </div>
-        )}
-        {/* Fallback pour l'ancien format (audio_path) */}
-        {generatedResult.audio_path && !generatedResult.songs && (
-          <audio
-            controls
-            style={{ width: '100%', maxWidth: '300px' }}
-            src={`${API_BASE_URL}/${generatedResult.audio_path}`}
-          />
-        )}
-        
-        {/* Statut de génération musicale Suno */}
-        {generatedResult.task_id && !generatedResult.songs && !generatedResult.audio_path && (
-          <div style={{ 
-            padding: '0.5rem 1rem',
-            backgroundColor: '#fff3cd',
-            borderRadius: '6px',
-            fontSize: '11px',
-            color: '#856404',
-            textAlign: 'center',
-            border: '1px solid #ffeaa7'
-          }}>
-            🎵 Génération musicale Suno AI en cours... (2-3 minutes)
-          </div>
-        )}
-        
-        {/* Boutons d'action */}
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-          {(generatedResult.content || generatedResult.rhyme) && (
+            
+            {/* Bouton Télécharger unique */}
             <button
-              onClick={() => downloadPDF(currentTitle || 'Comptine', generatedResult.content || generatedResult.rhyme)}
+              onClick={() => {
+                if (generatedResult.songs && generatedResult.songs.length > 0) {
+                  // Télécharger la première version
+                  const song = generatedResult.songs[0];
+                  const link = document.createElement('a');
+                  link.href = song.audio_url;
+                  link.download = `${currentTitle || 'Comptine'}.mp3`;
+                  link.target = '_blank';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }
+              }}
               style={{
-                padding: '0.5rem 1rem',
+                padding: '0.7rem 1.5rem',
                 backgroundColor: '#6B4EFF',
                 color: '#fff',
                 border: 'none',
                 borderRadius: '0.5rem',
                 cursor: 'pointer',
                 fontWeight: '600',
-                fontSize: '11px'
+                fontSize: '13px',
+                marginTop: '0.5rem'
               }}
             >
-              📄 Télécharger
+              📥 Télécharger
             </button>
-          )}
-          
-          {generatedResult.task_id && (
-            <button
-              onClick={async () => {
-                try {
-                  const response = await fetch(`${API_BASE_URL}/check_task_status/${generatedResult.task_id}`);
-                  const status = await response.json();
-                  if (status.status === 'completed' && status.audio_path) {
-                    setGeneratedResult({
-                      ...generatedResult,
-                      audio_path: status.audio_path
-                    });
-                  } else {
-                    alert(`Statut: ${status.status}`);
-                  }
-                } catch (error) {
-                  alert('Erreur lors de la vérification du statut');
-                }
-              }}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#28a745',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '0.5rem',
-                cursor: 'pointer',
-                fontWeight: '600',
-                fontSize: '11px'
-              }}
-            >
-              🔄 Vérifier musique
-            </button>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </motion.div>
   ) : (
