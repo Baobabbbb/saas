@@ -759,12 +759,39 @@ const downloadPDF = async (title, content) => {
         if (status.status === 'completed' && status.songs && status.songs.length > 0) {
           // Tâche Suno terminée avec succès - retourne 2 chansons
           console.log('✅ Génération Suno terminée avec succès:', status.songs.length, 'chansons');
-          setGeneratedResult(prev => ({
-            ...prev,
-            songs: status.songs,
-            has_music: true,
-            service: 'suno'
-          }));
+          setGeneratedResult(prev => {
+            const updatedResult = {
+              ...prev,
+              songs: status.songs,
+              has_music: true,
+              service: 'suno'
+            };
+            
+            // Enregistrer dans l'historique maintenant que la musique est prête
+            const title = prev.title || generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme) + ' 🎵';
+            setCurrentTitle(title);
+            
+            // Créer l'entrée d'historique
+            const newCreation = {
+              id: Date.now().toString(),
+              type: 'rhyme',
+              title: title,
+              createdAt: new Date().toISOString(),
+              content: prev.content || prev.rhyme || 'Comptine générée',
+              songs: status.songs
+            };
+            
+            // Sauvegarder dans l'historique via Supabase
+            addCreation({
+              type: 'rhyme',
+              title: title,
+              data: newCreation
+            }).catch(historyError => {
+              console.error('Erreur lors de l\'enregistrement dans l\'historique:', historyError);
+            });
+            
+            return updatedResult;
+          });
           setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement
           return true; // Arrêter le polling
         } else if (status.status === 'failed') {
@@ -783,6 +810,8 @@ const downloadPDF = async (title, content) => {
         } else if (attempts >= maxAttempts - 1) {
           // Timeout atteint
           console.warn('⚠️ Timeout atteint pour la génération musicale Suno');
+          setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement
+          alert('⚠️ La génération de musique prend plus de temps que prévu. Veuillez vérifier votre historique dans quelques minutes.');
           return true; // Arrêter le polling
         }
         
