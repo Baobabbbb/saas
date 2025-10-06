@@ -312,13 +312,16 @@ class SunoService:
                                 print(f"📊 DEBUG - Structure complète:")
                                 print(f"   task_data keys: {list(task_data.keys())}")
                                 if task_data.get("response"):
-                                    print(f"   response keys: {list(task_data.get('response', {}).keys())}")
-                                    print(f"   data length: {len(task_data.get('response', {}).get('data', []))}")
+                                    resp = task_data.get('response', {})
+                                    print(f"   response keys: {list(resp.keys())}")
+                                    suno_data = resp.get('sunoData', []) or resp.get('data', [])
+                                    print(f"   sunoData length: {len(suno_data)}")
                                 
                                 if task_status == "SUCCESS" or task_status == "TEXT_SUCCESS":
                                     # Tâche terminée avec succès
                                     response_data = task_data.get("response", {})
-                                    clips = response_data.get("data", [])
+                                    # IMPORTANT: L'API Suno retourne 'sunoData' et non 'data'
+                                    clips = response_data.get("sunoData", []) or response_data.get("data", [])
                                     
                                     if not clips:
                                         return {
