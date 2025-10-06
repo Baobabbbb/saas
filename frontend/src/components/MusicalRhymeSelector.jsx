@@ -47,25 +47,11 @@ const rhymeTypes = [
   }
 ];
 
-const musicStyles = [
-  { id: 'auto', name: 'Style automatique', description: 'Laisse l\'IA choisir le meilleur style', icon: '🤖' },
-  { id: 'gentle', name: 'Doux et apaisant', description: 'Mélodie calme et relaxante', icon: '🕊️' },
-  { id: 'upbeat', name: 'Rythmé et joyeux', description: 'Tempo enjoué et dynamique', icon: '🎵' },
-  { id: 'playful', name: 'Joueur et amusant', description: 'Sons rigolos et interactifs', icon: '🎪' },
-  { id: 'educational', name: 'Éducatif', description: 'Mélodie simple et mémorable', icon: '📚' }
-];
-
 const MusicalRhymeSelector = ({ 
   selectedRhyme, 
   setSelectedRhyme, 
   customRhyme, 
-  setCustomRhyme,
-  generateMusic,
-  setGenerateMusic,
-  musicStyle,
-  setMusicStyle,
-  customMusicStyle,
-  setCustomMusicStyle
+  setCustomRhyme
 }) => {
   const [showCustomInput, setShowCustomInput] = useState(false);
 
@@ -90,19 +76,6 @@ const MusicalRhymeSelector = ({
     } else {
       setSelectedRhyme('custom');
       setShowCustomInput(true);
-    }
-  };
-
-  const handleMusicStyleSelect = (styleId) => {
-    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
-    if (musicStyle === styleId) {
-      setMusicStyle('');
-      setCustomMusicStyle('');
-    } else {
-      setMusicStyle(styleId);
-      if (styleId !== 'custom') {
-        setCustomMusicStyle('');
-      }
     }
   };
 
@@ -154,74 +127,13 @@ const MusicalRhymeSelector = ({
               id="customRhyme"
               value={customRhyme}
               onChange={(e) => setCustomRhyme(e.target.value)}
-              placeholder="Ex: Une comptine sur les planètes du système solaire..."
+              placeholder="Ex: Une comptine sur les planètes du système solaire avec le prénom Lucas..."
               whileFocus={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 300, damping: 10 }}
             />
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Musical style options - Always shown since all rhymes are musical */}
-      <motion.div 
-        className="music-style-section"
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: 'auto' }}
-        transition={{ duration: 0.4 }}
-      >
-        <h4>3. Choisissez un style musical</h4>
-        <div className="music-style-grid">
-          {/* Custom style option first */}
-          <motion.div
-            className={`music-style-card custom-style ${musicStyle === 'custom' ? 'selected' : ''}`}
-            onClick={() => handleMusicStyleSelect('custom')}
-            whileHover={{ y: -3 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="style-icon">✏️</div>
-            <h4>Style personnalisé</h4>
-            <p>Décrivez votre style musical</p>
-          </motion.div>
-          
-          {/* Predefined styles */}
-          {musicStyles.map((style) => (
-            <motion.div
-              key={style.id}
-              className={`music-style-card ${musicStyle === style.id ? 'selected' : ''}`}
-              onClick={() => handleMusicStyleSelect(style.id)}
-              whileHover={{ y: -3 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="style-icon">{style.icon}</div>
-              <h4>{style.name}</h4>
-              <p>{style.description}</p>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Custom music style input */}
-        <AnimatePresence>
-          {musicStyle === 'custom' && (
-            <motion.div 
-              className="custom-music-style-input"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <label htmlFor="customMusicStyle">Décrivez le style musical souhaité</label>
-              <motion.textarea
-                id="customMusicStyle"
-                value={customMusicStyle}
-                onChange={(e) => setCustomMusicStyle(e.target.value)}
-                placeholder="Ex: Style jazz doux avec piano, tempo lent, ambiance chaleureuse..."
-                whileFocus={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300, damping: 10 }}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
     </div>
   );
 };

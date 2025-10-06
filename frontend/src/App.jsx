@@ -254,8 +254,6 @@ function App() {
     if (contentType === 'rhyme') {
       setSelectedRhyme(null);
       setCustomRhyme('');
-      setMusicStyle('');
-      setCustomMusicStyle('');
     }
   }, [contentType]);
 
@@ -320,12 +318,12 @@ function App() {
 
       if (contentType === 'rhyme') {
         const payload = {
-          rhyme_type: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
+          theme: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
           custom_request: customRequest,
-          generate_music: generateMusic || true,
-          custom_style: musicStyle === 'custom' ? customMusicStyle : null,
           language: 'fr'
         };
+
+        console.log('🎵 Payload envoyé au backend:', payload);
 
         // Utiliser l'endpoint correct pour les comptines
         const response = await fetch(`${API_BASE_URL}/generate_rhyme/`, {
@@ -639,8 +637,6 @@ const handleSelectCreation = (creation) => {
     if (contentType === 'rhyme') {
       if (!selectedRhyme) return false;
       if (selectedRhyme === 'custom' && !customRhyme.trim()) return false;
-      // Validation supplémentaire pour le style musical personnalisé
-      if (generateMusic && musicStyle === 'custom' && !customMusicStyle.trim()) return false;
     } else if (contentType === 'audio') {
       if (!selectedAudioStory) return false;
       if (selectedAudioStory === 'custom' && !customAudioStory.trim()) return false;
@@ -873,12 +869,6 @@ const downloadPDF = async (title, content) => {
                   setSelectedRhyme={setSelectedRhyme}
                   customRhyme={customRhyme}
                   setCustomRhyme={setCustomRhyme}
-                  generateMusic={generateMusic}
-                  setGenerateMusic={setGenerateMusic}
-                  musicStyle={musicStyle}
-                  setMusicStyle={setMusicStyle}
-                  customMusicStyle={customMusicStyle}
-                  setCustomMusicStyle={setCustomMusicStyle}
                 />
               </motion.div>
             ) : contentType === 'audio' ? (
