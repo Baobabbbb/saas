@@ -120,7 +120,7 @@ const MusicalRhymeSelector = ({
         >
           <div className="rhyme-emoji">✏️</div>
           <h4>Comptine personnalisée</h4>
-          <p>Créez votre propre type de comptine unique</p>
+          <p>Créez votre propre type de comptine unique, en y mettant par exemple le prénom de votre enfant</p>
         </motion.div>
         
         {/* Predefined rhymes */}

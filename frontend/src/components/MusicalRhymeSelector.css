@@ -25,23 +25,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-}
-
-.rhyme-grid::-webkit-scrollbar {
-  width: 6px;
-}
-
-.rhyme-grid::-webkit-scrollbar-track {
-  background: #f5f0ff;
-  border-radius: 10px;
-}
-
-.rhyme-grid::-webkit-scrollbar-thumb {
-  background: #c4b5ff;
-  border-radius: 10px;
+  padding-right: 0;
 }
 
 .rhyme-card {
@@ -187,23 +171,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-}
-
-.music-style-grid::-webkit-scrollbar {
-  width: 6px;
-}
-
-.music-style-grid::-webkit-scrollbar-track {
-  background: #f5f0ff;
-  border-radius: 10px;
-}
-
-.music-style-grid::-webkit-scrollbar-thumb {
-  background: #c4b5ff;
-  border-radius: 10px;
+  padding-right: 0;
 }
 
 .music-style-card {
