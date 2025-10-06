@@ -333,20 +333,22 @@ class SunoService:
                                     songs = []
                                     for idx, clip in enumerate(clips):
                                         if clip:
-                                            print(f"🎵 Clip {idx+1} keys: {list(clip.keys())}")
+                                            audio_url_val = clip.get('audioUrl') or clip.get('streamAudioUrl')
+                                            print(f"🎵 Clip {idx+1}:")
                                             print(f"   - id: {clip.get('id')}")
                                             print(f"   - title: {clip.get('title')}")
-                                            print(f"   - audio_url: {clip.get('audio_url', 'MISSING')[:80] if clip.get('audio_url') else 'None'}")
+                                            print(f"   - audioUrl: {audio_url_val[:80] if audio_url_val else 'None'}...")
                                             print(f"   - duration: {clip.get('duration')}")
                                             
+                                            # IMPORTANT: Suno utilise camelCase, pas snake_case !
                                             songs.append({
                                                 "id": clip.get("id"),
                                                 "title": clip.get("title", "Comptine"),
-                                                "audio_url": clip.get("audio_url"),
-                                                "video_url": clip.get("video_url"),
-                                                "image_url": clip.get("image_url") or clip.get("image_large_url"),
+                                                "audio_url": clip.get("audioUrl") or clip.get("streamAudioUrl"),
+                                                "video_url": clip.get("videoUrl"),
+                                                "image_url": clip.get("imageUrl") or clip.get("sourceImageUrl"),
                                                 "duration": clip.get("duration"),
-                                                "model_name": clip.get("model_name"),
+                                                "model_name": clip.get("modelName"),
                                                 "tags": clip.get("tags", ""),
                                                 "prompt": clip.get("prompt", "")
                                             })
