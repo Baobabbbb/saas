@@ -46,33 +46,51 @@ class ColoringGeneratorGPT4o:
             self.base_url = os.getenv("BASE_URL", "https://herbbie.com")
             
             # Prompts pour l'édition d'image directe (IMAGE-TO-IMAGE pour photos)
-            self.edit_prompt_with_model = """Transform this photo into a black and white line drawing coloring page while preserving EXACTLY the same composition, pose, proportions, and all visual details.
+            self.edit_prompt_with_model = """Transform this photo into a black and white line drawing coloring page with MAXIMUM FIDELITY to the original image.
 
-Requirements:
-- Keep the EXACT same subject, pose, and positioning as the original photo
+CRITICAL REQUIREMENTS FOR HIGH RESEMBLANCE:
+- Preserve EXACTLY the same facial features, expressions, and proportions as in the photo
+- Keep the EXACT same body pose, limb positions, and orientation
+- Maintain the EXACT same clothing details, patterns, accessories, and textures
+- Preserve the EXACT same background elements and spatial composition
+- Keep the EXACT same viewing angle and perspective
+- Maintain PRECISE proportions and scale relationships between all elements
+- Replicate the EXACT same hairstyle, hair length, and hair details
+- Keep the EXACT same object positions and arrangements
+
+STYLE REQUIREMENTS:
 - Convert to clear, smooth black outline lines only
 - Pure white background
 - No shadows, grayscale, or color filling
 - Suitable for printing on 8.5x11 inch paper
-- Add a small colored reference version in the lower right corner
-- Maintain all distinctive features and details from the original photo
+- Add a small colored reference version in the lower right corner (10-15% of total size)
+- Line weight should be consistent and appropriate for coloring
 - Suitable for 6-9 year old children
 
-IMPORTANT: The coloring page must look as similar as possible to the original photo in terms of composition and details."""
+ABSOLUTE PRIORITY: Maximum fidelity to the original photo. Every visual detail, proportion, facial feature, pose, and composition element must be preserved as accurately as possible. The coloring page MUST look like a line drawing version of THIS EXACT photo."""
 
-            self.edit_prompt_without_model = """Transform this photo into a black and white line drawing coloring page while preserving EXACTLY the same composition, pose, proportions, and all visual details.
+            self.edit_prompt_without_model = """Transform this photo into a black and white line drawing coloring page with MAXIMUM FIDELITY to the original image.
 
-Requirements:
-- Keep the EXACT same subject, pose, and positioning as the original photo
+CRITICAL REQUIREMENTS FOR HIGH RESEMBLANCE:
+- Preserve EXACTLY the same facial features, expressions, and proportions as in the photo
+- Keep the EXACT same body pose, limb positions, and orientation
+- Maintain the EXACT same clothing details, patterns, accessories, and textures
+- Preserve the EXACT same background elements and spatial composition
+- Keep the EXACT same viewing angle and perspective
+- Maintain PRECISE proportions and scale relationships between all elements
+- Replicate the EXACT same hairstyle, hair length, and hair details
+- Keep the EXACT same object positions and arrangements
+
+STYLE REQUIREMENTS:
 - Convert to clear, smooth black outline lines only
 - Pure white background
 - No shadows, grayscale, or color filling
 - Suitable for printing on 8.5x11 inch paper
 - NO colored reference image
-- Maintain all distinctive features and details from the original photo
+- Line weight should be consistent and appropriate for coloring
 - Suitable for 6-9 year old children
 
-IMPORTANT: The coloring page must look as similar as possible to the original photo in terms of composition and details."""
+ABSOLUTE PRIORITY: Maximum fidelity to the original photo. Every visual detail, proportion, facial feature, pose, and composition element must be preserved as accurately as possible. The coloring page MUST look like a line drawing version of THIS EXACT photo."""
             
             # Prompts pour la génération par thème (TEXT-TO-IMAGE)
             self.coloring_prompt_with_model = """A black and white line drawing coloring illustration, suitable for direct printing on standard size (8.5x11 inch) paper, without paper borders. The overall illustration style is fresh and simple, using clear and smooth black outline lines, without shadows, grayscale, or color filling, with a pure white background for easy coloring. [At the same time, for the convenience of users who are not good at coloring, please generate a complete colored version in the lower right corner as a small image for reference] Suitable for: [6-9 year old children]
