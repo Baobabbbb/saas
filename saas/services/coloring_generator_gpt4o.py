@@ -1,9 +1,8 @@
 """
-Service de génération de coloriages avec GPT-4o-mini + gpt-image-1
+Service de génération de coloriages avec GPT-4o-mini + DALL-E 3
 Transforme des thèmes ou des photos en pages de coloriage noir et blanc
-Utilise gpt-4o-mini pour l'analyse et gpt-image-1 pour la génération
+Utilise gpt-4o-mini pour l'analyse et DALL-E 3 HD pour la génération
 Avec un prompt optimisé pour des coloriages de qualité professionnelle
-Organisation OpenAI vérifiée requise pour gpt-image-1
 """
 import os
 import uuid
@@ -37,7 +36,7 @@ class ColoringGeneratorGPT4o:
             # Configuration OpenAI
             self.api_key = os.getenv("OPENAI_API_KEY")
             if not self.api_key:
-                print("❌ ERREUR: OPENAI_API_KEY non trouvée dans .env")
+                print("[ERROR] OPENAI_API_KEY non trouvee dans .env")
                 raise ValueError("OPENAI_API_KEY manquante")
             
             self.client = AsyncOpenAI(api_key=self.api_key)
@@ -52,7 +51,8 @@ Subject: {subject}"""
             
             print(f"OK: ColoringGeneratorGPT4o initialise")
             print(f"   - Modele analyse: gpt-4o-mini")
-            print(f"   - Modele generation: DALL-E 3 (temporaire)")
+            print(f"   - Modele generation: DALL-E 3 HD")
+            print(f"   - Quality: HD (meilleure qualite)")
             print(f"   - API Key presente: Oui")
         except Exception as e:
             print(f"ERREUR: Initialisation ColoringGeneratorGPT4o: {e}")
@@ -83,12 +83,12 @@ Subject: {subject}"""
             description = await self._analyze_photo_with_gpt4o(photo_path)
             print(f"📝 Description extraite: {description[:100]}...")
             
-            # 2. Générer le coloriage avec DALL-E 3
-            print(f"🎨 Génération du coloriage avec DALL-E 3...")
+            # 2. Générer le coloriage avec DALL-E 3 HD
+            print(f"[GENERATE] Generation du coloriage avec DALL-E 3 HD...")
             coloring_url = await self._generate_coloring_with_dalle3(description, custom_prompt)
             
             if not coloring_url:
-                raise Exception("Échec de la génération DALL-E 3")
+                raise Exception("Echec de la generation DALL-E 3 HD")
             
             # 3. Télécharger et sauvegarder l'image
             coloring_path = await self._download_and_save_image(coloring_url)
@@ -100,18 +100,18 @@ Subject: {subject}"""
                 "description": description,
                 "images": [{
                     "image_url": f"{self.base_url}/static/coloring/{coloring_path.name}",
-                    "source": "gpt4o-mini + dalle3"
+                    "source": "gpt4o-mini + dalle3-hd"
                 }],
                 "total_images": 1,
                 "metadata": {
                     "source_photo": photo_path,
                     "description": description,
                     "created_at": datetime.now().isoformat(),
-                    "model": "gpt-4o-mini + dalle3"
+                    "model": "gpt-4o-mini + dalle3-hd"
                 }
             }
             
-            print(f"✅ Coloriage généré avec succès: {coloring_path.name}")
+            print(f"[OK] Coloriage genere avec succes: {coloring_path.name}")
             return result
             
         except Exception as e:
@@ -183,7 +183,7 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             return description
             
         except Exception as e:
-            print(f"❌ Erreur analyse GPT-4o-mini: {e}")
+            print(f"[ERROR] Erreur analyse GPT-4o-mini: {e}")
             raise
     
     async def _generate_coloring_with_dalle3(
@@ -192,7 +192,7 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
         custom_prompt: Optional[str] = None
     ) -> Optional[str]:
         """
-        Génère un coloriage avec DALL-E 3
+        Génère un coloriage avec DALL-E 3 HD
         
         Args:
             subject: Description du sujet
@@ -208,27 +208,26 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             else:
                 final_prompt = self.coloring_prompt_template.format(subject=subject)
             
-            print(f"[PROMPT] gpt-image-1: {final_prompt[:150]}...")
+            print(f"[PROMPT] DALL-E 3 HD: {final_prompt[:150]}...")
             
-            # Appeler DALL-E 3 (modèle OpenAI pour génération d'images)
-            # Note: Retour temporaire à DALL-E 3 pour diagnostic
-            print(f"[API] Appel OpenAI DALL-E 3...")
+            # Appeler DALL-E 3 avec qualité HD pour meilleure qualité
+            print(f"[API] Appel OpenAI DALL-E 3 HD...")
             response = await self.client.images.generate(
                 model="dall-e-3",
                 prompt=final_prompt,
                 size="1024x1024",
-                quality="standard",  # DALL-E 3 accepte: standard, hd
+                quality="hd",  # HD pour meilleure qualité (standard ou hd)
                 n=1
             )
             
-            print(f"[RESPONSE] Reponse recue de DALL-E 3")
+            print(f"[RESPONSE] Reponse recue de DALL-E 3 HD")
             image_url = response.data[0].url
-            print(f"[OK] Image DALL-E 3 generee: {image_url[:50]}...")
+            print(f"[OK] Image DALL-E 3 HD generee: {image_url[:50]}...")
             
             return image_url
             
         except Exception as e:
-            print(f"[ERROR] Erreur generation image: {e}")
+            print(f"[ERROR] Erreur generation DALL-E 3 HD: {e}")
             print(f"   Type d'erreur: {type(e).__name__}")
             import traceback
             traceback.print_exc()
@@ -256,7 +255,7 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             output_path = self.output_dir / f"coloring_gpt4o_{uuid.uuid4().hex[:8]}.png"
             image.save(output_path, 'PNG', optimize=True)
             
-            print(f"✅ Image sauvegardée: {output_path.name}")
+            print(f"[OK] Image sauvegardee: {output_path.name}")
             return output_path
             
         except Exception as e:
@@ -274,7 +273,7 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             Dict avec le résultat
         """
         try:
-            print(f"🎨 Génération coloriage par thème: {theme}")
+            print(f"[COLORING] Generation coloriage par theme: {theme}")
             
             # Créer une description basée sur le thème
             theme_descriptions = {
@@ -300,14 +299,14 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             description = theme_descriptions.get(theme.lower(), f"A {theme} scene")
             print(f"[DESCRIPTION] {description}")
             
-            # Générer avec gpt-image-1
-            print(f"[API] Appel gpt-image-1...")
+            # Générer avec DALL-E 3 HD
+            print(f"[API] Appel DALL-E 3 HD...")
             coloring_url = await self._generate_coloring_with_dalle3(description)
             
             if not coloring_url:
-                raise Exception("Échec de la génération gpt-image-1 - URL vide")
+                raise Exception("Echec de la generation DALL-E 3 HD - URL vide")
             
-            print(f"[OK] URL gpt-image-1 recue: {coloring_url[:50]}...")
+            print(f"[OK] URL DALL-E 3 HD recue: {coloring_url[:50]}...")
             
             # Télécharger et sauvegarder
             print(f"[DOWNLOAD] Telechargement de l'image...")
@@ -320,22 +319,22 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
                 "images": [{
                     "image_url": f"{self.base_url}/static/coloring/{coloring_path.name}",
                     "theme": theme,
-                    "source": "gpt4o-mini + dalle3"
+                    "source": "gpt4o-mini + dalle3-hd"
                 }],
                 "total_images": 1,
                 "metadata": {
                     "theme": theme,
                     "description": description,
                     "created_at": datetime.now().isoformat(),
-                    "model": "gpt-4o-mini + dalle3"
+                    "model": "gpt-4o-mini + dalle3-hd"
                 }
             }
             
-            print(f"✅ Coloriage thème généré avec succès: {coloring_path.name}")
+            print(f"[OK] Coloriage theme genere avec succes: {coloring_path.name}")
             return result
             
         except Exception as e:
-            print(f"❌ Erreur génération thème: {e}")
+            print(f"[ERROR] Erreur generation theme: {e}")
             import traceback
             traceback.print_exc()
             return {
