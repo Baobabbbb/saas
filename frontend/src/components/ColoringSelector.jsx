@@ -17,17 +17,38 @@ const ColoringSelector = ({
   const [uploadPreview, setUploadPreview] = useState(null);
 
   const themes = [
+    // Options spéciales
     { value: 'upload_photo', label: 'Ma Photo', icon: '📸', description: 'Transformez votre photo en coloriage !', special: true },
     { value: 'custom', label: 'Coloriage personnalisé', icon: '✏️', description: 'Créez votre propre thème de coloriage' },
+    
+    // Animaux & Créatures populaires
     { value: 'animals', label: 'Animaux', icon: '🐾', description: 'Chats, chiens, lions, éléphants...' },
-    { value: 'space', label: 'Espace', icon: '🚀', description: 'Fusées, planètes, astronautes...' },
-    { value: 'fairies', label: 'Fées', icon: '🧚', description: 'Fées, licornes, châteaux magiques...' },
-    { value: 'superheroes', label: 'Super-héros', icon: '🦸', description: 'Héros masqués, super-pouvoirs...' },
-    { value: 'nature', label: 'Nature', icon: '🌺', description: 'Fleurs, arbres, paysages...' },
-    { value: 'vehicles', label: 'Véhicules', icon: '🚗', description: 'Voitures, avions, bateaux...' },
-    { value: 'robots', label: 'Robots', icon: '🤖', description: 'Robots futuristes, androïdes, mécaniques...' },
+    { value: 'dinosaurs', label: 'Dinosaures', icon: '🦕', description: 'T-Rex, Triceratops, volcans...' },
+    { value: 'dragons', label: 'Dragons', icon: '🐉', description: 'Dragons mignons, chevaliers...' },
+    { value: 'farm', label: 'Ferme', icon: '🐄', description: 'Vache, cochon, poule, tracteur...' },
+    
+    // Mondes magiques & féeriques
+    { value: 'fairies', label: 'Fées & Licornes', icon: '🧚', description: 'Fées, licornes, châteaux magiques...' },
     { value: 'princess', label: 'Princesses', icon: '👸', description: 'Princesses, robes, diadèmes...' },
-    { value: 'dinosaurs', label: 'Dinosaures', icon: '🦕', description: 'T-Rex, Triceratops, volcans...' }
+    { value: 'mermaids', label: 'Sirènes', icon: '🧜‍♀️', description: 'Sirènes, coquillages, palais sous-marin...' },
+    { value: 'pirates', label: 'Pirates', icon: '🏴‍☠️', description: 'Bateaux pirates, trésors, perroquets...' },
+    
+    // Héros & Aventure
+    { value: 'superheroes', label: 'Super-héros', icon: '🦸', description: 'Héros masqués, super-pouvoirs...' },
+    { value: 'space', label: 'Espace', icon: '🚀', description: 'Fusées, planètes, astronautes...' },
+    { value: 'robots', label: 'Robots', icon: '🤖', description: 'Robots futuristes, androïdes...' },
+    
+    // Véhicules & Transport
+    { value: 'vehicles', label: 'Véhicules', icon: '🚗', description: 'Voitures, avions, trains, bateaux...' },
+    
+    // Nature & Environnement
+    { value: 'nature', label: 'Nature', icon: '🌺', description: 'Fleurs, arbres, papillons, paysages...' },
+    { value: 'ocean', label: 'Océan', icon: '🐠', description: 'Poissons, dauphins, coraux, tortues...' },
+    { value: 'seasons', label: 'Saisons', icon: '🍂', description: 'Automne, hiver, printemps, été...' },
+    
+    // Vie quotidienne
+    { value: 'sports', label: 'Sports', icon: '⚽', description: 'Football, basketball, natation...' },
+    { value: 'fruits', label: 'Fruits & Légumes', icon: '🍎', description: 'Fruits rigolos, légumes souriants...' }
   ];
 
   const handleThemeSelect = (themeValue) => {
