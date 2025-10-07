@@ -126,6 +126,7 @@ function App() {
   const [customColoringTheme, setCustomColoringTheme] = useState('');
   const [uploadedPhoto, setUploadedPhoto] = useState(null);
   const [coloringResult, setColoringResult] = useState(null);
+  const [withColoredModel, setWithColoredModel] = useState(true); // true = avec modèle coloré, false = sans
   
   // Animation states
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
@@ -365,7 +366,8 @@ function App() {
         
         // 2. Conversion en coloriage avec GPT-4o-mini + gpt-image-1
         const conversionPayload = {
-          photo_path: uploadData.file_path
+          photo_path: uploadData.file_path,
+          with_colored_model: withColoredModel
         };
         
         const conversionResponse = await fetch(`${API_BASE_URL}/convert_photo_to_coloring/`, {
@@ -383,7 +385,8 @@ function App() {
       } else {
         // Génération classique par thème
         const payload = {
-          theme: selectedTheme
+          theme: selectedTheme,
+          with_colored_model: withColoredModel
         };
         
         const response = await fetch(`${API_BASE_URL}/generate_coloring/`, {
@@ -892,6 +895,8 @@ const downloadPDF = async (title, content) => {
                   setCustomColoringTheme={setCustomColoringTheme}
                   uploadedPhoto={uploadedPhoto}
                   setUploadedPhoto={setUploadedPhoto}
+                  withColoredModel={withColoredModel}
+                  setWithColoredModel={setWithColoredModel}
                 />
               </motion.div>
             ) : contentType === 'animation' ? (

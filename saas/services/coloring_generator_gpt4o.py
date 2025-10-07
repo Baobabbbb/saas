@@ -45,8 +45,12 @@ class ColoringGeneratorGPT4o:
             # URL de base pour les images (production Railway ou local)
             self.base_url = os.getenv("BASE_URL", "https://herbbie.com")
             
-            # Prompt spécial pour les coloriages (fourni par l'utilisateur)
-            self.coloring_prompt_template = """A black and white line drawing coloring illustration, suitable for direct printing on standard size (8.5x11 inch) paper, without paper borders. The overall illustration style is fresh and simple, using clear and smooth black outline lines, without shadows, grayscale, or color filling, with a pure white background for easy coloring. [At the same time, for the convenience of users who are not good at coloring, please generate a complete colored version in the lower right corner as a small image for reference] Suitable for: [6-9 year old children]
+            # Prompts pour les coloriages (avec et sans modèle coloré)
+            self.coloring_prompt_with_model = """A black and white line drawing coloring illustration, suitable for direct printing on standard size (8.5x11 inch) paper, without paper borders. The overall illustration style is fresh and simple, using clear and smooth black outline lines, without shadows, grayscale, or color filling, with a pure white background for easy coloring. [At the same time, for the convenience of users who are not good at coloring, please generate a complete colored version in the lower right corner as a small image for reference] Suitable for: [6-9 year old children]
+
+Subject: {subject}"""
+            
+            self.coloring_prompt_without_model = """A black and white line drawing coloring illustration, suitable for direct printing on standard size (8.5x11 inch) paper, without paper borders. The overall illustration style is fresh and simple, using clear and smooth black outline lines, without shadows, grayscale, or color filling, with a pure white background for easy coloring. NO colored reference image. Suitable for: [6-9 year old children]
 
 Subject: {subject}"""
             
@@ -64,7 +68,8 @@ Subject: {subject}"""
     async def generate_coloring_from_photo(
         self, 
         photo_path: str,
-        custom_prompt: Optional[str] = None
+        custom_prompt: Optional[str] = None,
+        with_colored_model: bool = True
     ) -> Dict[str, Any]:
         """
         Convertit une photo en coloriage avec GPT-4o-mini + DALL-E 3
@@ -85,8 +90,8 @@ Subject: {subject}"""
             print(f"📝 Description extraite: {description[:100]}...")
             
             # 2. Générer le coloriage avec gpt-image-1
-            print(f"[GENERATE] Generation du coloriage avec gpt-image-1...")
-            coloring_path_str = await self._generate_coloring_with_gpt_image_1(description, custom_prompt)
+            print(f"[GENERATE] Generation du coloriage avec gpt-image-1 ({'avec' if with_colored_model else 'sans'} modèle coloré)...")
+            coloring_path_str = await self._generate_coloring_with_gpt_image_1(description, custom_prompt, with_colored_model)
             
             if not coloring_path_str:
                 raise Exception("Echec de la generation gpt-image-1")
@@ -190,7 +195,8 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
     async def _generate_coloring_with_gpt_image_1(
         self, 
         subject: str,
-        custom_prompt: Optional[str] = None
+        custom_prompt: Optional[str] = None,
+        with_colored_model: bool = True
     ) -> Optional[str]:
         """
         Génère un coloriage avec gpt-image-1
@@ -198,16 +204,19 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
         Args:
             subject: Description du sujet
             custom_prompt: Prompt personnalisé optionnel
+            with_colored_model: Si True, inclut un modèle coloré en coin
         
         Returns:
-            URL de l'image générée
+            Chemin local de l'image générée
         """
         try:
             # Construire le prompt final
             if custom_prompt:
                 final_prompt = custom_prompt
             else:
-                final_prompt = self.coloring_prompt_template.format(subject=subject)
+                # Choisir le prompt selon le choix de l'utilisateur
+                prompt_template = self.coloring_prompt_with_model if with_colored_model else self.coloring_prompt_without_model
+                final_prompt = prompt_template.format(subject=subject)
             
             print(f"[PROMPT] gpt-image-1: {final_prompt[:150]}...")
             
@@ -279,12 +288,13 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             print(f"[ERROR] Erreur telechargement image: {e}")
             raise
     
-    async def generate_coloring_from_theme(self, theme: str) -> Dict[str, Any]:
+    async def generate_coloring_from_theme(self, theme: str, with_colored_model: bool = True) -> Dict[str, Any]:
         """
         Génération de coloriage par thème
         
         Args:
             theme: Thème du coloriage (ex: "animaux", "espace", "dinosaures")
+            with_colored_model: Si True, inclut un modèle coloré en coin
         
         Returns:
             Dict avec le résultat
@@ -317,8 +327,8 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             print(f"[DESCRIPTION] {description}")
             
             # Générer avec gpt-image-1
-            print(f"[API] Appel gpt-image-1...")
-            coloring_path_str = await self._generate_coloring_with_gpt_image_1(description)
+            print(f"[API] Appel gpt-image-1 ({'avec' if with_colored_model else 'sans'} modèle coloré)...")
+            coloring_path_str = await self._generate_coloring_with_gpt_image_1(description, None, with_colored_model)
             
             if not coloring_path_str:
                 raise Exception("Echec de la generation gpt-image-1 - chemin vide")

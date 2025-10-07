@@ -8,7 +8,9 @@ const ColoringSelector = ({
   customColoringTheme,
   setCustomColoringTheme,
   uploadedPhoto,
-  setUploadedPhoto
+  setUploadedPhoto,
+  withColoredModel,
+  setWithColoredModel
 }) => {
   const [showCustomTheme, setShowCustomTheme] = useState(false);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
@@ -82,6 +84,29 @@ const ColoringSelector = ({
   return (
     <div className="coloring-selector">
       <h3>2. Choisissez un thème pour vos coloriages</h3>
+      
+      {/* Choix du modèle coloré */}
+      <div className="model-choice-container">
+        <h4>Type de coloriage :</h4>
+        <div className="model-buttons">
+          <button 
+            className={`model-btn ${withColoredModel ? 'active' : ''}`}
+            onClick={() => setWithColoredModel(true)}
+          >
+            <span className="model-icon">🎨</span>
+            <span className="model-label">Avec modèle coloré</span>
+            <span className="model-desc">Inclut un exemple coloré en coin</span>
+          </button>
+          <button 
+            className={`model-btn ${!withColoredModel ? 'active' : ''}`}
+            onClick={() => setWithColoredModel(false)}
+          >
+            <span className="model-icon">✏️</span>
+            <span className="model-label">Sans modèle</span>
+            <span className="model-desc">Coloriage pur, sans exemple</span>
+          </button>
+        </div>
+      </div>
       
       <div className="theme-grid">
         {themes.map((theme) => (

@@ -479,7 +479,8 @@ async def generate_coloring(request: dict, content_type_id: int = None):
     try:
         # Validation des données d'entrée
         theme = request.get("theme", "animaux")
-        print(f"[COLORING] Generation coloriage gpt-image-1: {theme} (content_type_id={content_type_id})")
+        with_colored_model = request.get("with_colored_model", True)  # Par défaut avec modèle
+        print(f"[COLORING] Generation coloriage gpt-image-1: {theme} ({'avec' if with_colored_model else 'sans'} modèle coloré) (content_type_id={content_type_id})")
         
         # Vérifier la clé API OpenAI
         openai_key = os.getenv("OPENAI_API_KEY")
@@ -493,7 +494,7 @@ async def generate_coloring(request: dict, content_type_id: int = None):
         generator = get_coloring_generator()
         
         # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1 (génération)
-        result = await generator.generate_coloring_from_theme(theme)
+        result = await generator.generate_coloring_from_theme(theme, with_colored_model)
         
         if result.get("success") == True:
             return {
@@ -593,7 +594,9 @@ async def convert_photo_to_coloring(request: dict):
         
         photo_path = str(photo_path_obj)
         
-        print(f"[COLORING] Conversion photo en coloriage avec gpt-image-1: {photo_path}")
+        # Récupérer le choix de modèle coloré
+        with_colored_model = request.get("with_colored_model", True)  # Par défaut avec modèle
+        print(f"[COLORING] Conversion photo en coloriage avec gpt-image-1 ({'avec' if with_colored_model else 'sans'} modèle coloré): {photo_path}")
         
         # Vérifier que le fichier existe
         if not photo_path_obj.exists():
@@ -608,7 +611,8 @@ async def convert_photo_to_coloring(request: dict):
         # Convertir avec GPT-4o-mini (analyse) + gpt-image-1 (génération)
         result = await generator.generate_coloring_from_photo(
             photo_path=photo_path,
-            custom_prompt=custom_prompt
+            custom_prompt=custom_prompt,
+            with_colored_model=with_colored_model
         )
         
         if result.get("success") == True:
