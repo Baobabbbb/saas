@@ -1,8 +1,7 @@
 """
-Service de génération de coloriages avec GPT-4o-mini + gpt-image-1
-Transforme des thèmes ou des photos en pages de coloriage noir et blanc
-Utilise gpt-4o-mini pour l'analyse et gpt-image-1 pour la génération
-Avec un prompt optimisé pour des coloriages de qualité professionnelle
+Service de génération de coloriages avec gpt-image-1
+- Image-to-image direct pour les photos uploadées (meilleure ressemblance)
+- Text-to-image pour les thèmes prédéfinis
 Organisation OpenAI vérifiée requise pour gpt-image-1
 """
 import os
@@ -22,8 +21,9 @@ load_dotenv()
 
 class ColoringGeneratorGPT4o:
     """
-    Générateur de coloriages avec GPT-4o-mini + DALL-E 3
-    Supporte la génération par thème et la conversion de photos
+    Générateur de coloriages avec gpt-image-1
+    - Image-to-image pour photos uploadées
+    - Text-to-image pour thèmes
     """
     
     def __init__(self):
@@ -45,7 +45,36 @@ class ColoringGeneratorGPT4o:
             # URL de base pour les images (production Railway ou local)
             self.base_url = os.getenv("BASE_URL", "https://herbbie.com")
             
-            # Prompts pour les coloriages (avec et sans modèle coloré)
+            # Prompts pour l'édition d'image directe (IMAGE-TO-IMAGE pour photos)
+            self.edit_prompt_with_model = """Transform this photo into a black and white line drawing coloring page while preserving EXACTLY the same composition, pose, proportions, and all visual details.
+
+Requirements:
+- Keep the EXACT same subject, pose, and positioning as the original photo
+- Convert to clear, smooth black outline lines only
+- Pure white background
+- No shadows, grayscale, or color filling
+- Suitable for printing on 8.5x11 inch paper
+- Add a small colored reference version in the lower right corner
+- Maintain all distinctive features and details from the original photo
+- Suitable for 6-9 year old children
+
+IMPORTANT: The coloring page must look as similar as possible to the original photo in terms of composition and details."""
+
+            self.edit_prompt_without_model = """Transform this photo into a black and white line drawing coloring page while preserving EXACTLY the same composition, pose, proportions, and all visual details.
+
+Requirements:
+- Keep the EXACT same subject, pose, and positioning as the original photo
+- Convert to clear, smooth black outline lines only
+- Pure white background
+- No shadows, grayscale, or color filling
+- Suitable for printing on 8.5x11 inch paper
+- NO colored reference image
+- Maintain all distinctive features and details from the original photo
+- Suitable for 6-9 year old children
+
+IMPORTANT: The coloring page must look as similar as possible to the original photo in terms of composition and details."""
+            
+            # Prompts pour la génération par thème (TEXT-TO-IMAGE)
             self.coloring_prompt_with_model = """A black and white line drawing coloring illustration, suitable for direct printing on standard size (8.5x11 inch) paper, without paper borders. The overall illustration style is fresh and simple, using clear and smooth black outline lines, without shadows, grayscale, or color filling, with a pure white background for easy coloring. [At the same time, for the convenience of users who are not good at coloring, please generate a complete colored version in the lower right corner as a small image for reference] Suitable for: [6-9 year old children]
 
 Subject: {subject}"""
@@ -55,9 +84,9 @@ Subject: {subject}"""
 Subject: {subject}"""
             
             print(f"OK: ColoringGeneratorGPT4o initialise")
-            print(f"   - Modele analyse: gpt-4o-mini")
-            print(f"   - Modele generation: gpt-image-1")
-            print(f"   - Quality: high (meilleure qualite)")
+            print(f"   - Photos: gpt-image-1 image-to-image (ressemblance maximale)")
+            print(f"   - Themes: gpt-image-1 text-to-image")
+            print(f"   - Quality: high")
             print(f"   - API Key presente: Oui")
         except Exception as e:
             print(f"ERREUR: Initialisation ColoringGeneratorGPT4o: {e}")
@@ -72,52 +101,53 @@ Subject: {subject}"""
         with_colored_model: bool = True
     ) -> Dict[str, Any]:
         """
-        Convertit une photo en coloriage avec GPT-4o-mini + DALL-E 3
+        Convertit une photo en coloriage avec gpt-image-1 IMAGE-TO-IMAGE DIRECT
+        Cette méthode utilise l'édition d'image directe pour maximiser la ressemblance
         
         Args:
             photo_path: Chemin vers la photo
             custom_prompt: Prompt personnalisé optionnel
+            with_colored_model: Si True, inclut un modèle coloré en coin
         
         Returns:
             Dict avec le résultat
         """
         try:
-            print(f"[COLORING] Conversion photo en coloriage: {photo_path}")
+            print(f"[COLORING PHOTO] Conversion IMAGE-TO-IMAGE: {photo_path}")
             
-            # 1. Analyser la photo avec GPT-4o-mini pour extraire une description
-            print(f"🔍 Analyse de la photo avec GPT-4o-mini...")
-            description = await self._analyze_photo_with_gpt4o(photo_path)
-            print(f"📝 Description extraite: {description[:100]}...")
-            
-            # 2. Générer le coloriage avec gpt-image-1
-            print(f"[GENERATE] Generation du coloriage avec gpt-image-1 ({'avec' if with_colored_model else 'sans'} modèle coloré)...")
-            coloring_path_str = await self._generate_coloring_with_gpt_image_1(description, custom_prompt, with_colored_model)
+            # Utiliser l'édition d'image DIRECTE avec gpt-image-1 (IMAGE-TO-IMAGE)
+            print(f"[IMAGE-TO-IMAGE] Transformation directe avec gpt-image-1 edit...")
+            coloring_path_str = await self._edit_photo_to_coloring_direct(
+                photo_path, 
+                custom_prompt, 
+                with_colored_model
+            )
             
             if not coloring_path_str:
-                raise Exception("Echec de la generation gpt-image-1")
+                raise Exception("Echec de la generation gpt-image-1 (image-to-image)")
             
-            # 3. Convertir en Path (déjà sauvegardé par _generate_coloring_with_gpt_image_1)
+            # Convertir en Path
             coloring_path = Path(coloring_path_str)
             
-            # 4. Construire la réponse
+            # Construire la réponse
             result = {
                 "success": True,
                 "source_photo": photo_path,
-                "description": description,
                 "images": [{
                     "image_url": f"{self.base_url}/static/coloring/{coloring_path.name}",
-                    "source": "gpt4o-mini + gpt-image-1"
+                    "source": "gpt-image-1 (image-to-image direct)"
                 }],
                 "total_images": 1,
                 "metadata": {
                     "source_photo": photo_path,
-                    "description": description,
+                    "method": "image-to-image direct editing",
                     "created_at": datetime.now().isoformat(),
-                    "model": "gpt-4o-mini + gpt-image-1"
+                    "model": "gpt-image-1",
+                    "with_colored_model": with_colored_model
                 }
             }
             
-            print(f"[OK] Coloriage genere avec succes: {coloring_path.name}")
+            print(f"[OK] Coloriage photo genere avec succes (image-to-image): {coloring_path.name}")
             return result
             
         except Exception as e:
@@ -130,66 +160,72 @@ Subject: {subject}"""
                 "images": []
             }
     
-    async def _analyze_photo_with_gpt4o(self, photo_path: str) -> str:
+    async def _edit_photo_to_coloring_direct(
+        self,
+        photo_path: str,
+        custom_prompt: Optional[str] = None,
+        with_colored_model: bool = True
+    ) -> Optional[str]:
         """
-        Analyse une photo avec GPT-4o-mini pour extraire une description détaillée
+        Édite directement une photo en coloriage avec gpt-image-1 (IMAGE-TO-IMAGE)
+        CETTE MÉTHODE MAXIMISE LA RESSEMBLANCE en envoyant directement l'image
         
         Args:
             photo_path: Chemin vers la photo
+            custom_prompt: Prompt personnalisé optionnel
+            with_colored_model: Si True, inclut un modèle coloré
         
         Returns:
-            Description textuelle de la photo
+            Chemin local de l'image générée
         """
         try:
-            # Lire et encoder l'image en base64
+            # Construire le prompt
+            if custom_prompt:
+                final_prompt = custom_prompt
+            else:
+                final_prompt = self.edit_prompt_with_model if with_colored_model else self.edit_prompt_without_model
+            
+            print(f"[PROMPT IMAGE-TO-IMAGE] {final_prompt[:100]}...")
+            
+            # Ouvrir l'image en mode binaire
             with open(photo_path, "rb") as image_file:
-                image_data = base64.b64encode(image_file.read()).decode('utf-8')
+                image_data = image_file.read()
             
-            # Déterminer le type MIME
-            extension = Path(photo_path).suffix.lower()
-            mime_types = {
-                '.jpg': 'image/jpeg',
-                '.jpeg': 'image/jpeg',
-                '.png': 'image/png',
-                '.webp': 'image/webp',
-                '.gif': 'image/gif'
-            }
-            mime_type = mime_types.get(extension, 'image/jpeg')
+            print(f"[API] Appel OpenAI images.edit avec photo ({len(image_data)} bytes)...")
             
-            # Appeler GPT-4o-mini avec vision
-            response = await self.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": """Analyze this photo in detail and describe it for creating a coloring page. 
-Focus on:
-- Main subject (person, animal, object)
-- Pose and expression
-- Key visual elements
-- Setting/background
-- Important details to preserve
-
-Provide a clear, concise description (2-3 sentences) that captures the essence of the image for a coloring book illustration suitable for 6-9 year old children."""
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:{mime_type};base64,{image_data}"
-                            }
-                        }
-                    ]
-                }],
-                max_tokens=300
+            # Appeler gpt-image-1 avec images.edit (IMAGE-TO-IMAGE)
+            response = await self.client.images.edit(
+                model="gpt-image-1",
+                image=image_data,
+                prompt=final_prompt,
+                size="1024x1024",
+                n=1
             )
             
-            description = response.choices[0].message.content
-            return description
+            print(f"[RESPONSE] Reponse recue de gpt-image-1 edit")
+            
+            # gpt-image-1 retourne base64
+            if hasattr(response, 'data') and len(response.data) > 0:
+                image_b64 = response.data[0].b64_json
+                print(f"[OK] Image editee recue (base64: {len(image_b64)} bytes)")
+                
+                # Sauvegarder directement depuis base64
+                image_bytes = base64.b64decode(image_b64)
+                output_path = self.output_dir / f"coloring_photo_direct_{uuid.uuid4().hex[:8]}.png"
+                with open(output_path, 'wb') as f:
+                    f.write(image_bytes)
+                print(f"[OK] Coloriage photo sauvegarde: {output_path.name}")
+                
+                return str(output_path)
+            else:
+                print(f"[ERROR] Format de reponse inattendu")
+                raise Exception("Format de reponse gpt-image-1 edit inattendu")
             
         except Exception as e:
-            print(f"[ERROR] Erreur analyse GPT-4o-mini: {e}")
+            print(f"[ERROR] Erreur edition image-to-image: {e}")
+            print(f"   Type d'erreur: {type(e).__name__}")
+            import traceback
+            traceback.print_exc()
             raise
     
     async def _generate_coloring_with_gpt_image_1(
@@ -199,7 +235,8 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
         with_colored_model: bool = True
     ) -> Optional[str]:
         """
-        Génère un coloriage avec gpt-image-1
+        Génère un coloriage avec gpt-image-1 (TEXT-TO-IMAGE)
+        Utilisé pour la génération par thème
         
         Args:
             subject: Description du sujet
@@ -214,93 +251,60 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             if custom_prompt:
                 final_prompt = custom_prompt
             else:
-                # Choisir le prompt selon le choix de l'utilisateur
                 prompt_template = self.coloring_prompt_with_model if with_colored_model else self.coloring_prompt_without_model
                 final_prompt = prompt_template.format(subject=subject)
             
-            print(f"[PROMPT] gpt-image-1: {final_prompt[:150]}...")
+            print(f"[PROMPT TEXT-TO-IMAGE] {final_prompt[:150]}...")
             
-            # Appeler gpt-image-1 avec qualité high pour meilleure qualité
-            print(f"[API] Appel OpenAI gpt-image-1...")
+            # Appeler gpt-image-1 avec qualité high
+            print(f"[API] Appel OpenAI images.generate...")
             response = await self.client.images.generate(
                 model="gpt-image-1",
                 prompt=final_prompt,
                 size="1024x1024",
-                quality="high",  # gpt-image-1 accepte: low, medium, high, auto
+                quality="high",
                 n=1
             )
             
-            print(f"[RESPONSE] Reponse recue de gpt-image-1")
+            print(f"[RESPONSE] Reponse recue de gpt-image-1 generate")
             
-            # gpt-image-1 retourne base64, pas URL!
+            # gpt-image-1 retourne base64
             if hasattr(response, 'data') and len(response.data) > 0:
-                # gpt-image-1 retourne b64_json, pas url
                 image_b64 = response.data[0].b64_json
-                print(f"[OK] Image gpt-image-1 recue (base64: {len(image_b64)} bytes)")
+                print(f"[OK] Image generee recue (base64: {len(image_b64)} bytes)")
                 
                 # Sauvegarder directement depuis base64
-                import base64
                 image_bytes = base64.b64decode(image_b64)
-                output_path = self.output_dir / f"coloring_gpt_image_1_{uuid.uuid4().hex[:8]}.png"
+                output_path = self.output_dir / f"coloring_theme_{uuid.uuid4().hex[:8]}.png"
                 with open(output_path, 'wb') as f:
                     f.write(image_bytes)
-                print(f"[OK] Image sauvegardee: {output_path.name}")
+                print(f"[OK] Coloriage theme sauvegarde: {output_path.name}")
                 
-                # Retourner le chemin local au lieu d'une URL
                 return str(output_path)
             else:
                 print(f"[ERROR] Format de reponse inattendu")
-                raise Exception("Format de reponse gpt-image-1 inattendu")
+                raise Exception("Format de reponse gpt-image-1 generate inattendu")
             
         except Exception as e:
-            print(f"[ERROR] Erreur generation gpt-image-1: {e}")
+            print(f"[ERROR] Erreur generation text-to-image: {e}")
             print(f"   Type d'erreur: {type(e).__name__}")
             import traceback
             traceback.print_exc()
             raise
     
-    async def _download_and_save_image(self, image_url: str) -> Path:
-        """
-        Télécharge et sauvegarde une image depuis une URL
-        
-        Args:
-            image_url: URL de l'image
-        
-        Returns:
-            Path vers l'image sauvegardée
-        """
-        try:
-            # Télécharger l'image
-            response = requests.get(image_url, timeout=30)
-            response.raise_for_status()
-            
-            # Ouvrir avec PIL
-            image = Image.open(io.BytesIO(response.content))
-            
-            # Sauvegarder
-            output_path = self.output_dir / f"coloring_gpt4o_{uuid.uuid4().hex[:8]}.png"
-            image.save(output_path, 'PNG', optimize=True)
-            
-            print(f"[OK] Image sauvegardee: {output_path.name}")
-            return output_path
-            
-        except Exception as e:
-            print(f"[ERROR] Erreur telechargement image: {e}")
-            raise
-    
     async def generate_coloring_from_theme(self, theme: str, with_colored_model: bool = True) -> Dict[str, Any]:
         """
-        Génération de coloriage par thème
+        Génération de coloriage par thème (TEXT-TO-IMAGE classique)
         
         Args:
-            theme: Thème du coloriage (ex: "animaux", "espace", "dinosaures")
+            theme: Thème du coloriage
             with_colored_model: Si True, inclut un modèle coloré en coin
         
         Returns:
             Dict avec le résultat
         """
         try:
-            print(f"[COLORING] Generation coloriage par theme: {theme}")
+            print(f"[COLORING THEME] Generation par theme (text-to-image): {theme}")
             
             # Créer une description basée sur le thème
             theme_descriptions = {
@@ -308,26 +312,37 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
                 'animals': "A happy dog playing with a ball in a park",
                 'dinosaures': "A friendly smiling T-Rex dinosaur in a prehistoric forest",
                 'dinosaurs': "A friendly smiling T-Rex dinosaur in a prehistoric forest",
+                'dragons': "A cute friendly dragon with wings playing in a magical forest",
                 'espace': "An astronaut floating in space near colorful planets and stars",
                 'space': "An astronaut floating in space near colorful planets and stars",
                 'fees': "A beautiful fairy with butterfly wings holding a magic wand with sparkles",
                 'fairies': "A beautiful fairy with butterfly wings holding a magic wand with sparkles",
                 'nature': "Beautiful sunflowers in a garden with butterflies",
                 'princesses': "A beautiful princess with a crown and elegant dress in a castle",
-                'pirates': "A friendly pirate with a treasure map on a ship",
+                'princess': "A beautiful princess with a crown and elegant dress in a castle",
+                'pirates': "A friendly pirate with a treasure map on a pirate ship",
+                'mermaids': "A beautiful mermaid with flowing hair swimming near coral reefs",
+                'sirènes': "A beautiful mermaid with flowing hair swimming near coral reefs",
                 'vehicules': "A colorful race car speeding on a track",
                 'vehicles': "A colorful race car speeding on a track",
                 'ocean': "Colorful fish swimming in a coral reef with sea creatures",
-                'foret': "A magical forest with tall trees, mushrooms and woodland animals",
-                'forest': "A magical forest with tall trees, mushrooms and woodland animals",
+                'océan': "Colorful fish swimming in a coral reef with sea creatures",
+                'farm': "Happy farm animals including cows, pigs, chickens and a red barn",
+                'ferme': "Happy farm animals including cows, pigs, chickens and a red barn",
+                'seasons': "A beautiful tree showing all four seasons with falling leaves",
+                'saisons': "A beautiful tree showing all four seasons with falling leaves",
+                'sports': "Children playing soccer in a sunny park",
+                'fruits': "Smiling fruits including apples, bananas, and strawberries",
+                'superheroes': "A brave superhero flying through the sky with a cape",
+                'super-héros': "A brave superhero flying through the sky with a cape",
+                'robots': "A friendly futuristic robot with mechanical parts",
             }
             
             # Obtenir la description ou utiliser le thème directement
-            description = theme_descriptions.get(theme.lower(), f"A {theme} scene")
+            description = theme_descriptions.get(theme.lower(), f"A {theme} scene suitable for children coloring")
             print(f"[DESCRIPTION] {description}")
             
-            # Générer avec gpt-image-1
-            print(f"[API] Appel gpt-image-1 ({'avec' if with_colored_model else 'sans'} modèle coloré)...")
+            # Générer avec gpt-image-1 (text-to-image)
             coloring_path_str = await self._generate_coloring_with_gpt_image_1(description, None, with_colored_model)
             
             if not coloring_path_str:
@@ -335,7 +350,7 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
             
             print(f"[OK] Chemin gpt-image-1 recu: {coloring_path_str}")
             
-            # Convertir en Path (déjà sauvegardé par _generate_coloring_with_gpt_image_1)
+            # Convertir en Path
             coloring_path = Path(coloring_path_str)
             
             # Construire la réponse
@@ -345,14 +360,16 @@ Provide a clear, concise description (2-3 sentences) that captures the essence o
                 "images": [{
                     "image_url": f"{self.base_url}/static/coloring/{coloring_path.name}",
                     "theme": theme,
-                    "source": "gpt4o-mini + gpt-image-1"
+                    "source": "gpt-image-1 (text-to-image)"
                 }],
                 "total_images": 1,
                 "metadata": {
                     "theme": theme,
                     "description": description,
                     "created_at": datetime.now().isoformat(),
-                    "model": "gpt-4o-mini + gpt-image-1"
+                    "model": "gpt-image-1",
+                    "method": "text-to-image",
+                    "with_colored_model": with_colored_model
                 }
             }
             
