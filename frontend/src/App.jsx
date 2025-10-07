@@ -126,7 +126,7 @@ function App() {
   const [customColoringTheme, setCustomColoringTheme] = useState('');
   const [uploadedPhoto, setUploadedPhoto] = useState(null);
   const [coloringResult, setColoringResult] = useState(null);
-  const [withColoredModel, setWithColoredModel] = useState(true); // true = avec modèle coloré, false = sans
+  const [withColoredModel, setWithColoredModel] = useState(null); // null = aucun bouton sélectionné, true = avec modèle, false = sans
   
   // Animation states
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
@@ -257,6 +257,7 @@ function App() {
     setSelectedTheme(null);
     setCustomColoringTheme('');
     setUploadedPhoto(null);
+    setWithColoredModel(null); // Remettre à zéro le choix du modèle
     setSelectedAnimationTheme(null);
     setSelectedDuration(null);
     setSelectedStyle(null);

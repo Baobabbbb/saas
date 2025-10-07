@@ -177,8 +177,8 @@ const ColoringSelector = ({
       <div className="model-choice-section">
         <h3>3. Voulez-vous un modèle ?</h3>
         <div className="model-buttons">
-          <motion.button 
-            className={`model-btn ${withColoredModel ? 'active' : ''}`}
+          <motion.button
+            className={`model-btn ${withColoredModel === true ? 'active' : ''}`}
             onClick={() => setWithColoredModel(true)}
             whileHover={{ y: -3 }}
             whileTap={{ scale: 0.98 }}
@@ -187,8 +187,8 @@ const ColoringSelector = ({
             <span className="model-label">Avec modèle</span>
             <span className="model-desc">Inclut un exemple coloré en coin</span>
           </motion.button>
-          <motion.button 
-            className={`model-btn ${!withColoredModel ? 'active' : ''}`}
+          <motion.button
+            className={`model-btn ${withColoredModel === false ? 'active' : ''}`}
             onClick={() => setWithColoredModel(false)}
             whileHover={{ y: -3 }}
             whileTap={{ scale: 0.98 }}
