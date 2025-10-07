@@ -71,6 +71,15 @@ const ColoringSelector = ({
     }
   };
 
+  const handleModelSelect = (modelValue) => {
+    // Toggle: désélectionne si déjà sélectionné, sinon sélectionne
+    if (withColoredModel === modelValue) {
+      setWithColoredModel(null);
+    } else {
+      setWithColoredModel(modelValue);
+    }
+  };
+
   const removePhoto = () => {
     setUploadedPhoto(null);
     setUploadPreview(null);
@@ -179,7 +188,7 @@ const ColoringSelector = ({
         <div className="model-buttons">
           <motion.button
             className={`model-btn ${withColoredModel === true ? 'active' : ''}`}
-            onClick={() => setWithColoredModel(true)}
+            onClick={() => handleModelSelect(true)}
             whileHover={{ y: -3 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -189,7 +198,7 @@ const ColoringSelector = ({
           </motion.button>
           <motion.button
             className={`model-btn ${withColoredModel === false ? 'active' : ''}`}
-            onClick={() => setWithColoredModel(false)}
+            onClick={() => handleModelSelect(false)}
             whileHover={{ y: -3 }}
             whileTap={{ scale: 0.98 }}
           >
