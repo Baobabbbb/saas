@@ -182,9 +182,34 @@
 .coloring-palette {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(45px, 1fr));
+  grid-template-columns: repeat(16, 45px);
   gap: 0.5rem;
   max-width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: #6B4EFF #f0f0f0;
+}
+
+/* Scrollbar personnalisée pour Chrome/Safari */
+.coloring-palette::-webkit-scrollbar {
+  width: 8px;
+}
+
+.coloring-palette::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.coloring-palette::-webkit-scrollbar-thumb {
+  background: #6B4EFF;
+  border-radius: 4px;
+}
+
+.coloring-palette::-webkit-scrollbar-thumb:hover {
+  background: #5A3EEF;
 }
 
 .coloring-color-btn {
@@ -261,8 +286,9 @@
   }
 
   .coloring-palette {
-    grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+    grid-template-columns: repeat(8, 40px);
     gap: 0.4rem;
+    max-height: 180px;
   }
 
   .coloring-color-btn {

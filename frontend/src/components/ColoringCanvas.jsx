@@ -10,13 +10,24 @@ const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
   const [originalImageData, setOriginalImageData] = useState(null);
   const [coloringData, setColoringData] = useState(null);
   
-  // Palette de couleurs inspirée de Happy Color
+  // Palette de couleurs enrichie inspirée de Happy Color
   const colorPalette = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', 
-    '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
-    '#F8B739', '#52C41A', '#FF85C0', '#A8DADC',
-    '#E07A5F', '#81C784', '#FFB6C1', '#20B2AA',
-    '#DDA15E', '#BC6C25', '#FFDAB9', '#E6E6FA'
+    // Rouges et roses
+    '#FF6B6B', '#FF4757', '#FF6348', '#FFA07A', '#FF85C0', '#FFB6C1', '#FF1493', '#DC143C',
+    // Oranges et jaunes
+    '#F8B739', '#FFA500', '#FFD700', '#F7DC6F', '#FFDAB9', '#FFE4B5', '#F4A460', '#FDB813',
+    // Verts
+    '#52C41A', '#98D8C8', '#81C784', '#00C853', '#20B2AA', '#3CB371', '#90EE90', '#7FFF00',
+    // Bleus et turquoises
+    '#4ECDC4', '#45B7D1', '#85C1E9', '#A8DADC', '#00BFFF', '#1E90FF', '#4169E1', '#6495ED',
+    // Violets et mauves
+    '#BB8FCE', '#9B59B6', '#8B008B', '#DA70D6', '#E6E6FA', '#DDA0DD', '#BA55D3', '#9370DB',
+    // Marrons et beiges
+    '#DDA15E', '#BC6C25', '#D2691E', '#CD853F', '#8B4513', '#A0522D', '#F5DEB3', '#FAEBD7',
+    // Gris et neutres
+    '#95A5A6', '#7F8C8D', '#BDC3C7', '#ECF0F1', '#D3D3D3', '#C0C0C0', '#A9A9A9', '#808080',
+    // Couleurs vives supplémentaires
+    '#E07A5F', '#FF6B9D', '#00D9FF', '#FFEB3B', '#FF5722', '#8BC34A', '#00BCD4', '#E91E63'
   ];
 
   // Initialiser le canvas et charger l'image
