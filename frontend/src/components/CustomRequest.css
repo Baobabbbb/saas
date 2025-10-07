@@ -1,3 +1,10 @@
+/* Variables pour cohérence avec les autres composants */
+:root {
+  --primary: #6B4EFF;
+  --text: #333;
+  --text-primary: #333;
+}
+
 .custom-request {
   background-color: white;
   border-radius: 16px;

@@ -1,3 +1,9 @@
+/* Variables pour cohérence avec les autres composants */
+:root {
+  --primary: #6B4EFF;
+  --text: #333;
+}
+
 .style-selector {
   display: flex;
   flex-direction: column;
