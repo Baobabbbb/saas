@@ -217,11 +217,9 @@
   color: #999;
 }
 
-/* Styles pour l'upload de photos */
+/* Styles pour l'upload de photos - MÊME STYLE que les autres thèmes */
 .photo-upload-option {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: 2px solid transparent;
+  /* Hérite du style .theme-option de base */
 }
 
 /* Règle pour garantir que le contour reste violet même sur les éléments spéciaux */
@@ -229,25 +227,6 @@
 .photo-upload-option.selected,
 .custom-coloring.selected {
   border-color: var(--primary) !important;
-}
-
-.photo-upload-option .theme-icon {
-  font-size: 2.5rem;
-}
-
-.photo-upload-option .theme-info h4,
-.photo-upload-option .theme-info p {
-  color: white;
-}
-
-.photo-upload-option:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-}
-
-.photo-upload-option.selected {
-  border-color: var(--primary);
-  box-shadow: 0 8px 20px rgba(107, 78, 255, 0.6);
 }
 
 .photo-upload-container {
