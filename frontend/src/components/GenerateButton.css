@@ -1,4 +1,5 @@
 .generate-section {
+  --primary: #6B4EFF;
   display: flex;
   flex-direction: column;
   align-items: center;

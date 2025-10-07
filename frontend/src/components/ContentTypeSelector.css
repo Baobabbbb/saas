@@ -7,7 +7,7 @@
 
 .content-type-selector h3 {
   font-size: 1.2rem;
-  color: var(--primary);
+  color: var(--primary, #6B4EFF);
   margin: 0;
 }
 
@@ -36,7 +36,7 @@
 }
 
 .content-type-option.selected {
-  border-color: var(--primary);
+  border-color: var(--primary, #6B4EFF);
   background-color: #ede5ff;
   box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
 }
@@ -59,7 +59,7 @@
 .content-type-details h4 {
   margin: 0 0 0.5rem 0;
   font-size: 1rem;
-  color: var(--primary);
+  color: var(--primary, #6B4EFF);
   font-weight: bold;
 }
 

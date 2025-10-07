@@ -1,5 +1,6 @@
 /* Musical Rhyme Selector Styles */
 .musical-rhyme-selector {
+  --primary: #6B4EFF;
   display: flex;
   flex-direction: column;
   gap: 1rem;
