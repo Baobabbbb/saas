@@ -61,6 +61,10 @@
   box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
 }
 
+.rhyme-card.custom-rhyme.selected {
+  border: 2px dashed var(--primary);
+}
+
 .rhyme-card.custom-rhyme {
   border: 2px dashed #c4b5ff;
 }
