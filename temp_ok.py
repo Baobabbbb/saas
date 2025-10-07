@@ -1,0 +1,2 @@
+print
+Optimisations appliquees
