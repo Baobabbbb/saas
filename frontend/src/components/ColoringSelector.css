@@ -217,9 +217,9 @@
   color: #999;
 }
 
-/* Styles pour l'upload de photos - MÊME STYLE que les autres thèmes */
+/* Styles pour l'upload de photos - MÊME STYLE que les autres thèmes + contour pointillé */
 .photo-upload-option {
-  /* Hérite du style .theme-option de base */
+  border: 2px dashed #c4b5ff;
 }
 
 /* Règle pour garantir que le contour reste violet même sur les éléments spéciaux */
