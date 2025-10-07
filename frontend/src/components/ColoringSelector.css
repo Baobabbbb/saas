@@ -344,30 +344,28 @@
   font-weight: 500;
 }
 
-/* Styles pour les boutons avec input intégré */
-.theme-with-input {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+/* Styles pour les slots de thème avec input intégré */
+.theme-slot {
+  position: relative;
   width: 100%;
 }
 
 .inline-upload {
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  margin-top: 0.5rem !important;
+  margin-top: 0.75rem !important;
   padding: 1rem !important;
   background: #f8f9ff !important;
   border: 2px solid #e1e5ff !important;
   border-radius: 12px !important;
   box-shadow: 0 2px 8px rgba(107, 78, 255, 0.08) !important;
+  width: 100% !important;
+  position: relative;
 }
 
 .inline-input {
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  margin-top: 0.5rem !important;
+  margin-top: 0.75rem !important;
   padding: 0 !important;
+  width: 100% !important;
+  position: relative;
 }
 
 .inline-upload .upload-section {
