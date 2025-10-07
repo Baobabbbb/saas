@@ -92,7 +92,8 @@
 
 /* Custom Input */
 .custom-rhyme-input {
-  margin-top: 2rem;
+  margin-top: 0.75rem;
+  margin-bottom: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
