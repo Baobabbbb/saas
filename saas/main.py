@@ -479,7 +479,7 @@ async def generate_coloring(request: dict, content_type_id: int = None):
     try:
         # Validation des données d'entrée
         theme = request.get("theme", "animaux")
-        print(f"[COLORING] Generation coloriage DALL-E 3 HD: {theme} (content_type_id={content_type_id})")
+        print(f"[COLORING] Generation coloriage gpt-image-1: {theme} (content_type_id={content_type_id})")
         
         # Vérifier la clé API OpenAI
         openai_key = os.getenv("OPENAI_API_KEY")
@@ -492,7 +492,7 @@ async def generate_coloring(request: dict, content_type_id: int = None):
         # Obtenir l'instance du générateur
         generator = get_coloring_generator()
         
-        # Générer le coloriage avec GPT-4o-mini (analyse) + DALL-E 3 HD (génération)
+        # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1 (génération)
         result = await generator.generate_coloring_from_theme(theme)
         
         if result.get("success") == True:
@@ -500,9 +500,9 @@ async def generate_coloring(request: dict, content_type_id: int = None):
                 "status": "success",
                 "theme": theme,
                 "images": result.get("images", []),
-                "message": "Coloriage généré avec succès avec DALL-E 3 HD !",
+                "message": "Coloriage généré avec succès avec gpt-image-1 !",
                 "type": "coloring",
-                "model": "dalle3-hd"
+                "model": "gpt-image-1"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la génération du coloriage")
@@ -593,7 +593,7 @@ async def convert_photo_to_coloring(request: dict):
         
         photo_path = str(photo_path_obj)
         
-        print(f"[COLORING] Conversion photo en coloriage avec DALL-E 3 HD: {photo_path}")
+        print(f"[COLORING] Conversion photo en coloriage avec gpt-image-1: {photo_path}")
         
         # Vérifier que le fichier existe
         if not photo_path_obj.exists():
@@ -605,7 +605,7 @@ async def convert_photo_to_coloring(request: dict):
         # Obtenir l'instance du générateur
         generator = get_coloring_generator()
         
-        # Convertir avec GPT-4o-mini (analyse) + DALL-E 3 HD (génération)
+        # Convertir avec GPT-4o-mini (analyse) + gpt-image-1 (génération)
         result = await generator.generate_coloring_from_photo(
             photo_path=photo_path,
             custom_prompt=custom_prompt
@@ -619,7 +619,7 @@ async def convert_photo_to_coloring(request: dict):
                 "message": "Photo convertie en coloriage avec succès !",
                 "type": "coloring",
                 "source": "photo",
-                "model": "dalle3-hd"
+                "model": "gpt-image-1"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la conversion")
