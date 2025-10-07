@@ -216,19 +216,22 @@ Subject: {subject}"""
             original_width, original_height = img.size
             print(f"[DIMENSIONS] Image originale: {original_width}x{original_height}")
             
-            # Déterminer la taille pour gpt-image-1 (préserver les dimensions originales si possible)
-            # Note: gpt-image-1 supporte 1024x1024, 1792x1024, 1024x1792
-            # On choisit la taille la plus proche des dimensions originales
-            if original_width == original_height:
-                size = "1024x1024"
-            elif original_width > original_height:
-                # Format paysage
-                size = "1792x1024"
-            else:
-                # Format portrait
-                size = "1024x1792"
+            # Déterminer la taille pour gpt-image-1 edit
+            # Tailles supportées: '1024x1024', '1024x1536', '1536x1024', 'auto'
+            # On choisit la taille la plus proche des proportions originales
+            aspect_ratio = original_width / original_height
             
-            print(f"[SIZE] Taille choisie pour gpt-image-1: {size}")
+            if 0.9 <= aspect_ratio <= 1.1:
+                # Image carrée
+                size = "1024x1024"
+            elif aspect_ratio > 1.1:
+                # Format paysage (largeur > hauteur)
+                size = "1536x1024"
+            else:
+                # Format portrait (hauteur > largeur)
+                size = "1024x1536"
+            
+            print(f"[SIZE] Ratio {aspect_ratio:.2f} -> Taille choisie: {size}")
             
             # Ouvrir l'image en mode binaire et créer un tuple (filename, file_data)
             with open(photo_path, "rb") as image_file:
