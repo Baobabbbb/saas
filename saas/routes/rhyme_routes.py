@@ -94,12 +94,16 @@ async def generate_rhyme_endpoint(request: Dict[str, Any]):
             
         else:
             descriptions = {
-                "lullaby": "Berceuse douce française pour enfants",
-                "counting": "Comptine éducative française pour compter",
-                "animal": "Comptine joyeuse française sur les animaux",
-                "seasonal": "Comptine festive française sur les saisons",
-                "educational": "Comptine éducative française ludique",
-                "movement": "Comptine énergique française pour danser"
+                "animal": "Comptine joyeuse française sur les animaux avec leurs sons",
+                "counting": "Comptine éducative française pour apprendre à compter en s'amusant",
+                "colors": "Comptine joyeuse française pour découvrir toutes les couleurs",
+                "alphabet": "Comptine éducative française pour apprendre l'alphabet en chantant",
+                "family": "Comptine douce française sur la famille et l'amour",
+                "nature": "Comptine apaisante française sur la nature, les arbres et les fleurs",
+                "seasonal": "Comptine festive française pour célébrer les saisons",
+                "movement": "Comptine énergique française pour bouger, sauter et danser",
+                "emotions": "Comptine expressive française pour comprendre ses émotions",
+                "lullaby": "Berceuse douce et apaisante française pour s'endormir paisiblement"
             }
             
             desc = descriptions.get(theme, f"Comptine joyeuse française pour enfants sur {theme}")
