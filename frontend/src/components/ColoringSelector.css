@@ -292,34 +292,37 @@
   display: block;
 }
 
-.remove-photo-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0, 0, 0, 0.7);
+.remove-photo-section {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.remove-photo-button {
+  background: linear-gradient(135deg, #ff4757, #ff3742);
   color: white;
   border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: bold;
-  transition: all 0.2s ease;
-  z-index: 10;
-  backdrop-filter: blur(4px);
+  gap: 0.5rem;
 }
 
-.remove-photo-btn:hover {
-  background: rgba(0, 0, 0, 0.9);
-  transform: scale(1.1);
+.remove-photo-button:hover {
+  background: linear-gradient(135deg, #ff3742, #ff2834);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4);
 }
 
-.remove-photo-btn:active {
-  transform: scale(0.95);
+.remove-photo-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
 }
 
 .style-selector {

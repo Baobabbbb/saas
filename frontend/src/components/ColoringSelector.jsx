@@ -134,30 +134,26 @@ const ColoringSelector = ({
                       <span className="upload-icon">📁</span>
                       <span>Choisir une photo</span>
                     </label>
-                  ) : (
-                    <div className="photo-preview-container">
-                      <img src={uploadPreview} alt="Aperçu" className="photo-preview" />
-                      <button onClick={removePhoto} className="remove-photo-btn">
-                        ✕ Supprimer
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Message de confirmation */}
-                {uploadPreview && (
-                  <motion.div
-                    className="style-selector"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <div className="conversion-info">
-                      <span className="info-icon">✨</span>
-                      <p>Votre photo sera automatiquement convertie en coloriage avec des contours nets et propres</p>
-                    </div>
-                  </motion.div>
+                ) : (
+                  <div className="photo-preview-container">
+                    <img src={uploadPreview} alt="Aperçu" className="photo-preview" />
+                  </div>
                 )}
+              </div>
+
+              {/* Bouton supprimer la photo */}
+              {uploadPreview && (
+                <motion.div
+                  className="remove-photo-section"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <button onClick={removePhoto} className="remove-photo-button">
+                    🗑️ Supprimer la photo
+                  </button>
+                </motion.div>
+              )}
               </motion.div>
             )}
 
