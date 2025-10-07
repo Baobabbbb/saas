@@ -642,6 +642,8 @@ const handleSelectCreation = (creation) => {
       if (!selectedTheme && !uploadedPhoto) return false;
       // Si thème custom, vérifier le texte personnalisé
       if (selectedTheme === 'custom' && !customColoringTheme.trim()) return false;
+      // Le choix du modèle (avec/sans) est obligatoire
+      if (withColoredModel === null) return false;
     } else if (contentType === 'animation') {
       // Pour les animations, soit un thème soit une histoire personnalisée
       if (!selectedAnimationTheme && !customStory.trim()) return false;
