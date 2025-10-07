@@ -187,16 +187,23 @@ Subject: {subject}"""
             
             print(f"[PROMPT IMAGE-TO-IMAGE] {final_prompt[:100]}...")
             
-            # Ouvrir l'image en mode binaire
+            # Déterminer l'extension et le nom de fichier
+            photo_path_obj = Path(photo_path)
+            filename = photo_path_obj.name
+            
+            print(f"[FILE] Ouverture image: {filename}")
+            
+            # Ouvrir l'image en mode binaire et créer un tuple (filename, file_data)
             with open(photo_path, "rb") as image_file:
                 image_data = image_file.read()
             
             print(f"[API] Appel OpenAI images.edit avec photo ({len(image_data)} bytes)...")
             
             # Appeler gpt-image-1 avec images.edit (IMAGE-TO-IMAGE)
+            # IMPORTANT: Passer un tuple (filename, file_data) pour que l'API détecte le MIME type
             response = await self.client.images.edit(
                 model="gpt-image-1",
-                image=image_data,
+                image=(filename, image_data),  # Tuple (filename, data) pour détecter le MIME type
                 prompt=final_prompt,
                 size="1024x1024",
                 n=1
