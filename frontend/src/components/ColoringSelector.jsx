@@ -85,29 +85,6 @@ const ColoringSelector = ({
     <div className="coloring-selector">
       <h3>2. Choisissez un thème pour vos coloriages</h3>
       
-      {/* Choix du modèle coloré */}
-      <div className="model-choice-container">
-        <h4>Type de coloriage :</h4>
-        <div className="model-buttons">
-          <button 
-            className={`model-btn ${withColoredModel ? 'active' : ''}`}
-            onClick={() => setWithColoredModel(true)}
-          >
-            <span className="model-icon">🎨</span>
-            <span className="model-label">Avec modèle coloré</span>
-            <span className="model-desc">Inclut un exemple coloré en coin</span>
-          </button>
-          <button 
-            className={`model-btn ${!withColoredModel ? 'active' : ''}`}
-            onClick={() => setWithColoredModel(false)}
-          >
-            <span className="model-icon">✏️</span>
-            <span className="model-label">Sans modèle</span>
-            <span className="model-desc">Coloriage pur, sans exemple</span>
-          </button>
-        </div>
-      </div>
-      
       <div className="theme-grid">
         {themes.map((theme) => (
           <motion.div
@@ -195,6 +172,33 @@ const ColoringSelector = ({
           />
         </motion.div>
       )}
+
+      {/* Section 3 : Choix du modèle coloré */}
+      <div className="model-choice-section">
+        <h3>3. Voulez-vous un modèle ?</h3>
+        <div className="model-buttons">
+          <motion.button 
+            className={`model-btn ${withColoredModel ? 'active' : ''}`}
+            onClick={() => setWithColoredModel(true)}
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span className="model-icon">🎨</span>
+            <span className="model-label">Avec modèle</span>
+            <span className="model-desc">Inclut un exemple coloré en coin</span>
+          </motion.button>
+          <motion.button 
+            className={`model-btn ${!withColoredModel ? 'active' : ''}`}
+            onClick={() => setWithColoredModel(false)}
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span className="model-icon">✏️</span>
+            <span className="model-label">Sans modèle</span>
+            <span className="model-desc">Coloriage pur, liberté créative</span>
+          </motion.button>
+        </div>
+      </div>
     </div>
   );
 };

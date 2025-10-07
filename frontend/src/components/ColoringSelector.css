@@ -23,20 +23,18 @@
   font-weight: 600;
 }
 
-/* Choix du modèle coloré */
-.model-choice-container {
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f5f0ff 0%, #ffffff 100%);
-  border-radius: 16px;
-  border: 2px solid #e0d4ff;
+/* Section 3 : Choix du modèle coloré */
+.model-choice-section {
+  width: 100%;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
 }
 
-.model-choice-container h4 {
-  margin-top: 0;
+.model-choice-section h3 {
+  font-size: 1.2rem;
+  color: var(--primary);
+  margin: 0;
   margin-bottom: 1rem;
-  font-size: 1.1rem;
-  color: #6B4EFF;
 }
 
 .model-buttons {
@@ -49,47 +47,49 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1.2rem;
-  background: white;
-  border: 2px solid #e0d4ff;
-  border-radius: 12px;
+  justify-content: center;
+  padding: 1.5rem;
+  background-color: #f5f0ff;
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
   font-family: inherit;
+  min-height: 140px;
 }
 
 .model-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.15);
-  border-color: #6B4EFF;
+  background-color: #ede5ff;
+  border-color: var(--primary);
 }
 
 .model-btn.active {
   background: linear-gradient(135deg, #6B4EFF 0%, #8B6FFF 100%);
-  border-color: #6B4EFF;
+  border-color: var(--primary);
   color: white;
   box-shadow: 0 4px 16px rgba(107, 78, 255, 0.3);
 }
 
 .model-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+  margin-bottom: 0.8rem;
 }
 
 .model-label {
   font-weight: 600;
-  font-size: 1rem;
-  margin-bottom: 0.3rem;
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
 }
 
 .model-desc {
-  font-size: 0.85rem;
-  opacity: 0.8;
+  font-size: 0.9rem;
+  opacity: 0.7;
   text-align: center;
+  line-height: 1.3;
 }
 
 .model-btn.active .model-desc {
-  opacity: 0.95;
+  opacity: 0.9;
 }
 
 .theme-grid {
