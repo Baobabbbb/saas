@@ -211,6 +211,25 @@ Subject: {subject}"""
             
             print(f"[FILE] Ouverture image: {filename}")
             
+            # Détecter les dimensions originales de l'image
+            img = Image.open(photo_path)
+            original_width, original_height = img.size
+            print(f"[DIMENSIONS] Image originale: {original_width}x{original_height}")
+            
+            # Déterminer la taille pour gpt-image-1 (préserver les dimensions originales si possible)
+            # Note: gpt-image-1 supporte 1024x1024, 1792x1024, 1024x1792
+            # On choisit la taille la plus proche des dimensions originales
+            if original_width == original_height:
+                size = "1024x1024"
+            elif original_width > original_height:
+                # Format paysage
+                size = "1792x1024"
+            else:
+                # Format portrait
+                size = "1024x1792"
+            
+            print(f"[SIZE] Taille choisie pour gpt-image-1: {size}")
+            
             # Ouvrir l'image en mode binaire et créer un tuple (filename, file_data)
             with open(photo_path, "rb") as image_file:
                 image_data = image_file.read()
@@ -223,7 +242,7 @@ Subject: {subject}"""
                 model="gpt-image-1",
                 image=(filename, image_data),  # Tuple (filename, data) pour détecter le MIME type
                 prompt=final_prompt,
-                size="1024x1024",
+                size=size,  # Utiliser la taille adaptée aux proportions
                 n=1
             )
             
@@ -234,12 +253,20 @@ Subject: {subject}"""
                 image_b64 = response.data[0].b64_json
                 print(f"[OK] Image editee recue (base64: {len(image_b64)} bytes)")
                 
-                # Sauvegarder directement depuis base64
+                # Décoder l'image
                 image_bytes = base64.b64decode(image_b64)
+                
+                # Redimensionner à la taille originale exacte
+                generated_img = Image.open(io.BytesIO(image_bytes))
+                print(f"[RESIZE] Image generee: {generated_img.size} -> redimensionnement vers {original_width}x{original_height}")
+                
+                # Redimensionner avec LANCZOS pour la meilleure qualité
+                resized_img = generated_img.resize((original_width, original_height), Image.Resampling.LANCZOS)
+                
+                # Sauvegarder avec les dimensions originales
                 output_path = self.output_dir / f"coloring_photo_direct_{uuid.uuid4().hex[:8]}.png"
-                with open(output_path, 'wb') as f:
-                    f.write(image_bytes)
-                print(f"[OK] Coloriage photo sauvegarde: {output_path.name}")
+                resized_img.save(output_path, 'PNG', optimize=True)
+                print(f"[OK] Coloriage photo sauvegarde avec dimensions originales: {output_path.name}")
                 
                 return str(output_path)
             else:
