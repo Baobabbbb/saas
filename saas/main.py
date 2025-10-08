@@ -479,8 +479,13 @@ async def generate_coloring(request: dict, content_type_id: int = None):
     try:
         # Validation des données d'entrée
         theme = request.get("theme", "animaux")
+        custom_prompt = request.get("custom_prompt")  # Prompt personnalisé optionnel
         with_colored_model = request.get("with_colored_model", True)  # Par défaut avec modèle
-        print(f"[COLORING] Generation coloriage gpt-image-1: {theme} ({'avec' if with_colored_model else 'sans'} modèle coloré) (content_type_id={content_type_id})")
+        
+        if custom_prompt:
+            print(f"[COLORING] Generation coloriage personnalisé gpt-image-1: '{custom_prompt}' ({'avec' if with_colored_model else 'sans'} modèle coloré)")
+        else:
+            print(f"[COLORING] Generation coloriage gpt-image-1: {theme} ({'avec' if with_colored_model else 'sans'} modèle coloré) (content_type_id={content_type_id})")
         
         # Vérifier la clé API OpenAI
         openai_key = os.getenv("OPENAI_API_KEY")
@@ -494,7 +499,7 @@ async def generate_coloring(request: dict, content_type_id: int = None):
         generator = get_coloring_generator()
         
         # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1 (génération)
-        result = await generator.generate_coloring_from_theme(theme, with_colored_model)
+        result = await generator.generate_coloring_from_theme(theme, with_colored_model, custom_prompt)
         
         if result.get("success") == True:
             return {

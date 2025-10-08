@@ -365,19 +365,23 @@ Subject: {subject}"""
             traceback.print_exc()
             raise
     
-    async def generate_coloring_from_theme(self, theme: str, with_colored_model: bool = True) -> Dict[str, Any]:
+    async def generate_coloring_from_theme(self, theme: str, with_colored_model: bool = True, custom_prompt: Optional[str] = None) -> Dict[str, Any]:
         """
         Génération de coloriage par thème (TEXT-TO-IMAGE classique)
         
         Args:
             theme: Thème du coloriage
             with_colored_model: Si True, inclut un modèle coloré en coin
+            custom_prompt: Prompt personnalisé optionnel (prioritaire sur le thème)
         
         Returns:
             Dict avec le résultat
         """
         try:
-            print(f"[COLORING THEME] Generation par theme (text-to-image): {theme}")
+            if custom_prompt:
+                print(f"[COLORING THEME] Generation personnalisee (text-to-image): {custom_prompt}")
+            else:
+                print(f"[COLORING THEME] Generation par theme (text-to-image): {theme}")
             
             # Créer une description basée sur le thème
             theme_descriptions = {
@@ -411,12 +415,39 @@ Subject: {subject}"""
                 'robots': "A friendly futuristic robot with mechanical parts",
             }
             
-            # Obtenir la description ou utiliser le thème directement
-            description = theme_descriptions.get(theme.lower(), f"A {theme} scene suitable for children coloring")
-            print(f"[DESCRIPTION] {description}")
-            
-            # Générer avec gpt-image-1 (text-to-image)
-            coloring_path_str = await self._generate_coloring_with_gpt_image_1(description, None, with_colored_model)
+            # Si un prompt personnalisé est fourni, l'utiliser directement
+            if custom_prompt:
+                # Créer un prompt complet avec le style de coloriage
+                if with_colored_model:
+                    full_custom_prompt = f"""A black and white line drawing coloring illustration of: {custom_prompt}
+
+The illustration should be:
+- Suitable for direct printing on standard size (8.5x11 inch) paper
+- Fresh and simple style with clear, smooth black outline lines
+- No shadows, grayscale, or color filling
+- Pure white background for easy coloring
+- Include a small colored reference version in the lower right corner (10-15% of total size)
+- Suitable for children aged 6-9 years old"""
+                else:
+                    full_custom_prompt = f"""A black and white line drawing coloring illustration of: {custom_prompt}
+
+The illustration should be:
+- Suitable for direct printing on standard size (8.5x11 inch) paper
+- Fresh and simple style with clear, smooth black outline lines
+- No shadows, grayscale, or color filling
+- Pure white background for easy coloring
+- NO colored reference image
+- Suitable for children aged 6-9 years old"""
+                
+                print(f"[CUSTOM PROMPT] {full_custom_prompt[:150]}...")
+                coloring_path_str = await self._generate_coloring_with_gpt_image_1("", full_custom_prompt, with_colored_model)
+            else:
+                # Obtenir la description basée sur le thème
+                description = theme_descriptions.get(theme.lower(), f"A {theme} scene suitable for children coloring")
+                print(f"[DESCRIPTION] {description}")
+                
+                # Générer avec gpt-image-1 (text-to-image)
+                coloring_path_str = await self._generate_coloring_with_gpt_image_1(description, None, with_colored_model)
             
             if not coloring_path_str:
                 raise Exception("Echec de la generation gpt-image-1 - chemin vide")
