@@ -29,7 +29,7 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 300px;
+  width: 200px;
   height: 1px;
   background: linear-gradient(90deg, #FFD700, transparent);
 }
