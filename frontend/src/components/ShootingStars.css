@@ -5,226 +5,145 @@
   --text: #333;
 }
 
-/* Conteneur des étoiles filantes - derrière l'interface mais au-dessus du fond */
+/* Conteneur des étoiles filantes - derrière TOUT */
 .shooting-stars-container {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
+  width: 100vw;
   height: 100vh;
   pointer-events: none;
-  z-index: 0; /* Au-dessus du fond HTML mais derrière l'interface */
+  z-index: -1; /* Derrière tout, même les éléments avec z-index positif */
   overflow: hidden;
 }
 
-/* Étoiles filantes du template CSS pur adapté */
-.shooting-stars-container span {
+.shooting-star {
   position: absolute;
-  width: 6px;
-  height: 6px;
-  background: #FFD700; /* Couleur dorée pour s'adapter au thème */
+  background: radial-gradient(circle, #FFD700, #FFA500);
   border-radius: 50%;
   box-shadow:
-    0 0 0 6px rgba(255, 215, 0, 0.15),
-    0 0 0 12px rgba(255, 215, 0, 0.1),
-    0 0 24px rgba(255, 215, 0, 0.08);
-  /* Chaque étoile a sa propre animation définie individuellement */
+    0 0 4px #FFD700,
+    0 0 8px #FFD700,
+    0 0 12px #FFD700,
+    0 0 16px rgba(255, 215, 0, 0.8);
+  animation: shooting-star var(--duration, 8s) linear var(--delay, 0s) forwards;
+  opacity: 0;
 }
 
-.shooting-stars-container span::before {
+.shooting-star::before {
   content: '';
   position: absolute;
   top: 50%;
+  left: -200%; /* Plus longue traînée */
+  width: 400%; /* Traînée beaucoup plus longue */
+  height: 3px; /* Plus épaisse */
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 215, 0, 0.9) 20%,
+    rgba(255, 215, 0, 0.7) 40%,
+    rgba(255, 215, 0, 0.5) 60%,
+    rgba(255, 215, 0, 0.3) 80%,
+    transparent 100%
+  );
   transform: translateY(-50%);
-  width: 180px; /* Traînée encore réduite à 180px */
-  height: 2px;
-  background: linear-gradient(90deg, #FFD700, transparent);
+  animation: shooting-star var(--duration, 8s) linear var(--delay, 0s) forwards;
+  opacity: 0;
+  filter: blur(0.5px); /* Légère blur pour l'effet naturel */
 }
 
-/* Animations individuelles pour chaque direction */
-@keyframes animate-right-to-left {
+/* Animation des étoiles filantes - trajectoire rectiligne */
+@keyframes shooting-star {
   0% {
-    transform: rotate(300deg) translateX(0) translateY(0);
-    opacity: 1;
+    opacity: 0;
+    transform: translateX(-30px) translateY(0) scale(0);
   }
-  70% {
+  5% {
     opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  95% {
+    opacity: 1;
+    transform: translateX(calc(120vw + 50px)) translateY(10px) scale(0.8);
   }
   100% {
-    transform: rotate(300deg) translateX(-1400px) translateY(800px);
     opacity: 0;
+    transform: translateX(calc(140vw + 80px)) translateY(15px) scale(0);
   }
 }
 
-@keyframes animate-top-to-bottom {
-  0% {
-    transform: rotate(120deg) translateX(0) translateY(0);
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
-    transform: rotate(120deg) translateX(800px) translateY(1200px);
-    opacity: 0;
-  }
+/* Variations de luminosité pour plus de diversité */
+.shooting-star:nth-child(2n) {
+  background: radial-gradient(circle, #FFE55C, #FFD700);
+  box-shadow:
+    0 0 5px #FFE55C,
+    0 0 10px #FFE55C,
+    0 0 15px #FFE55C,
+    0 0 20px rgba(255, 229, 92, 0.6);
 }
 
-@keyframes animate-left-to-right {
-  0% {
-    transform: rotate(45deg) translateX(0) translateY(0);
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
-    transform: rotate(45deg) translateX(1400px) translateY(-800px);
-    opacity: 0;
-  }
+.shooting-star:nth-child(2n)::before {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 229, 92, 0.8) 20%,
+    rgba(255, 229, 92, 0.6) 40%,
+    rgba(255, 229, 92, 0.4) 60%,
+    rgba(255, 229, 92, 0.2) 80%,
+    transparent 100%
+  );
 }
 
-@keyframes animate-bottom-to-top {
-  0% {
-    transform: rotate(240deg) translateX(0) translateY(0);
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
-    transform: rotate(240deg) translateX(-800px) translateY(-1200px);
-    opacity: 0;
-  }
+.shooting-star:nth-child(3n) {
+  background: radial-gradient(circle, #FFF8DC, #FFE55C);
+  box-shadow:
+    0 0 3px #FFF8DC,
+    0 0 6px #FFF8DC,
+    0 0 9px #FFF8DC,
+    0 0 12px rgba(255, 248, 220, 0.7);
 }
 
-@keyframes animate-left-to-right-mid {
-  0% {
-    transform: rotate(30deg) translateX(0) translateY(0);
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
-    transform: rotate(30deg) translateX(1400px) translateY(-400px);
-    opacity: 0;
-  }
-}
-
-@keyframes animate-top-to-bottom-right {
-  0% {
-    transform: rotate(150deg) translateX(0) translateY(0);
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
-    transform: rotate(150deg) translateX(800px) translateY(1200px);
-    opacity: 0;
-  }
-}
-
-/* Positions réparties sur tout l'écran avec origines variées */
-.shooting-stars-container span:nth-child(1) {
-  top: 20%;
-  right: -10%; /* Vient de la droite */
-  left: initial;
-  animation: animate-right-to-left 2.5s linear infinite;
-  animation-delay: 0s;
-}
-
-.shooting-stars-container span:nth-child(2) {
-  top: -10%; /* Vient du haut */
-  left: 30%;
-  right: initial;
-  animation: animate-top-to-bottom 3.5s linear infinite;
-  animation-delay: 1.5s;
-}
-
-.shooting-stars-container span:nth-child(3) {
-  top: 80%;
-  left: -15%; /* Vient de la gauche */
-  right: initial;
-  animation: animate-left-to-right 2.8s linear infinite;
-  animation-delay: 3s;
-}
-
-.shooting-stars-container span:nth-child(4) {
-  top: 110%; /* Vient du bas */
-  right: 40%;
-  left: initial;
-  animation: animate-bottom-to-top 3.2s linear infinite;
-  animation-delay: 0.8s;
-}
-
-.shooting-stars-container span:nth-child(5) {
-  top: 60%;
-  left: -8%; /* Vient de la gauche */
-  right: initial;
-  animation: animate-left-to-right-mid 2.3s linear infinite;
-  animation-delay: 2.2s;
-}
-
-.shooting-stars-container span:nth-child(6) {
-  top: -5%; /* Vient du haut */
-  right: 70%;
-  left: initial;
-  animation: animate-top-to-bottom-right 3.8s linear infinite;
-  animation-delay: 4.5s;
+.shooting-star:nth-child(3n)::before {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 248, 220, 0.9) 20%,
+    rgba(255, 248, 220, 0.7) 40%,
+    rgba(255, 248, 220, 0.5) 60%,
+    rgba(255, 248, 220, 0.3) 80%,
+    transparent 100%
+  );
 }
 
 /* Responsive - ajustements pour petits écrans */
 @media (max-width: 768px) {
-  .shooting-stars-container span {
-    width: 4px;
-    height: 4px;
+  .shooting-star {
     box-shadow:
-      0 0 0 4px rgba(255, 215, 0, 0.15),
-      0 0 0 8px rgba(255, 215, 0, 0.1),
-      0 0 16px rgba(255, 215, 0, 0.08);
+      0 0 3px #FFD700,
+      0 0 6px #FFD700,
+      0 0 9px #FFD700,
+      0 0 12px rgba(255, 215, 0, 0.6);
   }
 
-  .shooting-stars-container span::before {
-    width: 120px; /* Traînée réduite proportionnellement sur mobile */
-    height: 1px;
+  .shooting-star::before {
+    width: 300%;
+    left: -150%;
+    height: 2px;
   }
 
-  /* Animations adaptées pour mobile - distances réduites */
-  @keyframes animate-right-to-left {
-    0% { transform: rotate(300deg) translateX(0) translateY(0); opacity: 1; }
-    70% { opacity: 1; }
-    100% { transform: rotate(300deg) translateX(-800px) translateY(500px); opacity: 0; }
-  }
-
-  @keyframes animate-top-to-bottom {
-    0% { transform: rotate(120deg) translateX(0) translateY(0); opacity: 1; }
-    70% { opacity: 1; }
-    100% { transform: rotate(120deg) translateX(500px) translateY(700px); opacity: 0; }
-  }
-
-  @keyframes animate-left-to-right {
-    0% { transform: rotate(45deg) translateX(0) translateY(0); opacity: 1; }
-    70% { opacity: 1; }
-    100% { transform: rotate(45deg) translateX(800px) translateY(-500px); opacity: 0; }
-  }
-
-  @keyframes animate-bottom-to-top {
-    0% { transform: rotate(240deg) translateX(0) translateY(0); opacity: 1; }
-    70% { opacity: 1; }
-    100% { transform: rotate(240deg) translateX(-500px) translateY(-700px); opacity: 0; }
-  }
-
-  @keyframes animate-left-to-right-mid {
-    0% { transform: rotate(30deg) translateX(0) translateY(0); opacity: 1; }
-    70% { opacity: 1; }
-    100% { transform: rotate(30deg) translateX(800px) translateY(-250px); opacity: 0; }
-  }
-
-  @keyframes animate-top-to-bottom-right {
-    0% { transform: rotate(150deg) translateX(0) translateY(0); opacity: 1; }
-    70% { opacity: 1; }
-    100% { transform: rotate(150deg) translateX(500px) translateY(700px); opacity: 0; }
+  @keyframes shooting-star {
+    0% {
+      opacity: 0;
+      transform: translateX(-20px) translateY(0) scale(0);
+    }
+    5% {
+      opacity: 1;
+      transform: translateX(0) translateY(0) scale(1);
+    }
+    95% {
+      opacity: 1;
+      transform: translateX(calc(110vw + 30px)) translateY(5px) scale(0.8);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(calc(130vw + 50px)) translateY(8px) scale(0);
+    }
   }
 }
