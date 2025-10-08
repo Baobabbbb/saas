@@ -498,8 +498,13 @@ async def generate_coloring(request: dict, content_type_id: int = None):
         # Obtenir l'instance du générateur
         generator = get_coloring_generator()
         
+        # Debug: afficher les paramètres
+        print(f"[DEBUG] Parametres: theme={theme}, with_colored_model={with_colored_model}, custom_prompt={custom_prompt}")
+        
         # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1 (génération)
         result = await generator.generate_coloring_from_theme(theme, with_colored_model, custom_prompt)
+        
+        print(f"[DEBUG] Resultat recu: {result.get('success', False)}")
         
         if result.get("success") == True:
             return {
