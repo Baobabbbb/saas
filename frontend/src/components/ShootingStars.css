@@ -35,23 +35,25 @@
   content: '';
   position: absolute;
   top: 50%;
-  left: -250%; /* Encore plus longue traînée */
-  width: 500%; /* Traînée ultra-longue */
-  height: 4px; /* Plus épaisse */
+  left: -300%; /* Traînée encore plus longue */
+  width: 600%; /* Ultra-longue pour toutes les étoiles */
+  height: 5px; /* Plus épaisse pour meilleure visibilité */
   background: linear-gradient(90deg,
     transparent 0%,
-    rgba(255, 215, 0, 0.95) 15%,
-    rgba(255, 215, 0, 0.8) 30%,
-    rgba(255, 215, 0, 0.6) 50%,
-    rgba(255, 215, 0, 0.4) 70%,
-    rgba(255, 215, 0, 0.2) 85%,
+    rgba(255, 215, 0, 1.0) 10%, /* Plus lumineux au départ */
+    rgba(255, 215, 0, 0.9) 25%,
+    rgba(255, 215, 0, 0.7) 40%,
+    rgba(255, 215, 0, 0.5) 55%,
+    rgba(255, 215, 0, 0.3) 70%,
+    rgba(255, 215, 0, 0.1) 85%,
     transparent 100%
   );
   transform: translateY(-50%) rotate(var(--star-angle, 0deg));
   transform-origin: center;
   animation: shooting-star var(--duration, 8s) linear var(--delay, 0s) forwards;
   opacity: 0;
-  filter: blur(0.3px); /* Blur réduite pour plus de netteté */
+  filter: blur(0.2px); /* Très légère blur pour netteté */
+  z-index: -1; /* Derrière l'étoile elle-même */
 }
 
 /* Animation des étoiles filantes - trajectoires variées rectilignes */
@@ -126,9 +128,9 @@
   }
 
   .shooting-star::before {
-    width: 400%;
-    left: -200%;
-    height: 3px;
+    width: 500%;
+    left: -250%;
+    height: 4px;
   }
 
   @keyframes shooting-star {
