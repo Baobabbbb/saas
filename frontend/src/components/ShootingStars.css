@@ -1,0 +1,123 @@
+/* Variables pour cohérence avec les autres composants */
+:root {
+  --primary: #6B4EFF;
+  --primary-light: #E9E5FF;
+  --text: #333;
+}
+
+.shooting-stars-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.shooting-star {
+  position: absolute;
+  background: linear-gradient(45deg, #FFD166, #FFFFFF, #A0E7E5);
+  border-radius: 50%;
+  box-shadow:
+    0 0 6px rgba(255, 209, 102, 0.8),
+    0 0 12px rgba(255, 209, 102, 0.6),
+    0 0 24px rgba(255, 209, 102, 0.4);
+  animation: shoot var(--duration, 3s) linear var(--delay, 0s) both;
+  opacity: 0;
+}
+
+.shooting-star::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 209, 102, 0.8), transparent);
+  transform: translate(-50%, -50%) rotate(45deg);
+  animation: trail var(--duration, 3s) linear var(--delay, 0s) both;
+}
+
+@keyframes shoot {
+  0% {
+    opacity: 0;
+    transform: translateX(0) translateY(0) scale(0);
+  }
+  10% {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  90% {
+    opacity: 1;
+    transform: translateX(calc(100vw + 100px)) translateY(calc(100vh + 100px)) scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(calc(100vw + 200px)) translateY(calc(100vh + 200px)) scale(0);
+  }
+}
+
+@keyframes trail {
+  0% {
+    opacity: 0;
+    width: 0;
+  }
+  10% {
+    opacity: 0.8;
+    width: 50px;
+  }
+  50% {
+    opacity: 0.6;
+    width: 100px;
+  }
+  90% {
+    opacity: 0.2;
+    width: 150px;
+  }
+  100% {
+    opacity: 0;
+    width: 200px;
+  }
+}
+
+/* Variations pour plus de diversité */
+.shooting-star:nth-child(2n) {
+  background: linear-gradient(45deg, #FF85A1, #FFFFFF, #A0E7E5);
+  box-shadow:
+    0 0 6px rgba(255, 133, 161, 0.8),
+    0 0 12px rgba(255, 133, 161, 0.6),
+    0 0 24px rgba(255, 133, 161, 0.4);
+}
+
+.shooting-star:nth-child(2n)::before {
+  background: linear-gradient(90deg, rgba(255, 133, 161, 0.8), transparent);
+}
+
+.shooting-star:nth-child(3n) {
+  background: linear-gradient(45deg, #A0E7E5, #FFFFFF, #FFD166);
+  box-shadow:
+    0 0 6px rgba(160, 231, 229, 0.8),
+    0 0 12px rgba(160, 231, 229, 0.6),
+    0 0 24px rgba(160, 231, 229, 0.4);
+}
+
+.shooting-star:nth-child(3n)::before {
+  background: linear-gradient(90deg, rgba(160, 231, 229, 0.8), transparent);
+}
+
+/* Responsive - réduire sur petits écrans */
+@media (max-width: 768px) {
+  .shooting-star {
+    box-shadow:
+      0 0 4px rgba(255, 209, 102, 0.6),
+      0 0 8px rgba(255, 209, 102, 0.4),
+      0 0 16px rgba(255, 209, 102, 0.3);
+  }
+
+  .shooting-star::before {
+    width: 150%;
+    height: 1px;
+  }
+}

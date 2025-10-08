@@ -25,6 +25,7 @@ import { checkPaymentPermission, isUserAdmin, getContentPrice } from './services
 import StripePaymentModal from './components/StripePaymentModal';
 import Footer from './components/Footer';
 import LegalPages from './components/LegalPages';
+import ShootingStars from './components/ShootingStars';
 
 // Fonction pour générer des titres attractifs pour les enfants
 const generateChildFriendlyTitle = (contentType, theme, content = '') => {
@@ -840,6 +841,9 @@ const downloadPDF = async (title, content) => {
       isLoggedIn={!!user}
       onOpenHistory={() => setShowHistory(true)}
     />
+
+    {/* 🌟 Étoiles filantes pour dynamiser le fond */}
+    <ShootingStars />
 
     <main className="main-content">
       <div className="content-wrapper">
