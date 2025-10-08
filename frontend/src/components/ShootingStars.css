@@ -38,7 +38,7 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 250px; /* Traînée réduite de 400px à 250px */
+  width: 180px; /* Traînée encore réduite à 180px */
   height: 2px;
   background: linear-gradient(90deg, #FFD700, transparent);
 }
@@ -61,7 +61,7 @@
 /* Positions et délais spécifiques pour chaque étoile avec directions aléatoires */
 .shooting-stars-container span:nth-child(1) {
   top: 10%;
-  right: 10%;
+  right: -10%; /* Hors écran à droite */
   left: initial;
   animation-delay: 0s;
   animation-duration: 2s;
@@ -70,7 +70,7 @@
 
 .shooting-stars-container span:nth-child(2) {
   top: 20%;
-  right: 20%;
+  right: -15%; /* Hors écran à droite */
   left: initial;
   animation-delay: 1.5s;
   animation-duration: 4s;
@@ -79,7 +79,7 @@
 
 .shooting-stars-container span:nth-child(3) {
   top: 15%;
-  right: 40%;
+  right: -8%; /* Hors écran à droite */
   left: initial;
   animation-delay: 3s;
   animation-duration: 3s;
@@ -88,7 +88,7 @@
 
 .shooting-stars-container span:nth-child(4) {
   top: 25%;
-  right: 60%;
+  right: -12%; /* Hors écran à droite */
   left: initial;
   animation-delay: 0.5s;
   animation-duration: 2.5s;
@@ -97,7 +97,7 @@
 
 .shooting-stars-container span:nth-child(5) {
   top: 30%;
-  right: 80%;
+  right: -5%; /* Hors écran à droite */
   left: initial;
   animation-delay: 2.5s;
   animation-duration: 3.5s;
@@ -106,47 +106,11 @@
 
 .shooting-stars-container span:nth-child(6) {
   top: 35%;
-  right: 15%;
+  right: -18%; /* Hors écran à droite */
   left: initial;
   animation-delay: 4s;
   animation-duration: 2.8s;
   --star-angle: 320deg; /* Direction légèrement oblique */
-}
-
-.shooting-stars-container span:nth-child(7) {
-  top: 40%;
-  right: 35%;
-  left: initial;
-  animation-delay: 1s;
-  animation-duration: 3.2s;
-  --star-angle: 350deg; /* Direction presque verticale */
-}
-
-.shooting-stars-container span:nth-child(8) {
-  top: 45%;
-  right: 55%;
-  left: initial;
-  animation-delay: 2s;
-  animation-duration: 2.2s;
-  --star-angle: 275deg; /* Direction très horizontale */
-}
-
-.shooting-stars-container span:nth-child(9) {
-  top: 50%;
-  right: 75%;
-  left: initial;
-  animation-delay: 3.5s;
-  animation-duration: 4.2s;
-  --star-angle: 310deg; /* Direction moyenne */
-}
-
-.shooting-stars-container span:nth-child(10) {
-  top: 55%;
-  right: 25%;
-  left: initial;
-  animation-delay: 0.8s;
-  animation-duration: 3.8s;
-  --star-angle: 325deg; /* Direction légèrement verticale */
 }
 
 /* Responsive - ajustements pour petits écrans */
@@ -161,7 +125,7 @@
   }
 
   .shooting-stars-container span::before {
-    width: 300px;
+    width: 120px; /* Traînée réduite proportionnellement sur mobile */
     height: 1px;
   }
 
