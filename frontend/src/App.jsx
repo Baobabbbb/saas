@@ -512,7 +512,7 @@ function App() {
 
     // 🎵 Démarrer le polling automatique si c'est une comptine avec task_id
     // IMPORTANT : On garde isGenerating = true jusqu'à ce que la musique soit prête
-    if (contentType === 'rhyme' && generatedContent.task_id && generateMusic) {
+    if (contentType === 'rhyme' && generatedContent.task_id) {
       // NE PAS arrêter isGenerating ici, le polling le fera quand la musique est prête
       pollTaskStatus(generatedContent.task_id);
       return; // Sortir de la fonction pour garder isGenerating = true
