@@ -3,17 +3,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './MusicalRhymeSelector.css';
 
 const rhymeTypes = [
-  { 
-    id: 'animal', 
-    title: 'Comptine animalière', 
-    description: 'Une comptine joyeuse avec des animaux et leurs sons', 
+  {
+    id: 'animal',
+    title: 'Comptine animalière',
+    description: 'Une comptine joyeuse avec des animaux et leurs sons',
     emoji: '🐘',
     musicStyle: 'playful with animal sounds'
   },
-  { 
-    id: 'counting', 
-    title: 'Comptine à compter', 
-    description: 'Apprendre les chiffres en chanson', 
+  {
+    id: 'lullaby',
+    title: 'Berceuse douce',
+    description: 'Une mélodie apaisante pour s\'endormir',
+    emoji: '🌙',
+    musicStyle: 'gentle lullaby'
+  },
+  {
+    id: 'counting',
+    title: 'Comptine à compter',
+    description: 'Apprendre les chiffres en chanson',
     emoji: '🔢',
     musicStyle: 'upbeat educational'
   },
@@ -59,19 +66,12 @@ const rhymeTypes = [
     emoji: '💃',
     musicStyle: 'energetic dance rhythm'
   },
-  { 
-    id: 'emotions', 
-    title: 'Comptine des émotions', 
-    description: 'Comprendre et exprimer ses sentiments', 
+  {
+    id: 'emotions',
+    title: 'Comptine des émotions',
+    description: 'Comprendre et exprimer ses sentiments',
     emoji: '😊',
     musicStyle: 'expressive and gentle'
-  },
-  { 
-    id: 'lullaby', 
-    title: 'Berceuse douce', 
-    description: 'Une mélodie apaisante pour s\'endormir', 
-    emoji: '🌙',
-    musicStyle: 'gentle lullaby'
   }
 ];
 
