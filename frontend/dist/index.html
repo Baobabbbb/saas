@@ -24,26 +24,44 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/assets/main-839f89aa.js"></script>
+    <script type="module" crossorigin src="/assets/main-aeac50b8.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/preload-helper-8235fac6.js">
-    <link rel="modulepreload" crossorigin href="/assets/supabaseClient-76c3910e.js">
-    <link rel="modulepreload" crossorigin href="/assets/creations-822d4935.js">
-    <link rel="stylesheet" href="/assets/index-61d0e9bf.css">
+    <link rel="modulepreload" crossorigin href="/assets/supabaseClient-b083d559.js">
+    <link rel="modulepreload" crossorigin href="/assets/creations-1503ba42.js">
+    <link rel="stylesheet" href="/assets/index-976fca3e.css">
   </head>
   <body>
     <div id="root"></div>
     
-    <!-- Script pour forcer le nettoyage du cache au chargement -->
+    <!-- Script pour forcer le nettoyage du cache et des sessions au chargement -->
     <script>
       (function() {
-        console.log('🧹 Vérification du cache au chargement...');
-        
         // Supprimer les anciennes clés de stockage problématiques
         try {
           localStorage.removeItem('fridayFeatures');
-          console.log('✅ Anciennes clés supprimées');
+          
+          // Nettoyer les sessions Supabase corrompues
+          const supabaseKeys = Object.keys(localStorage).filter(key => 
+            key.startsWith('sb-') || key.startsWith('supabase.')
+          );
+          
+          supabaseKeys.forEach(key => {
+            try {
+              const value = localStorage.getItem(key);
+              if (value) {
+                const parsed = JSON.parse(value);
+                // Vérifier si la session est expirée
+                if (parsed.expires_at && parsed.expires_at < Date.now() / 1000) {
+                  localStorage.removeItem(key);
+                }
+              }
+            } catch (e) {
+              // Si le parsing échoue, la session est corrompue, la supprimer
+              localStorage.removeItem(key);
+            }
+          });
         } catch (e) {
-          console.error('❌ Erreur lors du nettoyage:', e);
+          console.error('Erreur lors du nettoyage:', e);
         }
         
         // Vider le cache du service worker
@@ -51,26 +69,9 @@
           navigator.serviceWorker.getRegistrations().then(function(registrations) {
             for(let registration of registrations) {
               registration.unregister();
-              console.log('✅ Service worker supprimé');
             }
           });
         }
-
-        // Empêcher tout appel API non autorisé
-        const originalFetch = window.fetch;
-        window.fetch = function(...args) {
-          const url = args[0];
-          
-          // Bloquer les appels à saas-production.up.railway.app/api/features
-          if (typeof url === 'string' && url.includes('saas-production.up.railway.app/api/features')) {
-            console.warn('🚫 Appel API bloqué:', url);
-            return Promise.reject(new Error('Appel API bloqué - utilisation du localStorage uniquement'));
-          }
-          
-          return originalFetch.apply(this, args);
-        };
-
-        console.log('✅ Protection anti-appels API activée');
       })();
     </script>
   </body>

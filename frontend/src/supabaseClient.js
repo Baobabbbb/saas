@@ -7,6 +7,39 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: false
+    detectSessionInUrl: false,
+    // Gestion des erreurs de refresh token
+    onAuthStateChange: (event, session) => {
+      if (event === 'TOKEN_REFRESHED') {
+        // Token rafraîchi avec succès
+      } else if (event === 'SIGNED_OUT') {
+        // Nettoyer toutes les sessions en cas de déconnexion
+        const keys = Object.keys(localStorage);
+        keys.forEach(key => {
+          if (key.startsWith('sb-') || key.startsWith('supabase.')) {
+            localStorage.removeItem(key);
+          }
+        });
+      }
+    }
+  },
+  global: {
+    headers: {
+      'x-client-info': 'herbbie-web'
+    },
+    fetch: (url, options = {}) => {
+      // Wrapper personnalisé pour gérer les erreurs de fetch
+      return fetch(url, options).catch(error => {
+        console.error('Erreur Supabase:', error);
+        // Si c'est une erreur de réseau, ne pas propager l'erreur pour éviter de casser l'app
+        if (error.message.includes('Failed to fetch') || error.message.includes('ERR_NAME_NOT_RESOLVED')) {
+          return Promise.resolve(new Response(JSON.stringify({ error: 'Network error' }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' }
+          }));
+        }
+        throw error;
+      });
+    }
   }
 })
