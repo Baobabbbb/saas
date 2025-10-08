@@ -592,13 +592,20 @@ function App() {
       }
 
     // setTimeout(() => setShowConfetti(false), 3000);
+    
+    // Arrêter l'animation de chargement pour les autres types de contenu
+    // (pour les comptines, c'est géré par pollTaskStatus)
+    setIsGenerating(false);
   } catch (error) {
     console.error('❌ Erreur de génération :', error);
     
     // Afficher une alerte avec plus d'informations
-    alert(`❌ Erreur lors de la génération : ${error.message}\n\n💡 Conseil : Vérifiez que les clés API sont configurées dans le fichier .env du serveur.`);  } finally {
+    alert(`❌ Erreur lors de la génération : ${error.message}\n\n💡 Conseil : Vérifiez que les clés API sont configurées dans le fichier .env du serveur.`);
     setIsGenerating(false);
   }
+  
+  // NE PAS mettre finally ici car pour les comptines on fait un return avant
+  // et le polling gère le setIsGenerating(false)
 };
 
 const handleSelectCreation = (creation) => {
