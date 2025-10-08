@@ -214,24 +214,13 @@ Subject: {subject}"""
             # Détecter les dimensions originales de l'image
             img = Image.open(photo_path)
             original_width, original_height = img.size
-            print(f"[DIMENSIONS] Image originale: {original_width}x{original_height}")
-            
-            # Déterminer la taille pour gpt-image-1 edit
-            # Tailles supportées: '1024x1024', '1024x1536', '1536x1024', 'auto'
-            # On choisit la taille la plus proche des proportions originales
             aspect_ratio = original_width / original_height
+            print(f"[DIMENSIONS] Image originale: {original_width}x{original_height} (ratio: {aspect_ratio:.2f})")
             
-            if 0.9 <= aspect_ratio <= 1.1:
-                # Image carrée
-                size = "1024x1024"
-            elif aspect_ratio > 1.1:
-                # Format paysage (largeur > hauteur)
-                size = "1536x1024"
-            else:
-                # Format portrait (hauteur > largeur)
-                size = "1024x1536"
-            
-            print(f"[SIZE] Ratio {aspect_ratio:.2f} -> Taille choisie: {size}")
+            # Utiliser 'auto' pour que gpt-image-1 détecte automatiquement les meilleures proportions
+            # Cela évite la déformation des images avec des ratios inhabituels
+            size = "auto"
+            print(f"[SIZE] Utilisation de size='auto' pour adaptation automatique")
             
             # Ouvrir l'image en mode binaire et créer un tuple (filename, file_data)
             with open(photo_path, "rb") as image_file:
@@ -258,17 +247,46 @@ Subject: {subject}"""
                 
                 # Décoder l'image
                 image_bytes = base64.b64decode(image_b64)
-                
-                # Redimensionner à la taille originale exacte
                 generated_img = Image.open(io.BytesIO(image_bytes))
-                print(f"[RESIZE] Image generee: {generated_img.size} -> redimensionnement vers {original_width}x{original_height}")
+                generated_width, generated_height = generated_img.size
+                generated_ratio = generated_width / generated_height
                 
-                # Redimensionner avec LANCZOS pour la meilleure qualité
-                resized_img = generated_img.resize((original_width, original_height), Image.Resampling.LANCZOS)
+                print(f"[GENERATED] Image generee: {generated_width}x{generated_height} (ratio: {generated_ratio:.2f})")
+                print(f"[TARGET] Redimensionnement vers: {original_width}x{original_height} (ratio: {aspect_ratio:.2f})")
+                
+                # Vérifier si les ratios sont similaires (tolérance de 5%)
+                ratio_diff = abs(generated_ratio - aspect_ratio) / aspect_ratio
+                if ratio_diff > 0.05:
+                    print(f"[WARNING] Difference de ratio detectee: {ratio_diff*100:.1f}%")
+                    # Adapter en préservant le ratio original et en centrant
+                    if aspect_ratio > generated_ratio:
+                        # Image originale plus large -> adapter la largeur
+                        new_width = original_width
+                        new_height = int(original_width / generated_ratio)
+                    else:
+                        # Image originale plus haute -> adapter la hauteur
+                        new_height = original_height
+                        new_width = int(original_height * generated_ratio)
+                    
+                    # Redimensionner avec le ratio préservé
+                    temp_resized = generated_img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                    
+                    # Créer une image blanche aux dimensions exactes
+                    final_img = Image.new('RGB', (original_width, original_height), 'white')
+                    
+                    # Centrer l'image redimensionnée
+                    x_offset = (original_width - new_width) // 2
+                    y_offset = (original_height - new_height) // 2
+                    final_img.paste(temp_resized, (x_offset, y_offset))
+                    print(f"[ADJUSTED] Image centree avec ratio preserve: {new_width}x{new_height} -> {original_width}x{original_height}")
+                else:
+                    # Ratios similaires -> redimensionnement direct
+                    final_img = generated_img.resize((original_width, original_height), Image.Resampling.LANCZOS)
+                    print(f"[RESIZED] Redimensionnement direct: {generated_width}x{generated_height} -> {original_width}x{original_height}")
                 
                 # Sauvegarder avec les dimensions originales
                 output_path = self.output_dir / f"coloring_photo_direct_{uuid.uuid4().hex[:8]}.png"
-                resized_img.save(output_path, 'PNG', optimize=True)
+                final_img.save(output_path, 'PNG', optimize=True)
                 print(f"[OK] Coloriage photo sauvegarde avec dimensions originales: {output_path.name}")
                 
                 return str(output_path)
