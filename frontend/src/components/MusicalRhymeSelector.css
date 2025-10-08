@@ -184,10 +184,8 @@
 
 /* Custom Rhyme Input Inline */
 .custom-rhyme-input.inline-input {
-  margin-top: 0.75rem !important;
-  padding: 0 !important;
-  width: 100% !important;
-  position: relative;
+  margin-top: 1rem;
+  overflow: hidden;
 }
 
 .custom-textarea {
@@ -204,13 +202,12 @@
 
 .custom-textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #6b4eff;
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
 }
 
 .custom-textarea::placeholder {
-  color: #a0aec0;
-  font-style: italic;
+  color: #999;
 }
 
 /* Music Style Section */
