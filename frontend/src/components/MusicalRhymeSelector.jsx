@@ -6,14 +6,14 @@ const rhymeTypes = [
   {
     id: 'lullaby',
     title: 'Berceuse douce',
-    description: 'Une mélodie apaisante pour s\'endormir',
+    description: 'Mélodie apaisante pour s\'endormir',
     emoji: '🌙',
     musicStyle: 'gentle lullaby'
   },
   {
     id: 'animal',
     title: 'Comptine animalière',
-    description: 'Une comptine joyeuse avec des animaux et leurs sons',
+    description: 'Animaux et leurs sons en musique',
     emoji: '🐘',
     musicStyle: 'playful with animal sounds'
   },
@@ -24,52 +24,52 @@ const rhymeTypes = [
     emoji: '🔢',
     musicStyle: 'upbeat educational'
   },
-  { 
-    id: 'colors', 
-    title: 'Comptine des couleurs', 
-    description: 'Découvrir les couleurs en musique', 
+  {
+    id: 'colors',
+    title: 'Comptine des couleurs',
+    description: 'Découvrir les couleurs en musique',
     emoji: '🌈',
     musicStyle: 'cheerful and colorful'
   },
-  { 
-    id: 'alphabet', 
-    title: 'Comptine de l\'alphabet', 
-    description: 'Apprendre les lettres en chantant', 
+  {
+    id: 'alphabet',
+    title: 'Comptine de l\'alphabet',
+    description: 'Apprendre les lettres en chantant',
     emoji: '🔤',
     musicStyle: 'educational and catchy'
   },
-  { 
-    id: 'family', 
-    title: 'Comptine familiale', 
-    description: 'Une chanson sur la famille et l\'amour', 
+  {
+    id: 'family',
+    title: 'Comptine familiale',
+    description: 'Chanson sur la famille et l\'amour',
     emoji: '👨‍👩‍👧‍👦',
     musicStyle: 'warm and loving'
   },
-  { 
-    id: 'nature', 
-    title: 'Comptine de la nature', 
-    description: 'Explorer les plantes, arbres et fleurs', 
+  {
+    id: 'nature',
+    title: 'Comptine de la nature',
+    description: 'Explorer plantes, arbres et fleurs',
     emoji: '🌳',
     musicStyle: 'peaceful and natural'
   },
-  { 
-    id: 'seasonal', 
-    title: 'Comptine saisonnière', 
-    description: 'Célébrer les saisons et leurs merveilles', 
+  {
+    id: 'seasonal',
+    title: 'Comptine saisonnière',
+    description: 'Célébrer saisons et merveilles',
     emoji: '🍂',
     musicStyle: 'festive and warm'
   },
-  { 
-    id: 'movement', 
-    title: 'Comptine de mouvement', 
-    description: 'Bouger, sauter et danser en musique', 
+  {
+    id: 'movement',
+    title: 'Comptine de mouvement',
+    description: 'Bouger, sauter et danser',
     emoji: '💃',
     musicStyle: 'energetic dance rhythm'
   },
   {
     id: 'emotions',
     title: 'Comptine des émotions',
-    description: 'Comprendre et exprimer ses sentiments',
+    description: 'Comprendre et exprimer sentiments',
     emoji: '😊',
     musicStyle: 'expressive and gentle'
   }
@@ -105,7 +105,7 @@ const MusicalRhymeSelector = ({
           >
             <div className="rhyme-emoji">✏️</div>
             <h4>Comptine personnalisée</h4>
-            <p>Créez votre propre type de comptine unique, en y mettant par exemple le prénom de votre enfant</p>
+            <p>Créez votre comptine sur mesure</p>
           </motion.div>
 
           {/* Zone de saisie pour "Comptine personnalisée" - juste en dessous */}
