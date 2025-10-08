@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 import './MusicalRhymeSelector.css';
 
 const rhymeTypes = [
@@ -81,29 +81,12 @@ const MusicalRhymeSelector = ({
   customRhyme, 
   setCustomRhyme
 }) => {
-  const [showCustomInput, setShowCustomInput] = useState(false);
-
   const handleRhymeSelect = (rhymeId) => {
     // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
     if (selectedRhyme === rhymeId) {
       setSelectedRhyme('');
-      setShowCustomInput(false);
     } else {
       setSelectedRhyme(rhymeId);
-      if (rhymeId !== 'custom') {
-        setShowCustomInput(false);
-      }
-    }
-  };
-
-  const handleCustomSelect = () => {
-    // Toggle: déselectionne si déjà sélectionné, sinon sélectionne
-    if (selectedRhyme === 'custom') {
-      setSelectedRhyme('');
-      setShowCustomInput(false);
-    } else {
-      setSelectedRhyme('custom');
-      setShowCustomInput(true);
     }
   };
 
@@ -113,17 +96,37 @@ const MusicalRhymeSelector = ({
       
       <div className="rhyme-grid">
         {/* Custom rhyme option first */}
-        <motion.div
-          className={`rhyme-card custom-rhyme ${selectedRhyme === 'custom' ? 'selected' : ''}`}
-          onClick={handleCustomSelect}
-          whileHover={{ y: -5 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <div className="rhyme-emoji">✏️</div>
-          <h4>Comptine personnalisée</h4>
-          <p>Créez votre propre type de comptine unique, en y mettant par exemple le prénom de votre enfant</p>
-        </motion.div>
-        
+        <div className="rhyme-slot">
+          <motion.div
+            className={`rhyme-card custom-rhyme ${selectedRhyme === 'custom' ? 'selected' : ''}`}
+            onClick={handleCustomSelect}
+            whileHover={{ y: -5 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="rhyme-emoji">✏️</div>
+            <h4>Comptine personnalisée</h4>
+            <p>Créez votre propre type de comptine unique, en y mettant par exemple le prénom de votre enfant</p>
+          </motion.div>
+
+          {/* Zone de saisie pour "Comptine personnalisée" - juste en dessous */}
+          {selectedRhyme === 'custom' && (
+            <motion.div
+              className="custom-rhyme-input inline-input"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              transition={{ duration: 0.3 }}
+            >
+              <textarea
+                id="customRhyme"
+                value={customRhyme}
+                onChange={(e) => setCustomRhyme(e.target.value)}
+                placeholder="Décrivez votre type de comptine personnalisée..."
+                className="custom-textarea"
+              />
+            </motion.div>
+          )}
+        </div>
+
         {/* Predefined rhymes */}
         {rhymeTypes.map((rhyme) => (
           <motion.div
@@ -139,29 +142,6 @@ const MusicalRhymeSelector = ({
           </motion.div>
         ))}
       </div>
-
-      {/* Custom rhyme input */}
-      <AnimatePresence>
-        {showCustomInput && (
-          <motion.div 
-            className="custom-rhyme-input"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <label htmlFor="customRhyme">Décrivez votre type de comptine</label>
-            <motion.textarea
-              id="customRhyme"
-              value={customRhyme}
-              onChange={(e) => setCustomRhyme(e.target.value)}
-              placeholder="Ex: Une comptine sur les planètes du système solaire avec le prénom Lucas..."
-              whileFocus={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300, damping: 10 }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
