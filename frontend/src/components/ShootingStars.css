@@ -22,52 +22,55 @@
   background: radial-gradient(circle, #FFD700, #FFA500);
   border-radius: 50%;
   box-shadow:
-    0 0 4px #FFD700,
-    0 0 8px #FFD700,
+    0 0 6px #FFD700,
     0 0 12px #FFD700,
-    0 0 16px rgba(255, 215, 0, 0.8);
+    0 0 18px #FFD700,
+    0 0 24px rgba(255, 215, 0, 0.8);
   animation: shooting-star var(--duration, 8s) linear var(--delay, 0s) forwards;
   opacity: 0;
+  transform-origin: center;
 }
 
 .shooting-star::before {
   content: '';
   position: absolute;
   top: 50%;
-  left: -200%; /* Plus longue traînée */
-  width: 400%; /* Traînée beaucoup plus longue */
-  height: 3px; /* Plus épaisse */
+  left: -250%; /* Encore plus longue traînée */
+  width: 500%; /* Traînée ultra-longue */
+  height: 4px; /* Plus épaisse */
   background: linear-gradient(90deg,
     transparent 0%,
-    rgba(255, 215, 0, 0.9) 20%,
-    rgba(255, 215, 0, 0.7) 40%,
-    rgba(255, 215, 0, 0.5) 60%,
-    rgba(255, 215, 0, 0.3) 80%,
+    rgba(255, 215, 0, 0.95) 15%,
+    rgba(255, 215, 0, 0.8) 30%,
+    rgba(255, 215, 0, 0.6) 50%,
+    rgba(255, 215, 0, 0.4) 70%,
+    rgba(255, 215, 0, 0.2) 85%,
     transparent 100%
   );
-  transform: translateY(-50%);
+  transform: translateY(-50%) rotate(var(--star-angle, 0deg));
+  transform-origin: center;
   animation: shooting-star var(--duration, 8s) linear var(--delay, 0s) forwards;
   opacity: 0;
-  filter: blur(0.5px); /* Légère blur pour l'effet naturel */
+  filter: blur(0.3px); /* Blur réduite pour plus de netteté */
 }
 
-/* Animation des étoiles filantes - trajectoire rectiligne */
+/* Animation des étoiles filantes - trajectoires variées rectilignes */
 @keyframes shooting-star {
   0% {
     opacity: 0;
-    transform: translateX(-30px) translateY(0) scale(0);
+    transform: translateX(-40px) translateY(0) scale(0) rotate(var(--star-angle, 0deg));
   }
-  5% {
+  8% {
     opacity: 1;
-    transform: translateX(0) translateY(0) scale(1);
+    transform: translateX(0) translateY(0) scale(1) rotate(var(--star-angle, 0deg));
   }
-  95% {
+  92% {
     opacity: 1;
-    transform: translateX(calc(120vw + 50px)) translateY(10px) scale(0.8);
+    transform: translateX(calc(130vw + 60px)) translateY(calc(30vh + 20px)) scale(0.7) rotate(var(--star-angle, 0deg));
   }
   100% {
     opacity: 0;
-    transform: translateX(calc(140vw + 80px)) translateY(15px) scale(0);
+    transform: translateX(calc(150vw + 90px)) translateY(calc(35vh + 25px)) scale(0) rotate(var(--star-angle, 0deg));
   }
 }
 
@@ -116,34 +119,34 @@
 @media (max-width: 768px) {
   .shooting-star {
     box-shadow:
-      0 0 3px #FFD700,
-      0 0 6px #FFD700,
-      0 0 9px #FFD700,
-      0 0 12px rgba(255, 215, 0, 0.6);
+      0 0 4px #FFD700,
+      0 0 8px #FFD700,
+      0 0 12px #FFD700,
+      0 0 16px rgba(255, 215, 0, 0.7);
   }
 
   .shooting-star::before {
-    width: 300%;
-    left: -150%;
-    height: 2px;
+    width: 400%;
+    left: -200%;
+    height: 3px;
   }
 
   @keyframes shooting-star {
     0% {
       opacity: 0;
-      transform: translateX(-20px) translateY(0) scale(0);
+      transform: translateX(-30px) translateY(0) scale(0) rotate(var(--star-angle, 0deg));
     }
-    5% {
+    8% {
       opacity: 1;
-      transform: translateX(0) translateY(0) scale(1);
+      transform: translateX(0) translateY(0) scale(1) rotate(var(--star-angle, 0deg));
     }
-    95% {
+    92% {
       opacity: 1;
-      transform: translateX(calc(110vw + 30px)) translateY(5px) scale(0.8);
+      transform: translateX(calc(120vw + 40px)) translateY(calc(25vh + 15px)) scale(0.7) rotate(var(--star-angle, 0deg));
     }
     100% {
       opacity: 0;
-      transform: translateX(calc(130vw + 50px)) translateY(8px) scale(0);
+      transform: translateX(calc(140vw + 60px)) translateY(calc(30vh + 20px)) scale(0) rotate(var(--star-angle, 0deg));
     }
   }
 }

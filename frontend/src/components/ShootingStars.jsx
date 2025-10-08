@@ -9,10 +9,11 @@ const ShootingStars = () => {
       const star = {
         id: Date.now() + Math.random(),
         left: Math.random() * 120 - 20, // Position de départ (peut être hors écran à gauche)
-        top: Math.random() * 30 + 10, // Position verticale aléatoire (10-40% du haut)
-        size: Math.random() * 3 + 2, // Taille (2-5px)
-        duration: Math.random() * 4 + 6, // Durée (6-10s) - plus long pour la traînée
-        delay: Math.random() * 12, // Délai aléatoire (0-12s)
+        top: Math.random() * 60 + 5, // Position verticale aléatoire (5-65% du haut)
+        size: Math.random() * 6 + 4, // Taille plus grande (4-10px)
+        duration: Math.random() * 5 + 5, // Durée (5-10s)
+        delay: Math.random() * 8, // Délai aléatoire (0-8s)
+        angle: Math.random() * 60 - 30, // Angle aléatoire (-30° à +30°)
       };
 
       setStars(prev => [...prev, star]);
@@ -23,14 +24,15 @@ const ShootingStars = () => {
       }, (star.duration + star.delay) * 1000);
     };
 
-    // Créer plus d'étoiles - toutes les 3-6 secondes
-    const interval = setInterval(createStar, Math.random() * 3000 + 3000);
+    // Créer beaucoup plus d'étoiles - toutes les 1-3 secondes
+    const interval = setInterval(createStar, Math.random() * 2000 + 1000);
 
     // Créer plusieurs étoiles au démarrage pour plus d'activité
-    setTimeout(createStar, 500);
-    setTimeout(createStar, 1500);
-    setTimeout(createStar, 2500);
-    setTimeout(createStar, 4000);
+    setTimeout(createStar, 200);
+    setTimeout(createStar, 600);
+    setTimeout(createStar, 1000);
+    setTimeout(createStar, 1400);
+    setTimeout(createStar, 1800);
 
     return () => clearInterval(interval);
   }, []);
@@ -48,6 +50,7 @@ const ShootingStars = () => {
             height: `${star.size}px`,
             animationDuration: `${star.duration}s`,
             animationDelay: `${star.delay}s`,
+            '--star-angle': `${star.angle}deg`,
           }}
         />
       ))}
