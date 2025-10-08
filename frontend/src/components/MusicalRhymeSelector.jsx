@@ -127,19 +127,20 @@ const MusicalRhymeSelector = ({
           )}
         </div>
 
-        {/* Predefined rhymes */}
+        {/* Predefined rhymes - each in its own slot */}
         {rhymeTypes.map((rhyme) => (
-          <motion.div
-            key={rhyme.id}
-            className={`rhyme-card ${selectedRhyme === rhyme.id ? 'selected' : ''}`}
-            onClick={() => handleRhymeSelect(rhyme.id)}
-            whileHover={{ y: -5 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="rhyme-emoji">{rhyme.emoji}</div>
-            <h4>{rhyme.title}</h4>
-            <p>{rhyme.description}</p>
-          </motion.div>
+          <div key={rhyme.id} className="rhyme-slot">
+            <motion.div
+              className={`rhyme-card ${selectedRhyme === rhyme.id ? 'selected' : ''}`}
+              onClick={() => handleRhymeSelect(rhyme.id)}
+              whileHover={{ y: -5 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="rhyme-emoji">{rhyme.emoji}</div>
+              <h4>{rhyme.title}</h4>
+              <p>{rhyme.description}</p>
+            </motion.div>
+          </div>
         ))}
       </div>
     </div>
