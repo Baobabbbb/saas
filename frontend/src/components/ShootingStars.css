@@ -60,7 +60,7 @@
   top: 0;
   right: 80px;
   left: initial;
-  animation-delay: 0.2s;
+  animation-delay: 30s;
   animation-duration: 3s;
 }
 
@@ -68,7 +68,7 @@
   top: 80px;
   right: 0px;
   left: initial;
-  animation-delay: 0.4s;
+  animation-delay: 75s;
   animation-duration: 2s;
 }
 
@@ -76,7 +76,7 @@
   top: 0;
   right: 180px;
   left: initial;
-  animation-delay: 0.6s;
+  animation-delay: 135s;
   animation-duration: 1.5s;
 }
 
@@ -84,7 +84,7 @@
   top: 0;
   right: 400px;
   left: initial;
-  animation-delay: 0.8s;
+  animation-delay: 210s;
   animation-duration: 2.5s;
 }
 
@@ -92,7 +92,7 @@
   top: 0;
   right: 600px;
   left: initial;
-  animation-delay: 1s;
+  animation-delay: 300s;
   animation-duration: 3s;
 }
 
@@ -100,7 +100,7 @@
   top: 300px;
   right: 0px;
   left: initial;
-  animation-delay: 1.2s;
+  animation-delay: 405s;
   animation-duration: 1.75s;
 }
 
@@ -108,7 +108,7 @@
   top: 0px;
   right: 700px;
   left: initial;
-  animation-delay: 1.4s;
+  animation-delay: 525s;
   animation-duration: 1.25s;
 }
 
@@ -116,7 +116,7 @@
   top: 0px;
   right: 1000px;
   left: initial;
-  animation-delay: 0.75s;
+  animation-delay: 660s;
   animation-duration: 2.25s;
 }
 
@@ -124,6 +124,6 @@
   top: 0px;
   right: 450px;
   left: initial;
-  animation-delay: 2.75s;
+  animation-delay: 810s;
   animation-duration: 2.75s;
 }
