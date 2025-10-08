@@ -9,26 +9,26 @@ const ShootingStars = () => {
       const star = {
         id: Date.now() + Math.random(),
         left: Math.random() * 100, // Position horizontale aléatoire (0-100%)
-        top: Math.random() * 50, // Position verticale aléatoire (0-50% du haut)
-        size: Math.random() * 3 + 1, // Taille aléatoire (1-4px)
-        duration: Math.random() * 3 + 2, // Durée aléatoire (2-5s)
-        delay: Math.random() * 10, // Délai avant apparition (0-10s)
+        top: Math.random() * 40, // Position verticale aléatoire (0-40% du haut)
+        size: Math.random() * 6 + 4, // Taille plus grande (4-10px)
+        duration: Math.random() * 2 + 3, // Durée plus longue (3-5s)
+        delay: 0, // Pas de délai pour visibilité immédiate
       };
 
+      console.log('🌟 Création d\'une étoile filante:', star);
       setStars(prev => [...prev, star]);
 
-      // Supprimer l'étoile après sa durée + délai
+      // Supprimer l'étoile après sa durée
       setTimeout(() => {
         setStars(prev => prev.filter(s => s.id !== star.id));
-      }, (star.duration + star.delay) * 1000);
+      }, star.duration * 1000);
     };
 
-    // Créer une nouvelle étoile toutes les 3-8 secondes
-    const interval = setInterval(createStar, Math.random() * 5000 + 3000);
+    // Créer une nouvelle étoile toutes les 2-4 secondes
+    const interval = setInterval(createStar, Math.random() * 2000 + 2000);
 
-    // Créer quelques étoiles au démarrage
-    setTimeout(createStar, 1000);
-    setTimeout(createStar, 3000);
+    // Créer une étoile immédiatement pour test
+    createStar();
 
     return () => clearInterval(interval);
   }, []);
