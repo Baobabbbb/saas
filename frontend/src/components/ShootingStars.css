@@ -20,8 +20,6 @@
 /* Étoiles filantes du template CSS pur adapté */
 .shooting-stars-container span {
   position: absolute;
-  top: 50%;
-  left: 50%;
   width: 6px;
   height: 6px;
   background: #FFD700; /* Couleur dorée pour s'adapter au thème */
@@ -30,7 +28,7 @@
     0 0 0 6px rgba(255, 215, 0, 0.15),
     0 0 0 12px rgba(255, 215, 0, 0.1),
     0 0 24px rgba(255, 215, 0, 0.08);
-  animation: animate 3s linear infinite;
+  /* Chaque étoile a sa propre animation définie individuellement */
 }
 
 .shooting-stars-container span::before {
@@ -193,17 +191,40 @@
     height: 1px;
   }
 
-  @keyframes animate {
-    0% {
-      transform: rotate(var(--star-angle, 315deg)) translateX(0);
-      opacity: 1;
-    }
-    70% {
-      opacity: 1;
-    }
-    100% {
-      transform: rotate(var(--star-angle, 315deg)) translateX(-800px);
-      opacity: 0;
-    }
+  /* Animations adaptées pour mobile - distances réduites */
+  @keyframes animate-right-to-left {
+    0% { transform: rotate(300deg) translateX(0) translateY(0); opacity: 1; }
+    70% { opacity: 1; }
+    100% { transform: rotate(300deg) translateX(-800px) translateY(500px); opacity: 0; }
+  }
+
+  @keyframes animate-top-to-bottom {
+    0% { transform: rotate(120deg) translateX(0) translateY(0); opacity: 1; }
+    70% { opacity: 1; }
+    100% { transform: rotate(120deg) translateX(500px) translateY(700px); opacity: 0; }
+  }
+
+  @keyframes animate-left-to-right {
+    0% { transform: rotate(45deg) translateX(0) translateY(0); opacity: 1; }
+    70% { opacity: 1; }
+    100% { transform: rotate(45deg) translateX(800px) translateY(-500px); opacity: 0; }
+  }
+
+  @keyframes animate-bottom-to-top {
+    0% { transform: rotate(240deg) translateX(0) translateY(0); opacity: 1; }
+    70% { opacity: 1; }
+    100% { transform: rotate(240deg) translateX(-500px) translateY(-700px); opacity: 0; }
+  }
+
+  @keyframes animate-left-to-right-mid {
+    0% { transform: rotate(30deg) translateX(0) translateY(0); opacity: 1; }
+    70% { opacity: 1; }
+    100% { transform: rotate(30deg) translateX(800px) translateY(-250px); opacity: 0; }
+  }
+
+  @keyframes animate-top-to-bottom-right {
+    0% { transform: rotate(150deg) translateX(0) translateY(0); opacity: 1; }
+    70% { opacity: 1; }
+    100% { transform: rotate(150deg) translateX(500px) translateY(700px); opacity: 0; }
   }
 }
