@@ -1,149 +1,129 @@
-/* Variables pour cohérence avec les autres composants */
-:root {
-  --primary: #6B4EFF;
-  --primary-light: #E9E5FF;
-  --text: #333;
-}
-
-/* Conteneur des étoiles filantes - niveau de base */
+/* Conteneur des étoiles filantes - niveau de base pour Herbbie */
 .shooting-stars-container {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   pointer-events: none;
   z-index: 0; /* Niveau de base - visible mais derrière les éléments avec z-index positif */
   overflow: hidden;
 }
 
-.shooting-star {
+.shooting-stars-container span {
   position: absolute;
-  background: radial-gradient(circle, #FFD700, #FFA500);
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  background: #FFD700; /* Doré pour s'adapter au thème Herbbie */
   border-radius: 50%;
-  box-shadow:
-    0 0 4px #FFD700,
-    0 0 8px #FFD700,
-    0 0 12px #FFD700,
-    0 0 16px rgba(255, 215, 0, 0.8);
-  animation: shooting-star 8s linear 0s forwards;
-  opacity: 0;
+  box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.1),
+              0 0 0 8px rgba(255, 215, 0, 0.1),
+              0 0 20px rgba(255, 215, 0, 0.1);
+  animation: animate 3s linear infinite;
 }
 
-.shooting-star::before {
+.shooting-stars-container span::before {
   content: '';
   position: absolute;
   top: 50%;
-  left: -200%; /* Plus longue traînée */
-  width: 400%; /* Traînée beaucoup plus longue */
-  height: 3px; /* Plus épaisse */
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(255, 215, 0, 0.9) 20%,
-    rgba(255, 215, 0, 0.7) 40%,
-    rgba(255, 215, 0, 0.5) 60%,
-    rgba(255, 215, 0, 0.3) 80%,
-    transparent 100%
-  );
   transform: translateY(-50%);
-  animation: shooting-star 8s linear 0s forwards;
-  opacity: 0;
-  filter: blur(0.5px); /* Légère blur pour l'effet naturel */
+  width: 300px;
+  height: 1px;
+  background: linear-gradient(90deg, #FFD700, transparent);
 }
 
-/* Animation des étoiles filantes - trajectoire rectiligne */
-@keyframes shooting-star {
+@keyframes animate {
   0% {
-    opacity: 0;
-    transform: translateX(-30px) translateY(0) scale(0);
-  }
-  5% {
+    transform: rotate(315deg) translateX(0);
     opacity: 1;
-    transform: translateX(0) translateY(0) scale(1);
   }
-  95% {
+  70% {
     opacity: 1;
-    transform: translateX(calc(120vw + 50px)) translateY(10px) scale(0.8);
   }
   100% {
+    transform: rotate(315deg) translateX(-1000px);
     opacity: 0;
-    transform: translateX(calc(140vw + 80px)) translateY(15px) scale(0);
   }
 }
 
-/* Variations de luminosité pour plus de diversité */
-.shooting-star:nth-child(2n) {
-  background: radial-gradient(circle, #FFE55C, #FFD700);
-  box-shadow:
-    0 0 5px #FFE55C,
-    0 0 10px #FFE55C,
-    0 0 15px #FFE55C,
-    0 0 20px rgba(255, 229, 92, 0.6);
+.shooting-stars-container span:nth-child(1) {
+  top: 0;
+  right: 0;
+  left: initial;
+  animation-delay: 0s;
+  animation-duration: 1s;
 }
 
-.shooting-star:nth-child(2n)::before {
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(255, 229, 92, 0.8) 20%,
-    rgba(255, 229, 92, 0.6) 40%,
-    rgba(255, 229, 92, 0.4) 60%,
-    rgba(255, 229, 92, 0.2) 80%,
-    transparent 100%
-  );
+.shooting-stars-container span:nth-child(2) {
+  top: 0;
+  right: 80px;
+  left: initial;
+  animation-delay: 0.2s;
+  animation-duration: 3s;
 }
 
-.shooting-star:nth-child(3n) {
-  background: radial-gradient(circle, #FFF8DC, #FFE55C);
-  box-shadow:
-    0 0 3px #FFF8DC,
-    0 0 6px #FFF8DC,
-    0 0 9px #FFF8DC,
-    0 0 12px rgba(255, 248, 220, 0.7);
+.shooting-stars-container span:nth-child(3) {
+  top: 80px;
+  right: 0px;
+  left: initial;
+  animation-delay: 0.4s;
+  animation-duration: 2s;
 }
 
-.shooting-star:nth-child(3n)::before {
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(255, 248, 220, 0.9) 20%,
-    rgba(255, 248, 220, 0.7) 40%,
-    rgba(255, 248, 220, 0.5) 60%,
-    rgba(255, 248, 220, 0.3) 80%,
-    transparent 100%
-  );
+.shooting-stars-container span:nth-child(4) {
+  top: 0;
+  right: 180px;
+  left: initial;
+  animation-delay: 0.6s;
+  animation-duration: 1.5s;
 }
 
-/* Responsive - ajustements pour petits écrans */
-@media (max-width: 768px) {
-  .shooting-star {
-    box-shadow:
-      0 0 3px #FFD700,
-      0 0 6px #FFD700,
-      0 0 9px #FFD700,
-      0 0 12px rgba(255, 215, 0, 0.6);
-  }
+.shooting-stars-container span:nth-child(5) {
+  top: 0;
+  right: 400px;
+  left: initial;
+  animation-delay: 0.8s;
+  animation-duration: 2.5s;
+}
 
-  .shooting-star::before {
-    width: 300%;
-    left: -150%;
-    height: 2px;
-  }
+.shooting-stars-container span:nth-child(6) {
+  top: 0;
+  right: 600px;
+  left: initial;
+  animation-delay: 1s;
+  animation-duration: 3s;
+}
 
-  @keyframes shooting-star {
-    0% {
-      opacity: 0;
-      transform: translateX(-20px) translateY(0) scale(0);
-    }
-    5% {
-      opacity: 1;
-      transform: translateX(0) translateY(0) scale(1);
-    }
-    95% {
-      opacity: 1;
-      transform: translateX(calc(110vw + 30px)) translateY(5px) scale(0.8);
-    }
-    100% {
-      opacity: 0;
-      transform: translateX(calc(130vw + 50px)) translateY(8px) scale(0);
-    }
-  }
+.shooting-stars-container span:nth-child(7) {
+  top: 300px;
+  right: 0px;
+  left: initial;
+  animation-delay: 1.2s;
+  animation-duration: 1.75s;
+}
+
+.shooting-stars-container span:nth-child(8) {
+  top: 0px;
+  right: 700px;
+  left: initial;
+  animation-delay: 1.4s;
+  animation-duration: 1.25s;
+}
+
+.shooting-stars-container span:nth-child(9) {
+  top: 0px;
+  right: 1000px;
+  left: initial;
+  animation-delay: 0.75s;
+  animation-duration: 2.25s;
+}
+
+.shooting-stars-container span:nth-child(10) {
+  top: 0px;
+  right: 450px;
+  left: initial;
+  animation-delay: 2.75s;
+  animation-duration: 2.75s;
 }
