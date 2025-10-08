@@ -10,145 +10,162 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   pointer-events: none;
   z-index: 0; /* Au-dessus du fond HTML mais derrière l'interface */
   overflow: hidden;
 }
 
-.shooting-star {
+/* Étoiles filantes du template CSS pur adapté */
+.shooting-stars-container span {
   position: absolute;
-  background: radial-gradient(circle, #FFD700, #FFA500);
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background: #FFD700; /* Couleur dorée pour s'adapter au thème */
   border-radius: 50%;
   box-shadow:
-    0 0 6px #FFD700,
-    0 0 12px #FFD700,
-    0 0 18px #FFD700,
-    0 0 24px rgba(255, 215, 0, 0.8);
-  animation: shooting-star var(--duration, 8s) linear var(--delay, 0s) forwards;
-  opacity: 0;
-  transform-origin: center;
+    0 0 0 6px rgba(255, 215, 0, 0.15),
+    0 0 0 12px rgba(255, 215, 0, 0.1),
+    0 0 24px rgba(255, 215, 0, 0.08);
+  animation: animate 3s linear infinite;
 }
 
-.shooting-star::before {
+.shooting-stars-container span::before {
   content: '';
   position: absolute;
   top: 50%;
-  left: -300%; /* Traînée encore plus longue */
-  width: 600%; /* Ultra-longue pour toutes les étoiles */
-  height: 5px; /* Plus épaisse pour meilleure visibilité */
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(255, 215, 0, 1.0) 10%, /* Plus lumineux au départ */
-    rgba(255, 215, 0, 0.9) 25%,
-    rgba(255, 215, 0, 0.7) 40%,
-    rgba(255, 215, 0, 0.5) 55%,
-    rgba(255, 215, 0, 0.3) 70%,
-    rgba(255, 215, 0, 0.1) 85%,
-    transparent 100%
-  );
-  transform: translateY(-50%) rotate(var(--star-angle, 0deg));
-  transform-origin: center;
-  animation: shooting-star var(--duration, 8s) linear var(--delay, 0s) forwards;
-  opacity: 0;
-  filter: blur(0.2px); /* Très légère blur pour netteté */
-  z-index: -1; /* Derrière l'étoile elle-même */
+  transform: translateY(-50%);
+  width: 400px;
+  height: 2px;
+  background: linear-gradient(90deg, #FFD700, transparent);
 }
 
-/* Animation des étoiles filantes - trajectoires variées rectilignes */
-@keyframes shooting-star {
+/* Animation des étoiles filantes */
+@keyframes animate {
   0% {
-    opacity: 0;
-    transform: translateX(-40px) translateY(0) scale(0) rotate(var(--star-angle, 0deg));
-  }
-  8% {
+    transform: rotate(315deg) translateX(0);
     opacity: 1;
-    transform: translateX(0) translateY(0) scale(1) rotate(var(--star-angle, 0deg));
   }
-  92% {
+  70% {
     opacity: 1;
-    transform: translateX(calc(130vw + 60px)) translateY(calc(30vh + 20px)) scale(0.7) rotate(var(--star-angle, 0deg));
   }
   100% {
+    transform: rotate(315deg) translateX(-1200px);
     opacity: 0;
-    transform: translateX(calc(150vw + 90px)) translateY(calc(35vh + 25px)) scale(0) rotate(var(--star-angle, 0deg));
   }
 }
 
-/* Variations de luminosité pour plus de diversité */
-.shooting-star:nth-child(2n) {
-  background: radial-gradient(circle, #FFE55C, #FFD700);
-  box-shadow:
-    0 0 5px #FFE55C,
-    0 0 10px #FFE55C,
-    0 0 15px #FFE55C,
-    0 0 20px rgba(255, 229, 92, 0.6);
+/* Positions et délais spécifiques pour chaque étoile */
+.shooting-stars-container span:nth-child(1) {
+  top: 10%;
+  right: 10%;
+  left: initial;
+  animation-delay: 0s;
+  animation-duration: 2s;
 }
 
-.shooting-star:nth-child(2n)::before {
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(255, 229, 92, 0.8) 20%,
-    rgba(255, 229, 92, 0.6) 40%,
-    rgba(255, 229, 92, 0.4) 60%,
-    rgba(255, 229, 92, 0.2) 80%,
-    transparent 100%
-  );
+.shooting-stars-container span:nth-child(2) {
+  top: 20%;
+  right: 20%;
+  left: initial;
+  animation-delay: 1.5s;
+  animation-duration: 4s;
 }
 
-.shooting-star:nth-child(3n) {
-  background: radial-gradient(circle, #FFF8DC, #FFE55C);
-  box-shadow:
-    0 0 3px #FFF8DC,
-    0 0 6px #FFF8DC,
-    0 0 9px #FFF8DC,
-    0 0 12px rgba(255, 248, 220, 0.7);
+.shooting-stars-container span:nth-child(3) {
+  top: 15%;
+  right: 40%;
+  left: initial;
+  animation-delay: 3s;
+  animation-duration: 3s;
 }
 
-.shooting-star:nth-child(3n)::before {
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(255, 248, 220, 0.9) 20%,
-    rgba(255, 248, 220, 0.7) 40%,
-    rgba(255, 248, 220, 0.5) 60%,
-    rgba(255, 248, 220, 0.3) 80%,
-    transparent 100%
-  );
+.shooting-stars-container span:nth-child(4) {
+  top: 25%;
+  right: 60%;
+  left: initial;
+  animation-delay: 0.5s;
+  animation-duration: 2.5s;
+}
+
+.shooting-stars-container span:nth-child(5) {
+  top: 30%;
+  right: 80%;
+  left: initial;
+  animation-delay: 2.5s;
+  animation-duration: 3.5s;
+}
+
+.shooting-stars-container span:nth-child(6) {
+  top: 35%;
+  right: 15%;
+  left: initial;
+  animation-delay: 4s;
+  animation-duration: 2.8s;
+}
+
+.shooting-stars-container span:nth-child(7) {
+  top: 40%;
+  right: 35%;
+  left: initial;
+  animation-delay: 1s;
+  animation-duration: 3.2s;
+}
+
+.shooting-stars-container span:nth-child(8) {
+  top: 45%;
+  right: 55%;
+  left: initial;
+  animation-delay: 2s;
+  animation-duration: 2.2s;
+}
+
+.shooting-stars-container span:nth-child(9) {
+  top: 50%;
+  right: 75%;
+  left: initial;
+  animation-delay: 3.5s;
+  animation-duration: 4.2s;
+}
+
+.shooting-stars-container span:nth-child(10) {
+  top: 55%;
+  right: 25%;
+  left: initial;
+  animation-delay: 0.8s;
+  animation-duration: 3.8s;
 }
 
 /* Responsive - ajustements pour petits écrans */
 @media (max-width: 768px) {
-  .shooting-star {
-    box-shadow:
-      0 0 4px #FFD700,
-      0 0 8px #FFD700,
-      0 0 12px #FFD700,
-      0 0 16px rgba(255, 215, 0, 0.7);
-  }
-
-  .shooting-star::before {
-    width: 500%;
-    left: -250%;
+  .shooting-stars-container span {
+    width: 4px;
     height: 4px;
+    box-shadow:
+      0 0 0 4px rgba(255, 215, 0, 0.15),
+      0 0 0 8px rgba(255, 215, 0, 0.1),
+      0 0 16px rgba(255, 215, 0, 0.08);
   }
 
-  @keyframes shooting-star {
+  .shooting-stars-container span::before {
+    width: 300px;
+    height: 1px;
+  }
+
+  @keyframes animate {
     0% {
-      opacity: 0;
-      transform: translateX(-30px) translateY(0) scale(0) rotate(var(--star-angle, 0deg));
-    }
-    8% {
+      transform: rotate(315deg) translateX(0);
       opacity: 1;
-      transform: translateX(0) translateY(0) scale(1) rotate(var(--star-angle, 0deg));
     }
-    92% {
+    70% {
       opacity: 1;
-      transform: translateX(calc(120vw + 40px)) translateY(calc(25vh + 15px)) scale(0.7) rotate(var(--star-angle, 0deg));
     }
     100% {
+      transform: rotate(315deg) translateX(-800px);
       opacity: 0;
-      transform: translateX(calc(140vw + 60px)) translateY(calc(30vh + 20px)) scale(0) rotate(var(--star-angle, 0deg));
     }
   }
 }
