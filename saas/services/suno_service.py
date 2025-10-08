@@ -148,7 +148,14 @@ class SunoService:
                     }
                 
                 lyrics_truncated = lyrics[:5000] if len(lyrics) > 5000 else lyrics
-                style_truncated = base_style[:1000] if len(base_style) > 1000 else base_style
+                
+                # Si un prompt_description optimisé est fourni, l'utiliser pour enrichir le style
+                if prompt_description:
+                    # Combiner le style de base avec le prompt optimisé
+                    enhanced_style = f"{prompt_description}. {base_style}"
+                    style_truncated = enhanced_style[:1000] if len(enhanced_style) > 1000 else enhanced_style
+                else:
+                    style_truncated = base_style[:1000] if len(base_style) > 1000 else base_style
                 
                 payload = {
                     "prompt": lyrics_truncated,  # Paroles exactes
@@ -167,6 +174,8 @@ class SunoService:
                 print(f"   - Style: {style_config['mood']}")
                 print(f"   - Modèle: {style_config['model']}")
                 print(f"   - Paroles fournies: {len(lyrics_truncated)} caractères")
+                if prompt_description:
+                    print(f"   - Prompt optimisé: {prompt_description[:100]}...")
             else:
                 # MODE NON-CUSTOM : Suno génère les paroles automatiquement
                 # Utilisé pour demandes génériques (pas de personnalisation)
