@@ -26,7 +26,7 @@
     0 0 8px #FFD700,
     0 0 12px #FFD700,
     0 0 16px rgba(255, 215, 0, 0.8);
-  animation: shooting-star var(--duration, 8s) linear var(--delay, 0s) forwards;
+  animation: shooting-star 8s linear 0s forwards;
   opacity: 0;
 }
 
@@ -46,7 +46,7 @@
     transparent 100%
   );
   transform: translateY(-50%);
-  animation: shooting-star var(--duration, 8s) linear var(--delay, 0s) forwards;
+  animation: shooting-star 8s linear 0s forwards;
   opacity: 0;
   filter: blur(0.5px); /* Légère blur pour l'effet naturel */
 }
