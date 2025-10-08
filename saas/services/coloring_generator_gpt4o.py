@@ -415,8 +415,12 @@ Subject: {subject}"""
                 'robots': "A friendly futuristic robot with mechanical parts",
             }
             
+            # Initialiser la description
+            description = None
+            
             # Si un prompt personnalisé est fourni, l'utiliser directement
             if custom_prompt:
+                description = custom_prompt  # Utiliser le prompt personnalisé comme description
                 # Créer un prompt complet avec le style de coloriage
                 if with_colored_model:
                     full_custom_prompt = f"""A black and white line drawing coloring illustration of: {custom_prompt}
