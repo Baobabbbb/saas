@@ -5,7 +5,7 @@
   --text: #333;
 }
 
-/* Conteneur des étoiles filantes - derrière TOUT */
+/* Conteneur des étoiles filantes - derrière l'interface mais au-dessus du fond */
 .shooting-stars-container {
   position: fixed;
   top: 0;
@@ -13,7 +13,7 @@
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  z-index: -1; /* Derrière tout, même les éléments avec z-index positif */
+  z-index: 0; /* Au-dessus du fond HTML mais derrière l'interface */
   overflow: hidden;
 }
 
