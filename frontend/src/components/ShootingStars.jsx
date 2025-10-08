@@ -9,10 +9,10 @@ const ShootingStars = () => {
       const star = {
         id: Date.now() + Math.random(),
         left: Math.random() * 120 - 20, // Position de départ (peut être hors écran à gauche)
-        top: Math.random() * 60, // Position verticale aléatoire (haut de l'écran)
-        size: Math.random() * 4 + 3, // Taille (3-7px)
-        duration: Math.random() * 3 + 4, // Durée (4-7s)
-        delay: Math.random() * 8, // Délai aléatoire (0-8s)
+        top: Math.random() * 30 + 10, // Position verticale aléatoire (10-40% du haut)
+        size: Math.random() * 3 + 2, // Taille (2-5px)
+        duration: Math.random() * 4 + 6, // Durée (6-10s) - plus long pour la traînée
+        delay: Math.random() * 12, // Délai aléatoire (0-12s)
       };
 
       setStars(prev => [...prev, star]);
@@ -23,11 +23,13 @@ const ShootingStars = () => {
       }, (star.duration + star.delay) * 1000);
     };
 
-    // Créer une nouvelle étoile filante toutes les 5-10 secondes
-    const interval = setInterval(createStar, Math.random() * 5000 + 5000);
+    // Créer plus d'étoiles - toutes les 3-6 secondes
+    const interval = setInterval(createStar, Math.random() * 3000 + 3000);
 
-    // Créer quelques étoiles au démarrage
-    setTimeout(createStar, 1000);
+    // Créer plusieurs étoiles au démarrage pour plus d'activité
+    setTimeout(createStar, 500);
+    setTimeout(createStar, 1500);
+    setTimeout(createStar, 2500);
     setTimeout(createStar, 4000);
 
     return () => clearInterval(interval);
