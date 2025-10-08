@@ -4,18 +4,18 @@ import './MusicalRhymeSelector.css';
 
 const rhymeTypes = [
   {
-    id: 'animal',
-    title: 'Comptine animalière',
-    description: 'Une comptine joyeuse avec des animaux et leurs sons',
-    emoji: '🐘',
-    musicStyle: 'playful with animal sounds'
-  },
-  {
     id: 'lullaby',
     title: 'Berceuse douce',
     description: 'Une mélodie apaisante pour s\'endormir',
     emoji: '🌙',
     musicStyle: 'gentle lullaby'
+  },
+  {
+    id: 'animal',
+    title: 'Comptine animalière',
+    description: 'Une comptine joyeuse avec des animaux et leurs sons',
+    emoji: '🐘',
+    musicStyle: 'playful with animal sounds'
   },
   {
     id: 'counting',
