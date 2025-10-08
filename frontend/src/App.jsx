@@ -126,7 +126,7 @@ function App() {
   const [customColoringTheme, setCustomColoringTheme] = useState('');
   const [uploadedPhoto, setUploadedPhoto] = useState(null);
   const [coloringResult, setColoringResult] = useState(null);
-  const [withColoredModel, setWithColoredModel] = useState(null); // null = aucun bouton sélectionné, true = avec modèle, false = sans
+  const [withColoredModel, setWithColoredModel] = useState(true); // true par défaut = avec modèle coloré
   
   // Animation states
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
@@ -390,6 +390,11 @@ function App() {
           with_colored_model: withColoredModel
         };
         
+        // Si c'est un coloriage personnalisé, ajouter le prompt personnalisé
+        if (selectedTheme === 'custom' && customColoringTheme.trim()) {
+          payload.custom_prompt = customColoringTheme.trim();
+        }
+        
         const response = await fetch(`${API_BASE_URL}/generate_coloring/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -642,8 +647,6 @@ const handleSelectCreation = (creation) => {
       if (!selectedTheme && !uploadedPhoto) return false;
       // Si thème custom, vérifier le texte personnalisé
       if (selectedTheme === 'custom' && !customColoringTheme.trim()) return false;
-      // Le choix du modèle (avec/sans) est obligatoire
-      if (withColoredModel === null) return false;
     } else if (contentType === 'animation') {
       // Pour les animations, soit un thème soit une histoire personnalisée
       if (!selectedAnimationTheme && !customStory.trim()) return false;
