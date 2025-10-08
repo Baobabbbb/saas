@@ -5,121 +5,96 @@
   --text: #333;
 }
 
-.shooting-stars-container {
+/* Conteneur des étoiles scintillantes */
+.twinkling-stars-container {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  z-index: 10;
+  z-index: 1;
   overflow: hidden;
-  /* Debug border - à supprimer après test */
-  /* border: 1px solid red; */
 }
 
-.shooting-star {
+.twinkling-star {
   position: absolute;
-  background: linear-gradient(45deg, #FFD166, #FFFFFF, #A0E7E5);
+  background: radial-gradient(circle, #FFD166, #FFFFFF);
   border-radius: 50%;
   box-shadow:
-    0 0 8px rgba(255, 209, 102, 0.9),
-    0 0 16px rgba(255, 209, 102, 0.7),
-    0 0 32px rgba(255, 209, 102, 0.5);
-  animation: shoot var(--duration, 3s) linear forwards;
-  opacity: 0;
+    0 0 4px rgba(255, 209, 102, 0.8),
+    0 0 8px rgba(255, 209, 102, 0.6),
+    0 0 12px rgba(255, 209, 102, 0.4);
+  animation: twinkle 3s ease-in-out infinite;
 }
 
-.shooting-star::before {
+.twinkling-star::before {
   content: '';
   position: absolute;
   top: 50%;
   left: 50%;
   width: 200%;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(255, 209, 102, 0.8), transparent);
-  transform: translate(-50%, -50%) rotate(45deg);
-  animation: trail var(--duration, 3s) linear var(--delay, 0s) both;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 209, 102, 0.3), transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: glow 4s ease-in-out infinite;
 }
 
-@keyframes shoot {
-  0% {
-    opacity: 0;
-    transform: translateX(-50px) translateY(-50px) scale(0);
+/* Animation de scintillement */
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
   }
-  20% {
+  50% {
     opacity: 1;
-    transform: translateX(0) translateY(0) scale(1);
-  }
-  80% {
-    opacity: 1;
-    transform: translateX(calc(100vw + 50px)) translateY(calc(100vh + 50px)) scale(0.8);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(calc(100vw + 100px)) translateY(calc(100vh + 100px)) scale(0);
+    transform: scale(1.2);
   }
 }
 
-@keyframes trail {
-  0% {
-    opacity: 0;
-    width: 0;
-  }
-  10% {
-    opacity: 0.8;
-    width: 50px;
+@keyframes glow {
+  0%, 100% {
+    opacity: 0.2;
+    transform: translate(-50%, -50%) scale(0.8);
   }
   50% {
     opacity: 0.6;
-    width: 100px;
-  }
-  90% {
-    opacity: 0.2;
-    width: 150px;
-  }
-  100% {
-    opacity: 0;
-    width: 200px;
+    transform: translate(-50%, -50%) scale(1.1);
   }
 }
 
 /* Variations pour plus de diversité */
-.shooting-star:nth-child(2n) {
-  background: linear-gradient(45deg, #FF85A1, #FFFFFF, #A0E7E5);
+.twinkling-star:nth-child(3n) {
+  background: radial-gradient(circle, #FF85A1, #FFFFFF);
   box-shadow:
-    0 0 6px rgba(255, 133, 161, 0.8),
-    0 0 12px rgba(255, 133, 161, 0.6),
-    0 0 24px rgba(255, 133, 161, 0.4);
+    0 0 4px rgba(255, 133, 161, 0.8),
+    0 0 8px rgba(255, 133, 161, 0.6),
+    0 0 12px rgba(255, 133, 161, 0.4);
 }
 
-.shooting-star:nth-child(2n)::before {
-  background: linear-gradient(90deg, rgba(255, 133, 161, 0.8), transparent);
+.twinkling-star:nth-child(3n)::before {
+  background: radial-gradient(circle, rgba(255, 133, 161, 0.3), transparent 70%);
 }
 
-.shooting-star:nth-child(3n) {
-  background: linear-gradient(45deg, #A0E7E5, #FFFFFF, #FFD166);
+.twinkling-star:nth-child(5n) {
+  background: radial-gradient(circle, #A0E7E5, #FFFFFF);
   box-shadow:
-    0 0 6px rgba(160, 231, 229, 0.8),
-    0 0 12px rgba(160, 231, 229, 0.6),
-    0 0 24px rgba(160, 231, 229, 0.4);
+    0 0 4px rgba(160, 231, 229, 0.8),
+    0 0 8px rgba(160, 231, 229, 0.6),
+    0 0 12px rgba(160, 231, 229, 0.4);
 }
 
-.shooting-star:nth-child(3n)::before {
-  background: linear-gradient(90deg, rgba(160, 231, 229, 0.8), transparent);
+.twinkling-star:nth-child(5n)::before {
+  background: radial-gradient(circle, rgba(160, 231, 229, 0.3), transparent 70%);
 }
 
-/* Responsive - réduire sur petits écrans */
+/* Responsive - ajustements pour petits écrans */
 @media (max-width: 768px) {
-  .shooting-star {
+  .twinkling-star {
     box-shadow:
-      0 0 4px rgba(255, 209, 102, 0.6),
-      0 0 8px rgba(255, 209, 102, 0.4),
-      0 0 16px rgba(255, 209, 102, 0.3);
-  }
-
-  .shooting-star::before {
-    width: 150%;
-    height: 1px;
+      0 0 3px rgba(255, 209, 102, 0.6),
+      0 0 6px rgba(255, 209, 102, 0.4),
+      0 0 9px rgba(255, 209, 102, 0.3);
   }
 }
