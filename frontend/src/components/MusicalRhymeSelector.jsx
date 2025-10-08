@@ -99,7 +99,7 @@ const MusicalRhymeSelector = ({
         <div className="rhyme-slot">
           <motion.div
             className={`rhyme-card custom-rhyme ${selectedRhyme === 'custom' ? 'selected' : ''}`}
-            onClick={handleCustomSelect}
+            onClick={() => handleRhymeSelect('custom')}
             whileHover={{ y: -5 }}
             whileTap={{ scale: 0.98 }}
           >
