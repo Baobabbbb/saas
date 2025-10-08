@@ -58,59 +58,59 @@
   }
 }
 
-/* Positions et délais spécifiques pour chaque étoile avec directions aléatoires */
+/* Positions réparties sur tout l'écran avec origines variées */
 .shooting-stars-container span:nth-child(1) {
-  top: 10%;
-  right: -10%; /* Hors écran à droite */
+  top: 20%;
+  right: -10%; /* Vient de la droite */
   left: initial;
   animation-delay: 0s;
-  animation-duration: 2s;
-  --star-angle: 300deg; /* Direction légèrement variée */
+  animation-duration: 2.5s;
+  --star-angle: 300deg; /* Direction diagonale bas-gauche */
 }
 
 .shooting-stars-container span:nth-child(2) {
-  top: 20%;
-  right: -15%; /* Hors écran à droite */
-  left: initial;
+  top: -10%; /* Vient du haut */
+  left: 30%;
+  right: initial;
   animation-delay: 1.5s;
-  animation-duration: 4s;
-  --star-angle: 330deg; /* Direction plus verticale */
+  animation-duration: 3.5s;
+  --star-angle: 120deg; /* Direction diagonale bas-droite */
 }
 
 .shooting-stars-container span:nth-child(3) {
-  top: 15%;
-  right: -8%; /* Hors écran à droite */
-  left: initial;
+  top: 80%;
+  left: -15%; /* Vient de la gauche */
+  right: initial;
   animation-delay: 3s;
-  animation-duration: 3s;
-  --star-angle: 280deg; /* Direction plus horizontale */
+  animation-duration: 2.8s;
+  --star-angle: 45deg; /* Direction diagonale haut-droite */
 }
 
 .shooting-stars-container span:nth-child(4) {
-  top: 25%;
-  right: -12%; /* Hors écran à droite */
+  top: 110%; /* Vient du bas */
+  right: 40%;
   left: initial;
-  animation-delay: 0.5s;
-  animation-duration: 2.5s;
-  --star-angle: 340deg; /* Direction très verticale */
+  animation-delay: 0.8s;
+  animation-duration: 3.2s;
+  --star-angle: 240deg; /* Direction diagonale haut-gauche */
 }
 
 .shooting-stars-container span:nth-child(5) {
-  top: 30%;
-  right: -5%; /* Hors écran à droite */
-  left: initial;
-  animation-delay: 2.5s;
-  animation-duration: 3.5s;
-  --star-angle: 290deg; /* Direction intermédiaire */
+  top: 60%;
+  left: -8%; /* Vient de la gauche */
+  right: initial;
+  animation-delay: 2.2s;
+  animation-duration: 2.3s;
+  --star-angle: 30deg; /* Direction presque horizontale haut-droite */
 }
 
 .shooting-stars-container span:nth-child(6) {
-  top: 35%;
-  right: -18%; /* Hors écran à droite */
+  top: -5%; /* Vient du haut */
+  right: 70%;
   left: initial;
-  animation-delay: 4s;
-  animation-duration: 2.8s;
-  --star-angle: 320deg; /* Direction légèrement oblique */
+  animation-delay: 4.5s;
+  animation-duration: 3.8s;
+  --star-angle: 150deg; /* Direction diagonale bas-droite */
 }
 
 /* Responsive - ajustements pour petits écrans */
