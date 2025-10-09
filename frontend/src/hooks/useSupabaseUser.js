@@ -37,7 +37,9 @@ export default function useSupabaseUser() {
           name: emailName
         };
 
-        // 4. Récupération profil
+        // 4. Récupération profil (avec délai pour laisser le temps à Supabase de propager)
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Attendre 1 seconde
+
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
