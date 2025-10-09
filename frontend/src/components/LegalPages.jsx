@@ -199,14 +199,14 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <div className="legal-section">
         <h3>7. Cookies et technologies similaires</h3>
         <div className="info-block">
-          <p>HERBBIE utilise uniquement des cookies essentiels nécessaires au fonctionnement du service :</p>
+          <p>HERBBIE utilise uniquement des cookies strictement essentiels au fonctionnement du service :</p>
           <ul>
-            <li><strong>Fonctionnement technique :</strong> Maintien de votre session et sécurité</li>
-            <li><strong>Authentification :</strong> Mémorisation de votre identité</li>
-            <li><strong>Sécurité :</strong> Protection contre les menaces</li>
+            <li><strong>Cookies de session :</strong> Maintien de votre connexion et sécurité</li>
+            <li><strong>Cookies d'authentification :</strong> Mémorisation de votre identité</li>
+            <li><strong>Cookies de sécurité :</strong> Protection contre les menaces</li>
           </ul>
-          <p><strong>Note :</strong> Aucun cookie de suivi, analytique ou publicitaire n'est utilisé.</p>
-          <p>Les cookies essentiels sont automatiquement gérés et ne nécessitent pas de consentement selon le RGPD.</p>
+          <p><strong>Note :</strong> Aucun cookie de fonctionnalité, analytique, de personnalisation ou publicitaire n'est utilisé.</p>
+          <p>Les cookies essentiels sont automatiquement gérés et exemptés de consentement selon le RGPD.</p>
         </div>
       </div>
     </div>
@@ -226,17 +226,17 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <div className="legal-section">
         <h3>2. Cookies utilisés par HERBBIE</h3>
         <div className="info-block">
+          <p><strong>Conformément à la réglementation RGPD, HERBBIE utilise uniquement des cookies strictement essentiels nécessaires au fonctionnement du service.</strong></p>
+
           <h4>Cookies essentiels (obligatoires) :</h4>
-          <p><strong>Conformément à la réglementation RGPD, HERBBIE utilise uniquement des cookies essentiels nécessaires au fonctionnement du service.</strong></p>
           <ul>
-            <li><strong>Session :</strong> Maintien de votre connexion et sécurité pendant votre visite</li>
-            <li><strong>Authentification :</strong> Mémorisation de votre identité pour éviter de vous reconnecter</li>
-            <li><strong>Sécurité :</strong> Protection contre les attaques CSRF et autres menaces</li>
-            <li><strong>Fonctionnalité :</strong> Conservation de vos paramètres essentiels (langue, préférences de base)</li>
+            <li><strong>Cookies de session :</strong> Maintien de votre connexion et sécurité pendant votre visite</li>
+            <li><strong>Cookies d'authentification :</strong> Mémorisation de votre identité pour éviter de vous reconnecter</li>
+            <li><strong>Cookies de sécurité :</strong> Protection contre les attaques CSRF et autres menaces</li>
           </ul>
 
           <div className="alert alert-info">
-            <strong>Note :</strong> Aucun cookie de suivi, analytique ou publicitaire n'est utilisé sur ce site.
+            <strong>Note :</strong> Aucun cookie de fonctionnalité, analytique, de personnalisation ou publicitaire n'est utilisé sur ce site.
           </div>
         </div>
       </div>
