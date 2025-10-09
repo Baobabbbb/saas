@@ -1145,8 +1145,8 @@ async def send_contact_email(contact_form: ContactForm):
     """Envoie un email depuis le formulaire de contact (réponse immédiate)"""
     try:
         # Vérifier la configuration
-        if not os.getenv("EMAIL_PASSWORD"):
-            raise HTTPException(status_code=500, detail="Configuration email manquante")
+        if not os.getenv("RESEND_API_KEY"):
+            raise HTTPException(status_code=500, detail="Configuration Resend manquante")
 
         # Lancer l'envoi en arrière-plan (non bloquant)
         asyncio.create_task(send_email_background(contact_form))
