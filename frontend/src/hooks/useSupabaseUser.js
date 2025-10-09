@@ -37,9 +37,7 @@ export default function useSupabaseUser() {
           name: emailName
         };
 
-        // 4. Récupération profil (avec délai pour laisser le temps à Supabase de propager)
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Attendre 1 seconde
-
+        // 4. Récupération profil
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
@@ -47,13 +45,6 @@ export default function useSupabaseUser() {
           .single();
 
         if (profile) {
-          console.log('🔍 HOOK useSupabaseUser - Profil trouvé:', {
-            id: session.user.id,
-            prenom: profile.prenom,
-            nom: profile.nom,
-            email: profile.email
-          });
-
           const enrichedUser = {
             ...baseUser,
             firstName: profile.prenom || baseUser.firstName,
@@ -62,15 +53,8 @@ export default function useSupabaseUser() {
             profile: profile
           };
 
-          console.log('✅ HOOK useSupabaseUser - Utilisateur enrichi:', {
-            firstName: enrichedUser.firstName,
-            lastName: enrichedUser.lastName,
-            name: enrichedUser.name
-          });
-
           setUser(enrichedUser);
         } else {
-          console.log('⚠️ HOOK useSupabaseUser - Aucun profil trouvé pour:', session.user.id);
           setUser(baseUser);
         }
 

@@ -28,21 +28,12 @@ export async function getUserProfile(userId) {
  */
 export async function updateUserProfile(userId, profileData) {
   try {
-    console.log('🔄 updateUserProfile - Données reçues:', {
-      userId,
-      profileData,
-      firstName: profileData?.firstName,
-      lastName: profileData?.lastName
-    });
-
     // Préparer les données à mettre à jour (utiliser les colonnes correctes)
     const updateData = {
       id: userId,
       prenom: profileData.firstName,
       nom: profileData.lastName
     };
-
-    console.log('📤 updateUserProfile - Données à envoyer:', updateData);
 
     // Upsert: créer ou mettre à jour
     const { data, error } = await supabase
@@ -55,11 +46,10 @@ export async function updateUserProfile(userId, profileData) {
       .single();
 
     if (error) {
-      console.error('❌ updateUserProfile - Erreur Supabase:', error);
+      console.error('Erreur mise à jour profil:', error);
       throw new Error(`Erreur mise à jour profil: ${error.message}`);
     }
 
-    console.log('✅ updateUserProfile - Succès, données retournées:', data);
     return data;
   } catch (error) {
     console.error('Erreur critique mise à jour profil:', error);
@@ -69,7 +59,6 @@ export async function updateUserProfile(userId, profileData) {
 
 /**
  * Synchronise le profil avec les informations de l'utilisateur connecté
- * NE SYNCHRONISE QUE L'EMAIL ET LAST_LOGIN, PAS LE NOM/PRÉNOM
  */
 export async function syncUserProfile(user) {
   try {
@@ -89,14 +78,6 @@ export async function syncUserProfile(user) {
       last_login: new Date().toISOString()  // Mettre à jour la dernière connexion
     };
 
-    console.log('🔄 syncUserProfile - Données à synchroniser:', {
-      email: updateData.email,
-      prenom_existant: existingProfile?.prenom,
-      nom_existant: existingProfile?.nom,
-      prenom_final: updateData.prenom,
-      nom_final: updateData.nom
-    });
-
     const { data, error } = await supabase
       .from('profiles')
       .upsert(updateData, {
@@ -111,7 +92,6 @@ export async function syncUserProfile(user) {
       throw new Error(`Erreur sync profil: ${error.message}`);
     }
 
-    console.log('✅ Profil synchronisé:', data.id, data.email, 'prenom:', data.prenom, 'nom:', data.nom);
     return data;
   } catch (error) {
     console.error('Erreur critique sync profil:', error);

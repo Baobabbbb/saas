@@ -244,24 +244,10 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
         .single();
 
       if (!error && profile) {
-        console.log('🔄 UserAccount - reloadUserData - Profil récupéré:', {
-          id: user.id,
-          prenom: profile.prenom,
-          nom: profile.nom,
-          email: profile.email
-        });
-
         // Mettre à jour les champs du formulaire avec les données fraîchement récupérées
         setProfileEmail(profile.email || user.email || '');
         setProfileFirstName(profile.prenom || '');
         setProfileLastName(profile.nom || '');
-
-        console.log('✅ UserAccount - reloadUserData - Champs mis à jour:', {
-          profileFirstName: profile.prenom || '',
-          profileLastName: profile.nom || ''
-        });
-      } else {
-        console.log('⚠️ UserAccount - reloadUserData - Erreur ou profil non trouvé:', error);
       }
     } catch (error) {
       console.error('Erreur rechargement données utilisateur:', error);
@@ -271,25 +257,9 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   // Charger les données du profil depuis Supabase
   useEffect(() => {
     if (user) {
-      console.log('🔄 UserAccount - Chargement données utilisateur:', {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        profile: user.profile
-      });
-
       setProfileEmail(user.email || '');
       setProfileFirstName(user.firstName || user.user_metadata?.firstName || '');
       setProfileLastName(user.lastName || user.user_metadata?.lastName || '');
-
-      console.log('✅ UserAccount - Champs du formulaire mis à jour:', {
-        profileEmail: user.email || '',
-        profileFirstName: user.firstName || user.user_metadata?.firstName || '',
-        profileLastName: user.lastName || user.user_metadata?.lastName || ''
-      });
-    } else {
-      console.log('⚠️ UserAccount - Aucun utilisateur connecté');
     }
   }, [user]);
 
@@ -646,12 +616,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     setError('');
 
                     try {
-                      console.log('🚀 UserAccount - Tentative mise à jour profil:', {
-                        userId: user.id,
-                        profileFirstName: profileFirstName.trim(),
-                        profileLastName: profileLastName.trim()
-                      });
-
                       await updateUserProfile(user.id, {
                         firstName: profileFirstName.trim(),
                         lastName: profileLastName.trim()
