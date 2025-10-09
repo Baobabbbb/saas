@@ -231,6 +231,29 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
     }
   };
 
+  // Fonction pour recharger les données utilisateur depuis la base
+  const reloadUserData = async () => {
+    if (!user || !user.id) return;
+
+    try {
+      // Récupérer le profil mis à jour depuis la base
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (!error && profile) {
+        // Mettre à jour les champs du formulaire avec les données fraîchement récupérées
+        setProfileEmail(profile.email || user.email || '');
+        setProfileFirstName(profile.prenom || '');
+        setProfileLastName(profile.nom || '');
+      }
+    } catch (error) {
+      console.error('Erreur rechargement données utilisateur:', error);
+    }
+  };
+
   // Charger les données du profil depuis Supabase
   useEffect(() => {
     if (user) {
@@ -598,7 +621,9 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                         lastName: profileLastName.trim()
                       });
 
-                      // Les données utilisateur se mettront à jour automatiquement via le hook useSupabaseUser
+                      // Recharger immédiatement les données pour refléter les changements dans le formulaire
+                      await reloadUserData();
+
                       setProfileUpdateSuccess(true);
                       setTimeout(() => setProfileUpdateSuccess(false), 3000);
 
