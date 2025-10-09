@@ -1078,10 +1078,10 @@ const downloadPDF = async (title, content) => {
                 </div>
                 <audio
                   controls
-                  preload="none"
+                  preload="metadata"
                   controlsList="nodownload"
-                  style={{ 
-                    width: '100%', 
+                  style={{
+                    width: '100%',
                     height: '60px',
                     outline: 'none'
                   }}
