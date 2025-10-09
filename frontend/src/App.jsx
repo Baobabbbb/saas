@@ -975,7 +975,7 @@ const downloadPDF = async (title, content) => {
         <div className="dot"></div>
         <div className="dot"></div>
       </div>      <p>        {contentType === 'rhyme'
-          ? '🎵 Votre comptine est en cours de création...'
+          ? 'Votre comptine est en cours de création...'
           : contentType === 'audio'
           ? 'Création de l\'histoire en cours...'
           : contentType === 'coloring'
