@@ -30,12 +30,12 @@ export const checkPaymentPermission = async (contentType, userId, userEmail) => 
 
     console.log('👤 Profil utilisateur:', profile)
 
-    if (profile?.role === 'admin') {
+    if (profile?.role === 'admin' || profile?.role === 'free') {
       return {
         hasPermission: true,
-        reason: 'admin_access',
-        userRole: 'admin',
-        isAdmin: true
+        reason: profile?.role === 'admin' ? 'admin_access' : 'free_access',
+        userRole: profile?.role,
+        isAdmin: profile?.role === 'admin'
       }
     }
     
@@ -105,14 +105,14 @@ export const getContentPrice = (contentType) => {
   return prices[contentType] || { amount: 299, name: 'Contenu Créatif', currency: 'EUR', display: '2,99€' }
 }
 
-// Fonction pour vérifier rapidement si l'utilisateur est admin (pour l'affichage du bouton)
-export const isUserAdmin = async (userId, userEmail) => {
+// Fonction pour vérifier rapidement si l'utilisateur a accès gratuit (admin ou free)
+export const hasFreeAccess = async (userId, userEmail) => {
   try {
     // Vérification rapide par email d'abord
     if (userEmail === 'fredagathe77@gmail.com') {
       return true
     }
-    
+
     // Vérification dans la table profiles
     const { data: profile, error } = await supabase
       .from('profiles')
@@ -121,14 +121,14 @@ export const isUserAdmin = async (userId, userEmail) => {
       .single()
 
     if (error) {
-      console.error('Erreur vérification admin:', error)
+      console.error('Erreur vérification accès gratuit:', error)
       return false
     }
 
-    return profile?.role === 'admin'
-    
+    return profile?.role === 'admin' || profile?.role === 'free'
+
   } catch (error) {
-    console.error('Erreur isUserAdmin:', error)
+    console.error('Erreur hasFreeAccess:', error)
     return false
   }
 }

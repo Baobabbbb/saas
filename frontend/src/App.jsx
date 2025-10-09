@@ -21,7 +21,7 @@ import { API_BASE_URL, ANIMATION_API_BASE_URL } from './config/api';
 
 import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
-import { checkPaymentPermission, isUserAdmin, getContentPrice } from './services/payment';
+import { checkPaymentPermission, hasFreeAccess, getContentPrice } from './services/payment';
 import StripePaymentModal from './components/StripePaymentModal';
 import Footer from './components/Footer';
 import LegalPages from './components/LegalPages';
@@ -201,6 +201,7 @@ function App() {
   // État compte utilisateur via hook standard (évite l'écran blanc au premier chargement)
   const { user, loading } = useSupabaseUser();
   const [showHistory, setShowHistory] = useState(false);
+  const [hasFreeAccess, setHasFreeAccess] = useState(false);
 
   // 📖 Pagination : découpe le texte en pages
   const storyPages = useMemo(() => {
@@ -228,20 +229,20 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Vérifier si l'utilisateur est admin et mettre à jour le bouton
+  // Vérifier si l'utilisateur a accès gratuit et mettre à jour le bouton
   useEffect(() => {
-    const checkAdminStatus = async () => {
+    const checkFreeAccessStatus = async () => {
       if (user) {
-        const adminStatus = await isUserAdmin(user.id, user.email);
-        setIsAdmin(adminStatus);
-        updateButtonText(adminStatus);
+        const freeAccessStatus = await hasFreeAccess(user.id, user.email);
+        setHasFreeAccess(freeAccessStatus);
+        updateButtonText(freeAccessStatus);
       } else {
-        setIsAdmin(false);
+        setHasFreeAccess(false);
         updateButtonText(false);
       }
     };
 
-    checkAdminStatus();
+    checkFreeAccessStatus();
   }, [user, contentType]);
 
   // S'assurer qu'aucun bouton n'est sélectionné par défaut quand on change de type de contenu
@@ -287,8 +288,8 @@ function App() {
       return;
     }
 
-    // Si c'est un admin, génération directe
-    if (isAdmin) {
+    // Si l'utilisateur a accès gratuit (admin ou free), génération directe
+    if (hasFreeAccess) {
       startGeneration();
       return;
     }
