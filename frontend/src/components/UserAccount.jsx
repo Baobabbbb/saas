@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './UserAccount.css';
 import { supabase } from '../supabaseClient';
 import useSupabaseUser from '../hooks/useSupabaseUser';
+import { updateUserProfile } from '../services/profileService';
 
 const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory }) => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -589,8 +590,22 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                   <h3>Mon profil</h3>
                   <form onSubmit={async (e) => {
                     e.preventDefault();
-                    // Logique de mise à jour du profil ici
-                    console.log('Mise à jour profil:', { profileFirstName, profileLastName });
+                    setError('');
+
+                    try {
+                      await updateUserProfile(user.id, {
+                        firstName: profileFirstName.trim(),
+                        lastName: profileLastName.trim()
+                      });
+
+                      // Les données utilisateur se mettront à jour automatiquement via le hook useSupabaseUser
+                      setProfileUpdateSuccess(true);
+                      setTimeout(() => setProfileUpdateSuccess(false), 3000);
+
+                    } catch (error) {
+                      console.error('Erreur mise à jour profil:', error);
+                      setError('Erreur lors de la mise à jour du profil');
+                    }
                   }}>
                     <input
                       type="email"
