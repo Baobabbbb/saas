@@ -2,31 +2,53 @@ import React, { useEffect, useState } from 'react';
 import './ShootingStars.css';
 
 const ShootingStars = () => {
-  const [starDelays, setStarDelays] = useState([]);
+  const [activeStars, setActiveStars] = useState([]);
 
   useEffect(() => {
-    // Générer des délais aléatoires très espacés pour chaque étoile (une seule fois)
-    const delays = [];
-    let currentDelay = 0;
+    const scheduleStar = (starIndex) => {
+      // Délai aléatoire entre 2 secondes et 1 minute (60 secondes) pour le test
+      const randomDelay = Math.random() * (60 - 2) + 2; // 2s → 60s (1min)
 
+      setTimeout(() => {
+        // Ajouter l'étoile active
+        const newStar = {
+          id: Date.now() + starIndex,
+          index: starIndex,
+          duration: Math.random() * 2 + 1, // Durée 1-3s
+        };
+
+        setActiveStars(prev => [...prev, newStar]);
+
+        // Programmer la suppression après la durée de l'animation
+        setTimeout(() => {
+          setActiveStars(prev => prev.filter(star => star.id !== newStar.id));
+        }, newStar.duration * 1000);
+
+        // Programmer la prochaine apparition de cette étoile
+        scheduleStar(starIndex);
+      }, randomDelay * 1000);
+    };
+
+    // Lancer le cycle pour chaque étoile
     for (let i = 0; i < 10; i++) {
-      // Délai aléatoire entre 2 secondes et 20 minutes (1200 secondes)
-      const randomDelay = Math.random() * (1200 - 2) + 2;
-      currentDelay += randomDelay;
-      delays.push(currentDelay);
+      // Délai initial aléatoire pour éviter qu'elles partent toutes en même temps
+      setTimeout(() => scheduleStar(i), Math.random() * 5000);
     }
 
-    setStarDelays(delays);
-  }, []); // Le tableau vide [] garantit que useEffect ne s'exécute qu'une fois
+    return () => {
+      // Nettoyer les timeouts si le composant se démonte
+      setActiveStars([]);
+    };
+  }, []);
 
   return (
     <section className="shooting-stars-container">
-      {starDelays.map((delay, index) => (
+      {activeStars.map(star => (
         <span
-          key={index}
+          key={star.id}
+          className={`shooting-star star-${star.index + 1}`}
           style={{
-            animationDelay: `${delay}s`,
-            animationDuration: `${Math.random() * 2 + 1}s` // Durée aléatoire 1-3s
+            animationDuration: `${star.duration}s`,
           }}
         />
       ))}

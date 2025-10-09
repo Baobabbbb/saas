@@ -10,10 +10,8 @@
   overflow: hidden;
 }
 
-.shooting-stars-container span {
+.shooting-star {
   position: absolute;
-  top: 50%;
-  left: 50%;
   width: 4px;
   height: 4px;
   background: #FFD700; /* Doré pour s'adapter au thème Herbbie */
@@ -21,7 +19,8 @@
   box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.1),
               0 0 0 8px rgba(255, 215, 0, 0.1),
               0 0 20px rgba(255, 215, 0, 0.1);
-  animation: animate 3s linear infinite;
+  animation: animate linear forwards;
+  opacity: 0; /* Invisible par défaut */
 }
 
 .shooting-stars-container span::before {
@@ -37,9 +36,12 @@
 @keyframes animate {
   0% {
     transform: rotate(315deg) translateX(0);
+    opacity: 0;
+  }
+  10% {
     opacity: 1;
   }
-  70% {
+  90% {
     opacity: 1;
   }
   100% {
@@ -48,62 +50,62 @@
   }
 }
 
-/* Positions spécifiques pour chaque étoile - délais gérés par JavaScript */
-.shooting-stars-container span:nth-child(1) {
+/* Positions spécifiques pour chaque étoile */
+.star-1 {
   top: 0;
   right: 0;
   left: initial;
 }
 
-.shooting-stars-container span:nth-child(2) {
+.star-2 {
   top: 0;
   right: 80px;
   left: initial;
 }
 
-.shooting-stars-container span:nth-child(3) {
+.star-3 {
   top: 80px;
   right: 0px;
   left: initial;
 }
 
-.shooting-stars-container span:nth-child(4) {
+.star-4 {
   top: 0;
   right: 180px;
   left: initial;
 }
 
-.shooting-stars-container span:nth-child(5) {
+.star-5 {
   top: 0;
   right: 400px;
   left: initial;
 }
 
-.shooting-stars-container span:nth-child(6) {
+.star-6 {
   top: 0;
   right: 600px;
   left: initial;
 }
 
-.shooting-stars-container span:nth-child(7) {
+.star-7 {
   top: 300px;
   right: 0px;
   left: initial;
 }
 
-.shooting-stars-container span:nth-child(8) {
+.star-8 {
   top: 0px;
   right: 700px;
   left: initial;
 }
 
-.shooting-stars-container span:nth-child(9) {
+.star-9 {
   top: 0px;
   right: 1000px;
   left: initial;
 }
 
-.shooting-stars-container span:nth-child(10) {
+.star-10 {
   top: 0px;
   right: 450px;
   left: initial;
