@@ -201,7 +201,7 @@ function App() {
   // État compte utilisateur via hook standard (évite l'écran blanc au premier chargement)
   const { user, loading } = useSupabaseUser();
   const [showHistory, setShowHistory] = useState(false);
-  const [hasFreeAccess, setHasFreeAccess] = useState(false);
+  const [userHasFreeAccess, setUserHasFreeAccess] = useState(false);
 
   // 📖 Pagination : découpe le texte en pages
   const storyPages = useMemo(() => {
@@ -234,10 +234,10 @@ function App() {
     const checkFreeAccessStatus = async () => {
       if (user) {
         const freeAccessStatus = await hasFreeAccess(user.id, user.email);
-        setHasFreeAccess(freeAccessStatus);
+        setUserHasFreeAccess(freeAccessStatus);
         updateButtonText(freeAccessStatus);
       } else {
-        setHasFreeAccess(false);
+        setUserHasFreeAccess(false);
         updateButtonText(false);
       }
     };
@@ -289,7 +289,7 @@ function App() {
     }
 
     // Si l'utilisateur a accès gratuit (admin ou free), génération directe
-    if (hasFreeAccess) {
+    if (userHasFreeAccess) {
       startGeneration();
       return;
     }
