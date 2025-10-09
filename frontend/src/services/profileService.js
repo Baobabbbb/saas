@@ -58,18 +58,52 @@ export async function updateUserProfile(userId, profileData) {
 }
 
 /**
+ * Synchronise le profil avec les informations de l'utilisateur connecté
+ */
+export async function syncUserProfile(user) {
+  try {
+    const updateData = {
+      id: user.id,
+      email: user.email,  // Synchroniser l'email
+      prenom: user.user_metadata?.firstName || user.user_metadata?.prenom || null,
+      nom: user.user_metadata?.lastName || user.user_metadata?.nom || null,
+      last_login: new Date().toISOString()  // Mettre à jour la dernière connexion
+    };
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert(updateData, {
+        onConflict: 'id',
+        returning: 'representation'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erreur sync profil:', error);
+      throw new Error(`Erreur sync profil: ${error.message}`);
+    }
+
+    console.log('✅ Profil synchronisé:', data.id, data.email);
+    return data;
+  } catch (error) {
+    console.error('Erreur critique sync profil:', error);
+    throw error;
+  }
+}
+
+/**
  * Crée un profil pour un nouvel utilisateur
  */
 export async function createUserProfile(userId, email, profileData = {}) {
   console.log('👤 HERBBIE: Création profil utilisateur:', userId, email);
-  
+
   try {
     const newProfile = {
       id: userId,
       email: email,
-      first_name: profileData.firstName || email.split('@')[0],
-      last_name: profileData.lastName || '',
-      full_name: `${profileData.firstName || email.split('@')[0]} ${profileData.lastName || ''}`.trim(),
+      prenom: profileData.firstName || profileData.prenom || email.split('@')[0],
+      nom: profileData.lastName || profileData.nom || '',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };

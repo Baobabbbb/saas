@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
+import { syncUserProfile } from "../services/profileService";
 
 export default function useSupabaseUser() {
   const [user, setUser] = useState(null);
@@ -18,7 +19,15 @@ export default function useSupabaseUser() {
           return;
         }
         
-        // 2. Créer utilisateur de base
+        // 2. Synchroniser le profil (email et last_login)
+        try {
+          await syncUserProfile(session.user);
+        } catch (syncError) {
+          console.warn('Erreur sync profil (non critique):', syncError);
+          // Ne pas bloquer le chargement si la sync échoue
+        }
+
+        // 3. Créer utilisateur de base
         const emailName = session.user.email.split('@')[0];
         const baseUser = {
           id: session.user.id,
@@ -28,7 +37,7 @@ export default function useSupabaseUser() {
           name: emailName
         };
 
-        // 3. Récupération profil
+        // 4. Récupération profil
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
