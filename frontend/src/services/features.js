@@ -1,10 +1,12 @@
 // Service pour gérer les fonctionnalités disponibles dans Herbbie
-const STORAGE_KEY = 'herbbie_features_config';
+const API_URL = '/api/features';
 
-// Clé pour partager avec le panneau d'administration (même domaine)
-const SHARED_STORAGE_KEY = 'admin_features_config';
+// Cache en mémoire pour éviter les appels API multiples
+let cachedFeatures = null;
+let lastFetchTime = 0;
+const CACHE_DURATION = 3000; // 3 secondes
 
-// Configuration par défaut des fonctionnalités
+// Configuration par défaut des fonctionnalités (utilisée uniquement si l'API échoue)
 const DEFAULT_FEATURES = {
   animation: { enabled: true, name: 'Dessin animé', icon: '🎬', description: 'Génération de dessins animés personnalisés avec IA' },
   comic: { enabled: true, name: 'Bande dessinée', icon: '💬', description: 'Création de bandes dessinées avec bulles de dialogue' },
@@ -13,44 +15,47 @@ const DEFAULT_FEATURES = {
   rhyme: { enabled: true, name: 'Comptine', icon: '🎵', description: 'Comptines musicales avec paroles et mélodies' }
 };
 
-// Fonction pour charger les fonctionnalités depuis le localStorage
-const loadFeaturesFromStorage = () => {
+// Fonction pour charger les fonctionnalités depuis l'API
+const loadFeaturesFromAPI = async () => {
   try {
-    // Essayer d'abord la clé principale
-    let stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return parsed;
-    }
+    const response = await fetch(API_URL, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-    // Essayer la clé partagée avec le panneau d'administration
-    stored = localStorage.getItem(SHARED_STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-
-      // Sauvegarder dans la clé principale pour la prochaine fois
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-      return parsed;
+    if (response.ok) {
+      const features = await response.json();
+      // Mettre à jour le cache
+      cachedFeatures = features;
+      lastFetchTime = Date.now();
+      return features;
+    } else {
+      console.error('Erreur API lors du chargement des fonctionnalités:', response.status);
+      throw new Error(`Erreur API: ${response.status}`);
     }
   } catch (error) {
-    console.warn('Erreur lors du chargement des fonctionnalités depuis le localStorage:', error);
+    console.error('Erreur lors du chargement depuis l\'API:', error);
+    throw error;
   }
-  return null;
 };
 
-// Fonction pour récupérer les fonctionnalités
+// Fonction pour récupérer les fonctionnalités (SOURCE UNIQUE: API)
 export const getFeatures = async () => {
   try {
-    // Charger depuis le localStorage
-    const storedFeatures = loadFeaturesFromStorage();
-    if (storedFeatures) {
-      return storedFeatures;
+    // Utiliser le cache si disponible et récent
+    const now = Date.now();
+    if (cachedFeatures && (now - lastFetchTime) < CACHE_DURATION) {
+      return cachedFeatures;
     }
 
-    // Fallback vers les valeurs par défaut
-    return DEFAULT_FEATURES;
+    // Charger depuis l'API
+    const apiFeatures = await loadFeaturesFromAPI();
+    return apiFeatures;
   } catch (error) {
-    console.warn('Erreur lors de la récupération des fonctionnalités:', error);
+    console.error('Erreur lors de la récupération des fonctionnalités:', error);
+    // En cas d'erreur, utiliser les valeurs par défaut
     return DEFAULT_FEATURES;
   }
 };
@@ -87,35 +92,10 @@ export const getAllFeatures = async () => {
   return await getFeatures();
 };
 
-// Fonction pour sauvegarder les fonctionnalités dans le localStorage
-export const saveFeatures = (features) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(features));
-    return true;
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde des fonctionnalités:', error);
-    return false;
-  }
-};
-
-// Fonction pour mettre à jour une fonctionnalité
-export const updateFeature = (featureKey, enabled) => {
-  try {
-    const currentFeatures = loadFeaturesFromStorage() || DEFAULT_FEATURES;
-    const updatedFeatures = {
-      ...currentFeatures,
-      [featureKey]: {
-        ...currentFeatures[featureKey],
-        enabled: enabled,
-        updated_at: new Date().toISOString()
-      }
-    };
-
-    return saveFeatures(updatedFeatures) ? updatedFeatures : null;
-  } catch (error) {
-    console.error('Erreur lors de la mise à jour de la fonctionnalité:', error);
-    return null;
-  }
+// Fonction pour forcer le rafraîchissement du cache
+export const invalidateCache = () => {
+  cachedFeatures = null;
+  lastFetchTime = 0;
 };
 
 // Fonction pour rafraîchir les fonctionnalités
@@ -128,62 +108,38 @@ export const syncFeatures = async () => {
   return await getFeatures();
 };
 
-// Fonction pour écouter les changements de fonctionnalités depuis le panneau
+// Fonction pour écouter les changements de fonctionnalités depuis l'API
 export const listenForFeatureChanges = (callback) => {
-  const handleStorageChange = (event) => {
-    // Écouter les changements des deux clés de stockage
-    if ((event.key === STORAGE_KEY || event.key === SHARED_STORAGE_KEY) && event.newValue) {
-      try {
-        const newFeatures = JSON.parse(event.newValue);
+  let previousFeatures = null;
 
-        // Sauvegarder dans la clé principale si c'est la clé partagée
-        if (event.key === SHARED_STORAGE_KEY) {
-          localStorage.setItem(STORAGE_KEY, event.newValue);
-        }
-
-        if (callback && typeof callback === 'function') {
-          callback(newFeatures);
-        }
-      } catch (error) {
-        console.error('Erreur lors du parsing des nouvelles fonctionnalités:', error);
+  // Fonction pour vérifier les changements via l'API
+  const checkForChanges = async () => {
+    try {
+      // Invalider le cache pour forcer un appel API frais
+      invalidateCache();
+      const currentFeatures = await loadFeaturesFromAPI();
+      
+      // Comparer avec la version précédente
+      const featuresChanged = JSON.stringify(currentFeatures) !== JSON.stringify(previousFeatures);
+      
+      if (featuresChanged && callback && typeof callback === 'function') {
+        previousFeatures = currentFeatures;
+        callback(currentFeatures);
       }
+    } catch (error) {
+      console.error('Erreur lors de la vérification des changements:', error);
     }
   };
 
-  const handleCustomEvent = (event) => {
-    if (event.detail) {
-      if (callback && typeof callback === 'function') {
-        callback(event.detail);
-      }
-    }
-  };
+  // Polling de l'API toutes les 5 secondes pour détecter les changements
+  const pollIntervalId = setInterval(checkForChanges, 5000);
+  
+  // Effectuer une première vérification immédiate
+  checkForChanges();
 
-  // Vérifier périodiquement les changements (fallback)
-  const checkForChanges = () => {
-    const storedFeatures = loadFeaturesFromStorage();
-    if (storedFeatures) {
-      if (callback && typeof callback === 'function') {
-        callback(storedFeatures);
-      }
-    }
-  };
-
-  // Écouter les changements de localStorage pour les deux clés
-  window.addEventListener('storage', handleStorageChange);
-
-  // Écouter les événements personnalisés (événements locaux)
-  window.addEventListener('herbbieFeaturesUpdate', handleCustomEvent);
-  window.addEventListener('featuresUpdated', handleCustomEvent);
-
-  // Vérification périodique toutes les 2 secondes
-  const intervalId = setInterval(checkForChanges, 2000);
-
-  // Retourner une fonction pour nettoyer les écouteurs
+  // Retourner une fonction pour nettoyer l'écouteur
   return () => {
-    window.removeEventListener('storage', handleStorageChange);
-    window.removeEventListener('herbbieFeaturesUpdate', handleCustomEvent);
-    window.removeEventListener('featuresUpdated', handleCustomEvent);
-    clearInterval(intervalId);
+    clearInterval(pollIntervalId);
   };
 };
 
@@ -194,5 +150,6 @@ export default {
   getEnabledFeatures,
   getAllFeatures,
   refreshFeatures,
-  listenForFeatureChanges
+  listenForFeatureChanges,
+  invalidateCache
 };
