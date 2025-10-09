@@ -1033,7 +1033,7 @@ async def send_email_background(contact_form: ContactForm):
     try:
         # Configuration email
         sender_email = os.getenv("CONTACT_EMAIL", "noreply@herbbie.com")
-        receiver_email = "contact@herbbie.com"
+        receiver_email = os.getenv("CONTACT_EMAIL", "noreply@herbbie.com")  # Utiliser le même email pour recevoir
         password = os.getenv("EMAIL_PASSWORD")
 
         if not password:
