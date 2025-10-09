@@ -1098,10 +1098,43 @@ async def send_email_background(contact_form: ContactForm):
 def _send_email_sync(sender_email, receiver_email, password, message):
     """Envoi synchrone de l'email (appelé dans un thread)"""
     try:
+        # Méthode 1: Utiliser Mailgun SMTP (plus fiable depuis Railway)
+        mailgun_smtp = os.getenv("MAILGUN_SMTP_SERVER")
+        mailgun_port = int(os.getenv("MAILGUN_SMTP_PORT", "587"))
+        mailgun_username = os.getenv("MAILGUN_SMTP_USERNAME")
+        mailgun_password = os.getenv("MAILGUN_SMTP_PASSWORD")
+
+        if mailgun_smtp and mailgun_username and mailgun_password:
+            try:
+                server = smtplib.SMTP(mailgun_smtp, mailgun_port, timeout=10)
+                server.starttls()
+                server.login(mailgun_username, mailgun_password)
+                server.sendmail(sender_email, receiver_email, message.as_string())
+                server.quit()
+                print("✅ Email envoyé via Mailgun SMTP")
+                return
+            except Exception as e1:
+                print(f"⚠️ Échec Mailgun: {e1}")
+
+        # Méthode 2: Gmail SMTP 587 (STARTTLS)
+        try:
+            server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
+            server.starttls()
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_email, message.as_string())
+            server.quit()
+            print("✅ Email envoyé via Gmail SMTP 587 (STARTTLS)")
+            return
+        except Exception as e2:
+            print(f"⚠️ Échec Gmail 587: {e2}")
+
+        # Méthode 3: Gmail SMTP 465 (SSL) - fallback
         server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
         server.login(sender_email, password)
         server.sendmail(sender_email, receiver_email, message.as_string())
         server.quit()
+        print("✅ Email envoyé via Gmail SMTP 465 (SSL)")
+
     except Exception as e:
         print(f"❌ Erreur SMTP: {e}")
         raise
