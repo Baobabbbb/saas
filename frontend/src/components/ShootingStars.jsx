@@ -6,8 +6,8 @@ const ShootingStars = () => {
 
   useEffect(() => {
     const scheduleStar = (starIndex) => {
-      // Délai aléatoire entre 0.5 seconde et 1 minute (60 secondes) - pour test
-      const randomDelay = Math.random() * (60 - 0.5) + 0.5; // 0.5s → 60s (1min)
+      // Délai aléatoire entre 0.5 seconde et 15 minutes (900 secondes)
+      const randomDelay = Math.random() * (900 - 0.5) + 0.5; // 0.5s → 900s (15min)
 
       setTimeout(() => {
         // Ajouter l'étoile active
