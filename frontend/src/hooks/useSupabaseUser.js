@@ -45,6 +45,13 @@ export default function useSupabaseUser() {
           .single();
 
         if (profile) {
+          console.log('🔍 HOOK useSupabaseUser - Profil trouvé:', {
+            id: session.user.id,
+            prenom: profile.prenom,
+            nom: profile.nom,
+            email: profile.email
+          });
+
           const enrichedUser = {
             ...baseUser,
             firstName: profile.prenom || baseUser.firstName,
@@ -52,8 +59,16 @@ export default function useSupabaseUser() {
             name: `${profile.prenom || baseUser.firstName} ${profile.nom || ''}`.trim(),
             profile: profile
           };
+
+          console.log('✅ HOOK useSupabaseUser - Utilisateur enrichi:', {
+            firstName: enrichedUser.firstName,
+            lastName: enrichedUser.lastName,
+            name: enrichedUser.name
+          });
+
           setUser(enrichedUser);
         } else {
+          console.log('⚠️ HOOK useSupabaseUser - Aucun profil trouvé pour:', session.user.id);
           setUser(baseUser);
         }
 
