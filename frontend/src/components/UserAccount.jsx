@@ -646,6 +646,12 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     setError('');
 
                     try {
+                      console.log('🚀 UserAccount - Tentative mise à jour profil:', {
+                        userId: user.id,
+                        profileFirstName: profileFirstName.trim(),
+                        profileLastName: profileLastName.trim()
+                      });
+
                       await updateUserProfile(user.id, {
                         firstName: profileFirstName.trim(),
                         lastName: profileLastName.trim()

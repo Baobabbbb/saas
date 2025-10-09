@@ -28,6 +28,13 @@ export async function getUserProfile(userId) {
  */
 export async function updateUserProfile(userId, profileData) {
   try {
+    console.log('🔄 updateUserProfile - Données reçues:', {
+      userId,
+      profileData,
+      firstName: profileData?.firstName,
+      lastName: profileData?.lastName
+    });
+
     // Préparer les données à mettre à jour (utiliser les colonnes correctes)
     const updateData = {
       id: userId,
@@ -35,10 +42,12 @@ export async function updateUserProfile(userId, profileData) {
       nom: profileData.lastName
     };
 
+    console.log('📤 updateUserProfile - Données à envoyer:', updateData);
+
     // Upsert: créer ou mettre à jour
     const { data, error } = await supabase
       .from('profiles')
-      .upsert(updateData, { 
+      .upsert(updateData, {
         onConflict: 'id',
         returning: 'representation'
       })
@@ -46,10 +55,11 @@ export async function updateUserProfile(userId, profileData) {
       .single();
 
     if (error) {
-      console.error('Erreur mise à jour profil:', error);
+      console.error('❌ updateUserProfile - Erreur Supabase:', error);
       throw new Error(`Erreur mise à jour profil: ${error.message}`);
     }
 
+    console.log('✅ updateUserProfile - Succès, données retournées:', data);
     return data;
   } catch (error) {
     console.error('Erreur critique mise à jour profil:', error);
