@@ -199,14 +199,14 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <div className="legal-section">
         <h3>7. Cookies et technologies similaires</h3>
         <div className="info-block">
-          <p>HERBBIE utilise des cookies et technologies similaires pour :</p>
+          <p>HERBBIE utilise uniquement des cookies essentiels nécessaires au fonctionnement du service :</p>
           <ul>
-            <li>Assurer le fonctionnement technique du site</li>
-            <li>Mémoriser vos préférences</li>
-            <li>Réaliser des statistiques d'utilisation</li>
-            <li>Améliorer la sécurité</li>
+            <li><strong>Fonctionnement technique :</strong> Maintien de votre session et sécurité</li>
+            <li><strong>Authentification :</strong> Mémorisation de votre identité</li>
+            <li><strong>Sécurité :</strong> Protection contre les menaces</li>
           </ul>
-          <p>Vous pouvez gérer vos préférences cookies via les paramètres de votre navigateur.</p>
+          <p><strong>Note :</strong> Aucun cookie de suivi, analytique ou publicitaire n'est utilisé.</p>
+          <p>Les cookies essentiels sont automatiquement gérés et ne nécessitent pas de consentement selon le RGPD.</p>
         </div>
       </div>
     </div>
