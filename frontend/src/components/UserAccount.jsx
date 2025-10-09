@@ -506,7 +506,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     />
                     {error && <div className="error-message">{error}</div>}
                     <div className="form-buttons">
-                      <button type="submit">Envoyer le lien</button>
                       <button
                         type="button"
                         onClick={() => {
@@ -517,6 +516,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                       >
                         Retour à la connexion
                       </button>
+                      <button type="submit">Envoyer le lien</button>
                     </div>
                   </form>
                 ) : (
