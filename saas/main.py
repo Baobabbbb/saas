@@ -1031,151 +1031,113 @@ if __name__ == "__main__":
 async def send_email_background(contact_form: ContactForm):
     """Envoie un email en arrière-plan (non bloquant)"""
     try:
-        # Configuration email
-        sender_email = os.getenv("CONTACT_EMAIL", "noreply@herbbie.com")
-        receiver_email = os.getenv("CONTACT_EMAIL", "noreply@herbbie.com")  # Utiliser le même email pour recevoir
-        password = os.getenv("EMAIL_PASSWORD")
+        # Configuration Resend
+        resend_api_key = os.getenv("RESEND_API_KEY")
+        receiver_email = os.getenv("CONTACT_EMAIL", "contact@herbbie.com")
 
-        if not password:
-            print("❌ EMAIL_PASSWORD non configuré")
+        if not resend_api_key:
+            print("❌ RESEND_API_KEY non configuré")
             return
 
-        # Création du message
-        message = MIMEMultipart("alternative")
-        message["Subject"] = Header(f"HERBBIE - {contact_form.subject}", "utf-8")
-        message["From"] = formataddr((str(Header("HERBBIE", "utf-8")), sender_email))
-        message["To"] = receiver_email
+        if not receiver_email:
+            print("❌ CONTACT_EMAIL non configuré")
+            return
 
-        # Corps du message
+        # Création du contenu HTML de l'email
         html_content = f"""
-        <html>
-        <body>
-            <h2>Nouveau message de contact - HERBBIE</h2>
-            <p><strong>Prénom:</strong> {contact_form.firstName}</p>
-            <p><strong>Nom:</strong> {contact_form.lastName}</p>
-            <p><strong>Email:</strong> {contact_form.email}</p>
-            <p><strong>Sujet:</strong> {contact_form.subject}</p>
-            <h3>Message:</h3>
-            <p>{contact_form.message.replace(chr(10), '<br>')}</p>
-        </body>
-        </html>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">HERBBIE</h1>
+                <p style="color: #e8e8e8; margin: 10px 0 0 0; font-size: 14px;">Nouveau message de contact</p>
+            </div>
+
+            <div style="padding: 40px 30px;">
+                <div style="background: #f8f9fa; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
+                    <h2 style="color: #333; margin-top: 0; font-size: 20px;">📬 Nouveau message reçu</h2>
+
+                    <div style="margin: 25px 0;">
+                        <div style="display: flex; margin-bottom: 15px;">
+                            <strong style="width: 100px; color: #666;">Prénom:</strong>
+                            <span style="color: #333;">{contact_form.firstName}</span>
+                        </div>
+                        <div style="display: flex; margin-bottom: 15px;">
+                            <strong style="width: 100px; color: #666;">Nom:</strong>
+                            <span style="color: #333;">{contact_form.lastName}</span>
+                        </div>
+                        <div style="display: flex; margin-bottom: 15px;">
+                            <strong style="width: 100px; color: #666;">Email:</strong>
+                            <span style="color: #333;">{contact_form.email}</span>
+                        </div>
+                        <div style="display: flex; margin-bottom: 25px;">
+                            <strong style="width: 100px; color: #666;">Sujet:</strong>
+                            <span style="color: #333;">{contact_form.subject}</span>
+                        </div>
+                    </div>
+
+                    <div style="border-top: 1px solid #dee2e6; padding-top: 25px;">
+                        <h3 style="color: #333; margin-top: 0; font-size: 16px;">💬 Message:</h3>
+                        <div style="background: white; border: 1px solid #e9ecef; border-radius: 6px; padding: 20px; margin-top: 10px;">
+                            <p style="margin: 0; line-height: 1.6; color: #333; white-space: pre-line;">{contact_form.message}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; color: #666; font-size: 12px; border-top: 1px solid #dee2e6; padding-top: 20px;">
+                    <p>Cet email a été envoyé automatiquement depuis le formulaire de contact Herbbie.</p>
+                    <p>© 2024 Herbbie - Tous droits réservés</p>
+                </div>
+            </div>
+        </div>
         """
 
-        # Partie texte pour les clients email qui ne supportent pas HTML
-        text_content = f"""
-        Nouveau message de contact - HERBBIE
+        # Contenu texte brut (fallback)
+        text_content = f"""HERBBIE - Nouveau message de contact
 
-        Prénom: {contact_form.firstName}
-        Nom: {contact_form.lastName}
-        Email: {contact_form.email}
-        Sujet: {contact_form.subject}
+Prénom: {contact_form.firstName}
+Nom: {contact_form.lastName}
+Email: {contact_form.email}
+Sujet: {contact_form.subject}
 
-        Message:
-        {contact_form.message}
-        """
+Message:
+{contact_form.message}
 
-        # Attacher les parties
-        part1 = MIMEText(text_content, "plain")
-        part2 = MIMEText(html_content, "html")
+---
+Cet email a été envoyé automatiquement depuis le formulaire de contact Herbbie.
+"""
 
-        message.attach(part1)
-        message.attach(part2)
+        # Envoi via Resend API
+        import httpx
 
-        # Exécuter l'envoi dans un thread séparé pour ne pas bloquer
-        await asyncio.to_thread(
-            _send_email_sync,
-            sender_email,
-            receiver_email,
-            password,
-            message
-        )
-        
-        print(f"✅ Email envoyé avec succès de {contact_form.email}")
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {resend_api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": "Herbbie <noreply@herbbie.com>",
+                    "to": [receiver_email],
+                    "subject": f"HERBBIE - {contact_form.subject}",
+                    "html": html_content,
+                    "text": text_content,
+                }
+            )
 
-    except Exception as e:
-        print(f"❌ Erreur envoi email: {e}")
-
-def _send_email_sync(sender_email, receiver_email, password, message):
-    """Envoi synchrone de l'email (appelé dans un thread)"""
-    import socket
-
-    try:
-        # Configuration debug réseau
-        print(f"🔍 Debug réseau - Test de connectivité Gmail...")
-
-        # Test 1: Résolution DNS
-        try:
-            ip_address = socket.gethostbyname("smtp.gmail.com")
-            print(f"✅ DNS résolu: smtp.gmail.com -> {ip_address}")
-        except Exception as dns_error:
-            print(f"❌ Erreur DNS: {dns_error}")
-            raise Exception(f"DNS resolution failed: {dns_error}")
-
-        # Test 2: Connexion TCP basique
-        try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(5)
-            result = sock.connect_ex(("smtp.gmail.com", 587))
-            sock.close()
-            if result == 0:
-                print("✅ Connexion TCP 587 réussie")
+            if response.status_code == 200:
+                result = response.json()
+                print(f"✅ Email envoyé avec succès via Resend - ID: {result.get('id', 'N/A')}")
+                print(f"📧 De: {contact_form.email} → À: {receiver_email}")
             else:
-                print(f"⚠️ Connexion TCP 587 échouée (code: {result})")
-        except Exception as tcp_error:
-            print(f"❌ Erreur TCP test: {tcp_error}")
-
-        # Méthode 1: Gmail SMTP 587 (STARTTLS) - principale
-        print("📤 Tentative envoi via Gmail SMTP 587...")
-        try:
-            server = smtplib.SMTP("smtp.gmail.com", 587, timeout=15)
-            server.set_debuglevel(1)  # Debug SMTP détaillé
-            server.starttls()
-            server.login(sender_email, password)
-            server.sendmail(sender_email, receiver_email, message.as_string())
-            server.quit()
-            print("✅ Email envoyé avec succès via Gmail SMTP 587 (STARTTLS)")
-            return
-        except smtplib.SMTPAuthenticationError as auth_error:
-            print(f"❌ Erreur authentification Gmail: {auth_error}")
-            raise Exception(f"Gmail authentication failed: {auth_error}")
-        except smtplib.SMTPConnectError as conn_error:
-            print(f"❌ Erreur connexion Gmail 587: {conn_error}")
-            raise Exception(f"Gmail connection failed on port 587: {conn_error}")
-        except Exception as e1:
-            print(f"⚠️ Échec Gmail 587: {e1}")
-
-        # Méthode 2: Gmail SMTP 465 (SSL) - fallback
-        print("📤 Tentative envoi via Gmail SMTP 465...")
-        try:
-            server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15)
-            server.set_debuglevel(1)  # Debug SMTP détaillé
-            server.login(sender_email, password)
-            server.sendmail(sender_email, receiver_email, message.as_string())
-            server.quit()
-            print("✅ Email envoyé avec succès via Gmail SMTP 465 (SSL)")
-            return
-        except Exception as e2:
-            print(f"⚠️ Échec Gmail 465: {e2}")
-
-        # Méthode 3: Serveur alternatif Gmail (si disponible)
-        print("📤 Tentative envoi via serveur alternatif...")
-        try:
-            server = smtplib.SMTP("smtp.gmail.com", 25, timeout=15)
-            server.starttls()
-            server.login(sender_email, password)
-            server.sendmail(sender_email, receiver_email, message.as_string())
-            server.quit()
-            print("✅ Email envoyé avec succès via Gmail SMTP 25")
-            return
-        except Exception as e3:
-            print(f"⚠️ Échec Gmail 25: {e3}")
-
-        # Si tout échoue
-        raise Exception("Toutes les méthodes SMTP Gmail ont échoué")
+                error_msg = response.text
+                print(f"❌ Erreur Resend API ({response.status_code}): {error_msg}")
+                raise Exception(f"Resend API error: {error_msg}")
 
     except Exception as e:
-        print(f"❌ Erreur finale SMTP: {e}")
-        raise
+        print(f"❌ Erreur envoi email via Resend: {e}")
+        import traceback
+        print(f"🔍 Traceback: {traceback.format_exc()}")
+
 
 # Endpoint pour envoyer un email de contact (réponse immédiate)
 @app.post("/api/contact")
