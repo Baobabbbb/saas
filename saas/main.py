@@ -1116,7 +1116,7 @@ Cet email a été envoyé automatiquement depuis le formulaire de contact Herbbi
                     "Content-Type": "application/json",
                 },
                 json={
-                    "from": "Herbbie <noreply@herbbie.com>",
+                    "from": "Herbbie <contact@herbbie.com>",
                     "to": [receiver_email],
                     "subject": f"HERBBIE - {contact_form.subject}",
                     "html": html_content,
