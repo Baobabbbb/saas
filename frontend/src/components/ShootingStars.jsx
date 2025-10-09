@@ -24,8 +24,8 @@ const ShootingStars = () => {
     };
 
     const scheduleNextStar = () => {
-      // Délai aléatoire entre 2 secondes et 30 minutes (1800 secondes)
-      const randomDelay = Math.random() * (1800 - 2) + 2; // Entre 2s et 1800s (30min)
+      // Délai aléatoire entre 2 secondes et 20 minutes (1200 secondes)
+      const randomDelay = Math.random() * (1200 - 2) + 2; // Entre 2s et 1200s (20min)
       setTimeout(() => {
         createStar();
         scheduleNextStar(); // Programmer la suivante
