@@ -26,11 +26,24 @@ const AdminContent = () => {
     }
   }, [autoAuth]);
 
+  // Changer le titre de l'onglet pour l'administration
+  useEffect(() => {
+    const originalTitle = document.title;
+    document.title = 'HERBBIE - Administration';
+
+    return () => {
+      // Restaurer le titre original en quittant la page
+      document.title = originalTitle;
+    };
+  }, []);
+
   // Nettoyer l'auto-auth quand on quitte la page
   useEffect(() => {
     const handleBeforeUnload = () => {
       setAutoAuthGranted(false);
       localStorage.removeItem('herbbie_admin_session');
+      // Restaurer le titre original
+      document.title = 'HERBBIE';
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
