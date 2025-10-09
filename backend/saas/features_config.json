@@ -1,0 +1,38 @@
+{
+  "animation": {
+    "enabled": true,
+    "name": "Dessin animé",
+    "icon": "🎬",
+    "description": "Génération de dessins animés personnalisés avec IA",
+    "updated_at": "2025-01-30T10:00:00.000Z"
+  },
+  "comic": {
+    "enabled": true,
+    "name": "Bande dessinée",
+    "icon": "💬",
+    "description": "Création de bandes dessinées avec bulles de dialogue",
+    "updated_at": "2025-01-30T10:00:00.000Z"
+  },
+  "coloring": {
+    "enabled": true,
+    "name": "Coloriage",
+    "icon": "🎨",
+    "description": "Pages de coloriage à imprimer pour les enfants",
+    "updated_at": "2025-01-30T10:00:00.000Z"
+  },
+  "audio": {
+    "enabled": true,
+    "name": "Histoire",
+    "icon": "📖",
+    "description": "Histoires audio avec narration automatique",
+    "updated_at": "2025-01-30T10:00:00.000Z"
+  },
+  "rhyme": {
+    "enabled": true,
+    "name": "Comptine",
+    "icon": "🎵",
+    "description": "Comptines musicales avec paroles et mélodies",
+    "updated_at": "2025-01-30T10:00:00.000Z"
+  }
+}
+

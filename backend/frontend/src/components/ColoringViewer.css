@@ -1,0 +1,94 @@
+.coloring-viewer {
+  width: 100%;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.coloring-grid {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  width: 100%;
+}
+
+.coloring-item {
+  background: transparent; /* Suppression du fond du conteneur principal */
+  border-radius: 1rem;
+  overflow: visible; /* Permet aux éléments de dépasser si nécessaire */
+  box-shadow: none;
+  width: 100%;
+  max-width: 500px;
+}
+
+.coloring-image-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%; /* Ratio carré */
+  overflow: hidden;
+  background: white; /* Fond blanc seulement pour l'image */
+  border-radius: 1rem; /* Arrondi pour l'image */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Ombre seulement sur l'image */
+}
+
+.coloring-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Garde les proportions de l'image */
+  background: white;
+}
+
+.coloring-info {
+  padding: 1rem;
+  text-align: center;
+}
+
+.coloring-info span {
+  color: #4a3b8c;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.coloring-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.download-all-button {
+  background: linear-gradient(135deg, #6B4EFF 0%, #8B5FFF 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(107, 78, 255, 0.3);
+}
+
+.download-all-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(107, 78, 255, 0.4);
+}
+
+@media (max-width: 768px) {
+  .coloring-grid {
+    max-width: 350px;
+  }
+  
+  .coloring-viewer {
+    padding: 1rem;
+  }
+  
+  .download-all-button {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+  }
+}

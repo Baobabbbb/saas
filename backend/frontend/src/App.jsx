@@ -21,10 +21,11 @@ import { API_BASE_URL, ANIMATION_API_BASE_URL } from './config/api';
 
 import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
-import { checkPaymentPermission, isUserAdmin, getContentPrice } from './services/payment';
+import { checkPaymentPermission, hasFreeAccess, getContentPrice } from './services/payment';
 import StripePaymentModal from './components/StripePaymentModal';
 import Footer from './components/Footer';
 import LegalPages from './components/LegalPages';
+import ShootingStars from './components/ShootingStars';
 
 // Fonction pour générer des titres attractifs pour les enfants
 const generateChildFriendlyTitle = (contentType, theme, content = '') => {
@@ -107,7 +108,7 @@ function App() {
   
   // Musical rhyme states (nouveau)
   const [generateMusic, setGenerateMusic] = useState(true);
-  const [musicStyle, setMusicStyle] = useState('auto');
+  const [musicStyle, setMusicStyle] = useState(''); // Changé de 'auto' à '' pour éviter la sélection par défaut
   const [customMusicStyle, setCustomMusicStyle] = useState('');
   
   const [selectedAudioStory, setSelectedAudioStory] = useState(null);
@@ -123,7 +124,10 @@ function App() {
 
   // Coloring states
   const [selectedTheme, setSelectedTheme] = useState(null);
+  const [customColoringTheme, setCustomColoringTheme] = useState('');
+  const [uploadedPhoto, setUploadedPhoto] = useState(null);
   const [coloringResult, setColoringResult] = useState(null);
+  const [withColoredModel, setWithColoredModel] = useState(true); // true par défaut = avec modèle coloré
   
   // Animation states
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
@@ -152,23 +156,18 @@ function App() {
   // Polling du statut d'une animation jusqu'à complétion
   const waitForAnimationCompletion = async (taskId, { intervalMs = 5000, maxAttempts = 240 } = {}) => {
     let attempts = 0;
-    console.log(`🔄 Démarrage polling pour task_id: ${taskId}`);
     
     while (attempts < maxAttempts) {
       try {
-        console.log(`🔍 Tentative ${attempts + 1}/${maxAttempts} - Vérification statut pour ${taskId}`);
         const res = await fetch(`${ANIMATION_API_BASE_URL}/status/${taskId}`);
         
         if (res.ok) {
           const statusPayload = await res.json();
-          console.log('📊 Réponse statut:', statusPayload);
           
           if (statusPayload?.type === 'result') {
             const data = statusPayload.data;
-            console.log('📋 Données reçues:', data);
             
             if (data?.status === 'completed') {
-              console.log('✅ Animation terminée !', data);
               // Vérifier qu'il y a vraiment du contenu
               if (data?.clips && data.clips.length > 0) {
                 return data;
@@ -180,8 +179,6 @@ function App() {
               console.error('❌ Génération échouée:', data?.error_message);
               throw new Error(data?.error_message || 'Génération échouée');
             }
-            
-            console.log(`⏳ Status: ${data?.status}, attente ${intervalMs}ms...`);
           }
         } else {
           console.warn(`⚠️ Erreur HTTP ${res.status} lors du polling`);
@@ -204,6 +201,7 @@ function App() {
   // État compte utilisateur via hook standard (évite l'écran blanc au premier chargement)
   const { user, loading } = useSupabaseUser();
   const [showHistory, setShowHistory] = useState(false);
+  const [hasFreeAccess, setHasFreeAccess] = useState(false);
 
   // 📖 Pagination : découpe le texte en pages
   const storyPages = useMemo(() => {
@@ -231,21 +229,46 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Vérifier si l'utilisateur est admin et mettre à jour le bouton
+  // Vérifier si l'utilisateur a accès gratuit et mettre à jour le bouton
   useEffect(() => {
-    const checkAdminStatus = async () => {
+    const checkFreeAccessStatus = async () => {
       if (user) {
-        const adminStatus = await isUserAdmin(user.id, user.email);
-        setIsAdmin(adminStatus);
-        updateButtonText(adminStatus);
+        const freeAccessStatus = await hasFreeAccess(user.id, user.email);
+        setHasFreeAccess(freeAccessStatus);
+        updateButtonText(freeAccessStatus);
       } else {
-        setIsAdmin(false);
+        setHasFreeAccess(false);
         updateButtonText(false);
       }
     };
 
-    checkAdminStatus();
+    checkFreeAccessStatus();
   }, [user, contentType]);
+
+  // S'assurer qu'aucun bouton n'est sélectionné par défaut quand on change de type de contenu
+  useEffect(() => {
+    // Remettre à zéro toutes les sélections quand on change de type de contenu
+    setSelectedRhyme(null);
+    setCustomRhyme('');
+    setGenerateMusic(true);
+    setMusicStyle(''); // Remettre à zéro au lieu de 'auto'
+    setCustomMusicStyle('');
+    setSelectedAudioStory(null);
+    setCustomAudioStory('');
+    setSelectedVoice(null);
+    setSelectedTheme(null);
+    setCustomColoringTheme('');
+    setUploadedPhoto(null);
+    setWithColoredModel(null); // Remettre à zéro le choix du modèle
+    setSelectedAnimationTheme(null);
+    setSelectedDuration(null);
+    setSelectedStyle(null);
+    setCustomStory('');
+    setGeneratedResult(null);
+    setColoringResult(null);
+    setAnimationResult(null);
+    setCurrentTitle(null);
+  }, [contentType]);
 
   // Mettre à jour le texte du bouton selon le statut admin et le type de contenu
   const updateButtonText = (adminStatus) => {
@@ -265,32 +288,26 @@ function App() {
       return;
     }
 
-    // Si c'est un admin, génération directe
-    if (isAdmin) {
-      console.log('👑 Admin détecté - génération directe');
+    // Si l'utilisateur a accès gratuit (admin ou free), génération directe
+    if (hasFreeAccess) {
       startGeneration();
       return;
     }
 
     // Si utilisateur normal, vérifier les permissions
-    console.log('🔍 Vérification des permissions pour utilisateur normal');
     const permissionCheck = await checkPaymentPermission(
       contentType, 
       user.id, 
       user.email
     );
     
-    console.log('📋 Résultat vérification permission:', permissionCheck);
-    
     if (!permissionCheck.hasPermission) {
       // Ouvrir directement la modal de paiement
-      console.log('💳 Ouverture modal de paiement');
       setPaymentContentType(contentType);
       setShowPaymentModal(true);
       return;
     } else {
       // Permission accordée, génération directe
-      console.log('✅ Permission validée - génération autorisée');
       startGeneration();
     }
   };
@@ -308,13 +325,10 @@ function App() {
 
       if (contentType === 'rhyme') {
         const payload = {
-          rhyme_type: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
+          theme: selectedRhyme === 'custom' ? customRhyme : selectedRhyme,
           custom_request: customRequest,
-          generate_music: generateMusic || true,
-          custom_style: musicStyle === 'custom' ? customMusicStyle : null,
           language: 'fr'
         };
-
         // Utiliser l'endpoint correct pour les comptines
         const response = await fetch(`${API_BASE_URL}/generate_rhyme/`, {
           method: 'POST',
@@ -338,22 +352,64 @@ function App() {
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
     } else if (contentType === 'coloring') {
-      const payload = {
-        theme: selectedTheme
-      };
-      
+      // Si l'utilisateur a uploadé une photo, utiliser l'endpoint de conversion
+      if (uploadedPhoto) {
+        // 1. Upload de la photo
+        const formData = new FormData();
+        formData.append('file', uploadedPhoto);
+        
+        const uploadResponse = await fetch(`${API_BASE_URL}/upload_photo_for_coloring/`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!uploadResponse.ok) throw new Error(`Erreur upload : ${uploadResponse.status}`);
+        
+        const uploadData = await uploadResponse.json();
+        
+        // 2. Conversion en coloriage avec GPT-4o-mini + gpt-image-1
+        const conversionPayload = {
+          photo_path: uploadData.file_path,
+          with_colored_model: withColoredModel
+        };
+        
+        const conversionResponse = await fetch(`${API_BASE_URL}/convert_photo_to_coloring/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(conversionPayload)
+        });
+        
+        if (!conversionResponse.ok) throw new Error(`Erreur conversion : ${conversionResponse.status}`);
+        
+        const coloringData = await conversionResponse.json();
+        
+        setColoringResult(coloringData);
+        generatedContent = coloringData;
+      } else {
+        // Génération classique par thème
+        const payload = {
+          theme: selectedTheme,
+          with_colored_model: withColoredModel
+        };
+        
+        // Si c'est un coloriage personnalisé, ajouter le prompt personnalisé
+        if (selectedTheme === 'custom' && customColoringTheme.trim()) {
+          payload.custom_prompt = customColoringTheme.trim();
+        }
+        
         const response = await fetch(`${API_BASE_URL}/generate_coloring/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
-      
-      const coloringData = await response.json();
-      
-      setColoringResult(coloringData);
-      generatedContent = coloringData; // Stocker pour l'historique
+        if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+        
+        const coloringData = await response.json();
+        
+        setColoringResult(coloringData);
+        generatedContent = coloringData; // Stocker pour l'historique
+      }
     } else if (contentType === 'animation') {
       // Déterminer le contenu de l'histoire
       let story;
@@ -435,13 +491,9 @@ function App() {
       const taskId = initialData?.task_id;
       const isCompleted = initialData?.status === 'completed' && (initialData?.final_video_url || (initialData?.clips?.length || 0) > 0);
 
-      console.log('🎬 Génération démarrée, task_id:', taskId, 'status:', initialData?.status);
-
       if (taskId && !isCompleted) {
-        console.log('⏳ Démarrage du polling pour task_id:', taskId);
         // Rester en état de chargement pendant le polling
         finalData = await waitForAnimationCompletion(taskId);
-        console.log('✅ Polling terminé, ouverture du viewer');
       }
 
       // Ne définir le résultat et ouvrir le viewer qu'après complétion avec contenu
@@ -449,7 +501,6 @@ function App() {
         setAnimationResult(finalData);
         setShowAnimationViewer(true);
         generatedContent = finalData; // Stocker pour l'historique
-        console.log('🎬 Viewer ouvert avec animation complétée et clips:', finalData.clips.length);
       } else {
         console.warn('⚠️ Animation non complétée ou sans clips, viewer non ouvert. Status:', finalData?.status, 'Clips:', finalData?.clips?.length);
       }
@@ -461,9 +512,11 @@ function App() {
     setCurrentPageIndex(0); // Reviens à la première page
 
     // 🎵 Démarrer le polling automatique si c'est une comptine avec task_id
-    if (contentType === 'rhyme' && generatedContent.task_id && generateMusic) {
-      console.log('🎵 Démarrage du polling automatique pour task_id:', generatedContent.task_id);
+    // IMPORTANT : On garde isGenerating = true jusqu'à ce que la musique soit prête
+    if (contentType === 'rhyme' && generatedContent.task_id) {
+      // NE PAS arrêter isGenerating ici, le polling le fera quand la musique est prête
       pollTaskStatus(generatedContent.task_id);
+      return; // Sortir de la fonction pour garder isGenerating = true
     }    // Déterminer le titre avec des noms attractifs pour les enfants
     let title;
     if (contentType === 'rhyme') {
@@ -540,13 +593,20 @@ function App() {
       }
 
     // setTimeout(() => setShowConfetti(false), 3000);
+    
+    // Arrêter l'animation de chargement pour les autres types de contenu
+    // (pour les comptines, c'est géré par pollTaskStatus)
+    setIsGenerating(false);
   } catch (error) {
     console.error('❌ Erreur de génération :', error);
     
     // Afficher une alerte avec plus d'informations
-    alert(`❌ Erreur lors de la génération : ${error.message}\n\n💡 Conseil : Vérifiez que les clés API sont configurées dans le fichier .env du serveur.`);  } finally {
+    alert(`❌ Erreur lors de la génération : ${error.message}\n\n💡 Conseil : Vérifiez que les clés API sont configurées dans le fichier .env du serveur.`);
     setIsGenerating(false);
   }
+  
+  // NE PAS mettre finally ici car pour les comptines on fait un return avant
+  // et le polling gère le setIsGenerating(false)
 };
 
 const handleSelectCreation = (creation) => {
@@ -587,14 +647,15 @@ const handleSelectCreation = (creation) => {
     if (contentType === 'rhyme') {
       if (!selectedRhyme) return false;
       if (selectedRhyme === 'custom' && !customRhyme.trim()) return false;
-      // Validation supplémentaire pour le style musical personnalisé
-      if (generateMusic && musicStyle === 'custom' && !customMusicStyle.trim()) return false;
     } else if (contentType === 'audio') {
       if (!selectedAudioStory) return false;
       if (selectedAudioStory === 'custom' && !customAudioStory.trim()) return false;
       // La voix est optionnelle
     } else if (contentType === 'coloring') {
-      if (!selectedTheme) return false;
+      // Valide si thème sélectionné OU photo uploadée
+      if (!selectedTheme && !uploadedPhoto) return false;
+      // Si thème custom, vérifier le texte personnalisé
+      if (selectedTheme === 'custom' && !customColoringTheme.trim()) return false;
     } else if (contentType === 'animation') {
       // Pour les animations, soit un thème soit une histoire personnalisée
       if (!selectedAnimationTheme && !customStory.trim()) return false;
@@ -690,8 +751,8 @@ const downloadPDF = async (title, content) => {
   doc.save(`${safeTitle}.pdf`);
 };
 
- // Fonction de polling automatique pour vérifier le statut des tâches musicales
-  const pollTaskStatus = async (taskId, maxAttempts = 20, interval = 5000) => {
+ // Fonction de polling automatique pour vérifier le statut des tâches musicales Suno
+  const pollTaskStatus = async (taskId, maxAttempts = 40, interval = 5000) => {
     let attempts = 0;
     
     const checkStatus = async () => {
@@ -699,23 +760,60 @@ const downloadPDF = async (title, content) => {
         const response = await fetch(`${API_BASE_URL}/check_task_status/${taskId}`);
         const status = await response.json();
         
-        console.log(`Polling tentative ${attempts + 1}/${maxAttempts}:`, status);
-        
-        if (status.status === 'completed' && status.audio_path) {
-          // Tâche terminée avec succès
-          setGeneratedResult(prev => ({
-            ...prev,
-            audio_path: status.audio_path,
-            has_music: true
-          }));
+        if (status.status === 'completed' && status.songs && status.songs.length > 0) {
+          // Tâche Suno terminée avec succès
+          setGeneratedResult(prev => {
+            const updatedResult = {
+              ...prev,
+              songs: status.songs,
+              has_music: true,
+              service: 'suno'
+            };
+            
+            // Enregistrer dans l'historique maintenant que la musique est prête
+            const title = prev.title || generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme) + ' 🎵';
+            setCurrentTitle(title);
+            
+            // Créer l'entrée d'historique
+            const newCreation = {
+              id: Date.now().toString(),
+              type: 'rhyme',
+              title: title,
+              createdAt: new Date().toISOString(),
+              content: prev.content || prev.rhyme || 'Comptine générée',
+              songs: status.songs
+            };
+            
+            // Sauvegarder dans l'historique via Supabase
+            addCreation({
+              type: 'rhyme',
+              title: title,
+              data: newCreation
+            }).catch(historyError => {
+              console.error('Erreur lors de l\'enregistrement dans l\'historique:', historyError);
+            });
+            
+            return updatedResult;
+          });
+          setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement
           return true; // Arrêter le polling
         } else if (status.status === 'failed') {
           // Tâche échouée
-          console.error('La génération musicale a échoué:', status);
+          console.error('❌ La génération musicale Suno a échoué:', status.error);
+          setGeneratedResult(prev => ({
+            ...prev,
+            music_error: status.error,
+            has_music: false
+          }));
+          setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement même en cas d'erreur
           return true; // Arrêter le polling
+        } else if (status.status === 'processing') {
+          // En cours de traitement
         } else if (attempts >= maxAttempts - 1) {
           // Timeout atteint
-          console.warn('Timeout atteint pour la génération musicale');
+          console.warn('⚠️ Timeout atteint pour la génération musicale Suno');
+          setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement
+          alert('⚠️ La génération de musique prend plus de temps que prévu. Veuillez vérifier votre historique dans quelques minutes.');
           return true; // Arrêter le polling
         }
         
@@ -725,7 +823,7 @@ const downloadPDF = async (title, content) => {
         return false;
         
       } catch (error) {
-        console.error('Erreur lors du polling:', error);
+        console.error('❌ Erreur lors du polling Suno:', error);
         attempts++;
         if (attempts < maxAttempts) {
           setTimeout(checkStatus, interval);
@@ -752,6 +850,9 @@ const downloadPDF = async (title, content) => {
       onOpenHistory={() => setShowHistory(true)}
     />
 
+    {/* 🌟 Étoiles filantes pour dynamiser le fond */}
+    <ShootingStars />
+
     <main className="main-content">
       <div className="content-wrapper">
         <motion.div
@@ -766,23 +867,17 @@ const downloadPDF = async (title, content) => {
             {contentType === 'rhyme' ? (
               <motion.div
                 key="rhyme-selector"
-                variants={contentVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
+                style={{ width: '100%' }}
               >
                 <MusicalRhymeSelector
                   selectedRhyme={selectedRhyme}
                   setSelectedRhyme={setSelectedRhyme}
                   customRhyme={customRhyme}
                   setCustomRhyme={setCustomRhyme}
-                  generateMusic={generateMusic}
-                  setGenerateMusic={setGenerateMusic}
-                  musicStyle={musicStyle}
-                  setMusicStyle={setMusicStyle}
-                  customMusicStyle={customMusicStyle}
-                  setCustomMusicStyle={setCustomMusicStyle}
                 />
               </motion.div>
             ) : contentType === 'audio' ? (
@@ -814,6 +909,12 @@ const downloadPDF = async (title, content) => {
               >                <ColoringSelector
                   selectedTheme={selectedTheme}
                   setSelectedTheme={setSelectedTheme}
+                  customColoringTheme={customColoringTheme}
+                  setCustomColoringTheme={setCustomColoringTheme}
+                  uploadedPhoto={uploadedPhoto}
+                  setUploadedPhoto={setUploadedPhoto}
+                  withColoredModel={withColoredModel}
+                  setWithColoredModel={setWithColoredModel}
                 />
               </motion.div>
             ) : contentType === 'animation' ? (
@@ -875,7 +976,7 @@ const downloadPDF = async (title, content) => {
         <div className="dot"></div>
         <div className="dot"></div>
       </div>      <p>        {contentType === 'rhyme'
-          ? 'Création de la comptine en cours...'
+          ? 'Votre comptine est en cours de création...'
           : contentType === 'audio'
           ? 'Création de l\'histoire en cours...'
           : contentType === 'coloring'
@@ -933,7 +1034,7 @@ const downloadPDF = async (title, content) => {
         📄 Télécharger le coloriage
       </button>
     </motion.div>
-  ) : generatedResult && contentType === 'rhyme' ? (
+  ) : generatedResult && contentType === 'rhyme' && generatedResult.songs && generatedResult.songs.length > 0 ? (
     <motion.div
       className="generated-result"
       initial={{ opacity: 0 }}
@@ -948,105 +1049,92 @@ const downloadPDF = async (title, content) => {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          gap: '1rem',
-          padding: '1rem'
+          gap: '0.8rem',
+          padding: '1rem',
+          overflowY: 'auto'
         }}
       >
-        {/* Affichage des paroles */}
-        {(generatedResult.content || generatedResult.rhyme) && (
-          <div style={{ 
-            maxHeight: '120px', 
-            overflowY: 'auto', 
-            padding: '0.8rem',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '8px',
-            width: '100%',
-            textAlign: 'center',
-            border: '1px solid #dee2e6'
-          }}>
-            <p style={{ margin: 0, fontSize: '13px', lineHeight: '1.4' }}>
-              {generatedResult.content || generatedResult.rhyme}
-            </p>
-          </div>
-        )}
-        
-        {/* Audio si disponible */}
-        {generatedResult.audio_path && (
-          <audio
-            controls
-            style={{ width: '100%', maxWidth: '300px' }}
-            src={`${API_BASE_URL}/${generatedResult.audio_path}`}
-          />
-        )}
-        
-        {/* Statut de génération musicale */}
-        {generatedResult.task_id && !generatedResult.audio_path && (
-          <div style={{ 
-            padding: '0.5rem 1rem',
-            backgroundColor: '#fff3cd',
-            borderRadius: '6px',
-            fontSize: '11px',
-            color: '#856404',
-            textAlign: 'center',
-            border: '1px solid #ffeaa7'
-          }}>
-            🎵 Génération musicale en cours...
-          </div>
-        )}
-        
-        {/* Boutons d'action */}
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-          {(generatedResult.content || generatedResult.rhyme) && (
-            <button
-              onClick={() => downloadPDF(currentTitle || 'Comptine', generatedResult.content || generatedResult.rhyme)}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#6B4EFF',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '0.5rem',
-                cursor: 'pointer',
-                fontWeight: '600',
-                fontSize: '11px'
-              }}
-            >
-              📄 Télécharger
-            </button>
-          )}
-          
-          {generatedResult.task_id && (
+        {/* Audio si disponible - Une seule comptine */}
+        {generatedResult.songs && generatedResult.songs.length > 0 && (
+          <>
+            {generatedResult.songs.map((song, index) => (
+              <div key={song.id || index} style={{ 
+                background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', 
+                padding: '22px', 
+                borderRadius: '15px',
+                border: '2px solid #dee2e6',
+                width: '100%',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+              }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '10px', 
+                  marginBottom: '14px' 
+                }}>
+                  <span style={{ fontSize: '24px' }}>🎵</span>
+                  <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
+                    Votre comptine est prête !
+                  </h4>
+                </div>
+                <audio
+                  controls
+                  preload="metadata"
+                  controlsList="nodownload"
+                  style={{
+                    width: '100%',
+                    height: '60px',
+                    outline: 'none'
+                  }}
+                  src={song.audio_url}
+                >
+                  Votre navigateur ne supporte pas l'élément audio.
+                </audio>
+              </div>
+            ))}
+            
+            {/* Bouton Télécharger unique */}
             <button
               onClick={async () => {
-                try {
-                  const response = await fetch(`${API_BASE_URL}/check_task_status/${generatedResult.task_id}`);
-                  const status = await response.json();
-                  if (status.status === 'completed' && status.audio_path) {
-                    setGeneratedResult({
-                      ...generatedResult,
-                      audio_path: status.audio_path
-                    });
-                  } else {
-                    alert(`Statut: ${status.status}`);
+                if (generatedResult.songs && generatedResult.songs.length > 0) {
+                  const song = generatedResult.songs[0];
+                  try {
+                    const response = await fetch(song.audio_url);
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `${currentTitle || 'Comptine'}.mp3`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                  } catch (error) {
+                    // Fallback si CORS bloque
+                    window.open(song.audio_url, '_blank');
                   }
-                } catch (error) {
-                  alert('Erreur lors de la vérification du statut');
                 }
               }}
               style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#28a745',
+                padding: '0.8rem 2rem',
+                backgroundColor: '#6B4EFF',
                 color: '#fff',
                 border: 'none',
-                borderRadius: '0.5rem',
+                borderRadius: '10px',
                 cursor: 'pointer',
                 fontWeight: '600',
-                fontSize: '11px'
+                fontSize: '14px',
+                marginTop: '0.8rem',
+                boxShadow: '0 4px 12px rgba(107, 78, 255, 0.3)',
+                transition: 'all 0.3s ease'
               }}
+              onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+              onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
             >
-              🔄 Vérifier musique
+              📥 Télécharger
             </button>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </motion.div>
   ) : (
@@ -1194,7 +1282,6 @@ const downloadPDF = async (title, content) => {
         userId={user?.id}
         userEmail={user?.email}
         onSuccess={(result) => {
-          console.log('✅ Paiement Stripe réussi:', result);
           setShowPaymentModal(false);
           // Lancer la génération automatiquement après paiement réussi
           setTimeout(() => {
@@ -1202,7 +1289,6 @@ const downloadPDF = async (title, content) => {
           }, 500);
         }}
         onCancel={() => {
-          console.log('❌ Paiement annulé');
           setShowPaymentModal(false);
         }}
       />

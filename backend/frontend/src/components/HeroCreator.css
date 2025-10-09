@@ -1,0 +1,284 @@
+/* Variables pour cohérence avec les autres composants */
+:root {
+  --primary: #6B4EFF;
+  --text: #333;
+}
+
+.hero-creator {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.hero-creator h3 {
+  font-size: 1.2rem;
+  color: var(--primary);
+  margin: 0;
+}
+
+.hero-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-group label {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.input-group input {
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: 2px solid #e0d6ff;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.2);
+}
+
+.avatar-selector {
+  margin-top: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.avatar-selector p {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.avatar-options {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.avatar-option {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #f5f0ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.avatar-option:hover {
+  background-color: #ede5ff;
+}
+
+.avatar-option.selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.2);
+}
+
+.avatar-upload {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #f5f0ff;
+  border: 2px dashed #c4b5ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--primary);
+  cursor: pointer;
+  position: relative;
+}
+
+.avatar-prompt {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #f5f0ff;
+  border: 2px dashed #c4b5ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.32rem;
+  color: var(--primary);
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.2s;
+}
+
+.avatar-prompt:hover {
+  background-color: #ede5ff;
+}
+
+.avatar-prompt .tooltip {
+  position: absolute;
+  top: 49px;
+  left: 0%;
+  transform: translateX(-50%);
+  background-color: #f5f0ff;
+  color: var(--primary);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 2;
+  margin-left: 2.1rem;
+}
+
+.avatar-prompt:hover .tooltip {
+  opacity: 1;
+}
+
+.avatar-upload:hover {
+  background-color: #ede5ff;
+}
+
+.uploaded-photo-container {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: -1.7rem;
+  position: relative;
+}
+
+.uploaded-photo {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 3px solid var(--primary);
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
+}
+
+.uploaded-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-caption {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--primary);
+}
+
+.photo-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.change-photo-btn,
+.remove-photo-btn {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--primary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Baloo 2', cursive;
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+.change-photo-btn {
+  background-color: transparent;
+  color: var(--primary);
+}
+
+.change-photo-btn:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+.remove-photo-btn {
+  background-color: transparent;
+  color: #ff4757;
+  border-color: #ff4757;
+}
+
+.remove-photo-btn:hover {
+  background-color: #ff4757;
+  color: white;
+}
+
+.avatar-upload .tooltip {
+  position: absolute;
+  top: 49px; /* ✅ juste sous le bouton, mais pas trop bas */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #f5f0ff; /* ✅ violet très léger */
+  color: var(--primary);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 2;
+  margin-left: 2.1rem;
+}
+
+.avatar-upload:hover .tooltip {
+  opacity: 1;
+}
+
+.prompt-encart {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  margin-bottom: 0.2rem;
+}
+
+.prompt-input {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  border-radius: 16px;
+  border: 2px solid #e0d6ff;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  background: #fff;
+  outline: none;
+}
+
+.prompt-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.16);
+}
+
+.prompt-submit {
+  padding: 0.7rem 1.2rem;
+  border-radius: 14px;
+  border: none;
+  background: var(--primary, #6b4eff);
+  color: #fff;
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.prompt-submit[disabled] {
+  background: #ccc;
+  cursor: not-allowed;
+}

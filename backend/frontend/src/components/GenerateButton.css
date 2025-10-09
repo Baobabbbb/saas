@@ -1,0 +1,77 @@
+.generate-section {
+  --primary: #6B4EFF;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.generate-button {
+  background: linear-gradient(45deg, var(--primary), #9277FF);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 1.2rem 2.5rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  box-shadow: 0 8px 20px rgba(107, 78, 255, 0.3);
+  transition: all 0.3s ease;
+  width: 100%;
+  justify-content: center;
+  min-height: 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+.generate-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.generate-button:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.generate-button:hover:not(:disabled) {
+  box-shadow: 0 12px 25px rgba(107, 78, 255, 0.4);
+}
+
+.generate-button:disabled {
+  background: linear-gradient(45deg, #b3a6e0, #c4b5ff);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.button-icon {
+  font-size: 1.5rem;
+}
+
+.button-icon.spinning {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.helper-text {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--secondary);
+  text-align: center;
+}

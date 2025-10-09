@@ -2,12 +2,10 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <!-- Favicons multi-tailles avec le nouveau logo violet -->
-    <link rel="icon" type="image/png" sizes="16x16" href="/logo_herbbie-16.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/logo_herbbie-32.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/logo_herbbie.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/logo_herbbie.png" />
-    <meta name="msapplication-TileImage" content="/logo_herbbie.png" />
+    <!-- Logo d'onglet - utilisation du logo_v.png -->
+    <link rel="icon" type="image/png" href="/logo_v.png?v=8" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/logo_v.png?v=8" />
+    <meta name="msapplication-TileImage" content="/logo_v.png?v=8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Protection des données personnelles - Configuration des robots -->
     <meta name="robots" content="index, follow, noarchive, nosnippet" />
@@ -17,19 +15,64 @@
     <meta name="format-detection" content="telephone=no, email=no, address=no" />
     <!-- Politique de référencement restrictive pour les données sensibles -->
     <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <!-- Force le navigateur à ne pas utiliser le cache -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>HERBBIE</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/assets/main-dfd13a5d.js"></script>
+    <script type="module" crossorigin src="/assets/main-0edae4c5.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/preload-helper-8235fac6.js">
-    <link rel="modulepreload" crossorigin href="/assets/supabaseClient-76c3910e.js">
-    <link rel="modulepreload" crossorigin href="/assets/creations-822d4935.js">
-    <link rel="stylesheet" href="/assets/index-43e999b3.css">
+    <link rel="modulepreload" crossorigin href="/assets/supabaseClient-b083d559.js">
+    <link rel="modulepreload" crossorigin href="/assets/creations-1503ba42.js">
+    <link rel="stylesheet" href="/assets/index-cd59ee38.css">
   </head>
   <body>
     <div id="root"></div>
     
+    <!-- Script pour forcer le nettoyage du cache et des sessions au chargement -->
+    <script>
+      (function() {
+        // Supprimer les anciennes clés de stockage problématiques
+        try {
+          localStorage.removeItem('fridayFeatures');
+          
+          // Nettoyer les sessions Supabase corrompues
+          const supabaseKeys = Object.keys(localStorage).filter(key => 
+            key.startsWith('sb-') || key.startsWith('supabase.')
+          );
+          
+          supabaseKeys.forEach(key => {
+            try {
+              const value = localStorage.getItem(key);
+              if (value) {
+                const parsed = JSON.parse(value);
+                // Vérifier si la session est expirée
+                if (parsed.expires_at && parsed.expires_at < Date.now() / 1000) {
+                  localStorage.removeItem(key);
+                }
+              }
+            } catch (e) {
+              // Si le parsing échoue, la session est corrompue, la supprimer
+              localStorage.removeItem(key);
+            }
+          });
+        } catch (e) {
+          console.error('Erreur lors du nettoyage:', e);
+        }
+        
+        // Vider le cache du service worker
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+              registration.unregister();
+            }
+          });
+        }
+      })();
+    </script>
   </body>
 </html>

@@ -38,13 +38,44 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetEmailSent, setResetEmailSent] = useState(false);
-
-  // Email de l'administrateur
-  const ADMIN_EMAIL = 'fredagathe77@gmail.com';
+  const [isAdminUser, setIsAdminUser] = useState(false);
   
-  // Vérifier si l'utilisateur connecté est l'administrateur
+  // Vérifier si l'utilisateur connecté est administrateur (en vérifiant le rôle dans la base)
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user || !user.id) {
+        setIsAdminUser(false);
+        return;
+      }
+
+      try {
+        // Vérifier le rôle dans la table profiles
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Erreur vérification rôle admin:', error);
+          setIsAdminUser(false);
+          return;
+        }
+
+        const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
+        setIsAdminUser(isAdmin);
+      } catch (error) {
+        console.error('Erreur lors de la vérification du rôle:', error);
+        setIsAdminUser(false);
+      }
+    };
+
+    checkAdminRole();
+  }, [user]);
+
+  // Fonction helper pour vérifier si admin (synchrone)
   const isAdmin = () => {
-    return user?.email === ADMIN_EMAIL;
+    return isAdminUser;
   };
 
   // AUTHENTIFICATION SUPABASE RÉELLE - Plus de localStorage !
@@ -54,8 +85,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
     setIsAuthenticating(true);
     
     try {
-      console.log('🔐 HERBBIE: Tentative de connexion Supabase avec:', email);
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password.trim(),
@@ -70,7 +99,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       }
 
       if (data?.user) {
-        console.log('✅ HERBBIE: Connexion Supabase réussie:', data.user.email);
         
         // Fermer les formulaires
         setShowLoginForm(false);
@@ -98,7 +126,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
     setIsAuthenticating(true);
     
     try {
-      console.log('📝 HERBBIE: Tentative d\'inscription Supabase avec:', email);
       
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
@@ -121,7 +148,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       }
 
       if (data?.user) {
-        console.log('✅ HERBBIE: Inscription Supabase réussie:', data.user.email);
         
         // Vérifier si l'email nécessite une confirmation
         if (!data.session) {
@@ -151,8 +177,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
 
   const handleSignOut = async () => {
     try {
-      console.log('🚪 HERBBIE: Déconnexion Supabase...');
-      
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -160,8 +184,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
         setError('Erreur lors de la déconnexion');
         return;
       }
-      
-      console.log('✅ HERBBIE: Déconnexion réussie');
       
       // Nettoyer les états locaux
       setShowDropdown(false);
@@ -325,9 +347,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                   />
                   {error && <div className="error-message">{error}</div>}
                   <div className="form-buttons">
-                    <button type="submit" disabled={isAuthenticating}>
-                      {isAuthenticating ? 'Connexion...' : 'Se connecter'}
-                    </button>
                     <button
                       type="button"
                       onClick={() => {
@@ -338,6 +357,9 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                       disabled={isAuthenticating}
                     >
                       Créer un compte
+                    </button>
+                    <button type="submit" disabled={isAuthenticating}>
+                      {isAuthenticating ? 'Connexion...' : 'Se connecter'}
                     </button>
                   </div>
                   <button
@@ -411,9 +433,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                   />
                   {error && <div className="error-message">{error}</div>}
                   <div className="form-buttons">
-                    <button type="submit" disabled={isAuthenticating}>
-                      {isAuthenticating ? 'Création...' : 'Créer le compte'}
-                    </button>
                     <button
                       type="button"
                       onClick={() => {
@@ -424,6 +443,9 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                       disabled={isAuthenticating}
                     >
                       Déjà un compte ?
+                    </button>
+                    <button type="submit" disabled={isAuthenticating}>
+                      {isAuthenticating ? 'Création...' : 'Créer le compte'}
                     </button>
                   </div>
                 </form>
@@ -516,18 +538,10 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                 <div className="dropdown-actions">
                   {isAdmin() && (
                     <button onClick={() => {
-                      // Récupérer le token de session Supabase
-                      const session = JSON.parse(localStorage.getItem('supabase.auth.token') || '{}');
-                      const accessToken = session?.access_token || session?.accessToken;
-                      
-                      // Ouvrir le panneau avec le token d'authentification
-                      const adminUrl = accessToken 
-                        ? `https://panneau-production.up.railway.app?token=${accessToken}&source=herbbie`
-                        : 'https://panneau-production.up.railway.app';
-                      
-                      window.open(adminUrl, '_blank');
+                      // Accès direct au panneau d'administration intégré avec auto-auth dans un nouvel onglet
+                      window.open('/admin?auth=auto', '_blank');
                     }}>
-                      Administration
+                      ⚙️ Administration
                     </button>
                   )}
                   
@@ -601,10 +615,10 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     {profileUpdateSuccess && <div className="success-message">Profil mis à jour avec succès !</div>}
                     
                     <div className="form-buttons">
-                      <button type="submit">Mettre à jour</button>
                       <button type="button" onClick={() => setShowProfileForm(false)}>
                         Fermer
                       </button>
+                      <button type="submit">Mettre à jour</button>
                     </div>
                   </form>
                 </motion.div>

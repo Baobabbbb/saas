@@ -1,0 +1,21 @@
+# Fichiers à ignorer lors du déploiement Railway
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env.local
+.env.*.local
+venv/
+env/
+ENV/
+.vscode/
+.idea/
+*.log
+.DS_Store
+node_modules/
+cache/
+*.db
+*.sqlite
+test_*.py
+

@@ -26,11 +26,12 @@ from datetime import datetime
 # from services.stt import transcribe_audio
 
 # Authentification gérée par Supabase - modules supprimés car inutiles avec Vercel
-from services.coloring_generator import ColoringGenerator
+from services.coloring_generator_gpt4o import ColoringGeneratorGPT4o
 from services.comic_generator import ComicGenerator
 from services.real_animation_generator import RealAnimationGenerator
 from services.local_animation_generator import LocalAnimationGenerator
 from utils.translate import translate_text
+from routes.admin_features import router as admin_features_router, load_features_config, CONFIG_FILE
 # from models.animation import AnimationRequest
 # Validation et sécurité supprimées car gérées automatiquement par Vercel + Supabase
 
@@ -38,6 +39,18 @@ from utils.translate import translate_text
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
+BASE_URL = os.getenv("BASE_URL", "https://herbbie.com")
+
+# Logging des variables d'environnement au démarrage
+print("=" * 60)
+print("🚀 DÉMARRAGE API FRIDAY - Contenu Créatif IA")
+print("=" * 60)
+print(f"📝 TEXT_MODEL: {TEXT_MODEL}")
+print(f"🌐 BASE_URL: {BASE_URL}")
+print(f"✅ OPENAI_API_KEY: {'Configurée' if os.getenv('OPENAI_API_KEY') else '❌ NON CONFIGURÉE'}")
+print(f"🎵 SUNO_API_KEY: {'Configurée' if os.getenv('SUNO_API_KEY') else '❌ NON CONFIGURÉE'}")
+print(f"🎨 STABILITY_API_KEY: {'Configurée' if os.getenv('STABILITY_API_KEY') else '❌ NON CONFIGURÉE'}")
+print("=" * 60)
 
 app = FastAPI(title="API FRIDAY - Contenu Créatif IA", version="2.0", description="API pour générer du contenu créatif pour enfants : BD, coloriages, histoires, comptines")
 
@@ -114,12 +127,32 @@ if assets_dir.exists():
 # CORS avec support UTF-8
 app.add_middleware(
     CORSMiddleware,
-    # En production sur Railway, le frontend est servi par le même domaine → on autorise tout par simplicité
-    allow_origins=["*"],
+    # Autoriser les domaines spécifiques du panneau et d'Herbbie
+    allow_origins=[
+        "https://panneau-production.up.railway.app",
+        "https://herbbie.com",
+        "https://www.herbbie.com",
+        "http://localhost:3000",  # Pour le développement local
+        "http://localhost:5173"    # Pour Vite en développement
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Inclusion des routes d'administration
+app.include_router(admin_features_router)
+
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    """Endpoint de santé pour vérifier si le serveur répond"""
+    return {
+        "status": "healthy",
+        "service": "herbbie-backend",
+        "base_url": BASE_URL,
+        "timestamp": datetime.now().isoformat()
+    }
 
 # Validation des requêtes supprimée car gérée automatiquement par Vercel
 
@@ -165,50 +198,26 @@ async def diagnostic():
         "fal_key_preview": f"{fal_key[:10]}..." if fal_key else "Non configurée"
     }
 
-# === ROUTE DES FONCTIONNALITÉS ===
+# === ROUTES DES FONCTIONNALITÉS GÉRÉES PAR LE ROUTEUR ADMIN_FEATURES ===
+# Les routes /api/features sont maintenant gérées par le routeur admin_features_router
 
-@app.get("/api/features")
-async def get_features():
-    """Route pour récupérer l'état des fonctionnalités du site"""
-    return {
-        "animation": {"enabled": True, "name": "Dessin animé", "icon": "🎬"},
-        "comic": {"enabled": True, "name": "Bande dessinée", "icon": "💬"},
-        "coloring": {"enabled": True, "name": "Coloriage", "icon": "🎨"},
-        "audio": {"enabled": True, "name": "Histoire", "icon": "📖"},
-        "rhyme": {"enabled": True, "name": "Comptine", "icon": "🎵"}
-    }
-
-@app.put("/api/features/{feature_key}")
-async def update_feature(feature_key: str, request: dict):
-    """Route pour mettre à jour l'état d'une fonctionnalité"""
-    enabled = request.get("enabled", True)
-    # Ici vous pourriez sauvegarder en base de données
-    return {
-        "success": True,
-        "feature": feature_key,
-        "enabled": enabled,
-        "features": {
-            "animation": {"enabled": True, "name": "Dessin animé", "icon": "🎬"},
-            "comic": {"enabled": True, "name": "Bande dessinée", "icon": "💬"},
-            "coloring": {"enabled": True, "name": "Coloriage", "icon": "🎨"},
-            "audio": {"enabled": True, "name": "Histoire", "icon": "📖"},
-            "rhyme": {"enabled": True, "name": "Comptine", "icon": "🎵"}
+# === ENDPOINT DE TEST POUR LES FONCTIONNALITÉS ===
+@app.get("/test-features")
+async def test_features():
+    """Test endpoint pour vérifier les fonctionnalités"""
+    try:
+        features = load_features_config()
+        return {
+            "status": "success",
+            "features": features,
+            "config_file_exists": os.path.exists(CONFIG_FILE)
         }
-    }
-
-@app.post("/api/features/reset")
-async def reset_features():
-    """Route pour réinitialiser toutes les fonctionnalités"""
-    return {
-        "success": True,
-        "features": {
-            "animation": {"enabled": True, "name": "Dessin animé", "icon": "🎬"},
-            "comic": {"enabled": True, "name": "Bande dessinée", "icon": "💬"},
-            "coloring": {"enabled": True, "name": "Coloriage", "icon": "🎨"},
-            "audio": {"enabled": True, "name": "Histoire", "icon": "📖"},
-            "rhyme": {"enabled": True, "name": "Comptine", "icon": "🎵"}
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "config_file_exists": os.path.exists(CONFIG_FILE)
         }
-    }
 
 # === ENDPOINTS VALIDÉS ===
 
@@ -251,128 +260,104 @@ async def stt_endpoint(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- Comptine ---
-from services.udio_service import udio_service
+from services.suno_service import suno_service
+from routes.rhyme_routes import router as rhyme_router
+app.include_router(rhyme_router)
 
-# Ancien modèle remplacé par ValidatedRhymeRequest dans validators.py
-
-@app.post("/generate_rhyme/")
-async def generate_rhyme(request: dict):
-    try:
-        # Validation des données d'entrée
-        # Vérifier la clé API OpenAI
-        openai_key = os.getenv("OPENAI_API_KEY")
-        if not openai_key or openai_key.startswith("sk-votre"):
-            raise HTTPException(
-                status_code=400, 
-                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
-            )
-        
-        # Vérifier la clé API Udio
-        goapi_key = os.getenv("GOAPI_API_KEY")
-        if not goapi_key or goapi_key.startswith("votre_cle"):
-            raise HTTPException(
-                status_code=400, 
-                detail="❌ Clé API GoAPI Udio non configurée. Veuillez configurer GOAPI_API_KEY dans le fichier .env"
-            )
-        
-        # 1. Générer les paroles avec OpenAI
-        theme = request.get("theme", "animaux")
-        custom_request = request.get("custom_request", "")
-        
-        prompt = f"Écris une comptine courte, joyeuse et rythmée pour enfants sur le thème : {theme}.\n"
-        if custom_request:
-            prompt += f"Demande spécifique : {custom_request}\n"
-        prompt += """La comptine doit être en français, adaptée aux enfants de 3 à 8 ans, avec des rimes simples et un rythme enjoué.
-
-IMPORTANT : Génère aussi un titre court et attractif pour cette comptine (maximum 4-5 mots), qui plaira aux enfants de 3-8 ans. Le titre doit être simple et joyeux.
-
-Format de réponse attendu :
-TITRE: [titre de la comptine]
-COMPTINE: [texte de la comptine]"""
-
-        client = AsyncOpenAI(api_key=openai_key)
-        
-        response = await client.chat.completions.create(
-            model=TEXT_MODEL,
-            messages=[
-                {"role": "system", "content": "Tu es un spécialiste des comptines pour enfants. Tu écris des textes courts, amusants et éducatifs."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=300,
-            temperature=0.8
-        )
-        
-        content = response.choices[0].message.content
-        if content:
-            content = content.strip()
-        else:
-            content = ""
-        
-        # Extraire le titre et le contenu si le format est respecté
-        title = f"Comptine {theme}"  # Titre par défaut
-        rhyme_content = content
-        
-        if "TITRE:" in content and "COMPTINE:" in content:
-            try:
-                lines = content.split('\n')
-                for line in lines:
-                    if line.startswith("TITRE:"):
-                        title = line.replace("TITRE:", "").strip()
-                        break
-                
-                # Extraire le contenu de la comptine
-                comptine_start = content.find("COMPTINE:")
-                if comptine_start != -1:
-                    rhyme_content = content[comptine_start + 9:].strip()
-            except:
-                # En cas d'erreur, utiliser le contenu complet
-                pass
-        
-        # 2. Lancer la génération musicale avec Udio
-        print(f"🎵 Lancement génération musicale pour: {title}")
-        udio_result = await udio_service.generate_musical_nursery_rhyme(
-            lyrics=rhyme_content,
-            rhyme_type=theme
-        )
-        
-        if udio_result.get("status") == "success":
-            task_id = udio_result.get("task_id")
-            print(f"✅ Tâche musicale créée: {task_id}")
-            
-            return {
-                "title": title,
-                "content": rhyme_content,
-                "type": "rhyme",
-                "music_task_id": task_id,
-                "music_status": "processing",
-                "message": "Comptine générée, musique en cours de création..."
-            }
-        else:
-            # Si la génération musicale échoue, retourner une erreur HTTP
-            error_message = udio_result.get("error", "Erreur inconnue lors de la génération musicale")
-            print(f"❌ Erreur génération musicale: {error_message}")
-            raise HTTPException(
-                status_code=500, 
-                detail=f"❌ La création de l'audio a échoué : {error_message}"
-            )
-            
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"❌ Erreur génération comptine: {e}")
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
+# ANCIEN ENDPOINT COMPTINE SUPPRIMÉ
+# Voir routes/rhyme_routes.py pour le nouveau code propre
 
 @app.get("/check_task_status/{task_id}")
 async def check_task_status(task_id: str):
     """
-    Vérifie le statut d'une tâche musicale Udio
+    Vérifie le statut d'une tâche musicale Suno AI
     """
     try:
-        result = await udio_service.check_task_status(task_id)
+        result = await suno_service.check_task_status(task_id)
         return result
     except Exception as e:
-        print(f"❌ Erreur vérification statut: {e}")
+        print(f"❌ Erreur vérification statut Suno: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erreur lors de la vérification : {str(e)}")
+
+@app.post("/test_rhyme_simple/")
+async def test_rhyme_simple():
+    """
+    Endpoint de test ultra-simple pour diagnostiquer les erreurs
+    """
+    try:
+        return {
+            "status": "ok",
+            "message": "Test endpoint fonctionne",
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
+@app.get("/diagnostic/suno")
+async def diagnostic_suno():
+    """
+    Endpoint de diagnostic pour vérifier la configuration Suno
+    """
+    suno_key = os.getenv("SUNO_API_KEY")
+    suno_url = os.getenv("SUNO_BASE_URL")
+    
+    return {
+        "service": "Suno AI",
+        "api_key_configured": bool(suno_key and suno_key != "None" and not suno_key.startswith("your_suno")),
+        "api_key_value": f"{suno_key[:10]}..." if suno_key and len(suno_key) > 10 else suno_key,
+        "base_url": suno_url,
+        "service_initialized": bool(suno_service.api_key),
+        "service_api_key": f"{suno_service.api_key[:10]}..." if suno_service.api_key and len(str(suno_service.api_key)) > 10 else str(suno_service.api_key),
+        "service_base_url": suno_service.base_url,
+        "status": "ready" if (suno_key and suno_key != "None" and not suno_key.startswith("your_suno")) else "not_configured"
+    }
+
+@app.post("/suno-callback")
+async def suno_callback(request: Request):
+    """
+    Endpoint de callback pour recevoir les notifications de Suno AI
+    Requis par l'API Suno mais nous utilisons le polling avec check_task_status
+    """
+    try:
+        data = await request.json()
+        print(f"📩 Callback Suno reçu: {json.dumps(data, ensure_ascii=False, indent=2)}")
+        return {"status": "received"}
+    except Exception as e:
+        print(f"❌ Erreur callback Suno: {e}")
+        return {"status": "error", "error": str(e)}
+
+@app.post("/test-suno")
+async def test_suno():
+    """
+    Endpoint de test pour vérifier l'appel direct à l'API Suno
+    """
+    try:
+        test_lyrics = "Petit escargot, porte sur son dos, sa maisonnette. Aussitôt qu'il pleut, il est tout heureux, il sort sa tête."
+        
+        result = await suno_service.generate_musical_nursery_rhyme(
+            lyrics=test_lyrics,
+            rhyme_type="animal",
+            title="Test Petit Escargot"
+        )
+        
+        return {
+            "test": "Suno API",
+            "result": result,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "test": "Suno API",
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+            "timestamp": datetime.now().isoformat()
+        }
 
 # --- Histoire Audio ---
 # Ancien modèle remplacé par ValidatedAudioStoryRequest dans validators.py
@@ -472,37 +457,63 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
 # --- Coloriage ---
 # Ancien modèle remplacé par ValidatedColoringRequest dans validators.py
 
-# Instance globale du générateur de coloriage
-coloring_generator_instance = ColoringGenerator()
+# Instance globale du générateur de coloriage (GPT-4o-mini + DALL-E 3)
+# Utilisation de l'initialisation paresseuse pour éviter les erreurs au démarrage
+coloring_generator_instance = None
+
+def get_coloring_generator():
+    """Obtient l'instance du générateur de coloriage (lazy initialization)"""
+    global coloring_generator_instance
+    if coloring_generator_instance is None:
+        coloring_generator_instance = ColoringGeneratorGPT4o()
+    return coloring_generator_instance
 
 @app.post("/generate_coloring/")
-async def generate_coloring(request: dict):
+@app.post("/generate_coloring/{content_type_id}")
+async def generate_coloring(request: dict, content_type_id: int = None):
     """
-    Génère un coloriage basé sur un thème
+    Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1
+    Supporte deux formats d'URL pour compatibilité frontend
+    Organisation OpenAI vérifiée requise pour gpt-image-1
     """
     try:
         # Validation des données d'entrée
         theme = request.get("theme", "animaux")
-        print(f"🎨 Génération coloriage: {theme}")
+        custom_prompt = request.get("custom_prompt")  # Prompt personnalisé optionnel
+        with_colored_model = request.get("with_colored_model", True)  # Par défaut avec modèle
         
-        # Vérifier la clé API Stability AI
-        stability_key = os.getenv("STABILITY_API_KEY")
-        if not stability_key or stability_key.startswith("sk-votre"):
+        if custom_prompt:
+            print(f"[COLORING] Generation coloriage personnalisé gpt-image-1: '{custom_prompt}' ({'avec' if with_colored_model else 'sans'} modèle coloré)")
+        else:
+            print(f"[COLORING] Generation coloriage gpt-image-1: {theme} ({'avec' if with_colored_model else 'sans'} modèle coloré) (content_type_id={content_type_id})")
+        
+        # Vérifier la clé API OpenAI
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key or openai_key.startswith("sk-votre"):
             raise HTTPException(
                 status_code=400, 
-                detail="❌ Clé API Stability AI non configurée. Veuillez configurer STABILITY_API_KEY dans le fichier .env"
+                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
             )
         
-        # Générer le coloriage
-        result = await coloring_generator_instance.generate_coloring_pages(theme)
+        # Obtenir l'instance du générateur
+        generator = get_coloring_generator()
         
-        if result.get("success") == True:  # Le service retourne "success" au lieu de "status"
+        # Debug: afficher les paramètres
+        print(f"[DEBUG] Parametres: theme={theme}, with_colored_model={with_colored_model}, custom_prompt={custom_prompt}")
+        
+        # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1 (génération)
+        result = await generator.generate_coloring_from_theme(theme, with_colored_model, custom_prompt)
+        
+        print(f"[DEBUG] Resultat recu: {result.get('success', False)}")
+        
+        if result.get("success") == True:
             return {
                 "status": "success",
                 "theme": theme,
                 "images": result.get("images", []),
-                "message": "Coloriage généré avec succès !",
-                "type": "coloring"
+                "message": "Coloriage généré avec succès avec gpt-image-1 !",
+                "type": "coloring",
+                "model": "gpt-image-1"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la génération du coloriage")
@@ -516,6 +527,127 @@ async def generate_coloring(request: dict):
     except Exception as e:
         print(f"❌ Erreur génération coloriage: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
+
+
+@app.post("/upload_photo_for_coloring/")
+async def upload_photo_for_coloring(file: UploadFile = File(...)):
+    """
+    Upload une photo pour la convertir en coloriage
+    """
+    try:
+        print(f"📸 Upload photo pour coloriage: {file.filename}")
+        print(f"   Type MIME: {file.content_type}")
+        
+        # Vérifier le type de fichier
+        allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+        file_ext = Path(file.filename).suffix.lower()
+        
+        if file_ext not in allowed_extensions:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Format de fichier non supporté. Formats acceptés: {', '.join(allowed_extensions)}"
+            )
+        
+        # Créer un nom de fichier unique
+        unique_filename = f"upload_{uuid.uuid4().hex[:8]}{file_ext}"
+        upload_path = Path("static/uploads/coloring") / unique_filename
+        upload_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        print(f"   Sauvegarde vers: {upload_path}")
+        
+        # Sauvegarder le fichier en chunks pour éviter timeout
+        file_size = 0
+        with open(upload_path, "wb") as buffer:
+            while chunk := await file.read(1024 * 1024):  # 1MB chunks
+                buffer.write(chunk)
+                file_size += len(chunk)
+        
+        print(f"   Taille: {file_size} bytes")
+        
+        print(f"✅ Photo sauvegardée: {unique_filename}")
+        
+        return {
+            "status": "success",
+            "message": "Photo uploadée avec succès",
+            "file_path": str(upload_path),
+            "filename": unique_filename,
+            "url": f"{BASE_URL}/static/uploads/coloring/{unique_filename}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur upload photo: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de l'upload : {str(e)}")
+
+
+@app.post("/convert_photo_to_coloring/")
+async def convert_photo_to_coloring(request: dict):
+    """
+    Convertit une photo uploadée en coloriage avec GPT-4o-mini + gpt-image-1
+    """
+    try:
+        # Récupérer les paramètres
+        photo_path = request.get("photo_path")
+        custom_prompt = request.get("custom_prompt")
+        
+        if not photo_path:
+            raise HTTPException(
+                status_code=400,
+                detail="Le chemin de la photo est requis (photo_path)"
+            )
+        
+        # Convertir en chemin absolu si c'est un chemin relatif
+        photo_path_obj = Path(photo_path)
+        if not photo_path_obj.is_absolute():
+            photo_path_obj = Path.cwd() / photo_path
+        
+        photo_path = str(photo_path_obj)
+        
+        # Récupérer le choix de modèle coloré
+        with_colored_model = request.get("with_colored_model", True)  # Par défaut avec modèle
+        print(f"[COLORING] Conversion photo en coloriage avec gpt-image-1 ({'avec' if with_colored_model else 'sans'} modèle coloré): {photo_path}")
+        
+        # Vérifier que le fichier existe
+        if not photo_path_obj.exists():
+            raise HTTPException(
+                status_code=404,
+                detail=f"Photo introuvable: {photo_path}"
+            )
+        
+        # Obtenir l'instance du générateur
+        generator = get_coloring_generator()
+        
+        # Convertir avec GPT-4o-mini (analyse) + gpt-image-1 (génération)
+        result = await generator.generate_coloring_from_photo(
+            photo_path=photo_path,
+            custom_prompt=custom_prompt,
+            with_colored_model=with_colored_model
+        )
+        
+        if result.get("success") == True:
+            return {
+                "status": "success",
+                "images": result.get("images", []),
+                "description": result.get("description"),
+                "message": "Photo convertie en coloriage avec succès !",
+                "type": "coloring",
+                "source": "photo",
+                "model": "gpt-image-1"
+            }
+        else:
+            error_message = result.get("error", "Erreur inconnue lors de la conversion")
+            print(f"❌ Échec conversion: {error_message}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Erreur conversion : {error_message}"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur conversion photo: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la conversion : {str(e)}")
 
 # --- Bandes Dessinées ---
 
