@@ -1027,11 +1027,9 @@ if __name__ == "__main__":
 
     uvicorn.run(**config)
 
-# Endpoint pour envoyer un email de contact
-@app.post("/api/contact")
-async def send_contact_email(contact_form: ContactForm):
-    """Envoie un email depuis le formulaire de contact"""
-
+# Fonction asynchrone pour envoyer l'email en arrière-plan
+async def send_email_background(contact_form: ContactForm):
+    """Envoie un email en arrière-plan (non bloquant)"""
     try:
         # Configuration email
         sender_email = os.getenv("CONTACT_EMAIL", "noreply@herbbie.com")
@@ -1039,7 +1037,8 @@ async def send_contact_email(contact_form: ContactForm):
         password = os.getenv("EMAIL_PASSWORD")
 
         if not password:
-            raise HTTPException(status_code=500, detail="Configuration email manquante")
+            print("❌ EMAIL_PASSWORD non configuré")
+            return
 
         # Création du message
         message = MIMEMultipart("alternative")
@@ -1082,15 +1081,47 @@ async def send_contact_email(contact_form: ContactForm):
         message.attach(part1)
         message.attach(part2)
 
-        # Connexion et envoi
-        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        # Exécuter l'envoi dans un thread séparé pour ne pas bloquer
+        await asyncio.to_thread(
+            _send_email_sync,
+            sender_email,
+            receiver_email,
+            password,
+            message
+        )
+        
+        print(f"✅ Email envoyé avec succès de {contact_form.email}")
+
+    except Exception as e:
+        print(f"❌ Erreur envoi email: {e}")
+
+def _send_email_sync(sender_email, receiver_email, password, message):
+    """Envoi synchrone de l'email (appelé dans un thread)"""
+    try:
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
         server.login(sender_email, password)
         server.sendmail(sender_email, receiver_email, message.as_string())
         server.quit()
-
-        return {"message": "Email envoyé avec succès"}
-
-    except smtplib.SMTPAuthenticationError:
-        raise HTTPException(status_code=500, detail="Erreur d'authentification email")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors de l'envoi: {str(e)}")
+        print(f"❌ Erreur SMTP: {e}")
+        raise
+
+# Endpoint pour envoyer un email de contact (réponse immédiate)
+@app.post("/api/contact")
+async def send_contact_email(contact_form: ContactForm):
+    """Envoie un email depuis le formulaire de contact (réponse immédiate)"""
+    try:
+        # Vérifier la configuration
+        if not os.getenv("EMAIL_PASSWORD"):
+            raise HTTPException(status_code=500, detail="Configuration email manquante")
+
+        # Lancer l'envoi en arrière-plan (non bloquant)
+        asyncio.create_task(send_email_background(contact_form))
+        
+        # Réponse immédiate au client
+        return {"message": "Email en cours d'envoi"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
