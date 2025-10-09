@@ -1097,46 +1097,84 @@ async def send_email_background(contact_form: ContactForm):
 
 def _send_email_sync(sender_email, receiver_email, password, message):
     """Envoi synchrone de l'email (appelé dans un thread)"""
+    import socket
+
     try:
-        # Méthode 1: Utiliser Mailgun SMTP (plus fiable depuis Railway)
-        mailgun_smtp = os.getenv("MAILGUN_SMTP_SERVER")
-        mailgun_port = int(os.getenv("MAILGUN_SMTP_PORT", "587"))
-        mailgun_username = os.getenv("MAILGUN_SMTP_USERNAME")
-        mailgun_password = os.getenv("MAILGUN_SMTP_PASSWORD")
+        # Configuration debug réseau
+        print(f"🔍 Debug réseau - Test de connectivité Gmail...")
 
-        if mailgun_smtp and mailgun_username and mailgun_password:
-            try:
-                server = smtplib.SMTP(mailgun_smtp, mailgun_port, timeout=10)
-                server.starttls()
-                server.login(mailgun_username, mailgun_password)
-                server.sendmail(sender_email, receiver_email, message.as_string())
-                server.quit()
-                print("✅ Email envoyé via Mailgun SMTP")
-                return
-            except Exception as e1:
-                print(f"⚠️ Échec Mailgun: {e1}")
-
-        # Méthode 2: Gmail SMTP 587 (STARTTLS)
+        # Test 1: Résolution DNS
         try:
-            server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
+            ip_address = socket.gethostbyname("smtp.gmail.com")
+            print(f"✅ DNS résolu: smtp.gmail.com -> {ip_address}")
+        except Exception as dns_error:
+            print(f"❌ Erreur DNS: {dns_error}")
+            raise Exception(f"DNS resolution failed: {dns_error}")
+
+        # Test 2: Connexion TCP basique
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(5)
+            result = sock.connect_ex(("smtp.gmail.com", 587))
+            sock.close()
+            if result == 0:
+                print("✅ Connexion TCP 587 réussie")
+            else:
+                print(f"⚠️ Connexion TCP 587 échouée (code: {result})")
+        except Exception as tcp_error:
+            print(f"❌ Erreur TCP test: {tcp_error}")
+
+        # Méthode 1: Gmail SMTP 587 (STARTTLS) - principale
+        print("📤 Tentative envoi via Gmail SMTP 587...")
+        try:
+            server = smtplib.SMTP("smtp.gmail.com", 587, timeout=15)
+            server.set_debuglevel(1)  # Debug SMTP détaillé
             server.starttls()
             server.login(sender_email, password)
             server.sendmail(sender_email, receiver_email, message.as_string())
             server.quit()
-            print("✅ Email envoyé via Gmail SMTP 587 (STARTTLS)")
+            print("✅ Email envoyé avec succès via Gmail SMTP 587 (STARTTLS)")
+            return
+        except smtplib.SMTPAuthenticationError as auth_error:
+            print(f"❌ Erreur authentification Gmail: {auth_error}")
+            raise Exception(f"Gmail authentication failed: {auth_error}")
+        except smtplib.SMTPConnectError as conn_error:
+            print(f"❌ Erreur connexion Gmail 587: {conn_error}")
+            raise Exception(f"Gmail connection failed on port 587: {conn_error}")
+        except Exception as e1:
+            print(f"⚠️ Échec Gmail 587: {e1}")
+
+        # Méthode 2: Gmail SMTP 465 (SSL) - fallback
+        print("📤 Tentative envoi via Gmail SMTP 465...")
+        try:
+            server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15)
+            server.set_debuglevel(1)  # Debug SMTP détaillé
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_email, message.as_string())
+            server.quit()
+            print("✅ Email envoyé avec succès via Gmail SMTP 465 (SSL)")
             return
         except Exception as e2:
-            print(f"⚠️ Échec Gmail 587: {e2}")
+            print(f"⚠️ Échec Gmail 465: {e2}")
 
-        # Méthode 3: Gmail SMTP 465 (SSL) - fallback
-        server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
-        server.login(sender_email, password)
-        server.sendmail(sender_email, receiver_email, message.as_string())
-        server.quit()
-        print("✅ Email envoyé via Gmail SMTP 465 (SSL)")
+        # Méthode 3: Serveur alternatif Gmail (si disponible)
+        print("📤 Tentative envoi via serveur alternatif...")
+        try:
+            server = smtplib.SMTP("smtp.gmail.com", 25, timeout=15)
+            server.starttls()
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_email, message.as_string())
+            server.quit()
+            print("✅ Email envoyé avec succès via Gmail SMTP 25")
+            return
+        except Exception as e3:
+            print(f"⚠️ Échec Gmail 25: {e3}")
+
+        # Si tout échoue
+        raise Exception("Toutes les méthodes SMTP Gmail ont échoué")
 
     except Exception as e:
-        print(f"❌ Erreur SMTP: {e}")
+        print(f"❌ Erreur finale SMTP: {e}")
         raise
 
 # Endpoint pour envoyer un email de contact (réponse immédiate)
