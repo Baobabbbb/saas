@@ -61,7 +61,7 @@ export const useEmailAutocomplete = (user) => {
     }
 
     const filtered = emailHistory.filter(email =>
-      email.toLowerCase().includes(input.toLowerCase())
+      email.toLowerCase().startsWith(input.toLowerCase())
     );
     setFilteredEmails(filtered);
     setShowSuggestions(filtered.length > 0);
@@ -80,61 +80,99 @@ export const useEmailAutocomplete = (user) => {
 const EmailInput = ({ value, onChange, placeholder, required, disabled, user, onEmailSubmit }) => {
   const { showSuggestions, filteredEmails, saveEmail, filterEmails, hideSuggestions } = useEmailAutocomplete(user);
   const [inputValue, setInputValue] = useState(value || '');
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     setInputValue(value || '');
   }, [value]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        hideSuggestions();
+        setSelectedIndex(-1);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [hideSuggestions]);
 
   const handleInputChange = (e) => {
     const newValue = e.target.value;
     setInputValue(newValue);
     onChange(e);
     filterEmails(newValue);
+    setSelectedIndex(-1);
   };
 
   const handleEmailSelect = (email) => {
     setInputValue(email);
     onChange({ target: { value: email } });
     hideSuggestions();
+    setSelectedIndex(-1);
     inputRef.current?.focus();
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && onEmailSubmit) {
-      saveEmail(inputValue);
-      onEmailSubmit();
+    if (!showSuggestions || filteredEmails.length === 0) {
+      if (e.key === 'Enter' && onEmailSubmit) {
+        saveEmail(inputValue);
+        onEmailSubmit();
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev =>
+          prev < filteredEmails.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < filteredEmails.length) {
+          handleEmailSelect(filteredEmails[selectedIndex]);
+        } else if (onEmailSubmit) {
+          saveEmail(inputValue);
+          onEmailSubmit();
+        }
+        break;
+      case 'Escape':
+        hideSuggestions();
+        setSelectedIndex(-1);
+        break;
     }
   };
 
-  const handleBlur = () => {
-    // Délai pour permettre la sélection d'un email
-    setTimeout(() => {
-      hideSuggestions();
-    }, 200);
-  };
-
   return (
-    <div className="email-input-container">
+    <div className="email-input-container" ref={containerRef}>
       <input
         ref={inputRef}
         type="email"
         value={inputValue}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        onBlur={handleBlur}
         placeholder={placeholder}
         required={required}
         disabled={disabled}
-        autoComplete="email"
+        autoComplete="off"
       />
-      {showSuggestions && (
-        <div className="email-suggestions">
+      {showSuggestions && filteredEmails.length > 0 && (
+        <div className="email-suggestions google-style">
           {filteredEmails.map((email, index) => (
             <div
               key={index}
-              className="email-suggestion-item"
+              className={`email-suggestion-item ${index === selectedIndex ? 'selected' : ''}`}
               onClick={() => handleEmailSelect(email)}
+              onMouseEnter={() => setSelectedIndex(index)}
             >
               {email}
             </div>

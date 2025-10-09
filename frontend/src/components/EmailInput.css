@@ -9,58 +9,53 @@
   box-sizing: border-box;
 }
 
-.email-suggestions {
+/* Style Google-like pour les suggestions */
+.email-suggestions.google-style {
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
-  border: 1px solid var(--border, #ddd);
-  border-top: none;
-  border-radius: 0 0 6px 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   max-height: 200px;
   overflow-y: auto;
+  margin-top: 2px;
 }
 
 .email-suggestion-item {
-  padding: 10px 12px;
+  padding: 12px 16px;
   cursor: pointer;
-  border-bottom: 1px solid var(--border, #eee);
-  transition: background-color 0.2s ease;
-  font-size: 0.9rem;
-  color: var(--text, #333);
+  font-size: 14px;
+  color: #202124;
+  border-bottom: 1px solid #e8eaed;
+  transition: background-color 0.15s ease;
+  display: flex;
+  align-items: center;
 }
 
 .email-suggestion-item:last-child {
   border-bottom: none;
 }
 
-.email-suggestion-item:hover {
-  background-color: var(--primary-light, rgba(107, 78, 255, 0.1));
-  color: var(--primary, #6B4EFF);
+.email-suggestion-item:hover,
+.email-suggestion-item.selected {
+  background-color: #f8f9fa;
+  color: #202124;
 }
 
 .email-suggestion-item:active {
-  background-color: var(--primary-light, rgba(107, 78, 255, 0.2));
+  background-color: #e8f0fe;
 }
 
-/* Masquer la barre de défilement sur Webkit */
+/* Masquer la barre de défilement */
 .email-suggestions::-webkit-scrollbar {
-  width: 4px;
+  display: none;
 }
 
-.email-suggestions::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 2px;
-}
-
-.email-suggestions::-webkit-scrollbar-thumb {
-  background: var(--primary, #6B4EFF);
-  border-radius: 2px;
-}
-
-.email-suggestions::-webkit-scrollbar-thumb:hover {
-  background: var(--primary, #6B4EFF);
+.email-suggestions {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
