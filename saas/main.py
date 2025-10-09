@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, ValidationError
@@ -138,6 +139,18 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+)
+
+# Sécurité des cookies et protection contre les attaques Host Header
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=[
+        "herbbie.com",
+        "www.herbbie.com",
+        "*.railway.app",  # Pour Railway
+        "localhost",
+        "127.0.0.1"
+    ]
 )
 
 # Inclusion des routes d'administration

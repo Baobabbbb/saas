@@ -8,15 +8,18 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: false,
+    storage: window.localStorage,  // Stockage explicite des sessions
+    storageKey: 'herbbie-auth',    // Clé personnalisée pour les sessions
     // Gestion des erreurs de refresh token
     onAuthStateChange: (event, session) => {
       if (event === 'TOKEN_REFRESHED') {
         // Token rafraîchi avec succès
+        console.log('✅ Token Supabase rafraîchi');
       } else if (event === 'SIGNED_OUT') {
         // Nettoyer toutes les sessions en cas de déconnexion
         const keys = Object.keys(localStorage);
         keys.forEach(key => {
-          if (key.startsWith('sb-') || key.startsWith('supabase.')) {
+          if (key.startsWith('sb-') || key.startsWith('supabase.') || key.startsWith('herbbie-auth')) {
             localStorage.removeItem(key);
           }
         });

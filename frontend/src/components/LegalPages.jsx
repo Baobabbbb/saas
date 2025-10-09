@@ -205,6 +205,15 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
             <li><strong>Cookies d'authentification :</strong> Mémorisation de votre identité</li>
             <li><strong>Cookies de sécurité :</strong> Protection contre les menaces</li>
           </ul>
+
+          <h4>Stockage et sécurité des cookies :</h4>
+          <ul>
+            <li><strong>Emplacement :</strong> Stockés localement dans le navigateur (localStorage)</li>
+            <li><strong>Durée de vie :</strong> Sessions temporaires (supprimés à la déconnexion)</li>
+            <li><strong>Sécurité :</strong> Chiffrés et protégés contre les attaques CSRF</li>
+            <li><strong>Serveur :</strong> Gestion automatique par Supabase avec sécurité renforcée</li>
+          </ul>
+
           <p><strong>Note :</strong> Aucun cookie de fonctionnalité, analytique, de personnalisation ou publicitaire n'est utilisé.</p>
           <p>Les cookies essentiels sont automatiquement gérés et exemptés de consentement selon le RGPD.</p>
         </div>
