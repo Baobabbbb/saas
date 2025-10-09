@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import './AdminLogin.css';
+import EmailInput, { saveEmailToHistory } from './EmailInput';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
@@ -17,6 +18,8 @@ const AdminLogin = () => {
 
     try {
       await signIn(email, password);
+      // Sauvegarder l'email dans l'historique
+      saveEmailToHistory(email.trim());
       // La redirection se fait automatiquement via le contexte d'authentification
     } catch (err) {
       setError(err.message || 'Erreur de connexion');
@@ -58,15 +61,14 @@ const AdminLogin = () => {
 
           <div className="login-field">
             <label htmlFor="email">Email administrateur</label>
-            <input
-              type="email"
-              id="email"
+            <EmailInput
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@herbbie.com"
               required
               disabled={loading}
-              autoComplete="email"
+              user={null}
+              onEmailSubmit={() => {}}
             />
           </div>
 

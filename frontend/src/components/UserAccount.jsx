@@ -4,6 +4,7 @@ import './UserAccount.css';
 import { supabase } from '../supabaseClient';
 import useSupabaseUser from '../hooks/useSupabaseUser';
 import { updateUserProfile } from '../services/profileService';
+import EmailInput, { saveEmailToHistory } from './EmailInput';
 
 const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory }) => {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -100,15 +101,18 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       }
 
       if (data?.user) {
-        
+
+        // Sauvegarder l'email dans l'historique
+        saveEmailToHistory(email.trim());
+
         // Fermer les formulaires
         setShowLoginForm(false);
         setShowDropdown(false);
-        
+
         // Réinitialiser les champs
         setEmail('');
         setPassword('');
-        
+
         // Informer le parent si nécessaire
         if (onLogin) onLogin(data.user);
         
@@ -149,7 +153,10 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       }
 
       if (data?.user) {
-        
+
+        // Sauvegarder l'email dans l'historique
+        saveEmailToHistory(email.trim());
+
         // Vérifier si l'email nécessite une confirmation
         if (!data.session) {
           setError('Un email de confirmation a été envoyé. Vérifiez votre boîte mail.');
@@ -157,13 +164,13 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
           // Connexion immédiate réussie
           setShowRegisterForm(false);
           setShowDropdown(false);
-          
+
           // Réinitialiser les champs
           setEmail('');
           setPassword('');
           setFirstName('');
           setLastName('');
-          
+
           // Informer le parent si nécessaire
           if (onRegister) onRegister(data.user);
         }
@@ -222,6 +229,9 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
         setError(error.message);
         return;
       }
+
+      // Sauvegarder l'email dans l'historique
+      saveEmailToHistory(resetEmail.trim());
 
       setResetEmailSent(true);
       setError('');
@@ -353,13 +363,14 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                 >
                 <h3>Connexion</h3>
                 <form onSubmit={handleSignIn}>
-                  <input
-                    type="email"
-                    placeholder="Email"
+                  <EmailInput
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email"
                     required
                     disabled={isAuthenticating}
+                    user={null}
+                    onEmailSubmit={() => {}}
                   />
                   <input
                     type="password"
@@ -438,13 +449,14 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     required
                     disabled={isAuthenticating}
                   />
-                  <input
-                    type="email"
-                    placeholder="Email"
+                  <EmailInput
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email"
                     required
                     disabled={isAuthenticating}
+                    user={null}
+                    onEmailSubmit={() => {}}
                   />
                   <input
                     type="password"
@@ -497,12 +509,13 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                 <h3>Réinitialiser le mot de passe</h3>
                 {!resetEmailSent ? (
                   <form onSubmit={handleResetPassword}>
-                    <input
-                      type="email"
-                      placeholder="Votre email"
+                    <EmailInput
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
+                      placeholder="Votre email"
                       required
+                      user={null}
+                      onEmailSubmit={() => {}}
                     />
                     {error && <div className="error-message">{error}</div>}
                     <div className="form-buttons">
@@ -632,11 +645,13 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                       setError('Erreur lors de la mise à jour du profil');
                     }
                   }}>
-                    <input
-                      type="email"
+                    <EmailInput
                       value={profileEmail}
-                      disabled
+                      onChange={(e) => setProfileEmail(e.target.value)}
                       placeholder="Email"
+                      disabled
+                      user={user}
+                      onEmailSubmit={() => {}}
                     />
                     <input
                       type="text"

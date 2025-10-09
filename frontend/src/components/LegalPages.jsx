@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './LegalPages.css';
+import EmailInput from './EmailInput';
 
 const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
   const [activeSection, setActiveSection] = useState(initialSection);
@@ -594,13 +595,13 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
 
             <div className="form-group">
               <label htmlFor="contact-email">Email *</label>
-              <input
-                type="email"
-                id="contact-email"
+              <EmailInput
                 value={contactForm.email}
                 onChange={(e) => handleContactFormChange('email', e.target.value)}
-                required
                 placeholder="votre.email@exemple.com"
+                required
+                user={null}
+                onEmailSubmit={() => {}}
               />
             </div>
 
