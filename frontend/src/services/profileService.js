@@ -69,16 +69,33 @@ export async function updateUserProfile(userId, profileData) {
 
 /**
  * Synchronise le profil avec les informations de l'utilisateur connecté
+ * NE SYNCHRONISE QUE L'EMAIL ET LAST_LOGIN, PAS LE NOM/PRÉNOM
  */
 export async function syncUserProfile(user) {
   try {
+    // Récupérer d'abord le profil existant
+    const { data: existingProfile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('prenom, nom')
+      .eq('id', user.id)
+      .single();
+
     const updateData = {
       id: user.id,
       email: user.email,  // Synchroniser l'email
-      prenom: user.user_metadata?.firstName || user.user_metadata?.prenom || null,
-      nom: user.user_metadata?.lastName || user.user_metadata?.nom || null,
+      // NE PAS ÉCRASER prenom/nom s'ils existent déjà
+      prenom: existingProfile?.prenom || user.user_metadata?.firstName || user.user_metadata?.prenom || null,
+      nom: existingProfile?.nom || user.user_metadata?.lastName || user.user_metadata?.nom || null,
       last_login: new Date().toISOString()  // Mettre à jour la dernière connexion
     };
+
+    console.log('🔄 syncUserProfile - Données à synchroniser:', {
+      email: updateData.email,
+      prenom_existant: existingProfile?.prenom,
+      nom_existant: existingProfile?.nom,
+      prenom_final: updateData.prenom,
+      nom_final: updateData.nom
+    });
 
     const { data, error } = await supabase
       .from('profiles')
@@ -94,7 +111,7 @@ export async function syncUserProfile(user) {
       throw new Error(`Erreur sync profil: ${error.message}`);
     }
 
-    console.log('✅ Profil synchronisé:', data.id, data.email);
+    console.log('✅ Profil synchronisé:', data.id, data.email, 'prenom:', data.prenom, 'nom:', data.nom);
     return data;
   } catch (error) {
     console.error('Erreur critique sync profil:', error);
