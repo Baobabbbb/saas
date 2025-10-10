@@ -16,6 +16,8 @@ import StoryPopup from './components/StoryPopup';
 import ColoringSelector from './components/ColoringSelector';
 import ColoringViewer from './components/ColoringViewer';
 import ColoringPopup from './components/ColoringPopup';
+import ComicsSelector from './components/ComicsSelector';
+import ComicsPopup from './components/ComicsPopup';
 import useSupabaseUser from './hooks/useSupabaseUser';
 import { API_BASE_URL, ANIMATION_API_BASE_URL } from './config/api';
 
@@ -129,6 +131,15 @@ function App() {
   const [coloringResult, setColoringResult] = useState(null);
   const [withColoredModel, setWithColoredModel] = useState(true); // true par défaut = avec modèle coloré
   
+  // Comics states
+  const [selectedComicsTheme, setSelectedComicsTheme] = useState(null);
+  const [selectedComicsStyle, setSelectedComicsStyle] = useState('cartoon');
+  const [numPages, setNumPages] = useState(1);
+  const [customComicsStory, setCustomComicsStory] = useState('');
+  const [characterPhoto, setCharacterPhoto] = useState(null);
+  const [comicsResult, setComicsResult] = useState(null);
+  const [showComicsPopup, setShowComicsPopup] = useState(false);
+
   // Animation states
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
   const [selectedDuration, setSelectedDuration] = useState(null);
@@ -188,6 +199,28 @@ function App() {
     }
     
     throw new Error('Timeout de génération de l\'animation');
+  };
+
+  // Upload de photo de personnage pour BD
+  const handleCharacterPhotoUpload = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch(`${API_BASE_URL}/upload_character_photo/`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) throw new Error(`Erreur upload : ${response.status}`);
+      
+      const data = await response.json();
+      setCharacterPhoto(data);
+      return data;
+    } catch (error) {
+      console.error('Erreur upload photo personnage:', error);
+      throw error;
+    }
   };
 
   // Store the current generated title for use in UI
@@ -255,6 +288,12 @@ function App() {
     setCustomColoringTheme('');
     setUploadedPhoto(null);
     setWithColoredModel(null); // Remettre à zéro le choix du modèle
+    setSelectedComicsTheme(null);
+    setSelectedComicsStyle('cartoon');
+    setNumPages(1);
+    setCustomComicsStory('');
+    setCharacterPhoto(null);
+    setComicsResult(null);
     setSelectedAnimationTheme(null);
     setSelectedDuration(null);
     setSelectedStyle(null);
@@ -405,6 +444,35 @@ function App() {
         setColoringResult(coloringData);
         generatedContent = coloringData; // Stocker pour l'historique
       }
+    } else if (contentType === 'bd') {
+      // Génération de bande dessinée
+      const payload = {
+        theme: selectedComicsTheme === 'custom' ? customComicsStory : selectedComicsTheme,
+        art_style: selectedComicsStyle,
+        num_pages: numPages
+      };
+
+      // Si histoire personnalisée
+      if (selectedComicsTheme === 'custom' && customComicsStory.trim()) {
+        payload.custom_prompt = customComicsStory.trim();
+      }
+
+      // Si photo de personnage uploadée
+      if (characterPhoto && characterPhoto.file_path) {
+        payload.character_photo_path = characterPhoto.file_path;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/generate_comic/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+
+      const comicsData = await response.json();
+      setComicsResult(comicsData);
+      generatedContent = comicsData;
     } else if (contentType === 'animation') {
       // Déterminer le contenu de l'histoire
       let story;
@@ -646,6 +714,10 @@ const handleSelectCreation = (creation) => {
       if (!selectedTheme && !uploadedPhoto) return false;
       // Si thème custom, vérifier le texte personnalisé
       if (selectedTheme === 'custom' && !customColoringTheme.trim()) return false;
+    } else if (contentType === 'bd') {
+      // Pour les BD: thème obligatoire, style et nombre de pages ont des valeurs par défaut
+      if (!selectedComicsTheme) return false;
+      if (selectedComicsTheme === 'custom' && !customComicsStory.trim()) return false;
     } else if (contentType === 'animation') {
       // Pour les animations, soit un thème soit une histoire personnalisée
       if (!selectedAnimationTheme && !customStory.trim()) return false;
@@ -903,6 +975,29 @@ const downloadPDF = async (title, content) => {
                   setWithColoredModel={setWithColoredModel}
                 />
               </motion.div>
+            ) : contentType === 'bd' ? (
+              <motion.div
+                key="comics-selector"
+                variants={contentVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.3 }}
+              >
+                <ComicsSelector
+                  selectedTheme={selectedComicsTheme}
+                  setSelectedTheme={setSelectedComicsTheme}
+                  selectedStyle={selectedComicsStyle}
+                  setSelectedStyle={setSelectedComicsStyle}
+                  numPages={numPages}
+                  setNumPages={setNumPages}
+                  customStory={customComicsStory}
+                  setCustomStory={setCustomComicsStory}
+                  characterPhoto={characterPhoto}
+                  setCharacterPhoto={setCharacterPhoto}
+                  onCharacterPhotoUpload={handleCharacterPhotoUpload}
+                />
+              </motion.div>
             ) : contentType === 'animation' ? (
               <motion.div
                 key="animation-selector"
@@ -967,6 +1062,8 @@ const downloadPDF = async (title, content) => {
           ? 'Création de l\'histoire en cours...'
           : contentType === 'coloring'
           ? 'Création de vos coloriages en cours...'
+          : contentType === 'bd'
+          ? 'Création de votre bande dessinée en cours...'
           : contentType === 'animation'
           ? 'Création de votre dessin animé en cours...'
           : 'Génération en cours...'}
@@ -1018,6 +1115,50 @@ const downloadPDF = async (title, content) => {
         }}
       >
         📄 Télécharger le coloriage
+      </button>
+    </motion.div>
+  ) : comicsResult && contentType === 'bd' ? (
+    <motion.div
+      className="generated-result"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      key="comics-result"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '1rem',
+        padding: '1rem'
+      }}
+    >
+      <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+        <h3 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>
+          {comicsResult.title || 'Votre Bande Dessinée'}
+        </h3>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+          {comicsResult.total_pages} {comicsResult.total_pages === 1 ? 'planche' : 'planches'} • {comicsResult.total_pages * 4} cases
+        </p>
+      </div>
+      <button
+        onClick={() => setShowComicsPopup(true)}
+        style={{
+          padding: '0.8rem 2rem',
+          backgroundColor: '#6B4EFF',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '12px',
+          cursor: 'pointer',
+          fontWeight: '700',
+          fontSize: '1rem',
+          boxShadow: '0 4px 12px rgba(107, 78, 255, 0.3)',
+          transition: 'all 0.2s ease'
+        }}
+        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+      >
+        📚 Lire la bande dessinée
       </button>
     </motion.div>
   ) : generatedResult && contentType === 'rhyme' && generatedResult.songs && generatedResult.songs.length > 0 ? (
@@ -1251,6 +1392,14 @@ const downloadPDF = async (title, content) => {
         coloringResult={coloringResult}
         selectedTheme={selectedTheme}
         onClose={() => setShowColoringPopup(false)}
+      />
+    )}
+
+    {showComicsPopup && (
+      <ComicsPopup
+        comic={comicsResult}
+        onClose={() => setShowComicsPopup(false)}
+        baseUrl={API_BASE_URL}
       />
     )}
 

@@ -28,7 +28,7 @@ from datetime import datetime
 
 # Authentification gérée par Supabase - modules supprimés car inutiles avec Vercel
 from services.coloring_generator_gpt4o import ColoringGeneratorGPT4o
-from services.comic_generator import ComicGenerator
+from services.comics_generator_gpt4o import ComicsGeneratorGPT4o
 from services.real_animation_generator import RealAnimationGenerator
 from services.local_animation_generator import LocalAnimationGenerator
 from utils.translate import translate_text
@@ -701,46 +701,71 @@ class ComicResponse(BaseModel):
     comic_metadata: Optional[dict] = None
     error: Optional[str] = None
 
-# Instance globale du générateur de BD
-comic_generator_instance = ComicGenerator()
+# Instance globale du générateur de BD (lazy initialization)
+comics_generator_instance = None
 
-@app.post("/generate_comic/", response_model=ComicResponse)
+def get_comics_generator():
+    """Obtient l'instance du générateur de BD (lazy initialization)"""
+    global comics_generator_instance
+    if comics_generator_instance is None:
+        comics_generator_instance = ComicsGeneratorGPT4o()
+    return comics_generator_instance
+
+@app.post("/generate_comic/")
 async def generate_comic(request: dict):
     """
-    Génère une bande dessinée complète avec IA
+    Génère une bande dessinée complète avec gpt-4o-mini + gpt-image-1
+    Format: chaque planche = 1 image avec 4 cases
     """
     try:
-        # Validation des données d'entrée
-        theme = request.get("theme", "aventure")
+        # Récupérer les paramètres
+        theme = request.get("theme", "espace")
         art_style = request.get("art_style", "cartoon")
-        story_length = request.get("story_length", "court")
-        print(f"📚 Génération BD: {theme} / {art_style} / {story_length}")
+        num_pages = request.get("num_pages", 1)
+        custom_prompt = request.get("custom_prompt")
+        character_photo_path = request.get("character_photo_path")
+        
+        print(f"📚 Génération BD: thème={theme}, style={art_style}, pages={num_pages}")
         
         # Vérifier la clé API
         openai_key = os.getenv("OPENAI_API_KEY")
         if not openai_key or openai_key.startswith("sk-votre"):
             raise HTTPException(
-                status_code=400, 
-                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
+                status_code=400,
+                detail="❌ Clé API OpenAI non configurée"
             )
         
-        # Convertir la requête en dictionnaire
-        request_data = {
-            "theme": theme,
-            "story_length": story_length,
-            "art_style": art_style,
-            "custom_request": request.get("custom_request", ""),
-            "characters": request.get("characters", []),
-            "setting": request.get("setting", "")
-        }
+        # Obtenir le générateur
+        generator = get_comics_generator()
         
         # Générer la BD complète
-        result = await comic_generator_instance.create_complete_comic(request_data)
+        result = await generator.create_complete_comic(
+            theme=theme,
+            num_pages=num_pages,
+            art_style=art_style,
+            custom_prompt=custom_prompt,
+            character_photo_path=character_photo_path
+        )
         
-        if result["status"] == "success":
-            return ComicResponse(**result)
+        if result.get("success"):
+            return {
+                "status": "success",
+                "comic_id": result["comic_id"],
+                "title": result["title"],
+                "synopsis": result["synopsis"],
+                "pages": result["pages"],
+                "total_pages": result["total_pages"],
+                "theme": result["theme"],
+                "art_style": result["art_style"],
+                "generation_time": result["generation_time"]
+            }
         else:
-            raise HTTPException(status_code=500, detail=result.get("error", "Erreur inconnue"))
+            error_msg = result.get("error", "Erreur inconnue")
+            print(f"❌ Échec génération BD: {error_msg}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Erreur génération BD: {error_msg}"
+            )
             
     except HTTPException:
         raise
@@ -748,7 +773,53 @@ async def generate_comic(request: dict):
         print(f"❌ Erreur génération BD: {e}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération de la BD : {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération: {str(e)}")
+
+
+@app.post("/upload_character_photo/")
+async def upload_character_photo(file: UploadFile = File(...)):
+    """
+    Upload une photo de personnage pour l'intégrer dans une BD
+    """
+    try:
+        print(f"📸 Upload photo personnage: {file.filename}")
+        
+        # Vérifier le type de fichier
+        allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+        file_ext = Path(file.filename).suffix.lower()
+        
+        if file_ext not in allowed_extensions:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Format non supporté. Formats acceptés: {', '.join(allowed_extensions)}"
+            )
+        
+        # Créer un nom unique
+        unique_filename = f"character_{uuid.uuid4().hex[:8]}{file_ext}"
+        upload_path = Path("static/uploads/comics") / unique_filename
+        upload_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Sauvegarder
+        with open(upload_path, "wb") as buffer:
+            while chunk := await file.read(1024 * 1024):
+                buffer.write(chunk)
+        
+        print(f"✅ Photo personnage sauvegardée: {unique_filename}")
+        
+        return {
+            "status": "success",
+            "message": "Photo uploadée avec succès",
+            "file_path": str(upload_path),
+            "filename": unique_filename,
+            "url": f"{BASE_URL}/static/uploads/comics/{unique_filename}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur upload photo: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur upload: {str(e)}")
+
 
 # --- Themes pour l'animation ---
 @app.get("/themes")

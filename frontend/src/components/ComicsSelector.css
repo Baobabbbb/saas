@@ -1,0 +1,369 @@
+.comics-selector {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.selector-section {
+  margin-bottom: 40px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.selector-section h3 {
+  font-size: 1.4rem;
+  color: var(--text);
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+/* Grille de thèmes */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.theme-card {
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.theme-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(107, 78, 255, 0.15);
+  border-color: var(--primary);
+}
+
+.theme-card.selected {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  box-shadow: 0 6px 16px rgba(107, 78, 255, 0.2);
+}
+
+.theme-card.custom-theme {
+  border: 2px dashed #c4b5ff;
+}
+
+.theme-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.theme-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.theme-description {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* Input personnalisé */
+.custom-input-container {
+  margin-top: 20px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.custom-story-input {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: 'Nunito', sans-serif;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+}
+
+.custom-story-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+}
+
+/* Grille de styles */
+.style-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.style-card {
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.style-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(107, 78, 255, 0.15);
+  border-color: var(--primary);
+}
+
+.style-card.selected {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  box-shadow: 0 6px 16px rgba(107, 78, 255, 0.2);
+}
+
+.style-icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+
+.style-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.style-description {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Sélecteur de pages */
+.pages-selector {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.page-btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 16px 20px;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.page-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.15);
+  border-color: var(--primary);
+}
+
+.page-btn.selected {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.3);
+}
+
+.cases-info {
+  font-size: 0.85rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* Section personnage */
+.character-upload-section {
+  background: var(--primary-light);
+  padding: 24px;
+  border-radius: 16px;
+  border: 2px dashed var(--primary);
+}
+
+.character-description {
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.upload-area {
+  margin-bottom: 20px;
+}
+
+.file-input {
+  display: none;
+}
+
+.upload-label {
+  display: block;
+  padding: 32px;
+  background: white;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.upload-label:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.upload-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.upload-icon {
+  font-size: 3rem;
+  margin-bottom: 8px;
+}
+
+.upload-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.uploading-state,
+.uploaded-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--primary-light);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.check-icon {
+  font-size: 3rem;
+}
+
+.change-link {
+  font-size: 0.9rem;
+  color: var(--primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.photo-preview {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.photo-preview img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 12px;
+  border: 2px solid var(--primary);
+  object-fit: cover;
+}
+
+.remove-photo-btn {
+  padding: 8px 16px;
+  background: var(--error);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.remove-photo-btn:hover {
+  background: #d63447;
+  transform: scale(1.05);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .theme-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .style-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+  }
+
+  .pages-selector {
+    flex-direction: column;
+  }
+
+  .page-btn {
+    width: 100%;
+  }
+
+  .selector-section h3 {
+    font-size: 1.2rem;
+  }
+
+  .theme-icon,
+  .upload-icon {
+    font-size: 2.5rem;
+  }
+
+  .photo-preview img {
+    max-width: 150px;
+    max-height: 150px;
+  }
+}
+
