@@ -167,6 +167,16 @@ async def health_check():
         "timestamp": datetime.now().isoformat()
     }
 
+# Endpoint pour fournir les variables d'environnement au frontend
+@app.get("/api/config")
+async def get_config():
+    """Fournit les variables de configuration nécessaires au frontend"""
+    return {
+        "supabase_url": os.getenv("SUPABASE_URL", "https://xfbmdeuzuyixpmouhqcv.supabase.co"),
+        "supabase_anon_key": os.getenv("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmYm1kZXV6dXlpeHBtb3VocWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMzE3ODQsImV4cCI6MjA2NDkwNzc4NH0.XzFIT3BwW9dKRrmFFbSAufCpC1SZuUI-VU2Uer5VoTw"),
+        "base_url": BASE_URL
+    }
+
 # Validation des requêtes supprimée car gérée automatiquement par Vercel
 
 # Middleware pour afficher les erreurs (avec gestion des déconnexions client)

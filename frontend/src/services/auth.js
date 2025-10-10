@@ -1,11 +1,11 @@
-import { supabase } from '../supabaseClient'
+import { getSupabaseClient } from '../supabaseClient'
 
 // Service d'authentification hybride : simulation pour l'interface + Supabase pour les données
 // Connexion avec meilleure gestion d'erreurs
 export async function signIn({ email, password }) {
   try {
+    const supabase = await getSupabaseClient();
 
-    
     // Authentification réelle avec Supabase Auth
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
@@ -21,10 +21,10 @@ export async function signIn({ email, password }) {
     }
 
     if (data.user) {
-      
+
       // Mettre à jour localStorage avec les données
       localStorage.setItem('userEmail', data.user.email);
-      
+
       // Pour fredagathe77@gmail.com, utiliser les vraies données
       if (data.user.email === 'fredagathe77@gmail.com') {
         localStorage.setItem('userName', 'Admin Principal');
@@ -33,7 +33,7 @@ export async function signIn({ email, password }) {
       } else {
         // Pour les autres utilisateurs, essayer de récupérer le profil
         const { data: profile, error: profileError } = await supabase
-          .from('public.profiles')
+          .from('profiles')
           .select('*')
           .eq('id', data.user.id)
           .single();
@@ -76,7 +76,8 @@ export async function signIn({ email, password }) {
 // Inscription avec création de profil
 export async function signUpWithProfile({ email, password, firstName, lastName }) {
   try {
-    
+    const supabase = await getSupabaseClient();
+
     // Inscription réelle avec Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email: email,
@@ -143,16 +144,18 @@ export async function signOut() {
 // Mise à jour du profil utilisateur
 export async function updateUserProfile({ firstName, lastName }) {
   try {
+    const supabase = await getSupabaseClient();
+
     // Récupérer l'utilisateur connecté depuis Supabase Auth
     const { data: userData, error: userError } = await supabase.auth.getUser();
-    
+
     if (userError || !userData?.user) {
       return { error: { message: 'Utilisateur non connecté' } };
     }
 
     // Mettre à jour le profil dans Supabase
     const { error: updateError } = await supabase
-      .from('public.profiles')
+      .from('profiles')
       .update({
         prenom: firstName,
         nom: lastName
@@ -258,6 +261,7 @@ export async function deleteUserAccount() {
 // Réinitialisation du mot de passe
 export async function resetPassword({ email }) {
   try {
+    const supabase = await getSupabaseClient();
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
