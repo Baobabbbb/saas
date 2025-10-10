@@ -258,71 +258,25 @@ export async function deleteUserAccount() {
   }
 }
 
-// Réinitialisation du mot de passe - VERSION BACKEND V2
+// Réinitialisation du mot de passe avec Supabase Auth
 export async function resetPassword({ email }) {
   try {
-    console.log('🚀 [BACKEND] Tentative de réinitialisation...');
+    console.log('🚀 [SUPABASE] Tentative de réinitialisation du mot de passe...');
 
-    const response = await fetch('/api/reset-password', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email }),
+    // Utiliser Supabase Auth directement pour la réinitialisation
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`
     });
 
-    console.log('📡 [BACKEND] Réponse du serveur:', response.status, response.statusText);
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('❌ [BACKEND] Erreur serveur:', errorData);
-      throw new Error(errorData.detail || 'Erreur lors de la réinitialisation');
+    if (error) {
+      console.error('❌ [SUPABASE] Erreur lors de la réinitialisation:', error);
+      return { error: { message: error.message } };
     }
 
-    const data = await response.json();
-    console.log('✅ [BACKEND] Réinitialisation réussie:', data);
-    return { data };
+    console.log('✅ [SUPABASE] Email de réinitialisation envoyé avec succès');
+    return { data: { message: 'Email de réinitialisation envoyé avec succès' } };
   } catch (err) {
-    console.error('❌ [BACKEND] Erreur lors de la réinitialisation:', err);
-    return { error: { message: 'Erreur lors de l\'envoi de l\'email de réinitialisation: ' + err.message } };
-  }
-}
-
-// Version alternative avec timeout plus long
-export async function resetPasswordWithTimeout({ email }) {
-  try {
-    console.log('🔄 [BACKEND TIMEOUT] Tentative de réinitialisation...');
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 secondes
-
-    const response = await fetch('/api/reset-password', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email }),
-      signal: controller.signal
-    });
-
-    clearTimeout(timeoutId);
-    console.log('📡 [BACKEND TIMEOUT] Réponse du serveur:', response.status);
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('❌ [BACKEND TIMEOUT] Erreur serveur:', errorData);
-      throw new Error(errorData.detail || 'Erreur lors de la réinitialisation');
-    }
-
-    const data = await response.json();
-    console.log('✅ [BACKEND TIMEOUT] Réinitialisation réussie:', data);
-    return { data };
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      console.error('❌ [BACKEND TIMEOUT] Timeout - serveur trop lent');
-      return { error: { message: 'Le serveur met trop de temps à répondre. Réessayez.' } };
-    }
-    console.error('❌ [BACKEND TIMEOUT] Erreur lors de la réinitialisation:', err);
+    console.error('❌ [SUPABASE] Erreur lors de la réinitialisation:', err);
     return { error: { message: 'Erreur lors de l\'envoi de l\'email de réinitialisation: ' + err.message } };
   }
 }

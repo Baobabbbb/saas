@@ -9,17 +9,31 @@ const ResetPasswordPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [token, setToken] = useState('');
-  const [email, setEmail] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Récupérer les paramètres URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenParam = urlParams.get('token');
-    const emailParam = urlParams.get('email');
+    // Vérifier si l'utilisateur est authentifié pour la récupération de mot de passe
+    const checkAuthState = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
 
-    if (tokenParam) setToken(tokenParam);
-    if (emailParam) setEmail(emailParam);
+      // Écouter les changements d'authentification
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          console.log('🔄 [RESET] État auth changé:', event, !!session);
+          setIsAuthenticated(!!session);
+
+          // Si l'utilisateur vient de se connecter via le lien de reset
+          if (event === 'PASSWORD_RECOVERY' && session) {
+            console.log('✅ [RESET] Session de récupération active');
+          }
+        }
+      );
+
+      return () => subscription.unsubscribe();
+    };
+
+    checkAuthState();
   }, []);
 
   const handleSubmit = async (e) => {
@@ -41,21 +55,26 @@ const ResetPasswordPage = () => {
     }
 
     try {
+      console.log('🚀 [RESET] Tentative de mise à jour du mot de passe...');
+
       // Utiliser Supabase pour mettre à jour le mot de passe
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
 
       if (error) {
+        console.error('❌ [RESET] Erreur mise à jour:', error);
         setError(error.message);
       } else {
+        console.log('✅ [RESET] Mot de passe mis à jour avec succès');
         setSuccess(true);
-        // Rediriger vers la page de connexion après 3 secondes
+        // Rediriger vers la page d'accueil après 3 secondes
         setTimeout(() => {
           window.location.href = '/';
         }, 3000);
       }
     } catch (err) {
+      console.error('❌ [RESET] Erreur inattendue:', err);
       setError('Une erreur est survenue lors de la mise à jour du mot de passe');
     }
 
@@ -76,6 +95,37 @@ const ResetPasswordPage = () => {
             <h2>Mot de passe mis à jour !</h2>
             <p>Votre mot de passe a été changé avec succès.</p>
             <p>Vous serez redirigé vers la page d'accueil dans quelques secondes...</p>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Si l'utilisateur n'est pas authentifié, afficher un message d'attente
+  if (!isAuthenticated) {
+    return (
+      <div className="reset-password-page">
+        <motion.div
+          className="reset-password-container"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="reset-password-header">
+            <h1>HERBBIE</h1>
+            <h2>Réinitialiser votre mot de passe</h2>
+          </div>
+
+          <div className="waiting-message">
+            <div className="loading-spinner"></div>
+            <p>Vérification de votre lien de réinitialisation...</p>
+            <p className="waiting-subtitle">
+              Si cette page ne se met pas à jour automatiquement, assurez-vous d'avoir cliqué sur le lien complet dans votre email.
+            </p>
+          </div>
+
+          <div className="reset-password-footer">
+            <a href="/">Retour à l'accueil</a>
           </div>
         </motion.div>
       </div>
@@ -146,3 +196,4 @@ const ResetPasswordPage = () => {
 };
 
 export default ResetPasswordPage;
+
