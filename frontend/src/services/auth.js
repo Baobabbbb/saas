@@ -258,6 +258,34 @@ export async function deleteUserAccount() {
   }
 }
 
+// Fonction pour traduire les messages d'erreur de Supabase en français
+function translateSupabaseError(errorMessage) {
+  // Messages d'erreur de réinitialisation de mot de passe
+  if (errorMessage.includes('security purposes') && errorMessage.includes('request this')) {
+    return 'Pour des raisons de sécurité, vous ne pouvez faire cette demande que toutes les 60 secondes.';
+  }
+
+  if (errorMessage.includes('only request this after')) {
+    return 'Pour des raisons de sécurité, vous ne pouvez faire cette demande que toutes les 60 secondes.';
+  }
+
+  // Autres erreurs communes
+  if (errorMessage.includes('Invalid email')) {
+    return 'Adresse email invalide.';
+  }
+
+  if (errorMessage.includes('User not found')) {
+    return 'Aucun compte trouvé avec cette adresse email.';
+  }
+
+  if (errorMessage.includes('Too many requests')) {
+    return 'Trop de tentatives. Veuillez réessayer dans quelques minutes.';
+  }
+
+  // Retourner le message original si pas de traduction trouvée
+  return errorMessage;
+}
+
 // Réinitialisation du mot de passe avec Supabase Auth - Version directe
 export async function resetPassword({ email }) {
   try {
@@ -270,13 +298,13 @@ export async function resetPassword({ email }) {
 
     if (error) {
       console.error('❌ [SUPABASE DIRECT] Erreur:', error);
-      return { error: { message: error.message } };
+      return { error: { message: translateSupabaseError(error.message) } };
     }
 
     console.log('✅ [SUPABASE DIRECT] Demande envoyée');
     return { data: { message: 'Email de réinitialisation envoyé avec succès' } };
   } catch (err) {
     console.error('❌ [SUPABASE DIRECT] Exception:', err);
-    return { error: { message: 'Erreur lors de l\'envoi de l\'email de réinitialisation: ' + err.message } };
+    return { error: { message: 'Erreur lors de l\'envoi de l\'email de réinitialisation: ' + translateSupabaseError(err.message) } };
   }
 }
