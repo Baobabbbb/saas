@@ -1312,7 +1312,7 @@ async def reset_password_endpoint(reset_data: PasswordResetRequest):
                     "Content-Type": "application/json",
                 },
                 json={
-                    "from": "Herbbie <noreply@herbbie.com>",
+                    "from": "Herbbie <contact@herbbie.com>",
                     "to": [reset_data.email],
                     "subject": "Réinitialisez votre mot de passe Herbbie",
                     "html": html_content,
