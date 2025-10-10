@@ -30,7 +30,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     },
     fetch: (url, options = {}) => {
       return fetch(url, options).catch(error => {
-        console.error('Erreur Supabase:', error);
         if (error.message.includes('Failed to fetch') || error.message.includes('ERR_NAME_NOT_RESOLVED')) {
           return Promise.resolve(new Response(JSON.stringify({ error: 'Network error' }), {
             status: 503,
