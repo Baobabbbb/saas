@@ -261,15 +261,20 @@ export async function deleteUserAccount() {
 // Réinitialisation du mot de passe
 export async function resetPassword({ email }) {
   try {
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+    const response = await fetch('/api/reset-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
     });
 
-    if (error) {
-      console.error('Erreur réinitialisation:', error);
-      return { error };
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Erreur lors de la réinitialisation');
     }
 
+    const data = await response.json();
     return { data };
   } catch (err) {
     console.error('Erreur lors de la réinitialisation:', err);

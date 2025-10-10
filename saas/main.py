@@ -1173,7 +1173,7 @@ async def send_contact_email(contact_form: ContactForm):
 
         # Lancer l'envoi en arrière-plan (non bloquant)
         asyncio.create_task(send_email_background(contact_form))
-        
+
         # Réponse immédiate au client
         return {"message": "Email en cours d'envoi"}
 
@@ -1181,3 +1181,46 @@ async def send_contact_email(contact_form: ContactForm):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+# Modèle pour la réinitialisation de mot de passe
+class PasswordResetRequest(BaseModel):
+    email: str
+
+# Endpoint pour réinitialiser le mot de passe (via Supabase backend)
+@app.post("/api/reset-password")
+async def reset_password_endpoint(reset_data: PasswordResetRequest):
+    """Réinitialise le mot de passe via Supabase backend"""
+    try:
+        # Récupérer les credentials Supabase
+        supabase_url = os.getenv("SUPABASE_URL", "https://xfbmdeuzuyixpmouhqcv.supabase.co")
+        supabase_service_key = os.getenv("SUPABASE_SERVICE_KEY")
+
+        if not supabase_service_key:
+            raise HTTPException(status_code=500, detail="Configuration Supabase service manquante")
+
+        import httpx
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{supabase_url}/auth/v1/recover",
+                headers={
+                    "apikey": supabase_service_key,
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "email": reset_data.email
+                }
+            )
+
+            if response.status_code == 200:
+                return {"message": "Email de réinitialisation envoyé avec succès"}
+            else:
+                error_msg = response.text
+                print(f"❌ Erreur Supabase reset password ({response.status_code}): {error_msg}")
+                raise HTTPException(status_code=500, detail=f"Erreur lors de la réinitialisation: {error_msg}")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur reset password: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la réinitialisation: {str(e)}")
