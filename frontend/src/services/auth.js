@@ -258,25 +258,25 @@ export async function deleteUserAccount() {
   }
 }
 
-// Réinitialisation du mot de passe avec Supabase Auth
+// Réinitialisation du mot de passe avec Supabase Auth - Version directe
 export async function resetPassword({ email }) {
   try {
-    console.log('🚀 [SUPABASE] Tentative de réinitialisation du mot de passe...');
+    console.log('🚀 [SUPABASE DIRECT] Tentative de réinitialisation...');
 
-    // Utiliser Supabase Auth directement pour la réinitialisation
+    // Utiliser Supabase Auth directement
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`
+      redirectTo: `${window.location.origin}/reset-password`,
     });
 
     if (error) {
-      console.error('❌ [SUPABASE] Erreur lors de la réinitialisation:', error);
+      console.error('❌ [SUPABASE DIRECT] Erreur:', error);
       return { error: { message: error.message } };
     }
 
-    console.log('✅ [SUPABASE] Email de réinitialisation envoyé avec succès');
+    console.log('✅ [SUPABASE DIRECT] Demande envoyée');
     return { data: { message: 'Email de réinitialisation envoyé avec succès' } };
   } catch (err) {
-    console.error('❌ [SUPABASE] Erreur lors de la réinitialisation:', err);
+    console.error('❌ [SUPABASE DIRECT] Exception:', err);
     return { error: { message: 'Erreur lors de l\'envoi de l\'email de réinitialisation: ' + err.message } };
   }
 }

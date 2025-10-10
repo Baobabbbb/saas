@@ -19,32 +19,17 @@ const ResetPasswordPage = () => {
     const checkAuthState = async () => {
       console.log('🔄 [RESET] Vérification état auth...');
 
-      // Vérifier les paramètres URL pour détecter un lien de reset
-      const urlParams = new URLSearchParams(window.location.search);
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const hasResetParams = urlParams.has('access_token') || urlParams.has('refresh_token') ||
-                           hashParams.has('access_token') || hashParams.has('refresh_token') ||
-                           urlParams.has('token') || hashParams.has('token');
-
-      console.log('🔍 [RESET] Paramètres URL détectés:', hasResetParams);
-
-      if (!hasResetParams) {
-        console.log('❌ [RESET] Aucun paramètre de reset détecté - lien invalide');
-        setIsInvalidLink(true);
-        return;
-      }
-
       const { data: { session } } = await supabase.auth.getSession();
       console.log('🔄 [RESET] Session actuelle:', !!session);
       setIsAuthenticated(!!session);
 
-      // Timeout de 15 secondes pour éviter le blocage
+      // Timeout de 10 secondes pour éviter le blocage
       timeoutId = setTimeout(() => {
         console.log('⏰ [RESET] Timeout atteint - vérification terminée');
         if (!session) {
           setIsInvalidLink(true);
         }
-      }, 15000);
+      }, 10000);
 
       // Écouter les changements d'authentification
       const { data: { subscription: sub } } = supabase.auth.onAuthStateChange(
