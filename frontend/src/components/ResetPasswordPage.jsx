@@ -10,15 +10,44 @@ const ResetPasswordPage = () => {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isInvalidLink, setIsInvalidLink] = useState(false);
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est authentifié pour la récupération de mot de passe
+    let timeoutId;
+    let subscription;
+
     const checkAuthState = async () => {
+      console.log('🔄 [RESET] Vérification état auth...');
+
+      // Vérifier les paramètres URL pour détecter un lien de reset
+      const urlParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const hasResetParams = urlParams.has('access_token') || urlParams.has('refresh_token') ||
+                           hashParams.has('access_token') || hashParams.has('refresh_token') ||
+                           urlParams.has('token') || hashParams.has('token');
+
+      console.log('🔍 [RESET] Paramètres URL détectés:', hasResetParams);
+
+      if (!hasResetParams) {
+        console.log('❌ [RESET] Aucun paramètre de reset détecté - lien invalide');
+        setIsInvalidLink(true);
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔄 [RESET] Session actuelle:', !!session);
       setIsAuthenticated(!!session);
 
+      // Timeout de 15 secondes pour éviter le blocage
+      timeoutId = setTimeout(() => {
+        console.log('⏰ [RESET] Timeout atteint - vérification terminée');
+        if (!session) {
+          setIsInvalidLink(true);
+        }
+      }, 15000);
+
       // Écouter les changements d'authentification
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      const { data: { subscription: sub } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
           console.log('🔄 [RESET] État auth changé:', event, !!session);
           setIsAuthenticated(!!session);
@@ -26,14 +55,25 @@ const ResetPasswordPage = () => {
           // Si l'utilisateur vient de se connecter via le lien de reset
           if (event === 'PASSWORD_RECOVERY' && session) {
             console.log('✅ [RESET] Session de récupération active');
+            if (timeoutId) clearTimeout(timeoutId);
+          }
+
+          // Si on reçoit une session, annuler le timeout
+          if (session && timeoutId) {
+            clearTimeout(timeoutId);
           }
         }
       );
 
-      return () => subscription.unsubscribe();
+      subscription = sub;
     };
 
     checkAuthState();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (subscription) subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e) => {
@@ -95,6 +135,36 @@ const ResetPasswordPage = () => {
             <h2>Mot de passe mis à jour !</h2>
             <p>Votre mot de passe a été changé avec succès.</p>
             <p>Vous serez redirigé vers la page d'accueil dans quelques secondes...</p>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Si le lien est invalide, afficher un message d'erreur
+  if (isInvalidLink) {
+    return (
+      <div className="reset-password-page">
+        <motion.div
+          className="reset-password-container"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="reset-password-header">
+            <h1>HERBBIE</h1>
+            <h2>Erreur de lien</h2>
+          </div>
+
+          <div className="error-message">
+            <div className="error-icon">❌</div>
+            <h3>Lien de réinitialisation invalide</h3>
+            <p>Ce lien de réinitialisation de mot de passe n'est pas valide ou a expiré.</p>
+            <p>Veuillez demander un nouveau lien de réinitialisation.</p>
+          </div>
+
+          <div className="reset-password-footer">
+            <a href="/">Retour à l'accueil</a>
           </div>
         </motion.div>
       </div>
