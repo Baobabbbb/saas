@@ -220,28 +220,34 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setError('');
-    
+
+    // Afficher immédiatement la popup de succès
+    setResetEmailSent(true);
+    setError('');
+
+    // Sauvegarder l'email dans l'historique immédiatement
+    saveEmailToHistory(resetEmail.trim());
+
     try {
-      console.log('🔄 Demande de réinitialisation via backend...');
-      
+      console.log('🔄 Demande de réinitialisation via backend en arrière-plan...');
+
+      // Faire l'appel API en arrière-plan pour ne pas bloquer l'UI
       const { data, error } = await resetPasswordService({ email: resetEmail.trim() });
 
       if (error) {
         console.error('❌ Erreur reset password:', error);
+        // Si l'API échoue, revenir à l'état initial et afficher l'erreur
+        setResetEmailSent(false);
         setError(error.message || 'Erreur lors de l\'envoi de l\'email');
         return;
       }
 
       console.log('✅ Reset password réussi:', data);
 
-      // Sauvegarder l'email dans l'historique
-      saveEmailToHistory(resetEmail.trim());
-
-      setResetEmailSent(true);
-      setError('');
-      
     } catch (error) {
       console.error('❌ Exception reset password:', error);
+      // En cas d'exception, revenir à l'état initial
+      setResetEmailSent(false);
       setError('Erreur lors de l\'envoi de l\'email de réinitialisation');
     }
   };
