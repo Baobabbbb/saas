@@ -26,8 +26,8 @@ const ResetPasswordPage = () => {
         return;
       }
 
-      timeoutId = setTimeout(() => {
-        const { data: { session: currentSession } } = supabase.auth.getSession();
+      timeoutId = setTimeout(async () => {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
         if (!currentSession) {
           setIsInvalidLink(true);
         }
