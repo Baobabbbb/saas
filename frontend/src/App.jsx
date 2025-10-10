@@ -172,26 +172,21 @@ function App() {
               if (data?.clips && data.clips.length > 0) {
                 return data;
               } else {
-                console.warn('⚠️ Animation "completed" mais pas de clips, continuer le polling...');
               }
             }
             if (data?.status === 'failed') {
-              console.error('❌ Génération échouée:', data?.error_message);
               throw new Error(data?.error_message || 'Génération échouée');
             }
           }
-        } else {
-          console.warn(`⚠️ Erreur HTTP ${res.status} lors du polling`);
         }
       } catch (e) {
-        console.warn('🔄 Erreur polling (tentative continue):', e?.message || e);
+        // Continue polling même en cas d'erreur
       }
       
       attempts += 1;
       await delay(intervalMs);
     }
     
-    console.error('❌ Timeout de génération de l\'animation après', maxAttempts, 'tentatives');
     throw new Error('Timeout de génération de l\'animation');
   };
 
@@ -480,7 +475,6 @@ function App() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Erreur API Animation:', response.status, errorText);
         throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
       }
 
@@ -501,8 +495,6 @@ function App() {
         setAnimationResult(finalData);
         setShowAnimationViewer(true);
         generatedContent = finalData; // Stocker pour l'historique
-      } else {
-        console.warn('⚠️ Animation non complétée ou sans clips, viewer non ouvert. Status:', finalData?.status, 'Clips:', finalData?.clips?.length);
       }
     }
 
@@ -589,7 +581,7 @@ function App() {
           title: title,
           data: newCreation        });
       } catch (historyError) {
-        console.error('Erreur lors de l\'enregistrement dans l\'historique:', historyError);
+        // Erreur silencieuse - historique non critique
       }
 
     // setTimeout(() => setShowConfetti(false), 3000);
@@ -598,8 +590,6 @@ function App() {
     // (pour les comptines, c'est géré par pollTaskStatus)
     setIsGenerating(false);
   } catch (error) {
-    console.error('❌ Erreur de génération :', error);
-    
     // Afficher une alerte avec plus d'informations
     alert(`❌ Erreur lors de la génération : ${error.message}\n\n💡 Conseil : Vérifiez que les clés API sont configurées dans le fichier .env du serveur.`);
     setIsGenerating(false);
@@ -674,7 +664,6 @@ const handleSelectCreation = (creation) => {
 
 const downloadPDF = async (title, content) => {
   if (!content || typeof content !== "string") {
-    console.error("❌ Contenu invalide ou manquant pour le PDF.");
     return;
   }
 
@@ -790,7 +779,7 @@ const downloadPDF = async (title, content) => {
               title: title,
               data: newCreation
             }).catch(historyError => {
-              console.error('Erreur lors de l\'enregistrement dans l\'historique:', historyError);
+              // Erreur silencieuse - historique non critique
             });
             
             return updatedResult;
@@ -799,7 +788,6 @@ const downloadPDF = async (title, content) => {
           return true; // Arrêter le polling
         } else if (status.status === 'failed') {
           // Tâche échouée
-          console.error('❌ La génération musicale Suno a échoué:', status.error);
           setGeneratedResult(prev => ({
             ...prev,
             music_error: status.error,
@@ -811,7 +799,6 @@ const downloadPDF = async (title, content) => {
           // En cours de traitement
         } else if (attempts >= maxAttempts - 1) {
           // Timeout atteint
-          console.warn('⚠️ Timeout atteint pour la génération musicale Suno');
           setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement
           alert('⚠️ La génération de musique prend plus de temps que prévu. Veuillez vérifier votre historique dans quelques minutes.');
           return true; // Arrêter le polling
@@ -823,7 +810,6 @@ const downloadPDF = async (title, content) => {
         return false;
         
       } catch (error) {
-        console.error('❌ Erreur lors du polling Suno:', error);
         attempts++;
         if (attempts < maxAttempts) {
           setTimeout(checkStatus, interval);

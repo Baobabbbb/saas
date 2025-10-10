@@ -13,7 +13,7 @@ export const saveEmailToHistory = (email, userId = null) => {
     try {
       emailHistory = JSON.parse(stored);
     } catch (error) {
-      console.error('Erreur lors du chargement de l\'historique email:', error);
+      // Erreur silencieuse - historique non critique
     }
   }
 
@@ -36,7 +36,7 @@ export const useEmailAutocomplete = (user) => {
         const emails = JSON.parse(stored);
         setEmailHistory(emails);
       } catch (error) {
-        console.error('Erreur lors du chargement de l\'historique email:', error);
+        // Erreur silencieuse - historique non critique
       }
     }
   }, [user]);

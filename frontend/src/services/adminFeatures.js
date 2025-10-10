@@ -7,7 +7,6 @@ export const getFeatures = async () => {
     const features = await getFeaturesFromAPI();
     return features;
   } catch (error) {
-    console.error('Erreur lors du chargement des fonctionnalités:', error);
     throw error;
   }
 };
@@ -24,7 +23,6 @@ export const updateFeature = async (featureKey, enabled) => {
     
     return updatedFeatures;
   } catch (error) {
-    console.error('Erreur lors de la mise à jour de la fonctionnalité:', error);
     throw error;
   }
 };
@@ -35,7 +33,6 @@ export const isFeatureEnabled = async (featureKey) => {
     const features = await getFeatures();
     return features[featureKey]?.enabled || false;
   } catch (error) {
-    console.error(`Erreur lors de la vérification de la fonctionnalité ${featureKey}:`, error);
     return false;
   }
 };

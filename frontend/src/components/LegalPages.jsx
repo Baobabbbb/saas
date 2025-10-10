@@ -552,7 +552,6 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       });
 
     } catch (error) {
-      console.error('Erreur lors de l\'envoi du message:', error);
       setSubmitMessage(`❌ Erreur lors de l'envoi : ${error.message}`);
     } finally {
       setIsSubmitting(false);

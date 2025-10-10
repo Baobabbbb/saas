@@ -3,12 +3,8 @@ import { supabase } from '../supabaseClient'
 // Vérifier si l'utilisateur a la permission (admin ou payé)
 export const checkPaymentPermission = async (contentType, userId, userEmail) => {
   try {
-    // TODO: Remplacer par les vraies Edge Functions quand créées
-    console.log('🔍 Vérification permission temporaire pour:', { contentType, userId, userEmail })
-    
     // Simulation temporaire basée sur l'email
     if (userEmail === 'fredagathe77@gmail.com') {
-      console.log('👑 Admin détecté - accès gratuit')
       return {
         hasPermission: true,
         reason: 'admin_access',
@@ -25,10 +21,8 @@ export const checkPaymentPermission = async (contentType, userId, userEmail) => 
       .single()
 
     if (profileError) {
-      console.error('❌ Erreur récupération profil:', profileError)
+      // Erreur silencieuse - pas critique pour la vérification
     }
-
-    console.log('👤 Profil utilisateur:', profile)
 
     if (profile?.role === 'admin' || profile?.role === 'free') {
       return {
@@ -58,7 +52,6 @@ export const checkPaymentPermission = async (contentType, userId, userEmail) => 
     }
     
     // Paiement requis
-    console.log('💳 Paiement requis pour utilisateur normal')
     return {
       hasPermission: false,
       reason: 'payment_required',
@@ -67,7 +60,6 @@ export const checkPaymentPermission = async (contentType, userId, userEmail) => 
     }
     
   } catch (error) {
-    console.error('Erreur vérification permission:', error)
     return { hasPermission: false, reason: 'error', error, isAdmin: false }
   }
 }
@@ -83,7 +75,6 @@ export const createPaymentSession = async (contentType, userId) => {
     return data
     
   } catch (error) {
-    console.error('Erreur création paiement:', error)
     throw error
   }
 }
@@ -121,14 +112,12 @@ export const hasFreeAccess = async (userId, userEmail) => {
       .single()
 
     if (error) {
-      console.error('Erreur vérification accès gratuit:', error)
       return false
     }
 
     return profile?.role === 'admin' || profile?.role === 'free'
 
   } catch (error) {
-    console.error('Erreur hasFreeAccess:', error)
     return false
   }
 }
@@ -145,7 +134,6 @@ export const getUserRole = async (userId) => {
     return data?.role || 'user'
     
   } catch (error) {
-    console.error('Erreur récupération rôle:', error)
     return 'user'
   }
 }
@@ -168,7 +156,6 @@ export const grantPermission = async (userId, contentType, paymentIntentId, amou
     return data
     
   } catch (error) {
-    console.error('Erreur accordement permission:', error)
     throw error
   }
 }

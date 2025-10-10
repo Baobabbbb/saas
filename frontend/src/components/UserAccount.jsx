@@ -142,9 +142,8 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       });
 
       if (error) {
-        console.error('❌ HERBBIE: Erreur inscription Supabase:', error.message);
-        setError(error.message === 'User already registered' 
-          ? 'Un compte existe déjà avec cet email' 
+        setError(error.message === 'User already registered'
+          ? 'Un compte existe déjà avec cet email'
           : error.message);
         return;
       }
@@ -173,7 +172,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
         }
       }
     } catch (error) {
-      console.error('❌ HERBBIE: Erreur critique inscription:', error);
       setError('Erreur d\'inscription. Réessayez plus tard.');
     } finally {
       setIsAuthenticating(false);
@@ -185,7 +183,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        console.error('❌ HERBBIE: Erreur déconnexion:', error.message);
         setError('Erreur lors de la déconnexion');
         return;
       }
@@ -208,7 +205,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       window.location.reload();
       
     } catch (error) {
-      console.error('❌ HERBBIE: Erreur critique déconnexion:', error);
       setError('Erreur lors de la déconnexion');
     }
   };
@@ -225,24 +221,15 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
     saveEmailToHistory(resetEmail.trim());
 
     try {
-      console.log('🔄 Demande de réinitialisation via backend en arrière-plan...');
-
-      // Faire l'appel API en arrière-plan pour ne pas bloquer l'UI
       const { data, error } = await resetPasswordService({ email: resetEmail.trim() });
 
       if (error) {
-        console.error('❌ Erreur reset password:', error);
-        // Si l'API échoue, revenir à l'état initial et afficher l'erreur
         setResetEmailSent(false);
         setError(error.message || 'Erreur lors de l\'envoi de l\'email');
         return;
       }
 
-      console.log('✅ Reset password réussi:', data);
-
     } catch (error) {
-      console.error('❌ Exception reset password:', error);
-      // En cas d'exception, revenir à l'état initial
       setResetEmailSent(false);
       setError('Erreur lors de l\'envoi de l\'email de réinitialisation');
     }
@@ -266,9 +253,9 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
         setProfileFirstName(profile.prenom || '');
         setProfileLastName(profile.nom || '');
       }
-    } catch (error) {
-      console.error('Erreur rechargement données utilisateur:', error);
-    }
+      } catch (error) {
+        // Erreur silencieuse - pas critique
+      }
   };
 
   // Charger les données du profil depuis Supabase

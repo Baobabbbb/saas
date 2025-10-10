@@ -23,7 +23,6 @@ export default function useSupabaseUser() {
         try {
           await syncUserProfile(session.user);
         } catch (syncError) {
-          console.warn('Erreur sync profil (non critique):', syncError);
           // Ne pas bloquer le chargement si la sync échoue
         }
 
@@ -59,7 +58,6 @@ export default function useSupabaseUser() {
         }
 
       } catch (error) {
-        console.error('Erreur chargement utilisateur:', error);
         setUser(null);
       } finally {
         setLoading(false);

@@ -12,13 +12,11 @@ export async function getUserProfile(userId) {
       .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = pas de résultat
-      console.error('Erreur récupération profil:', error);
       throw new Error(`Erreur récupération profil: ${error.message}`);
     }
 
     return data;
   } catch (error) {
-    console.error('Erreur critique récupération profil:', error);
     throw error;
   }
 }
@@ -46,13 +44,11 @@ export async function updateUserProfile(userId, profileData) {
       .single();
 
     if (error) {
-      console.error('Erreur mise à jour profil:', error);
       throw new Error(`Erreur mise à jour profil: ${error.message}`);
     }
 
     return data;
   } catch (error) {
-    console.error('Erreur critique mise à jour profil:', error);
     throw error;
   }
 }
@@ -88,13 +84,11 @@ export async function syncUserProfile(user) {
       .single();
 
     if (error) {
-      console.error('Erreur sync profil:', error);
       throw new Error(`Erreur sync profil: ${error.message}`);
     }
 
     return data;
   } catch (error) {
-    console.error('Erreur critique sync profil:', error);
     throw error;
   }
 }
@@ -103,8 +97,6 @@ export async function syncUserProfile(user) {
  * Crée un profil pour un nouvel utilisateur
  */
 export async function createUserProfile(userId, email, profileData = {}) {
-  console.log('👤 HERBBIE: Création profil utilisateur:', userId, email);
-
   try {
     const newProfile = {
       id: userId,
@@ -122,14 +114,11 @@ export async function createUserProfile(userId, email, profileData = {}) {
       .single();
 
     if (error) {
-      console.error('❌ HERBBIE: Erreur création profil:', error);
       throw new Error(`Erreur création profil: ${error.message}`);
     }
 
-    console.log('✅ HERBBIE: Profil créé avec succès:', data);
     return data;
   } catch (error) {
-    console.error('❌ HERBBIE: Erreur critique création profil:', error);
     throw error;
   }
 }
@@ -145,13 +134,11 @@ export async function deleteUserProfile(userId) {
       .eq('id', userId);
 
     if (error) {
-      console.error('Erreur suppression profil:', error);
       throw new Error(`Erreur suppression profil: ${error.message}`);
     }
 
     return true;
   } catch (error) {
-    console.error('Erreur critique suppression profil:', error);
     throw error;
   }
 }
