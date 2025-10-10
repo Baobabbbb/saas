@@ -4,6 +4,7 @@ import './UserAccount.css';
 import { supabase } from '../supabaseClient';
 import useSupabaseUser from '../hooks/useSupabaseUser';
 import { updateUserProfile } from '../services/profileService';
+import { resetPassword as resetPasswordService } from '../services/auth';
 import EmailInput, { saveEmailToHistory } from './EmailInput';
 
 const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory }) => {
@@ -221,14 +222,17 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
     setError('');
     
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
-        redirectTo: window.location.origin
-      });
+      console.log('🔄 Demande de réinitialisation via backend...');
+      
+      const { data, error } = await resetPasswordService({ email: resetEmail.trim() });
 
       if (error) {
-        setError(error.message);
+        console.error('❌ Erreur reset password:', error);
+        setError(error.message || 'Erreur lors de l\'envoi de l\'email');
         return;
       }
+
+      console.log('✅ Reset password réussi:', data);
 
       // Sauvegarder l'email dans l'historique
       saveEmailToHistory(resetEmail.trim());
@@ -237,6 +241,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       setError('');
       
     } catch (error) {
+      console.error('❌ Exception reset password:', error);
       setError('Erreur lors de l\'envoi de l\'email de réinitialisation');
     }
   };
