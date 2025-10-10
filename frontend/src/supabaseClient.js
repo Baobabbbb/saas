@@ -9,22 +9,18 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true,  // ✅ ACTIVÉ pour détecter les tokens dans l'URL (reset password, magic links)
+    detectSessionInUrl: true,
     storage: window.localStorage,
     storageKey: 'herbbie-auth',
-    flowType: 'pkce',  // ✅ PKCE flow pour meilleure sécurité
+    flowType: 'pkce',
     onAuthStateChange: (event, session) => {
-      if (event === 'TOKEN_REFRESHED') {
-        console.log('✅ Token Supabase rafraîchi');
-      } else if (event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_OUT') {
         const keys = Object.keys(localStorage);
         keys.forEach(key => {
           if (key.startsWith('sb-') || key.startsWith('supabase.') || key.startsWith('herbbie-auth')) {
             localStorage.removeItem(key);
           }
         });
-      } else if (event === 'PASSWORD_RECOVERY') {
-        console.log('🔐 [AUTH] Password recovery session détectée');
       }
     }
   },

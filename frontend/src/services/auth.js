@@ -286,25 +286,19 @@ function translateSupabaseError(errorMessage) {
   return errorMessage;
 }
 
-// Réinitialisation du mot de passe avec Supabase Auth - Version directe
+// Réinitialisation du mot de passe avec Supabase Auth
 export async function resetPassword({ email }) {
   try {
-    console.log('🚀 [SUPABASE DIRECT] Tentative de réinitialisation...');
-
-    // Utiliser Supabase Auth directement
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
 
     if (error) {
-      console.error('❌ [SUPABASE DIRECT] Erreur:', error);
       return { error: { message: translateSupabaseError(error.message) } };
     }
 
-    console.log('✅ [SUPABASE DIRECT] Demande envoyée');
     return { data: { message: 'Email de réinitialisation envoyé avec succès' } };
   } catch (err) {
-    console.error('❌ [SUPABASE DIRECT] Exception:', err);
     return { error: { message: 'Erreur lors de l\'envoi de l\'email de réinitialisation: ' + translateSupabaseError(err.message) } };
   }
 }

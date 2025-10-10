@@ -60,7 +60,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
           .single();
 
         if (error) {
-          console.error('Erreur vérification rôle admin:', error);
           setIsAdminUser(false);
           return;
         }
@@ -68,7 +67,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
         const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
         setIsAdminUser(isAdmin);
       } catch (error) {
-        console.error('Erreur lors de la vérification du rôle:', error);
         setIsAdminUser(false);
       }
     };
@@ -94,7 +92,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       });
 
       if (error) {
-        console.error('❌ HERBBIE: Erreur connexion Supabase:', error.message);
         setError(error.message === 'Invalid login credentials' 
           ? 'Email ou mot de passe incorrect' 
           : error.message);
@@ -119,7 +116,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
         
       }
     } catch (error) {
-      console.error('❌ HERBBIE: Erreur critique connexion:', error);
       setError('Erreur de connexion. Vérifiez vos identifiants.');
     } finally {
       setIsAuthenticating(false);

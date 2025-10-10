@@ -17,37 +17,25 @@ const ResetPasswordPage = () => {
     let subscription;
 
     const checkAuthState = async () => {
-      console.log('🔄 [RESET] Vérification état auth...');
-
-      // Attendre un peu que Supabase détecte automatiquement les tokens dans l'URL
       await new Promise(resolve => setTimeout(resolve, 500));
 
       const { data: { session } } = await supabase.auth.getSession();
-      console.log('🔄 [RESET] Session actuelle:', !!session);
       
       if (session) {
-        console.log('✅ [RESET] Session détectée immédiatement');
         setIsAuthenticated(true);
         return;
       }
 
-      // Timeout de 15 secondes pour éviter le blocage
       timeoutId = setTimeout(() => {
-        console.log('⏰ [RESET] Timeout atteint - vérification terminée');
         const { data: { session: currentSession } } = supabase.auth.getSession();
         if (!currentSession) {
           setIsInvalidLink(true);
         }
       }, 15000);
 
-      // Écouter les changements d'authentification
       const { data: { subscription: sub } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
-          console.log('🔄 [RESET] État auth changé:', event, !!session);
-          
-          // Si l'utilisateur vient de se connecter via le lien de reset
           if ((event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
-            console.log('✅ [RESET] Session de récupération active');
             setIsAuthenticated(true);
             setIsInvalidLink(false);
             if (timeoutId) clearTimeout(timeoutId);
@@ -85,26 +73,19 @@ const ResetPasswordPage = () => {
     }
 
     try {
-      console.log('🚀 [RESET] Tentative de mise à jour du mot de passe...');
-
-      // Utiliser Supabase pour mettre à jour le mot de passe
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
 
       if (error) {
-        console.error('❌ [RESET] Erreur mise à jour:', error);
         setError(error.message);
       } else {
-        console.log('✅ [RESET] Mot de passe mis à jour avec succès');
         setSuccess(true);
-        // Rediriger vers la page d'accueil après 3 secondes
         setTimeout(() => {
           window.location.href = '/';
         }, 3000);
       }
     } catch (err) {
-      console.error('❌ [RESET] Erreur inattendue:', err);
       setError('Une erreur est survenue lors de la mise à jour du mot de passe');
     }
 
