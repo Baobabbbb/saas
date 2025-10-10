@@ -1,4 +1,4 @@
-import { getSupabaseClient } from '../supabaseClient'
+import { supabase } from '../supabaseClient'
 
 // Service d'authentification hybride : simulation pour l'interface + Supabase pour les données
 // Connexion avec meilleure gestion d'erreurs
@@ -261,7 +261,6 @@ export async function deleteUserAccount() {
 // Réinitialisation du mot de passe
 export async function resetPassword({ email }) {
   try {
-    const supabase = await getSupabaseClient();
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
