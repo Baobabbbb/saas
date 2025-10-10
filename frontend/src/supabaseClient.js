@@ -9,9 +9,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: false,
+    detectSessionInUrl: true,  // ✅ ACTIVÉ pour détecter les tokens dans l'URL (reset password, magic links)
     storage: window.localStorage,
     storageKey: 'herbbie-auth',
+    flowType: 'pkce',  // ✅ PKCE flow pour meilleure sécurité
     onAuthStateChange: (event, session) => {
       if (event === 'TOKEN_REFRESHED') {
         console.log('✅ Token Supabase rafraîchi');
@@ -22,6 +23,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
             localStorage.removeItem(key);
           }
         });
+      } else if (event === 'PASSWORD_RECOVERY') {
+        console.log('🔐 [AUTH] Password recovery session détectée');
       }
     }
   },

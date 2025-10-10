@@ -19,33 +19,38 @@ const ResetPasswordPage = () => {
     const checkAuthState = async () => {
       console.log('🔄 [RESET] Vérification état auth...');
 
+      // Attendre un peu que Supabase détecte automatiquement les tokens dans l'URL
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const { data: { session } } = await supabase.auth.getSession();
       console.log('🔄 [RESET] Session actuelle:', !!session);
-      setIsAuthenticated(!!session);
+      
+      if (session) {
+        console.log('✅ [RESET] Session détectée immédiatement');
+        setIsAuthenticated(true);
+        return;
+      }
 
-      // Timeout de 10 secondes pour éviter le blocage
+      // Timeout de 15 secondes pour éviter le blocage
       timeoutId = setTimeout(() => {
         console.log('⏰ [RESET] Timeout atteint - vérification terminée');
-        if (!session) {
+        const { data: { session: currentSession } } = supabase.auth.getSession();
+        if (!currentSession) {
           setIsInvalidLink(true);
         }
-      }, 10000);
+      }, 15000);
 
       // Écouter les changements d'authentification
       const { data: { subscription: sub } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
           console.log('🔄 [RESET] État auth changé:', event, !!session);
-          setIsAuthenticated(!!session);
-
+          
           // Si l'utilisateur vient de se connecter via le lien de reset
-          if (event === 'PASSWORD_RECOVERY' && session) {
+          if ((event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
             console.log('✅ [RESET] Session de récupération active');
+            setIsAuthenticated(true);
+            setIsInvalidLink(false);
             if (timeoutId) clearTimeout(timeoutId);
-          }
-
-          // Si on reçoit une session, annuler le timeout
-          if (session && timeoutId) {
-            clearTimeout(timeoutId);
           }
         }
       );
