@@ -258,9 +258,11 @@ export async function deleteUserAccount() {
   }
 }
 
-// Réinitialisation du mot de passe
+// Réinitialisation du mot de passe - VERSION BACKEND
 export async function resetPassword({ email }) {
   try {
+    console.log('🔄 Tentative de réinitialisation via backend...');
+
     const response = await fetch('/api/reset-password', {
       method: 'POST',
       headers: {
@@ -269,15 +271,19 @@ export async function resetPassword({ email }) {
       body: JSON.stringify({ email }),
     });
 
+    console.log('📡 Réponse du serveur:', response.status);
+
     if (!response.ok) {
       const errorData = await response.json();
+      console.error('❌ Erreur serveur:', errorData);
       throw new Error(errorData.detail || 'Erreur lors de la réinitialisation');
     }
 
     const data = await response.json();
+    console.log('✅ Réinitialisation réussie:', data);
     return { data };
   } catch (err) {
-    console.error('Erreur lors de la réinitialisation:', err);
+    console.error('❌ Erreur lors de la réinitialisation:', err);
     return { error: { message: 'Erreur lors de l\'envoi de l\'email de réinitialisation: ' + err.message } };
   }
 }
