@@ -52,6 +52,18 @@ export const useEmailAutocomplete = (user) => {
     localStorage.setItem(userKey, JSON.stringify(updatedHistory));
   };
 
+  // Supprimer un email de l'historique
+  const removeEmail = (emailToRemove) => {
+    const userKey = user?.id ? `email_history_${user.id}` : 'email_history_guest';
+    const updatedHistory = emailHistory.filter(email => email !== emailToRemove);
+
+    setEmailHistory(updatedHistory);
+    localStorage.setItem(userKey, JSON.stringify(updatedHistory));
+
+    // Mettre à jour les suggestions filtrées
+    setFilteredEmails(prev => prev.filter(email => email !== emailToRemove));
+  };
+
   // Filtrer les emails selon la saisie
   const filterEmails = (input) => {
     if (!input || input.length < 1) {
@@ -71,6 +83,7 @@ export const useEmailAutocomplete = (user) => {
     showSuggestions,
     filteredEmails,
     saveEmail,
+    removeEmail,
     filterEmails,
     hideSuggestions: () => setShowSuggestions(false)
   };
@@ -78,7 +91,7 @@ export const useEmailAutocomplete = (user) => {
 
 // Composant EmailInput avec auto-complétion
 const EmailInput = ({ value, onChange, placeholder, required, disabled, user, onEmailSubmit }) => {
-  const { showSuggestions, filteredEmails, saveEmail, filterEmails, hideSuggestions } = useEmailAutocomplete(user);
+  const { showSuggestions, filteredEmails, saveEmail, removeEmail, filterEmails, hideSuggestions } = useEmailAutocomplete(user);
   const [inputValue, setInputValue] = useState(value || '');
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef(null);
@@ -171,10 +184,26 @@ const EmailInput = ({ value, onChange, placeholder, required, disabled, user, on
             <div
               key={index}
               className={`email-suggestion-item ${index === selectedIndex ? 'selected' : ''}`}
-              onClick={() => handleEmailSelect(email)}
               onMouseEnter={() => setSelectedIndex(index)}
             >
-              {email}
+              <div
+                className="email-suggestion-content"
+                onClick={() => handleEmailSelect(email)}
+              >
+                {email}
+              </div>
+              <button
+                type="button"
+                className="email-suggestion-remove"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeEmail(email);
+                }}
+                onMouseEnter={(e) => e.stopPropagation()}
+                title="Supprimer cet email"
+              >
+                ×
+              </button>
             </div>
           ))}
         </div>

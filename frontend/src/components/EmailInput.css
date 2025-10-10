@@ -26,14 +26,12 @@
 }
 
 .email-suggestion-item {
-  padding: 12px 16px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #202124;
+  padding: 0;
   border-bottom: 1px solid #e8eaed;
   transition: background-color 0.15s ease;
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .email-suggestion-item:last-child {
@@ -43,11 +41,47 @@
 .email-suggestion-item:hover,
 .email-suggestion-item.selected {
   background-color: #f8f9fa;
+}
+
+.email-suggestion-content {
+  padding: 12px 16px;
+  flex: 1;
+  cursor: pointer;
+  font-size: 14px;
   color: #202124;
 }
 
-.email-suggestion-item:active {
-  background-color: #e8f0fe;
+.email-suggestion-content:hover {
+  background-color: transparent;
+}
+
+.email-suggestion-remove {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #5f6368;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.email-suggestion-remove:hover {
+  background-color: #f1f3f4;
+  color: #202124;
+  transform: scale(1.1);
+}
+
+.email-suggestion-remove:active {
+  background-color: #e8eaed;
+  transform: scale(0.95);
 }
 
 /* Masquer la barre de défilement */
