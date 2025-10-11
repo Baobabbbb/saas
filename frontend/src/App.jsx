@@ -444,7 +444,7 @@ function App() {
         setColoringResult(coloringData);
         generatedContent = coloringData; // Stocker pour l'historique
       }
-    } else if (contentType === 'bd') {
+    } else if (contentType === 'comic') {
       // Génération de bande dessinée
       const payload = {
         theme: selectedComicsTheme === 'custom' ? customComicsStory : selectedComicsTheme,
@@ -714,7 +714,7 @@ const handleSelectCreation = (creation) => {
       if (!selectedTheme && !uploadedPhoto) return false;
       // Si thème custom, vérifier le texte personnalisé
       if (selectedTheme === 'custom' && !customColoringTheme.trim()) return false;
-    } else if (contentType === 'bd') {
+    } else if (contentType === 'comic') {
       // Pour les BD: thème obligatoire, style et nombre de pages ont des valeurs par défaut
       if (!selectedComicsTheme) return false;
       if (selectedComicsTheme === 'custom' && !customComicsStory.trim()) return false;
@@ -975,7 +975,7 @@ const downloadPDF = async (title, content) => {
                   setWithColoredModel={setWithColoredModel}
                 />
               </motion.div>
-            ) : contentType === 'bd' ? (
+            ) : contentType === 'comic' ? (
               <motion.div
                 key="comics-selector"
                 variants={contentVariants}
@@ -1062,7 +1062,7 @@ const downloadPDF = async (title, content) => {
           ? 'Création de l\'histoire en cours...'
           : contentType === 'coloring'
           ? 'Création de vos coloriages en cours...'
-          : contentType === 'bd'
+          : contentType === 'comic'
           ? 'Création de votre bande dessinée en cours...'
           : contentType === 'animation'
           ? 'Création de votre dessin animé en cours...'
@@ -1117,7 +1117,7 @@ const downloadPDF = async (title, content) => {
         📄 Télécharger le coloriage
       </button>
     </motion.div>
-  ) : comicsResult && contentType === 'bd' ? (
+  ) : comicsResult && contentType === 'comic' ? (
     <motion.div
       className="generated-result"
       initial={{ opacity: 0 }}
