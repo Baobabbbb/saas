@@ -473,11 +473,12 @@ IMPORTANT REQUIREMENTS:
             
             # Générer l'image avec gpt-image-1
             # Note: gpt-image-1 ne supporte pas response_format, il retourne directement une URL
+            # gpt-image-1 accepte: 'low', 'medium', 'high', 'auto' pour quality
             response = await self.client.images.generate(
                 model="gpt-image-1",
                 prompt=prompt,
                 size="1024x1024",  # Format carré pour une planche 2x2
-                quality="standard",
+                quality="high",  # Haute qualité pour les BD
                 n=1
             )
             
