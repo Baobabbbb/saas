@@ -28,7 +28,7 @@ class ComicsGeneratorGPT4o:
             raise ValueError("OPENAI_API_KEY manquante dans les variables d'environnement")
         
         self.client = AsyncOpenAI(api_key=self.openai_key)
-        self.cache_dir = Path("cache/comics")
+        self.cache_dir = Path("static/cache/comics")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         
         # Styles artistiques disponibles
@@ -375,10 +375,10 @@ Réponds en 2-3 phrases maximum, de manière factuelle et descriptive."""
                     page_num
                 )
                 
-                # Construire la réponse
+                # Construire la réponse (format compatible avec le reste de l'app)
                 page_info = {
                     "page_number": page_num,
-                    "image_url": f"/cache/comics/{comic_id}/page_{page_num}.png",
+                    "image_url": f"/static/cache/comics/{comic_id}/page_{page_num}.png",
                     "image_path": str(image_path),
                     "panels_count": len(page_data["panels"]),
                     "description": f"Planche {page_num} de {story_data['title']}"
