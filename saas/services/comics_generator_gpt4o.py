@@ -472,28 +472,33 @@ IMPORTANT REQUIREMENTS:
             print(f"   🎨 Appel gpt-image-1...")
             
             # Générer l'image avec gpt-image-1
+            # Note: gpt-image-1 ne supporte pas response_format, il retourne directement une URL
             response = await self.client.images.generate(
                 model="gpt-image-1",
                 prompt=prompt,
                 size="1024x1024",  # Format carré pour une planche 2x2
                 quality="standard",
-                n=1,
-                response_format="b64_json"  # gpt-image-1 retourne du base64
+                n=1
             )
             
-            # Récupérer les données base64
-            image_b64 = response.data[0].b64_json
+            # gpt-image-1 retourne une URL, pas du base64
+            image_url = response.data[0].url
             
-            # Décoder et sauvegarder
-            image_data = base64.b64decode(image_b64)
-            
-            output_path = output_dir / f"page_{page_num}.png"
-            with open(output_path, 'wb') as f:
-                f.write(image_data)
-            
-            print(f"   ✅ Image générée: {len(image_data)} bytes")
-            
-            return output_path
+            # Télécharger l'image depuis l'URL
+            import aiohttp
+            async with aiohttp.ClientSession() as session:
+                async with session.get(image_url) as img_response:
+                    if img_response.status == 200:
+                        image_data = await img_response.read()
+                        
+                        output_path = output_dir / f"page_{page_num}.png"
+                        with open(output_path, 'wb') as f:
+                            f.write(image_data)
+                        
+                        print(f"   ✅ Image générée: {len(image_data)} bytes")
+                        return output_path
+                    else:
+                        raise Exception(f"Erreur téléchargement: {img_response.status}")
             
         except Exception as e:
             print(f"   ❌ Erreur gpt-image-1: {e}")
