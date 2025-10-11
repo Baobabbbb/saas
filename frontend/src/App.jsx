@@ -596,6 +596,9 @@ function App() {
       }    } else if (contentType === 'coloring') {
       // Utiliser le titre généré par l'IA depuis l'API coloriage
       title = generatedContent?.title || generateChildFriendlyTitle('coloriage', selectedTheme);
+    } else if (contentType === 'comic') {
+      // Utiliser le titre généré par l'IA pour la BD
+      title = comicsResult?.title || 'Ma Bande Dessinée 📚';
     } else if (contentType === 'animation') {
       // Utiliser le titre généré par l'IA depuis l'API animation
       title = generatedContent?.title || generateChildFriendlyTitle('animation', selectedAnimationTheme || 'aventure');
@@ -617,6 +620,18 @@ function App() {
           theme: selectedTheme,
           images: generatedContent?.images || [],
           metadata: generatedContent?.metadata || {}
+        };
+      } else if (contentType === 'comic') {
+        // Pour les BD, utiliser les données de la BD
+        newCreation = {
+          id: Date.now().toString(),
+          type: contentType,
+          title: title,
+          createdAt: new Date().toISOString(),
+          content: comicsResult ? `BD de ${comicsResult.total_pages} planche(s) - ${comicsResult.total_pages * 4} cases` : 'Bande dessinée générée',
+          theme: selectedComicsTheme,
+          pages: comicsResult?.pages || [],
+          comic_data: comicsResult || {}
         };
       } else if (contentType === 'animation') {
         // Pour les animations, utiliser les données de l'animation
