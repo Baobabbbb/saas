@@ -472,8 +472,8 @@ IMPORTANT REQUIREMENTS:
             print(f"   🎨 Appel gpt-image-1...")
             
             # Générer l'image avec gpt-image-1
-            # Note: gpt-image-1 ne supporte pas response_format, il retourne directement une URL
-            # gpt-image-1 accepte: 'low', 'medium', 'high', 'auto' pour quality
+            # Note: gpt-image-1 retourne base64 par défaut (comme dans coloring_generator_gpt4o.py)
+            # Ne PAS spécifier response_format, juste récupérer b64_json directement
             response = await self.client.images.generate(
                 model="gpt-image-1",
                 prompt=prompt,
@@ -482,27 +482,30 @@ IMPORTANT REQUIREMENTS:
                 n=1
             )
             
-            # gpt-image-1 retourne une URL, pas du base64
-            image_url = response.data[0].url
+            print(f"   [RESPONSE] Réponse reçue de gpt-image-1")
             
-            # Télécharger l'image depuis l'URL
-            import aiohttp
-            async with aiohttp.ClientSession() as session:
-                async with session.get(image_url) as img_response:
-                    if img_response.status == 200:
-                        image_data = await img_response.read()
-                        
-                        output_path = output_dir / f"page_{page_num}.png"
-                        with open(output_path, 'wb') as f:
-                            f.write(image_data)
-                        
-                        print(f"   ✅ Image générée: {len(image_data)} bytes")
-                        return output_path
-                    else:
-                        raise Exception(f"Erreur téléchargement: {img_response.status}")
+            # gpt-image-1 retourne base64 directement (comme pour les coloriages)
+            if hasattr(response, 'data') and len(response.data) > 0:
+                image_b64 = response.data[0].b64_json
+                print(f"   [OK] Image reçue (base64: {len(image_b64)} caractères)")
+                
+                # Décoder et sauvegarder
+                image_data = base64.b64decode(image_b64)
+                
+                output_path = output_dir / f"page_{page_num}.png"
+                with open(output_path, 'wb') as f:
+                    f.write(image_data)
+                
+                print(f"   ✅ Planche sauvegardée: {output_path.name} ({len(image_data)} bytes)")
+                return output_path
+            else:
+                print(f"   [ERROR] Format de réponse inattendu")
+                raise Exception("Format de réponse gpt-image-1 inattendu")
             
         except Exception as e:
             print(f"   ❌ Erreur gpt-image-1: {e}")
+            import traceback
+            traceback.print_exc()
             raise Exception(f"Erreur génération image: {e}")
     
     async def create_complete_comic(
