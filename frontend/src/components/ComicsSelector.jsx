@@ -5,6 +5,8 @@ import './ComicsSelector.css';
 const ComicsSelector = ({
   selectedTheme,
   setSelectedTheme,
+  selectedStyle,
+  setSelectedStyle,
   numPages,
   setNumPages,
   customStory,
@@ -28,6 +30,14 @@ const ComicsSelector = ({
     { id: 'ecole', name: 'École', icon: '🎒', description: 'Aventures scolaires' }
   ];
 
+  // Styles artistiques disponibles
+  const styles = [
+    { id: 'cartoon', name: 'Cartoon', icon: '🎨', description: 'Coloré et enfantin' },
+    { id: 'manga', name: 'Manga', icon: '🎌', description: 'Style japonais' },
+    { id: 'comics', name: 'Comics Marvel', icon: '💥', description: 'Style américain' },
+    { id: 'realistic', name: 'Réaliste', icon: '📸', description: 'Détaillé et réaliste' },
+    { id: 'watercolor', name: 'Aquarelle', icon: '🖌️', description: 'Doux et artistique' }
+  ];
 
   // Options nombre de pages (4 cases par page)
   const pageOptions = [1, 2, 3, 4, 5];
@@ -83,6 +93,25 @@ const ComicsSelector = ({
         )}
       </div>
 
+      <div className="selector-section">
+        <h3>3. Choisissez un style de dessin</h3>
+        <div className="style-grid">
+          {styles.map(style => (
+            <motion.div
+              key={style.id}
+              className={`style-card ${selectedStyle === style.id ? 'selected' : ''}`}
+              onClick={() => setSelectedStyle(selectedStyle === style.id ? null : style.id)}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="style-icon">{style.icon}</div>
+              <div className="style-name">{style.name}</div>
+              <div className="style-description">{style.description}</div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
 
       <div className="selector-section">
         <h3>4. Nombre de pages</h3>

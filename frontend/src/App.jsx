@@ -133,6 +133,7 @@ function App() {
   
   // Comics states
   const [selectedComicsTheme, setSelectedComicsTheme] = useState(null);
+  const [selectedComicsStyle, setSelectedComicsStyle] = useState('cartoon');
   const [numPages, setNumPages] = useState(null);
   const [customComicsStory, setCustomComicsStory] = useState('');
   const [characterPhoto, setCharacterPhoto] = useState(null);
@@ -142,6 +143,7 @@ function App() {
   // Réinitialiser les sélections comics quand on change d'onglet
   useEffect(() => {
     if (contentType === 'comic') {
+      setSelectedComicsStyle('cartoon');
       setNumPages(null);
     }
   }, [contentType]);
@@ -335,6 +337,7 @@ function App() {
     setUploadedPhoto(null);
     setWithColoredModel(null); // Remettre à zéro le choix du modèle
     setSelectedComicsTheme(null);
+    setSelectedComicsStyle('cartoon');
     setNumPages(1);
     setCustomComicsStory('');
     setCharacterPhoto(null);
@@ -493,7 +496,7 @@ function App() {
       // Génération de bande dessinée avec système de tâches asynchrones
       const payload = {
         theme: selectedComicsTheme === 'custom' ? customComicsStory : selectedComicsTheme,
-        art_style: 'cartoon', // Style par défaut fixe
+        art_style: selectedComicsStyle,
         num_pages: numPages
       };
 
@@ -789,8 +792,9 @@ const handleSelectCreation = (creation) => {
       // Si thème custom, vérifier le texte personnalisé
       if (selectedTheme === 'custom' && !customColoringTheme.trim()) return false;
     } else if (contentType === 'comic') {
-      // Pour les BD: thème obligatoire, nombre de pages obligatoire
+      // Pour les BD: thème, style et nombre de pages sont tous obligatoires
       if (!selectedComicsTheme) return false;
+      if (!selectedComicsStyle) return false;
       if (!numPages) return false;
       if (selectedComicsTheme === 'custom' && !customComicsStory.trim()) return false;
     } else if (contentType === 'animation') {
@@ -1062,6 +1066,8 @@ const downloadPDF = async (title, content) => {
                 <ComicsSelector
                   selectedTheme={selectedComicsTheme}
                   setSelectedTheme={setSelectedComicsTheme}
+                  selectedStyle={selectedComicsStyle}
+                  setSelectedStyle={setSelectedComicsStyle}
                   numPages={numPages}
                   setNumPages={setNumPages}
                   customStory={customComicsStory}
