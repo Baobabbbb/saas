@@ -133,8 +133,8 @@ function App() {
   
   // Comics states
   const [selectedComicsTheme, setSelectedComicsTheme] = useState(null);
-  const [selectedComicsStyle, setSelectedComicsStyle] = useState(null);
-  const [numPages, setNumPages] = useState(null);
+  const [selectedComicsStyle, setSelectedComicsStyle] = useState('cartoon');
+  const [numPages, setNumPages] = useState(1);
   const [customComicsStory, setCustomComicsStory] = useState('');
   const [characterPhoto, setCharacterPhoto] = useState(null);
   const [comicsResult, setComicsResult] = useState(null);
@@ -1354,8 +1354,6 @@ const downloadPDF = async (title, content) => {
         ? 'Votre histoire apparaîtra ici'
         : contentType === 'coloring'
         ? 'Votre coloriage apparaîtra ici'
-        : contentType === 'comic'
-        ? 'Votre bande dessinée apparaîtra ici'
         : 'Votre dessin animé apparaîtra ici'}
     </p>
     </div>

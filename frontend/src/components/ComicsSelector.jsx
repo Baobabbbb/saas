@@ -18,6 +18,7 @@ const ComicsSelector = ({
 
   // Thèmes disponibles
   const themes = [
+    { id: 'custom', name: 'Personnalisé', icon: '✨', description: 'Votre propre histoire' },
     { id: 'espace', name: 'Espace', icon: '🚀', description: 'Aventures spatiales' },
     { id: 'pirates', name: 'Pirates', icon: '🏴‍☠️', description: 'Trésors et mers' },
     { id: 'princesses', name: 'Princesses', icon: '👸', description: 'Châteaux magiques' },
@@ -25,12 +26,12 @@ const ComicsSelector = ({
     { id: 'animaux', name: 'Animaux', icon: '🐾', description: 'Animaux mignons' },
     { id: 'superheros', name: 'Super-héros', icon: '🦸', description: 'Pouvoirs incroyables' },
     { id: 'foret', name: 'Forêt Magique', icon: '🌲', description: 'Forêt enchantée' },
-    { id: 'ecole', name: 'École', icon: '🎒', description: 'Aventures scolaires' },
-    { id: 'custom', name: 'Personnalisé', icon: '✨', description: 'Votre propre histoire' }
+    { id: 'ecole', name: 'École', icon: '🎒', description: 'Aventures scolaires' }
   ];
 
   // Styles artistiques
   const styles = [
+    { id: '3d', name: '3D', icon: '🎭', description: 'Effets 3D modernes' },
     { id: 'cartoon', name: 'Cartoon', icon: '🎨', description: 'Coloré et enfantin' },
     { id: 'manga', name: 'Manga', icon: '🎌', description: 'Style japonais' },
     { id: 'comics', name: 'Comics Marvel', icon: '💥', description: 'Style américain' },
