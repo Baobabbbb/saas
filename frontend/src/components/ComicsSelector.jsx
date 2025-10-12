@@ -16,11 +16,24 @@ const ComicsSelector = ({
 }) => {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
-  console.log('🎭 ComicsSelector rendu - Props reçues:', {
-    selectedStyle,
-    numPages,
-    selectedTheme
-  });
+  // État local pour forcer la remise à zéro au montage du composant
+  const [localSelectedStyle, setLocalSelectedStyle] = useState(null);
+  const [localNumPages, setLocalNumPages] = useState(null);
+
+  // Synchroniser avec les props du parent, mais forcer null au premier rendu
+  useEffect(() => {
+    if (localSelectedStyle === null && selectedStyle !== null) {
+      // Premier rendu - forcer la remise à zéro
+      setSelectedStyle(null);
+      setNumPages(null);
+    }
+    setLocalSelectedStyle(selectedStyle);
+    setLocalNumPages(numPages);
+  }, [selectedStyle, numPages, setSelectedStyle, setNumPages]);
+
+  // Utiliser les valeurs locales pour l'affichage
+  const displaySelectedStyle = localSelectedStyle;
+  const displayNumPages = localNumPages;
 
   // Thèmes disponibles
   const themes = [
@@ -102,8 +115,8 @@ const ComicsSelector = ({
           {styles.map(style => (
             <div
               key={style.id}
-              className={`style-card ${selectedStyle === style.id ? 'selected' : ''}`}
-              onClick={() => setSelectedStyle(selectedStyle === style.id ? null : style.id)}
+              className={`style-card ${displaySelectedStyle === style.id ? 'selected' : ''}`}
+              onClick={() => setSelectedStyle(displaySelectedStyle === style.id ? null : style.id)}
             >
               <div className="style-icon">{style.icon}</div>
               <div className="style-name">{style.name}</div>
@@ -119,17 +132,17 @@ const ComicsSelector = ({
           {pageOptions.map(num => (
             <button
               key={num}
-              className={`page-btn ${numPages === num ? 'selected' : ''}`}
-              onClick={() => setNumPages(numPages === num ? null : num)}
+              className={`page-btn ${displayNumPages === num ? 'selected' : ''}`}
+              onClick={() => setNumPages(displayNumPages === num ? null : num)}
             >
               {num} {num === 1 ? 'page' : 'pages'}
               <span className="cases-info">({num * 4} cases)</span>
             </button>
           ))}
         </div>
-        {numPages > 1 && (
+        {displayNumPages > 1 && (
           <div className="time-warning">
-            ⏱️ <strong>Note :</strong> La génération de {numPages} pages prendra environ {Math.ceil(numPages * 1.2)} à {Math.ceil(numPages * 1.5)} minutes. Soyez patient !
+            ⏱️ <strong>Note :</strong> La génération de {displayNumPages} pages prendra environ {Math.ceil(displayNumPages * 1.2)} à {Math.ceil(displayNumPages * 1.5)} minutes. Soyez patient !
           </div>
         )}
       </div>

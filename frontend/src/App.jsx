@@ -142,12 +142,9 @@ function App() {
 
   // Réinitialiser les sélections comics quand on change d'onglet
   useEffect(() => {
-    console.log('🔄 useEffect contentType:', contentType);
     if (contentType === 'comic') {
-      console.log('🎯 Réinitialisation comics - Avant:', { selectedComicsStyle, numPages });
       setSelectedComicsStyle(null);
       setNumPages(null);
-      console.log('✅ Réinitialisation comics - Après:', { selectedComicsStyle: null, numPages: null });
     }
   }, [contentType]);
 
