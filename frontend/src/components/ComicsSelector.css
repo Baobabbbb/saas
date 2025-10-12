@@ -1,3 +1,9 @@
+/* Variables pour cohérence avec les autres composants */
+:root {
+  --primary: #6B4EFF;
+  --text: #333;
+}
+
 .comics-selector {
   width: 100%;
   max-width: 1200px;
@@ -25,30 +31,52 @@
 }
 
 .theme-card {
-  background: white;
-  border: 2px solid var(--border);
+  background-color: #f5f0ff;
+  border: 2px solid transparent;
   border-radius: 16px;
   padding: 20px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   position: relative;
 }
 
 .theme-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(107, 78, 255, 0.15);
+  background-color: #ede5ff;
   border-color: var(--primary);
 }
 
 .theme-card.selected {
-  background: var(--primary-light);
+  background-color: #ede5ff;
   border-color: var(--primary);
-  box-shadow: 0 6px 16px rgba(107, 78, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
 }
 
 .theme-card.custom-theme {
   border: 2px dashed #c4b5ff;
+}
+
+/* Classes spécifiques pour différencier la section BD des autres */
+.comics-theme-card {
+  background-color: #f5f0ff;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.comics-theme-card:hover {
+  background-color: #ede5ff;
+  border-color: var(--primary);
+}
+
+.comics-theme-card.selected {
+  background-color: #ede5ff;
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
 }
 
 .theme-icon {
@@ -99,25 +127,24 @@
 }
 
 .style-card {
-  background: white;
-  border: 2px solid var(--border);
+  background-color: #f5f0ff;
+  border: 2px solid transparent;
   border-radius: 16px;
   padding: 20px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .style-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(107, 78, 255, 0.15);
+  background-color: #ede5ff;
   border-color: var(--primary);
 }
 
 .style-card.selected {
-  background: var(--primary-light);
+  background-color: #ede5ff;
   border-color: var(--primary);
-  box-shadow: 0 6px 16px rgba(107, 78, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
 }
 
 .style-icon {
@@ -148,14 +175,14 @@
   flex: 1;
   min-width: 120px;
   padding: 16px 20px;
-  background: white;
-  border: 2px solid var(--border);
-  border-radius: 12px;
+  background-color: #f5f0ff;
+  border: 2px solid transparent;
+  border-radius: 16px;
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--primary);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -163,16 +190,14 @@
 }
 
 .page-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.15);
+  background-color: #ede5ff;
   border-color: var(--primary);
 }
 
 .page-btn.selected {
-  background: var(--primary);
-  color: white;
+  background-color: #ede5ff;
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
 }
 
 .cases-info {
@@ -183,10 +208,10 @@
 
 /* Section personnage */
 .character-upload-section {
-  background: var(--primary-light);
+  background-color: #f5f0ff;
   padding: 24px;
   border-radius: 16px;
-  border: 2px dashed var(--primary);
+  border: 2px solid transparent;
 }
 
 .character-description {
@@ -207,17 +232,17 @@
 .upload-label {
   display: block;
   padding: 32px;
-  background: white;
-  border: 2px dashed var(--border);
-  border-radius: 12px;
+  background-color: #f5f0ff;
+  border: 2px dashed var(--primary);
+  border-radius: 16px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .upload-label:hover {
+  background-color: #ede5ff;
   border-color: var(--primary);
-  background: var(--primary-light);
 }
 
 .upload-prompt {
