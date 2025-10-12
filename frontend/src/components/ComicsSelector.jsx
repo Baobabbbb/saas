@@ -32,6 +32,7 @@ const ComicsSelector = ({
 
   // Styles artistiques disponibles
   const styles = [
+    { id: '3d', name: '3D', icon: '🎭', description: 'Effets 3D modernes' },
     { id: 'cartoon', name: 'Cartoon', icon: '🎨', description: 'Coloré et enfantin' },
     { id: 'manga', name: 'Manga', icon: '🎌', description: 'Style japonais' },
     { id: 'comics', name: 'Comics Marvel', icon: '💥', description: 'Style américain' },

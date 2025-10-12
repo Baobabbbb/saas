@@ -33,6 +33,11 @@ class ComicsGeneratorGPT4o:
         
         # Styles artistiques disponibles
         self.art_styles = {
+            "3d": {
+                "name": "3D",
+                "description": "Style 3D avec effets de profondeur et relief",
+                "prompt_modifier": "3D illustration, three-dimensional, depth effect, volumetric lighting, realistic shadows, modern digital art, CGI style"
+            },
             "cartoon": {
                 "name": "Cartoon",
                 "description": "Style cartoon coloré et enfantin avec traits simples",
