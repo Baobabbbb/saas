@@ -43,7 +43,6 @@
 
 .theme-card:hover {
   background-color: #ede5ff;
-  border-color: var(--primary);
 }
 
 .theme-card.selected {
@@ -143,7 +142,6 @@
 
 .style-card:hover {
   background-color: #ede5ff;
-  border-color: var(--primary);
 }
 
 .style-card.selected {
@@ -198,7 +196,6 @@
 
 .page-btn:hover {
   background-color: #ede5ff;
-  border-color: var(--primary);
 }
 
 .page-btn.selected {
