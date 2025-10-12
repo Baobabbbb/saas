@@ -120,7 +120,7 @@
 .custom-story-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(245, 240, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
 }
 
 /* Grille de styles */
@@ -131,7 +131,7 @@
 }
 
 .style-card {
-  background-color: #f5f0ff;
+  background-color: #6B4EFF;
   border: 2px solid transparent;
   border-radius: 16px;
   padding: 20px;
@@ -142,13 +142,13 @@
 }
 
 .style-card:hover {
-  background-color: #ede5ff;
+  background-color: #5a3de8;
 }
 
 .style-card.selected {
-  background-color: #ede5ff;
+  background-color: #5a3de8;
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(245, 240, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.3);
 }
 
 
