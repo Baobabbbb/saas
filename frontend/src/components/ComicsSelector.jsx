@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import './ComicsSelector.css';
 
@@ -16,31 +16,6 @@ const ComicsSelector = ({
   onCharacterPhotoUpload
 }) => {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-
-  // État local pour forcer la remise à zéro au montage du composant
-  const [localSelectedTheme, setLocalSelectedTheme] = useState(null);
-  const [localSelectedStyle, setLocalSelectedStyle] = useState(null);
-  const [localNumPages, setLocalNumPages] = useState(null);
-
-  // Synchroniser avec les props du parent, mais forcer null au premier rendu
-  useEffect(() => {
-    console.log('🔄 useEffect ComicsSelector:', { selectedTheme, selectedStyle, numPages });
-    if (localSelectedStyle === null && selectedStyle !== null) {
-      // Premier rendu - forcer la remise à zéro
-      console.log('🎯 Forçant remise à zéro');
-      setSelectedStyle(null);
-      setNumPages(null);
-    }
-    setLocalSelectedTheme(selectedTheme);
-    setLocalSelectedStyle(selectedStyle);
-    setLocalNumPages(numPages);
-    console.log('✅ États locaux mis à jour:', { displaySelectedTheme: selectedTheme, displaySelectedStyle: selectedStyle, displayNumPages: numPages });
-  }, [selectedTheme, selectedStyle, numPages, setSelectedStyle, setNumPages]);
-
-  // Utiliser les valeurs locales pour l'affichage
-  const displaySelectedTheme = localSelectedTheme;
-  const displaySelectedStyle = localSelectedStyle;
-  const displayNumPages = localNumPages;
 
   // Thèmes disponibles
   const themes = [
@@ -91,10 +66,10 @@ const ComicsSelector = ({
           {themes.map(theme => (
             <motion.div
               key={theme.id}
-              className={`theme-card ${displaySelectedTheme === theme.id ? 'selected' : ''} ${
+              className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''} ${
                 theme.id === 'custom' ? 'custom-theme' : ''
               }`}
-              onClick={() => setSelectedTheme(displaySelectedTheme === theme.id ? null : theme.id)}
+              onClick={() => setSelectedTheme(selectedTheme === theme.id ? null : theme.id)}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
@@ -106,7 +81,7 @@ const ComicsSelector = ({
           ))}
         </div>
 
-        {displaySelectedTheme === 'custom' && (
+          {selectedTheme === 'custom' && (
           <div className="custom-input-container">
             <textarea
               className="custom-story-input"
@@ -125,10 +100,10 @@ const ComicsSelector = ({
           {styles.map(style => (
             <motion.div
               key={style.id}
-              className={`style-card ${displaySelectedStyle === style.id ? 'selected' : ''}`}
+              className={`style-card ${selectedStyle === style.id ? 'selected' : ''}`}
               onClick={() => {
-                console.log('🎨 Clic style:', style.id, 'actuel:', displaySelectedStyle);
-                setSelectedStyle(displaySelectedStyle === style.id ? null : style.id);
+                console.log('🎨 Clic style:', style.id, 'actuel:', selectedStyle);
+                setSelectedStyle(selectedStyle === style.id ? null : style.id);
               }}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
@@ -148,8 +123,8 @@ const ComicsSelector = ({
           {pageOptions.map(num => (
             <motion.button
               key={num}
-              className={`page-btn ${displayNumPages === num ? 'selected' : ''}`}
-              onClick={() => setNumPages(displayNumPages === num ? null : num)}
+              className={`page-btn ${numPages === num ? 'selected' : ''}`}
+              onClick={() => setNumPages(numPages === num ? null : num)}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
@@ -159,11 +134,11 @@ const ComicsSelector = ({
             </motion.button>
           ))}
         </div>
-        {displayNumPages > 1 && (
-          <div className="time-warning">
-            ⏱️ <strong>Note :</strong> La génération de {displayNumPages} pages prendra environ {Math.ceil(displayNumPages * 1.2)} à {Math.ceil(displayNumPages * 1.5)} minutes. Soyez patient !
-          </div>
-        )}
+          {numPages > 1 && (
+            <div className="time-warning">
+              ⏱️ <strong>Note :</strong> La génération de {numPages} pages prendra environ {Math.ceil(numPages * 1.2)} à {Math.ceil(numPages * 1.5)} minutes. Soyez patient !
+            </div>
+          )}
       </div>
 
       <div className="selector-section">
