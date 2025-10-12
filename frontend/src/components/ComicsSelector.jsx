@@ -16,6 +16,12 @@ const ComicsSelector = ({
 }) => {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
+  console.log('🎭 ComicsSelector rendu - Props reçues:', {
+    selectedStyle,
+    numPages,
+    selectedTheme
+  });
+
   // Thèmes disponibles
   const themes = [
     { id: 'custom', name: 'Personnalisé', icon: '✨', description: 'Votre propre histoire' },
