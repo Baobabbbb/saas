@@ -337,8 +337,8 @@ function App() {
     setUploadedPhoto(null);
     setWithColoredModel(null); // Remettre à zéro le choix du modèle
     setSelectedComicsTheme(null);
-    setSelectedComicsStyle('cartoon');
-    setNumPages(1);
+    setSelectedComicsStyle(null);
+    setNumPages(null);
     setCustomComicsStory('');
     setCharacterPhoto(null);
     setComicsResult(null);
@@ -497,7 +497,7 @@ function App() {
       const payload = {
         theme: selectedComicsTheme === 'custom' ? customComicsStory : selectedComicsTheme,
         art_style: selectedComicsStyle || 'cartoon', // Style par défaut si aucun sélectionné
-        num_pages: numPages
+        num_pages: numPages || 1 // Nombre de pages par défaut si aucun sélectionné
       };
 
       // Si histoire personnalisée
