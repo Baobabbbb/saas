@@ -353,14 +353,18 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1), de ma
     async def generate_comic_pages(
         self,
         story_data: Dict[str, Any],
-        art_style: str
+        art_style: str,
+        character_photo_path: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
         Génère toutes les planches de BD avec gpt-image-1
         Chaque planche est une image unique contenant 4 cases + bulles + texte
+        Si character_photo_path est fourni, utilise images.edit() pour intégrer le personnage
         """
         
         print(f"🎨 Génération des planches avec gpt-image-1...")
+        if character_photo_path:
+            print(f"   📸 Photo de personnage fournie, utilisation de images.edit()")
         
         style_info = self.art_styles.get(art_style, self.art_styles["cartoon"])
         comic_id = str(uuid.uuid4())
@@ -381,11 +385,12 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1), de ma
                 
                 print(f"   Prompt: {page_prompt[:200]}...")
                 
-                # Générer l'image avec gpt-image-1
+                # Générer l'image avec gpt-image-1 (avec photo si fournie)
                 image_path = await self._generate_page_with_gpt_image_1(
                     page_prompt,
                     comic_dir,
-                    page_num
+                    page_num,
+                    character_photo_path  # Passer la photo
                 )
                 
                 # Construire la réponse (format compatible avec le reste de l'app)
@@ -486,23 +491,49 @@ STYLE REQUIREMENTS:
         self,
         prompt: str,
         output_dir: Path,
-        page_num: int
+        page_num: int,
+        character_photo_path: Optional[str] = None
     ) -> Path:
-        """Génère une planche de BD avec gpt-image-1"""
+        """Génère une planche de BD avec gpt-image-1 (avec ou sans photo de référence)"""
         
         try:
             print(f"   🎨 Appel gpt-image-1...")
             
-            # Générer l'image avec gpt-image-1
-            # Note: gpt-image-1 retourne base64 par défaut (comme dans coloring_generator_gpt4o.py)
-            # Ne PAS spécifier response_format, juste récupérer b64_json directement
-            response = await self.client.images.generate(
-                model="gpt-image-1",
-                prompt=prompt,
-                size="1024x1024",  # Format carré pour une planche BD 2x2 avec cases bien espacées
-                quality="high",  # Haute qualité pour les BD
-                n=1
-            )
+            # Si une photo de personnage est fournie, utiliser images.edit() pour plus de fidélité
+            if character_photo_path:
+                print(f"   📸 Utilisation de la photo de référence: {character_photo_path}")
+                
+                # Ouvrir l'image en mode binaire
+                photo_path_obj = Path(character_photo_path)
+                filename = photo_path_obj.name
+                
+                with open(character_photo_path, "rb") as image_file:
+                    image_data = image_file.read()
+                
+                # Adapter le prompt pour images.edit() : inclure instruction d'utiliser la personne de la photo
+                edit_prompt = f"""Transform this person/character from the photo into the main character of a comic book page.
+
+{prompt}
+
+CRITICAL: Use the EXACT person/character shown in this photo as the main character in the comic panels. Keep their physical appearance, facial features, hair, clothing style recognizable. This person should be the protagonist in all panels where a main character appears."""
+                
+                # Utiliser images.edit() pour intégrer le personnage de la photo
+                response = await self.client.images.edit(
+                    model="gpt-image-1",
+                    image=(filename, image_data),
+                    prompt=edit_prompt,
+                    size="1024x1024",
+                    n=1
+                )
+            else:
+                # Générer l'image normalement sans photo de référence
+                response = await self.client.images.generate(
+                    model="gpt-image-1",
+                    prompt=prompt,
+                    size="1024x1024",  # Format carré pour une planche BD 2x2 avec cases bien espacées
+                    quality="high",  # Haute qualité pour les BD
+                    n=1
+                )
             
             print(f"   [RESPONSE] Réponse reçue de gpt-image-1")
             
@@ -567,7 +598,8 @@ STYLE REQUIREMENTS:
             print("🎨 Étape 2: Génération des planches...")
             pages, comic_id = await self.generate_comic_pages(
                 story_data=story_data,
-                art_style=art_style
+                art_style=art_style,
+                character_photo_path=character_photo_path  # Passer la photo pour images.edit()
             )
             
             generation_time = (datetime.now() - start_time).total_seconds()
