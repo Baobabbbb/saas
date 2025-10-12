@@ -133,7 +133,7 @@ function App() {
   
   // Comics states
   const [selectedComicsTheme, setSelectedComicsTheme] = useState(null);
-  const [selectedComicsStyle, setSelectedComicsStyle] = useState('cartoon');
+  const [selectedComicsStyle, setSelectedComicsStyle] = useState(null);
   const [numPages, setNumPages] = useState(null);
   const [customComicsStory, setCustomComicsStory] = useState('');
   const [characterPhoto, setCharacterPhoto] = useState(null);
@@ -143,7 +143,7 @@ function App() {
   // Réinitialiser les sélections comics quand on change d'onglet
   useEffect(() => {
     if (contentType === 'comic') {
-      setSelectedComicsStyle('cartoon');
+      setSelectedComicsStyle(null);
       setNumPages(null);
     }
   }, [contentType]);
@@ -496,7 +496,7 @@ function App() {
       // Génération de bande dessinée avec système de tâches asynchrones
       const payload = {
         theme: selectedComicsTheme === 'custom' ? customComicsStory : selectedComicsTheme,
-        art_style: selectedComicsStyle,
+        art_style: selectedComicsStyle || 'cartoon', // Style par défaut si aucun sélectionné
         num_pages: numPages
       };
 
