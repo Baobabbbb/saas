@@ -153,6 +153,7 @@ STYLE ARTISTIQUE: {style_info['name']}
 CONSIGNES IMPORTANTES:
 1. Chaque planche contient EXACTEMENT 4 CASES disposées en grille 2×2
 2. L'histoire doit être cohérente, captivante et adaptée aux enfants
+{("3. CRITIQUE: Le personnage principal DOIT être celui décrit ci-dessus. Dans CHAQUE case où il apparaît, RÉPÈTE EXACTEMENT sa description physique complète pour que gpt-image-1 le reconnaisse: " + character_description) if character_description else ""}
 3. Chaque case doit avoir:
    - Une description visuelle ULTRA DÉTAILLÉE (pour gpt-image-1)
    - Des dialogues dans des bulles (maximum 2 bulles par case)
@@ -307,18 +308,26 @@ Génère maintenant le scénario complet en JSON:"""
                         "content": [
                             {
                                 "type": "text",
-                                "text": """Analyse cette photo et décris le personnage en détail pour l'intégrer dans une bande dessinée pour enfants.
-                                
-Décris:
-- Âge approximatif
-- Genre
-- Couleur et style des cheveux
-- Couleur des yeux
-- Vêtements portés
-- Traits distinctifs
-- Expression générale
+                                "text": """Analyse cette photo et décris le personnage de manière ULTRA DÉTAILLÉE pour que gpt-image-1 puisse le recréer EXACTEMENT dans une bande dessinée.
 
-Réponds en 2-3 phrases maximum, de manière factuelle et descriptive."""
+IMPORTANT: La description doit être suffisamment précise pour que le personnage soit PARFAITEMENT RECONNAISSABLE dans la BD.
+
+Décris EN DÉTAIL:
+- Âge approximatif (ex: "enfant d'environ 8 ans")
+- Genre
+- Visage: forme, teint de peau (couleur précise), traits faciaux distinctifs
+- Cheveux: couleur exacte, longueur, style, texture (raides/bouclés/ondulés)
+- Yeux: couleur exacte, forme, taille
+- Nez: forme, taille
+- Bouche: forme, expression
+- Oreilles: si visibles, forme
+- Morphologie: taille, corpulence
+- Vêtements: couleurs précises, style, motifs, détails
+- Accessoires: lunettes, bijoux, chapeau, etc.
+- Traits distinctifs: taches de rousseur, grain de beauté, fossettes, etc.
+- Expression générale et posture
+
+Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1), de manière factuelle et précise. Commence par "A [age] year old [gender] with..."."""
                             },
                             {
                                 "type": "image_url",
@@ -329,7 +338,7 @@ Réponds en 2-3 phrases maximum, de manière factuelle et descriptive."""
                         ]
                     }
                 ],
-                max_tokens=300
+                max_tokens=500
             )
             
             description = response.choices[0].message.content.strip()
