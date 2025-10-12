@@ -140,6 +140,14 @@ function App() {
   const [comicsResult, setComicsResult] = useState(null);
   const [showComicsPopup, setShowComicsPopup] = useState(false);
 
+  // Réinitialiser les sélections comics quand on change d'onglet
+  useEffect(() => {
+    if (contentType === 'comic') {
+      setSelectedComicsStyle(null);
+      setNumPages(null);
+    }
+  }, [contentType]);
+
   // Animation states
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
   const [selectedDuration, setSelectedDuration] = useState(null);
