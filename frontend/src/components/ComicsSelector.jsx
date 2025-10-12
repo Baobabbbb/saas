@@ -134,7 +134,7 @@ const ComicsSelector = ({
       </div>
 
       <div className="selector-section">
-        <h3>3. Nombre de pages</h3>
+        <h3>4. Nombre de pages</h3>
         <div className="pages-selector">
           {pageOptions.map(num => (
             <motion.button
