@@ -413,15 +413,15 @@ Réponds en 2-3 phrases maximum, de manière factuelle et descriptive."""
         panels = page_data["panels"]
         
         # Construire la description de la planche complète
-        prompt = f"""A professional comic book page in landscape format with 4 panels arranged in a 2x2 grid layout. 
+        prompt = f"""A professional comic book page in square format with 4 panels arranged in a 2x2 grid layout.
 {style_info['prompt_modifier']}.
 
-LAYOUT: 
-- Wide landscape format (1536x1024 pixels)
+LAYOUT:
+- Square format (1024x1024 pixels)
 - 4 equally-sized panels in a clean 2x2 grid
-- Generous spacing between panels (thick black borders)
-- Each panel is proportionally smaller to allow for proper spacing and readability
-- Professional comic book page composition
+- Generous white margins around the entire grid
+- Each panel is smaller with thick black borders and plenty of spacing between them
+- Professional comic book page composition with clean gutters
 
 PANEL CONTENT:
 
@@ -443,15 +443,15 @@ Speech bubbles: {self._format_bubbles_for_prompt(panels[3].get('dialogue_bubbles
 
 STYLE REQUIREMENTS:
 - {style_info['prompt_modifier']}
-- Clear, bold black panel borders with adequate spacing
-- Each panel should be slightly smaller to ensure clean borders and white space
-- Professional comic book page layout with proper gutters (space between panels)
+- Clear, bold black panel borders with generous spacing between panels
+- Each panel should be significantly smaller to leave plenty of white space around them
+- Professional comic book page layout with wide gutters (white space between panels)
 - Include ALL speech bubbles with the EXACT text shown above
 - Consistent character designs across all 4 panels
 - High quality, professional comic book art
 - Vibrant colors and clear composition
 - No text outside the speech bubbles
-- White background/margins around the panel grid"""
+- Clean white background with margins around the entire 2x2 panel grid"""
         
         return prompt
     
@@ -485,7 +485,7 @@ STYLE REQUIREMENTS:
             response = await self.client.images.generate(
                 model="gpt-image-1",
                 prompt=prompt,
-                size="1536x1024",  # Format paysage pour une planche BD 2x2 (disposition optimale)
+                size="1024x1024",  # Format carré pour une planche BD 2x2 avec cases bien espacées
                 quality="high",  # Haute qualité pour les BD
                 n=1
             )
