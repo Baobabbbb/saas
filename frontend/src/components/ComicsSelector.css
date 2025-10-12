@@ -130,43 +130,11 @@
   gap: 16px;
 }
 
-.style-card {
-  background-color: #f5f0ff;
-  border: 2px solid transparent;
-  border-radius: 16px;
-  padding: 20px;
-  text-align: center;
-  cursor: pointer;
-  /* transition: all 0.2s ease; /* Désactivé pour Framer Motion */
-}
 
-.style-card:hover {
-  background-color: #ede5ff;
-}
 
-.style-card.selected {
-  background-color: #ede5ff;
-  border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
-}
 
-.style-icon {
-  font-size: 2.5rem;
-  margin-bottom: 12px;
-}
 
-.style-name {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--primary);
-  margin-bottom: 6px;
-}
 
-.style-description {
-  font-size: 0.85rem;
-  color: var(--text);
-  opacity: 0.8;
-}
 
 /* Sélecteur de pages */
 .pages-selector {
