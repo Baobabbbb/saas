@@ -135,7 +135,7 @@ class ComicsGeneratorGPT4o:
             character_description = await self._analyze_character_photo(character_photo_path)
         
         # Construire le prompt pour gpt-4o-mini
-        prompt = f"""Tu es un scénariste expert en bandes dessinées pour enfants de 6-10 ans.
+        prompt = f"""Tu es un scénariste expert en bandes dessinées pour enfants de 6-10 ans. Tu écris en français impeccable sans aucune faute d'orthographe.
 
 MISSION: Créer une histoire complète en {num_pages} planches de bande dessinée.
 
@@ -158,9 +158,13 @@ CONSIGNES IMPORTANTES:
    - Des dialogues dans des bulles (maximum 2 bulles par case)
    - Une indication de l'action ou l'émotion
 
-4. IMPORTANT pour les BULLES DE DIALOGUE:
-   - Les bulles doivent contenir le texte EXACT à afficher
-   - Le texte doit être COURT (maximum 10-12 mots par bulle)
+4. CRITIQUE pour les BULLES DE DIALOGUE:
+   - TOUS les textes doivent être en FRANÇAIS PARFAIT sans faute d'orthographe
+   - Les bulles doivent contenir le texte EXACT à afficher dans l'image finale
+   - Le texte doit être COURT (maximum 8-10 mots par bulle pour tenir dans la bulle)
+   - Langage simple et adapté aux enfants de 6-10 ans
+   - Pas de fautes d'orthographe, de grammaire ou de conjugaison
+   - Vérifie chaque mot : "tu" au lieu de "t", "c'est" au lieu de "cé", etc.
    - Les bulles doivent être positionnées pour ne pas cacher les personnages
    - Précise la position suggérée de chaque bulle (haut-gauche, haut-droite, bas-gauche, bas-droite)
 
@@ -171,12 +175,12 @@ CONSIGNES IMPORTANTES:
    - L'action: ce qui se passe exactement dans cette case
    - Le cadrage: plan large, gros plan, plan américain, etc.
    - La lumière et l'ambiance: jour/nuit, lumineux/sombre, etc.
-   
+
    EXEMPLE DE BONNE DESCRIPTION:
-   "Comic book panel showing an 8-year-old girl with long brown hair wearing a yellow t-shirt and blue jeans, 
-   standing in her colorful bedroom with toys on shelves behind her. She looks surprised with wide eyes and 
-   open mouth, pointing at a glowing magic wand on her bed. Bright sunlight comes through the window. 
-   {style_info['prompt_modifier']}. The panel has a speech bubble in the top-right corner saying 'Wow! A magic wand!'"
+   "Comic book panel showing an 8-year-old girl with long brown hair wearing a yellow t-shirt and blue jeans,
+   standing in her colorful bedroom with toys on shelves behind her. She looks surprised with wide eyes and
+   open mouth, pointing at a glowing magic wand on her bed. Bright sunlight comes through the window.
+   {style_info['prompt_modifier']}. The panel has a speech bubble in the top-right corner saying 'Wow ! Une baguette magique !'"
 
 FORMAT JSON REQUIS:
 {{
