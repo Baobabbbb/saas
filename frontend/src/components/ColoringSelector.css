@@ -1,6 +1,6 @@
 /* Variables pour cohérence avec les autres composants */
 :root {
-  --primary: #6B4EFF;
+  --primary: #f5f0ff;
   --text: #333;
 }
 
@@ -176,7 +176,7 @@
 
 .personalization-input:focus {
   outline: none;
-  border-color: #6B4EFF;
+  border-color: #f5f0ff;
   box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
 }
 
@@ -384,7 +384,7 @@
 .inline-upload .upload-hint {
   margin-bottom: 1rem !important;
   font-size: 0.85rem !important;
-  color: var(--primary, #6B4EFF) !important;
+  color: var(--primary, #f5f0ff) !important;
   font-weight: 500 !important;
 }
 

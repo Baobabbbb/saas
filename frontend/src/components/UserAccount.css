@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--primary, #6B4EFF);
+  color: var(--primary, #f5f0ff);
   font-weight: 400;
   font-size: 0.9rem;
   transition: all 0.2s ease;

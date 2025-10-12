@@ -1231,7 +1231,7 @@ const downloadPDF = async (title, content) => {
           cursor: 'pointer',
           fontWeight: '700',
           fontSize: '1rem',
-          boxShadow: '0 4px 12px rgba(107, 78, 255, 0.3)',
+          boxShadow: '0 4px 12px rgba(245, 240, 255, 0.3)',
           transition: 'all 0.2s ease'
         }}
         onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
@@ -1331,7 +1331,7 @@ const downloadPDF = async (title, content) => {
                 fontWeight: '600',
                 fontSize: '14px',
                 marginTop: '0.8rem',
-                boxShadow: '0 4px 12px rgba(107, 78, 255, 0.3)',
+                boxShadow: '0 4px 12px rgba(245, 240, 255, 0.3)',
                 transition: 'all 0.3s ease'
               }}
               onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}

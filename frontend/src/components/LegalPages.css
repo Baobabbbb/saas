@@ -1,5 +1,5 @@
 .legal-overlay {
-  --primary: #6B4EFF;
+  --primary: #f5f0ff;
   position: fixed;
   top: 0;
   left: 0;
@@ -246,7 +246,7 @@
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: var(--primary, #6B4EFF);
+  border-color: var(--primary, #f5f0ff);
   box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
 }
 
@@ -257,7 +257,7 @@
 }
 
 .contact-submit-btn {
-  background: linear-gradient(135deg, var(--primary, #6B4EFF) 0%, #8B5CF6 100%);
+  background: linear-gradient(135deg, var(--primary, #f5f0ff) 0%, #8B5CF6 100%);
   color: white;
   border: none;
   padding: 0.875rem 2rem;

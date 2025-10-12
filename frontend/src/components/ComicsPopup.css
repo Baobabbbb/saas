@@ -58,7 +58,7 @@
 
 .comic-title {
   font-size: 1.8rem;
-  color: #6B4EFF;
+  color: #f5f0ff;
   margin: 0 0 8px 0;
   font-weight: 800;
   font-family: 'Baloo 2', cursive;
@@ -182,7 +182,7 @@
 
 .nav-btn {
   padding: 14px 20px;
-  background: linear-gradient(135deg, #6B4EFF 0%, #8B5CF6 100%);
+  background: linear-gradient(135deg, #f5f0ff 0%, #8B5CF6 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -234,8 +234,8 @@
 }
 
 .page-dot.active {
-  background: linear-gradient(135deg, #6B4EFF 0%, #8B5CF6 100%);
-  border-color: #6B4EFF;
+  background: linear-gradient(135deg, #f5f0ff 0%, #8B5CF6 100%);
+  border-color: #f5f0ff;
   width: 36px;
   border-radius: 18px;
   box-shadow: 0 2px 8px rgba(107, 78, 255, 0.3);
@@ -270,7 +270,7 @@
 }
 
 .action-btn.primary-btn {
-  background: linear-gradient(135deg, #6B4EFF 0%, #8B5CF6 100%);
+  background: linear-gradient(135deg, #f5f0ff 0%, #8B5CF6 100%);
   color: white;
   border: 1px solid rgba(107, 78, 255, 0.2);
 }
@@ -283,12 +283,12 @@
 
 .action-btn.secondary-btn {
   background: linear-gradient(135deg, #E9E5FF 0%, #F0F4FF 100%);
-  color: #6B4EFF;
+  color: #f5f0ff;
   border: 2px solid rgba(107, 78, 255, 0.2);
 }
 
 .action-btn.secondary-btn:hover {
-  background: linear-gradient(135deg, #6B4EFF 0%, #8B5CF6 100%);
+  background: linear-gradient(135deg, #f5f0ff 0%, #8B5CF6 100%);
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(107, 78, 255, 0.4);
@@ -309,7 +309,7 @@
 
 .thumbnails-section h4 {
   font-size: 1.3rem;
-  color: #6B4EFF;
+  color: #f5f0ff;
   margin-bottom: 24px;
   font-weight: 800;
   font-family: 'Baloo 2', cursive;
@@ -334,13 +334,13 @@
 }
 
 .thumbnail:hover {
-  border-color: #6B4EFF;
+  border-color: #f5f0ff;
   box-shadow: 0 8px 20px rgba(107, 78, 255, 0.25);
   transform: translateY(-2px);
 }
 
 .thumbnail.active {
-  border-color: #6B4EFF;
+  border-color: #f5f0ff;
   box-shadow: 0 8px 24px rgba(107, 78, 255, 0.35);
   transform: translateY(-2px);
 }

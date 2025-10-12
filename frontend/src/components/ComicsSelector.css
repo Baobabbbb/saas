@@ -1,6 +1,6 @@
 /* Variables pour cohérence avec les autres composants */
 :root {
-  --primary: #6B4EFF;
+  --primary: #f5f0ff;
   --text: #333;
 }
 
@@ -48,7 +48,7 @@
 .theme-card.selected {
   background-color: #ede5ff;
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(245, 240, 255, 0.2);
 }
 
 .theme-card.custom-theme {
@@ -79,7 +79,7 @@
 .comics-theme-card.selected {
   background-color: #ede5ff;
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(245, 240, 255, 0.2);
 }
 
 .theme-icon {
@@ -120,7 +120,7 @@
 .custom-story-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(245, 240, 255, 0.1);
 }
 
 /* Grille de styles */
@@ -130,7 +130,26 @@
   gap: 16px;
 }
 
+.style-card {
+  background-color: #f5f0ff;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  /* transition: all 0.2s ease; /* Désactivé pour Framer Motion */
+  position: relative;
+}
 
+.style-card:hover {
+  background-color: #ede5ff;
+}
+
+.style-card.selected {
+  background-color: #ede5ff;
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(245, 240, 255, 0.2);
+}
 
 
 
@@ -169,7 +188,7 @@
 .page-btn.selected {
   background-color: #ede5ff;
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(245, 240, 255, 0.2);
 }
 
 .cases-info {
@@ -180,10 +199,10 @@
 
 /* Section personnage */
 .character-upload-section {
-  background: linear-gradient(135deg, rgba(107, 78, 255, 0.02) 0%, rgba(107, 78, 255, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(245, 240, 255, 0.02) 0%, rgba(245, 240, 255, 0.05) 100%);
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(107, 78, 255, 0.08);
+  border: 1px solid rgba(245, 240, 255, 0.08);
 }
 
 .character-description {
@@ -206,17 +225,17 @@
   display: block;
   padding: 24px 20px;
   background: linear-gradient(135deg, #E9E5FF 0%, #F0F4FF 100%);
-  border: 2px dashed rgba(107, 78, 255, 0.3);
+  border: 2px dashed rgba(245, 240, 255, 0.3);
   border-radius: 12px;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(107, 78, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(245, 240, 255, 0.08);
 }
 
 .upload-label:hover {
-  border-color: rgba(107, 78, 255, 0.5);
-  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.15);
+  border-color: rgba(245, 240, 255, 0.5);
+  box-shadow: 0 4px 12px rgba(245, 240, 255, 0.15);
 }
 
 .upload-prompt {
@@ -224,7 +243,7 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  color: #6B4EFF;
+  color: #f5f0ff;
 }
 
 .upload-icon {
@@ -262,7 +281,7 @@
 
 .change-link {
   font-size: 0.85rem;
-  color: #6B4EFF;
+  color: #f5f0ff;
   text-decoration: none;
   cursor: pointer;
   font-weight: 600;
@@ -287,9 +306,9 @@
   max-width: 180px;
   max-height: 180px;
   border-radius: 10px;
-  border: 2px solid #6B4EFF;
+  border: 2px solid #f5f0ff;
   object-fit: cover;
-  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(245, 240, 255, 0.15);
 }
 
 .remove-photo-btn {
@@ -377,4 +396,5 @@
     max-height: 150px;
   }
 }
+
 

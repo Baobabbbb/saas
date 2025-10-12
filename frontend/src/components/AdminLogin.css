@@ -27,7 +27,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #6B4EFF, #FF85A1);
+  background: linear-gradient(90deg, #f5f0ff, #FF85A1);
 }
 
 .login-header {
@@ -42,7 +42,7 @@
 .login-logo-text h1 {
   font-size: 32px;
   font-weight: 700;
-  color: #6B4EFF;
+  color: #f5f0ff;
   margin: 0;
   letter-spacing: -0.5px;
 }
@@ -98,7 +98,7 @@
 
 .login-field input:focus {
   outline: none;
-  border-color: #6B4EFF;
+  border-color: #f5f0ff;
   background: white;
   box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
 }
@@ -121,7 +121,7 @@
 }
 
 .login-button {
-  background: linear-gradient(135deg, #6B4EFF 0%, #5a3fd1 100%);
+  background: linear-gradient(135deg, #f5f0ff 0%, #5a3fd1 100%);
   color: white;
   border: none;
   padding: 14px 24px;

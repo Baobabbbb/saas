@@ -1,11 +1,11 @@
 :root {
-  --primary: #6B4EFF;
+  --primary: #f5f0ff;
   --secondary: #FF85A1;
   --accent: #FFD166;
   --background: #F9F4FF;
   --card-bg: #FFFFFF;
   --text: #333333;
-  --shadow: rgba(107, 78, 255, 0.15);
+  --shadow: rgba(245, 240, 255, 0.15);
 }
 
 * {
@@ -24,3 +24,5 @@ body {
 button, select, input {
   font-family: 'Baloo 2', cursive;
 }
+
+
