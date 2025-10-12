@@ -87,13 +87,14 @@
 .theme-name {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--primary);
   margin-bottom: 6px;
 }
 
 .theme-description {
   font-size: 0.9rem;
-  color: var(--text-secondary);
+  color: var(--text);
+  opacity: 0.8;
 }
 
 /* Input personnalisé */
@@ -155,13 +156,14 @@
 .style-name {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--primary);
   margin-bottom: 6px;
 }
 
 .style-description {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: var(--text);
+  opacity: 0.8;
 }
 
 /* Sélecteur de pages */
