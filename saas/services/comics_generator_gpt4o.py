@@ -477,7 +477,7 @@ IMPORTANT REQUIREMENTS:
             response = await self.client.images.generate(
                 model="gpt-image-1",
                 prompt=prompt,
-                size="1024x1024",  # Format carré pour une planche 2x2
+                size="1024x1536",  # Format portrait pour une planche BD 2x2 (plus de hauteur)
                 quality="high",  # Haute qualité pour les BD
                 n=1
             )
@@ -489,14 +489,20 @@ IMPORTANT REQUIREMENTS:
                 image_b64 = response.data[0].b64_json
                 print(f"   [OK] Image reçue (base64: {len(image_b64)} caractères)")
                 
-                # Décoder et sauvegarder
+                # Décoder l'image
                 image_data = base64.b64decode(image_b64)
                 
+                # Vérifier les dimensions réelles de l'image générée
+                img = Image.open(io.BytesIO(image_data))
+                actual_width, actual_height = img.size
+                print(f"   [DIMENSIONS] Image générée: {actual_width}x{actual_height}")
+                
+                # Sauvegarder
                 output_path = output_dir / f"page_{page_num}.png"
                 with open(output_path, 'wb') as f:
                     f.write(image_data)
                 
-                print(f"   ✅ Planche sauvegardée: {output_path.name} ({len(image_data)} bytes)")
+                print(f"   ✅ Planche sauvegardée: {output_path.name} ({len(image_data)} bytes, {actual_width}x{actual_height})")
                 return output_path
             else:
                 print(f"   [ERROR] Format de réponse inattendu")
