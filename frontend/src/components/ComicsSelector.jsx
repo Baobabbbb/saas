@@ -24,14 +24,17 @@ const ComicsSelector = ({
 
   // Synchroniser avec les props du parent, mais forcer null au premier rendu
   useEffect(() => {
+    console.log('🔄 useEffect ComicsSelector:', { selectedTheme, selectedStyle, numPages });
     if (localSelectedStyle === null && selectedStyle !== null) {
       // Premier rendu - forcer la remise à zéro
+      console.log('🎯 Forçant remise à zéro');
       setSelectedStyle(null);
       setNumPages(null);
     }
     setLocalSelectedTheme(selectedTheme);
     setLocalSelectedStyle(selectedStyle);
     setLocalNumPages(numPages);
+    console.log('✅ États locaux mis à jour:', { displaySelectedTheme: selectedTheme, displaySelectedStyle: selectedStyle, displayNumPages: numPages });
   }, [selectedTheme, selectedStyle, numPages, setSelectedStyle, setNumPages]);
 
   // Utiliser les valeurs locales pour l'affichage
@@ -123,7 +126,10 @@ const ComicsSelector = ({
             <motion.div
               key={style.id}
               className={`style-card ${displaySelectedStyle === style.id ? 'selected' : ''}`}
-              onClick={() => setSelectedStyle(displaySelectedStyle === style.id ? null : style.id)}
+              onClick={() => {
+                console.log('🎨 Clic style:', style.id, 'actuel:', displaySelectedStyle);
+                setSelectedStyle(displaySelectedStyle === style.id ? null : style.id);
+              }}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
