@@ -75,7 +75,7 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType, but
             : contentType === 'coloring'
             ? 'Veuillez sélectionner un thème de coloriage pour continuer'
             : contentType === 'comic'
-            ? 'Veuillez sélectionner un thème, style et longueur pour votre BD'
+            ? 'Veuillez sélectionner un thème, un style et un nombre de pages pour votre BD'
             : contentType === 'animation'
             ? 'Veuillez sélectionner un thème et configurer votre animation'
             : 'Veuillez sélectionner un type d\'histoire (et une voix) pour continuer'}

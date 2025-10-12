@@ -792,8 +792,10 @@ const handleSelectCreation = (creation) => {
       // Si thème custom, vérifier le texte personnalisé
       if (selectedTheme === 'custom' && !customColoringTheme.trim()) return false;
     } else if (contentType === 'comic') {
-      // Pour les BD: thème obligatoire, style et nombre de pages ont des valeurs par défaut
+      // Pour les BD: thème, style et nombre de pages sont tous obligatoires
       if (!selectedComicsTheme) return false;
+      if (!selectedComicsStyle) return false;
+      if (!numPages) return false;
       if (selectedComicsTheme === 'custom' && !customComicsStory.trim()) return false;
     } else if (contentType === 'animation') {
       // Pour les animations, soit un thème soit une histoire personnalisée
