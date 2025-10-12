@@ -100,7 +100,7 @@ const ComicsSelector = ({
           {styles.map(style => (
             <motion.div
               key={style.id}
-              className={`style-card ${selectedStyle === style.id ? 'selected' : ''}`}
+              className="style-card"
               onClick={() => {
                 console.log('🎨 Clic style:', style.id, 'actuel:', selectedStyle);
                 setSelectedStyle(selectedStyle === style.id ? null : style.id);
@@ -109,9 +109,9 @@ const ComicsSelector = ({
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="style-icon">{style.icon}</div>
-              <div className="style-name">{style.name}</div>
-              <div className="style-description">{style.description}</div>
+              <div>{style.icon}</div>
+              <div>{style.name}</div>
+              <div>{style.description}</div>
             </motion.div>
           ))}
         </div>
