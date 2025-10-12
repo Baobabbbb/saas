@@ -46,12 +46,3 @@
   box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
 }
 
-.style-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.style-name {
-  font-weight: 600;
-  color: var(--primary);
-}
