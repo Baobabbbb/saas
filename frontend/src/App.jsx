@@ -133,8 +133,8 @@ function App() {
   
   // Comics states
   const [selectedComicsTheme, setSelectedComicsTheme] = useState(null);
-  const [selectedComicsStyle, setSelectedComicsStyle] = useState('cartoon');
-  const [numPages, setNumPages] = useState(1);
+  const [selectedComicsStyle, setSelectedComicsStyle] = useState(null);
+  const [numPages, setNumPages] = useState(null);
   const [customComicsStory, setCustomComicsStory] = useState('');
   const [characterPhoto, setCharacterPhoto] = useState(null);
   const [comicsResult, setComicsResult] = useState(null);

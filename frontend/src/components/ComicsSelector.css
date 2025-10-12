@@ -56,6 +56,11 @@
   border: 2px dashed #c4b5ff;
 }
 
+.theme-card.custom-theme.selected {
+  border: 2px solid var(--primary);
+  border-style: solid;
+}
+
 /* Classes spécifiques pour différencier la section BD des autres */
 .comics-theme-card {
   background-color: #f5f0ff;
