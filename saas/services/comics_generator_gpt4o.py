@@ -153,7 +153,7 @@ STYLE ARTISTIQUE: {style_info['name']}
 CONSIGNES IMPORTANTES:
 1. Chaque planche contient EXACTEMENT 4 CASES disposées en grille 2×2
 2. L'histoire doit être cohérente, captivante et adaptée aux enfants
-{("3. CRITIQUE: Le personnage principal DOIT être celui décrit ci-dessus. Dans CHAQUE case où il apparaît, RÉPÈTE EXACTEMENT sa description physique complète pour que gpt-image-1 le reconnaisse: " + character_description) if character_description else ""}
+{("3. CRITIQUE ABSOLU: Le personnage décrit ci-dessus DOIT être le HÉROS PRINCIPAL et apparaître dans LES 4 CASES de chaque planche. C'est LUI qui fait les actions, c'est LUI le protagoniste. Dans CHAQUE case, commence la description par: 'The main character (the person described above) is...' pour que gpt-image-1 sache que c'est ce personnage précis qui doit apparaître: " + character_description) if character_description else ""}
 3. Chaque case doit avoir:
    - Une description visuelle ULTRA DÉTAILLÉE (pour gpt-image-1)
    - Des dialogues dans des bulles (maximum 2 bulles par case)
@@ -510,12 +510,19 @@ STYLE REQUIREMENTS:
                 with open(character_photo_path, "rb") as image_file:
                     image_data = image_file.read()
                 
-                # Adapter le prompt pour images.edit() : inclure instruction d'utiliser la personne de la photo
-                edit_prompt = f"""Transform this person/character from the photo into the main character of a comic book page.
+                # Adapter le prompt pour images.edit() : être ULTRA-EXPLICITE sur l'utilisation du personnage
+                edit_prompt = f"""CREATE A COMIC BOOK PAGE where the person shown in this photo is the MAIN CHARACTER and HERO of the story.
+
+CRITICAL REQUIREMENTS:
+1. The person in this photo MUST appear as the central character in ALL 4 panels
+2. This person MUST be the protagonist doing the actions described
+3. Keep their EXACT physical appearance: face, hair, eyes, clothing, everything recognizable
+4. This person should be prominent and clearly visible in EVERY panel
+5. DO NOT create random other characters as the main character - USE THIS PERSON
 
 {prompt}
 
-CRITICAL: Use the EXACT person/character shown in this photo as the main character in the comic panels. Keep their physical appearance, facial features, hair, clothing style recognizable. This person should be the protagonist in all panels where a main character appears."""
+REMINDER: The person in the uploaded photo is the HERO. They must be in ALL panels as the main character."""
                 
                 # Utiliser images.edit() pour intégrer le personnage de la photo
                 response = await self.client.images.edit(
