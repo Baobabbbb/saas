@@ -413,10 +413,17 @@ Réponds en 2-3 phrases maximum, de manière factuelle et descriptive."""
         panels = page_data["panels"]
         
         # Construire la description de la planche complète
-        prompt = f"""A single comic book page with 4 panels arranged in a 2x2 grid layout. 
+        prompt = f"""A professional comic book page in landscape format with 4 panels arranged in a 2x2 grid layout. 
 {style_info['prompt_modifier']}.
 
-The page shows:
+LAYOUT: 
+- Wide landscape format (1536x1024 pixels)
+- 4 equally-sized panels in a clean 2x2 grid
+- Generous spacing between panels (thick black borders)
+- Each panel is proportionally smaller to allow for proper spacing and readability
+- Professional comic book page composition
+
+PANEL CONTENT:
 
 PANEL 1 (Top-Left):
 {panels[0]['visual_description']}
@@ -434,16 +441,17 @@ PANEL 4 (Bottom-Right):
 {panels[3]['visual_description']}
 Speech bubbles: {self._format_bubbles_for_prompt(panels[3].get('dialogue_bubbles', []))}
 
-IMPORTANT REQUIREMENTS:
-- Clear 2x2 grid layout with black panel borders
-- Each panel tells part of the story
+STYLE REQUIREMENTS:
 - {style_info['prompt_modifier']}
+- Clear, bold black panel borders with adequate spacing
+- Each panel should be slightly smaller to ensure clean borders and white space
+- Professional comic book page layout with proper gutters (space between panels)
 - Include ALL speech bubbles with the EXACT text shown above
-- Bubbles should be positioned as indicated (top-left, top-right, etc.)
 - Consistent character designs across all 4 panels
-- Professional comic book quality
-- High resolution, vibrant colors
-- No text outside the speech bubbles"""
+- High quality, professional comic book art
+- Vibrant colors and clear composition
+- No text outside the speech bubbles
+- White background/margins around the panel grid"""
         
         return prompt
     
@@ -477,7 +485,7 @@ IMPORTANT REQUIREMENTS:
             response = await self.client.images.generate(
                 model="gpt-image-1",
                 prompt=prompt,
-                size="1024x1536",  # Format portrait pour une planche BD 2x2 (plus de hauteur)
+                size="1536x1024",  # Format paysage pour une planche BD 2x2 (disposition optimale)
                 quality="high",  # Haute qualité pour les BD
                 n=1
             )
