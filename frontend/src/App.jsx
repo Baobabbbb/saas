@@ -201,6 +201,46 @@ function App() {
     throw new Error('Timeout de génération de l\'animation');
   };
 
+  // Polling du statut d'une BD jusqu'à complétion
+  const waitForComicCompletion = async (taskId, { intervalMs = 5000, maxAttempts = 180 } = {}) => {
+    let attempts = 0;
+    
+    while (attempts < maxAttempts) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/status_comic/${taskId}`);
+        
+        if (res.ok) {
+          const statusPayload = await res.json();
+          
+          if (statusPayload?.type === 'result') {
+            const data = statusPayload.data;
+            
+            if (data?.status === 'completed' || data?.status === 'success') {
+              // BD terminée avec contenu
+              if (data?.pages && data.pages.length > 0) {
+                return data;
+              }
+            }
+            if (data?.status === 'failed') {
+              throw new Error(data?.error || 'Génération échouée');
+            }
+            // Afficher la progression
+            if (data?.progress) {
+              console.log(`📚 Génération BD: ${data.progress}%`);
+            }
+          }
+        }
+      } catch (e) {
+        // Continue polling même en cas d'erreur
+      }
+      
+      attempts += 1;
+      await delay(intervalMs);
+    }
+    
+    throw new Error('Timeout de génération de la BD');
+  };
+
   // Upload de photo de personnage pour BD
   const handleCharacterPhotoUpload = async (file) => {
     try {
@@ -445,7 +485,7 @@ function App() {
         generatedContent = coloringData; // Stocker pour l'historique
       }
     } else if (contentType === 'comic') {
-      // Génération de bande dessinée
+      // Génération de bande dessinée avec système de tâches asynchrones
       const payload = {
         theme: selectedComicsTheme === 'custom' ? customComicsStory : selectedComicsTheme,
         art_style: selectedComicsStyle,
@@ -470,9 +510,23 @@ function App() {
 
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
 
-      const comicsData = await response.json();
-      setComicsResult(comicsData);
-      generatedContent = comicsData;
+      const initialData = await response.json();
+      
+      // Attendre la complétion avec polling
+      let finalData = initialData;
+      const taskId = initialData?.task_id;
+      const isCompleted = initialData?.status === 'success' && initialData?.pages && initialData.pages.length > 0;
+
+      if (taskId && !isCompleted) {
+        // Rester en état de chargement pendant le polling
+        finalData = await waitForComicCompletion(taskId);
+      }
+
+      // Ne définir le résultat qu'après complétion
+      if (finalData?.pages && finalData.pages.length > 0) {
+        setComicsResult(finalData);
+        generatedContent = finalData;
+      }
     } else if (contentType === 'animation') {
       // Déterminer le contenu de l'histoire
       let story;

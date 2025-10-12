@@ -714,8 +714,8 @@ def get_comics_generator():
 @app.post("/generate_comic/")
 async def generate_comic(request: dict):
     """
-    Génère une bande dessinée complète avec gpt-4o-mini + gpt-image-1
-    Format: chaque planche = 1 image avec 4 cases
+    Lance la génération d'une bande dessinée en arrière-plan
+    Retourne immédiatement un task_id pour éviter les timeouts
     """
     try:
         # Récupérer les paramètres
@@ -725,7 +725,7 @@ async def generate_comic(request: dict):
         custom_prompt = request.get("custom_prompt")
         character_photo_path = request.get("character_photo_path")
         
-        print(f"📚 Génération BD: thème={theme}, style={art_style}, pages={num_pages}")
+        print(f"📚 Lancement génération BD: thème={theme}, style={art_style}, pages={num_pages}")
         
         # Vérifier la clé API
         openai_key = os.getenv("OPENAI_API_KEY")
@@ -735,45 +735,47 @@ async def generate_comic(request: dict):
                 detail="❌ Clé API OpenAI non configurée"
             )
         
-        # Obtenir le générateur
-        generator = get_comics_generator()
+        # Créer un task_id unique
+        task_id = str(uuid.uuid4())
+        print(f"📋 Task BD créé: {task_id}")
         
-        # Générer la BD complète
-        result = await generator.create_complete_comic(
-            theme=theme,
-            num_pages=num_pages,
-            art_style=art_style,
-            custom_prompt=custom_prompt,
-            character_photo_path=character_photo_path
-        )
+        # Stocker les informations de la tâche
+        comic_task_storage[task_id] = {
+            "start_time": time.time(),
+            "theme": theme,
+            "art_style": art_style,
+            "num_pages": num_pages,
+            "custom_prompt": custom_prompt,
+            "character_photo_path": character_photo_path,
+            "status": "processing"
+        }
         
-        if result.get("success"):
-            return {
-                "status": "success",
-                "comic_id": result["comic_id"],
-                "title": result["title"],
-                "synopsis": result["synopsis"],
-                "pages": result["pages"],
-                "total_pages": result["total_pages"],
-                "theme": result["theme"],
-                "art_style": result["art_style"],
-                "generation_time": result["generation_time"]
-            }
-        else:
-            error_msg = result.get("error", "Erreur inconnue")
-            print(f"❌ Échec génération BD: {error_msg}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Erreur génération BD: {error_msg}"
-            )
+        # Lancer la génération en arrière-plan
+        import asyncio
+        asyncio.create_task(generate_comic_task(task_id, theme, art_style, num_pages, custom_prompt, character_photo_path))
+        
+        # Retourner immédiatement le task_id
+        estimated_time = f"{num_pages * 1.2:.0f}-{num_pages * 1.5:.0f} minutes"
+        result = {
+            "task_id": task_id,
+            "status": "processing",
+            "message": f"Bande dessinée en cours de création...",
+            "estimated_time": estimated_time,
+            "theme": theme,
+            "art_style": art_style,
+            "num_pages": num_pages
+        }
+        
+        print(f"✅ Task BD lancée: {result}")
+        return result
             
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Erreur génération BD: {e}")
+        print(f"❌ Erreur lancement BD: {e}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors du lancement: {str(e)}")
 
 
 @app.post("/upload_character_photo/")
@@ -819,6 +821,81 @@ async def upload_character_photo(file: UploadFile = File(...)):
     except Exception as e:
         print(f"❌ Erreur upload photo: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur upload: {str(e)}")
+
+@app.get("/status_comic/{task_id}")
+async def get_comic_status(task_id: str):
+    """
+    Récupère le statut d'une tâche de génération de BD
+    """
+    try:
+        # Vérifier si la tâche existe
+        if task_id not in comic_task_storage:
+            print(f"❌ Task BD {task_id} non trouvé")
+            raise HTTPException(status_code=404, detail="Tâche non trouvée")
+        
+        task_info = comic_task_storage[task_id]
+        status = task_info.get("status", "processing")
+        
+        print(f"📊 Statut BD demandé pour {task_id}: {status}")
+        
+        if status == "processing" or status == "generating":
+            # Encore en traitement
+            current_time = time.time()
+            elapsed_seconds = current_time - task_info["start_time"]
+            
+            # Estimation temps selon le nombre de pages (70s par page)
+            num_pages = task_info.get("num_pages", 1)
+            estimated_duration = num_pages * 70
+            progress = min(int((elapsed_seconds / estimated_duration) * 100), 95)
+            
+            result = {
+                "type": "result", 
+                "data": {
+                    "task_id": task_id,
+                    "status": "processing",
+                    "progress": progress,
+                    "message": f"Génération de la BD en cours... {progress}%",
+                    "estimated_remaining": max(int(estimated_duration - elapsed_seconds), 10)
+                }
+            }
+            print(f"⏳ Task BD {task_id} en cours: {progress}%")
+            
+        elif status == "completed":
+            # BD terminée !
+            comic_result = task_info.get("result", {})
+            result = {
+                "type": "result",
+                "data": comic_result
+            }
+            print(f"✅ BD {task_id} terminée et retournée!")
+            
+        elif status == "failed":
+            # Erreur de génération
+            error_msg = task_info.get("error", "Erreur inconnue")
+            result = {
+                "type": "result",
+                "data": {
+                    "status": "failed",
+                    "error": error_msg
+                }
+            }
+            print(f"❌ Task BD {task_id} échouée: {error_msg}")
+        else:
+            result = {
+                "type": "result",
+                "data": {
+                    "status": status,
+                    "message": "Statut inconnu"
+                }
+            }
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur récupération statut BD: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur statut: {str(e)}")
 
 
 # --- Themes pour l'animation ---
@@ -891,6 +968,7 @@ async def generate_animation(request: AnimationRequest):
 
 # Stockage temporaire des tâches en cours (en production, utiliser Redis/DB)
 task_storage = {}
+comic_task_storage = {}
 
 async def generate_real_animation_task(task_id: str, theme: str, duration: int):
     """
@@ -927,6 +1005,56 @@ async def generate_real_animation_task(task_id: str, theme: str, duration: int):
         print(f"❌ Erreur génération {task_id}: {e}")
         task_storage[task_id]["status"] = "failed" 
         task_storage[task_id]["error"] = str(e)
+
+async def generate_comic_task(task_id: str, theme: str, art_style: str, num_pages: int, custom_prompt: str, character_photo_path: str):
+    """
+    Tâche en arrière-plan pour la génération de BD
+    """
+    try:
+        print(f"🚀 Démarrage génération BD pour {task_id}")
+        
+        # Mettre à jour le statut
+        comic_task_storage[task_id]["status"] = "generating"
+        
+        # Obtenir le générateur
+        generator = get_comics_generator()
+        
+        # Générer la BD complète
+        result = await generator.create_complete_comic(
+            theme=theme,
+            num_pages=num_pages,
+            art_style=art_style,
+            custom_prompt=custom_prompt,
+            character_photo_path=character_photo_path
+        )
+        
+        # Stocker le résultat
+        if result.get("success"):
+            comic_task_storage[task_id]["result"] = {
+                "status": "success",
+                "comic_id": result["comic_id"],
+                "title": result["title"],
+                "synopsis": result["synopsis"],
+                "pages": result["pages"],
+                "total_pages": result["total_pages"],
+                "theme": result["theme"],
+                "art_style": result["art_style"],
+                "generation_time": result["generation_time"]
+            }
+            comic_task_storage[task_id]["status"] = "completed"
+            print(f"✅ BD {task_id} générée avec succès!")
+        else:
+            error_msg = result.get("error", "Erreur inconnue")
+            comic_task_storage[task_id]["status"] = "failed"
+            comic_task_storage[task_id]["error"] = error_msg
+            print(f"❌ Échec BD {task_id}: {error_msg}")
+        
+    except Exception as e:
+        print(f"❌ Erreur génération BD {task_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        comic_task_storage[task_id]["status"] = "failed" 
+        comic_task_storage[task_id]["error"] = str(e)
 
 @app.get("/status/{task_id}")
 async def get_animation_status(task_id: str):
