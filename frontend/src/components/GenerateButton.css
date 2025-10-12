@@ -7,7 +7,7 @@
 }
 
 .generate-button {
-  background: linear-gradient(45deg, var(--primary), #f0ebff);
+  background: linear-gradient(135deg, #6B4EFF 0%, #8B5CF6 100%);
   color: white;
   border: none;
   border-radius: 50px;
@@ -18,7 +18,7 @@
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  box-shadow: 0 8px 20px rgba(245, 240, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(107, 78, 255, 0.3);
   transition: all 0.3s ease;
   width: 100%;
   justify-content: center;
@@ -43,13 +43,15 @@
 }
 
 .generate-button:hover:not(:disabled) {
-  box-shadow: 0 12px 25px rgba(245, 240, 255, 0.4);
+  box-shadow: 0 12px 25px rgba(107, 78, 255, 0.4);
+  transform: translateY(-2px);
 }
 
 .generate-button:disabled {
-  background: linear-gradient(45deg, #e5e0f5, #f0ebff);
+  background: linear-gradient(135deg, #9B7AFF 0%, #A67CFF 100%);
   cursor: not-allowed;
   box-shadow: none;
+  opacity: 0.7;
 }
 
 .button-icon {
