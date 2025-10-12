@@ -60,7 +60,7 @@ const ComicsSelector = ({
   return (
     <div className="comics-selector">
       <div className="selector-section">
-        <h3>1. Choisissez un thème pour votre bande dessinée</h3>
+        <h3>2. Choisissez un thème pour votre bande dessinée</h3>
         <div className="theme-grid">
           {themes.map(theme => (
             <div
@@ -91,7 +91,7 @@ const ComicsSelector = ({
       </div>
 
       <div className="selector-section">
-        <h3>2. Choisissez un style de dessin</h3>
+        <h3>3. Choisissez un style de dessin</h3>
         <div className="style-grid">
           {styles.map(style => (
             <div
