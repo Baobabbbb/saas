@@ -67,7 +67,7 @@ const ComicsSelector = ({
               className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''} ${
                 theme.id === 'custom' ? 'custom-theme' : ''
               }`}
-              onClick={() => setSelectedTheme(theme.id)}
+              onClick={() => setSelectedTheme(selectedTheme === theme.id ? null : theme.id)}
             >
               <div className="theme-icon">{theme.icon}</div>
               <div className="theme-name">{theme.name}</div>
@@ -96,7 +96,7 @@ const ComicsSelector = ({
             <div
               key={style.id}
               className={`style-card ${selectedStyle === style.id ? 'selected' : ''}`}
-              onClick={() => setSelectedStyle(style.id)}
+              onClick={() => setSelectedStyle(selectedStyle === style.id ? null : style.id)}
             >
               <div className="style-icon">{style.icon}</div>
               <div className="style-name">{style.name}</div>
@@ -113,7 +113,7 @@ const ComicsSelector = ({
             <button
               key={num}
               className={`page-btn ${numPages === num ? 'selected' : ''}`}
-              onClick={() => setNumPages(num)}
+              onClick={() => setNumPages(numPages === num ? null : num)}
             >
               {num} {num === 1 ? 'page' : 'pages'}
               <span className="cases-info">({num * 4} cases)</span>
