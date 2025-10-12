@@ -158,7 +158,7 @@ const ComicsSelector = ({
       </div>
 
       <div className="selector-section">
-        <h3>4. Personnage principal (optionnel)</h3>
+        <h3>5. Personnage principal (optionnel)</h3>
         <div className="character-upload-section">
           <p className="character-description">
             Uploadez une photo pour créer un personnage ressemblant ! L'IA analysera la photo et créera un personnage de BD similaire.
