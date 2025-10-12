@@ -17,7 +17,7 @@
 
 .selector-section h3 {
   font-size: 1.4rem;
-  color: var(--text);
+  color: var(--primary);
   margin-bottom: 20px;
   font-weight: 700;
 }
