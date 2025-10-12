@@ -57,8 +57,7 @@
 }
 
 .theme-card.custom-theme.selected {
-  border: 2px solid var(--primary);
-  border-style: solid;
+  border-color: var(--primary);
 }
 
 /* Classes spécifiques pour différencier la section BD des autres */
