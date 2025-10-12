@@ -450,7 +450,8 @@ STYLE REQUIREMENTS:
 - Clear, bold black panel borders with generous spacing between panels
 - Each panel should be significantly smaller to leave plenty of white space around them
 - Professional comic book page layout with wide gutters (white space between panels)
-- Include ALL speech bubbles with the EXACT text shown above
+- CRITICAL: Include ALL speech bubbles with the EXACT text shown above - DO NOT MODIFY, CHANGE, or CORRECT the text in the speech bubbles under any circumstances
+- The text in speech bubbles must be COPIED VERBATIM from what is provided - no grammar fixes, no spelling corrections, no rephrasing
 - Consistent character designs across all 4 panels
 - High quality, professional comic book art
 - Vibrant colors and clear composition
