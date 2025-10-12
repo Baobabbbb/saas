@@ -250,11 +250,8 @@
 }
 
 .upload-label:hover {
-  background: linear-gradient(135deg, #6B4EFF 0%, #8B5CF6 100%);
-  border-color: #6B4EFF;
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
+  border-color: rgba(107, 78, 255, 0.5);
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.15);
 }
 
 .upload-prompt {
