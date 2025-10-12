@@ -37,7 +37,7 @@
   padding: 20px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  /* transition: all 0.2s ease; /* Désactivé pour Framer Motion */
   position: relative;
 }
 
@@ -138,7 +138,7 @@
   padding: 20px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  /* transition: all 0.2s ease; /* Désactivé pour Framer Motion */
 }
 
 .style-card:hover {
@@ -189,7 +189,7 @@
   font-weight: 700;
   color: var(--primary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  /* transition: all 0.2s ease; /* Désactivé pour Framer Motion */
   display: flex;
   flex-direction: column;
   align-items: center;

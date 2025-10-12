@@ -82,17 +82,20 @@ const ComicsSelector = ({
         <h3>2. Choisissez un thème pour votre bande dessinée</h3>
         <div className="theme-grid">
           {themes.map(theme => (
-            <div
+            <motion.div
               key={theme.id}
               className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''} ${
                 theme.id === 'custom' ? 'custom-theme' : ''
               }`}
               onClick={() => setSelectedTheme(selectedTheme === theme.id ? null : theme.id)}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2 }}
             >
               <div className="theme-icon">{theme.icon}</div>
               <div className="theme-name">{theme.name}</div>
               <div className="theme-description">{theme.description}</div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
@@ -113,15 +116,18 @@ const ComicsSelector = ({
         <h3>3. Choisissez un style de dessin</h3>
         <div className="style-grid">
           {styles.map(style => (
-            <div
+            <motion.div
               key={style.id}
               className={`style-card ${displaySelectedStyle === style.id ? 'selected' : ''}`}
               onClick={() => setSelectedStyle(displaySelectedStyle === style.id ? null : style.id)}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2 }}
             >
               <div className="style-icon">{style.icon}</div>
               <div className="style-name">{style.name}</div>
               <div className="style-description">{style.description}</div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -130,14 +136,17 @@ const ComicsSelector = ({
         <h3>3. Nombre de pages</h3>
         <div className="pages-selector">
           {pageOptions.map(num => (
-            <button
+            <motion.button
               key={num}
               className={`page-btn ${displayNumPages === num ? 'selected' : ''}`}
               onClick={() => setNumPages(displayNumPages === num ? null : num)}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2 }}
             >
               {num} {num === 1 ? 'page' : 'pages'}
               <span className="cases-info">({num * 4} cases)</span>
-            </button>
+            </motion.button>
           ))}
         </div>
         {displayNumPages > 1 && (
