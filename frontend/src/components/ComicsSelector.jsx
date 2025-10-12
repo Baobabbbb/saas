@@ -18,6 +18,7 @@ const ComicsSelector = ({
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   // État local pour forcer la remise à zéro au montage du composant
+  const [localSelectedTheme, setLocalSelectedTheme] = useState(null);
   const [localSelectedStyle, setLocalSelectedStyle] = useState(null);
   const [localNumPages, setLocalNumPages] = useState(null);
 
@@ -28,11 +29,13 @@ const ComicsSelector = ({
       setSelectedStyle(null);
       setNumPages(null);
     }
+    setLocalSelectedTheme(selectedTheme);
     setLocalSelectedStyle(selectedStyle);
     setLocalNumPages(numPages);
-  }, [selectedStyle, numPages, setSelectedStyle, setNumPages]);
+  }, [selectedTheme, selectedStyle, numPages, setSelectedStyle, setNumPages]);
 
   // Utiliser les valeurs locales pour l'affichage
+  const displaySelectedTheme = localSelectedTheme;
   const displaySelectedStyle = localSelectedStyle;
   const displayNumPages = localNumPages;
 
@@ -85,10 +88,10 @@ const ComicsSelector = ({
           {themes.map(theme => (
             <motion.div
               key={theme.id}
-              className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''} ${
+              className={`theme-card ${displaySelectedTheme === theme.id ? 'selected' : ''} ${
                 theme.id === 'custom' ? 'custom-theme' : ''
               }`}
-              onClick={() => setSelectedTheme(selectedTheme === theme.id ? null : theme.id)}
+              onClick={() => setSelectedTheme(displaySelectedTheme === theme.id ? null : theme.id)}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
@@ -100,7 +103,7 @@ const ComicsSelector = ({
           ))}
         </div>
 
-        {selectedTheme === 'custom' && (
+        {displaySelectedTheme === 'custom' && (
           <div className="custom-input-container">
             <textarea
               className="custom-story-input"
