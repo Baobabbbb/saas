@@ -197,6 +197,3 @@ const ComicsSelector = ({
 };
 
 export default ComicsSelector;
-
-// FORCE REBUILD 10/12/2025 21:27:50
-console.log("🚀 NOUVELLE VERSION DEPLOYEE - ComicsSelector fonctionne maintenant");
