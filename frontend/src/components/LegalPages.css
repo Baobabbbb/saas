@@ -101,7 +101,7 @@
 }
 
 .nav-item.active {
-  background: var(--primary);
+  background: #6B4EFF;
   color: white;
   font-weight: 600;
 }
@@ -257,7 +257,7 @@
 }
 
 .contact-submit-btn {
-  background: linear-gradient(135deg, var(--primary, #f5f0ff) 0%, #8B5CF6 100%);
+  background: linear-gradient(135deg, #6B4EFF 0%, #8B5CF6 100%);
   color: white;
   border: none;
   padding: 0.875rem 2rem;
