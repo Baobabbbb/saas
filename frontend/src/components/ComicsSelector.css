@@ -394,6 +394,42 @@
   transform: translateY(-1px);
 }
 
+/* Styles pour les slots de thème (avec encart personnalisé) */
+.theme-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Styles pour l'encart personnalisé */
+.custom-theme-input.inline-input {
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.custom-theme-input .custom-story-input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border: 2px solid #e1e5f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: 'Nunito', sans-serif;
+  transition: border-color 0.3s ease;
+  background: white;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.custom-theme-input .custom-story-input:focus {
+  outline: none;
+  border-color: #6b4eff;
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+}
+
+.custom-theme-input .custom-story-input::placeholder {
+  color: #999;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {

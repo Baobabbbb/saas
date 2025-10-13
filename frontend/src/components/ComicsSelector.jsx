@@ -19,7 +19,7 @@ const ComicsSelector = ({
 
   // Thèmes disponibles
   const themes = [
-    { id: 'custom', name: 'Personnalisé', icon: '✨', description: 'Votre propre histoire' },
+    { id: 'custom', name: 'Personnalisé', icon: '✏️', description: 'Votre propre histoire' },
     { id: 'espace', name: 'Espace', icon: '🚀', description: 'Aventures spatiales' },
     { id: 'pirates', name: 'Pirates', icon: '🏴‍☠️', description: 'Trésors et mers' },
     { id: 'princesses', name: 'Princesses', icon: '👸', description: 'Châteaux magiques' },
@@ -64,34 +64,41 @@ const ComicsSelector = ({
         <h3>2. Choisissez un thème pour votre bande dessinée</h3>
         <div className="theme-grid">
           {themes.map(theme => (
-            <motion.div
-              key={theme.id}
-              className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''} ${
-                theme.id === 'custom' ? 'custom-theme' : ''
-              }`}
-              onClick={() => setSelectedTheme(selectedTheme === theme.id ? null : theme.id)}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.2 }}
-            >
-              <div className="theme-icon">{theme.icon}</div>
-              <div className="theme-name">{theme.name}</div>
-              <div className="theme-description">{theme.description}</div>
-            </motion.div>
+            <div key={theme.id} className="theme-slot">
+              <motion.div
+                className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''} ${
+                  theme.id === 'custom' ? 'custom-theme' : ''
+                }`}
+                onClick={() => setSelectedTheme(selectedTheme === theme.id ? null : theme.id)}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="theme-icon">{theme.icon}</div>
+                <div className="theme-name">{theme.name}</div>
+                <div className="theme-description">{theme.description}</div>
+              </motion.div>
+
+              {/* Encart personnalisé juste en dessous du bouton Personnalisé */}
+              {theme.id === 'custom' && selectedTheme === 'custom' && (
+                <motion.div
+                  className="custom-theme-input inline-input"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <textarea
+                    className="custom-story-input"
+                    placeholder="Décrivez votre histoire personnalisée... (ex: Une petite fille qui découvre un monde magique dans son jardin)"
+                    value={customStory}
+                    onChange={(e) => setCustomStory(e.target.value)}
+                    rows={3}
+                  />
+                </motion.div>
+              )}
+            </div>
           ))}
         </div>
-
-          {selectedTheme === 'custom' && (
-          <div className="custom-input-container">
-            <textarea
-              className="custom-story-input"
-              placeholder="Décrivez votre histoire personnalisée... (ex: Une petite fille qui découvre un monde magique dans son jardin)"
-              value={customStory}
-              onChange={(e) => setCustomStory(e.target.value)}
-              rows={3}
-            />
-          </div>
-        )}
       </div>
 
       <div className="selector-section">
