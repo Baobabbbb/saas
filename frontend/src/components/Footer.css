@@ -12,13 +12,13 @@
 }
 
 .ai-notice {
-  margin: 1rem 0 0.5rem 0;
+  margin: 0.5rem 0 0.5rem 0;
 }
 
 .ai-notice p {
   margin: 0;
   font-size: 0.75rem;
-  color: #888;
+  color: #bbb;
   font-style: italic;
 }
 
@@ -69,7 +69,7 @@
   }
 
   .ai-notice {
-    margin: 0.8rem 0 0.3rem 0;
+    margin: 0.3rem 0 0.3rem 0;
   }
 
   .ai-notice p {
