@@ -11,6 +11,17 @@
   text-align: center;
 }
 
+.ai-notice {
+  margin: 1rem 0 0.5rem 0;
+}
+
+.ai-notice p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #888;
+  font-style: italic;
+}
+
 .footer-links {
   display: flex;
   justify-content: center;
@@ -56,21 +67,29 @@
     margin-top: 2rem;
     padding: 1rem 0 0 0;
   }
-  
+
+  .ai-notice {
+    margin: 0.8rem 0 0.3rem 0;
+  }
+
+  .ai-notice p {
+    font-size: 0.7rem;
+  }
+
   .footer-links {
     gap: 0.2rem;
     margin-bottom: 0.5rem;
   }
-  
+
   .footer-link {
     font-size: 0.7rem;
     padding: 0.15rem 0.3rem;
   }
-  
+
   .footer-info p {
     font-size: 0.65rem;
   }
-  
+
   .separator {
     display: none;
   }
