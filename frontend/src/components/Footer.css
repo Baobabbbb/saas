@@ -1,6 +1,6 @@
 .app-footer {
   margin-top: 4rem;
-  padding: 1.5rem 0 0 0;
+  padding: 1.1rem 0 0 0;
   border-top: 1px solid rgba(224, 224, 224, 0.4);
   background: transparent;
 }
@@ -65,7 +65,7 @@
 @media (max-width: 768px) {
   .app-footer {
     margin-top: 2rem;
-    padding: 1rem 0 0 0;
+    padding: 0.7rem 0 0 0;
   }
 
   .ai-notice {
