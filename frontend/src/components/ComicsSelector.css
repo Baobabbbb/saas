@@ -215,10 +215,22 @@
 
 /* Section personnage */
 .character-upload-section {
-  background: linear-gradient(135deg, rgba(245, 240, 255, 0.02) 0%, rgba(245, 240, 255, 0.05) 100%);
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid rgba(245, 240, 255, 0.08);
+  background: linear-gradient(135deg, rgba(245, 240, 255, 0.08) 0%, rgba(245, 240, 255, 0.12) 100%);
+  padding: 24px;
+  border-radius: 16px;
+  border: 2px solid rgba(245, 240, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(245, 240, 255, 0.1);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.character-upload-section::before {
+  content: "⭐";
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 1.2rem;
+  opacity: 0.6;
 }
 
 .character-description {
@@ -411,6 +423,17 @@
   .photo-preview img {
     max-width: 150px;
     max-height: 150px;
+  }
+
+  .character-upload-section {
+    padding: 20px;
+    border-radius: 14px;
+  }
+
+  .character-upload-section::before {
+    font-size: 1rem;
+    top: 10px;
+    right: 14px;
   }
 }
 
