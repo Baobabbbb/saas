@@ -174,12 +174,20 @@ const ComicsSelector = ({
           {characterPhoto && (
             <div className="photo-preview">
               <img src={characterPhoto.url} alt="Personnage uploadé" />
-              <button
-                className="remove-photo-btn"
-                onClick={() => setCharacterPhoto(null)}
-              >
-                ✕ Retirer
-              </button>
+              <div className="photo-actions">
+                <button
+                  className="change-photo-btn"
+                  onClick={() => document.getElementById('character-photo-upload').click()}
+                >
+                  📷 Changer
+                </button>
+                <button
+                  className="remove-photo-btn"
+                  onClick={() => setCharacterPhoto(null)}
+                >
+                  ✕ Retirer
+                </button>
+              </div>
             </div>
           )}
         </div>
