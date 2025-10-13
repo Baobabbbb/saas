@@ -140,30 +140,32 @@ const ComicsSelector = ({
             Uploadez une photo pour créer un personnage ressemblant ! L'IA analysera la photo et créera un personnage de BD similaire.
           </p>
           
-          <div className="upload-area">
-            <input
-              type="file"
-              id="character-photo-upload"
-              accept="image/*"
-              onChange={handleFileUpload}
-              className="file-input"
-              disabled={uploadingPhoto}
-            />
-            <label htmlFor="character-photo-upload" className="upload-label">
-              {uploadingPhoto ? (
-                <div className="uploading-state">
-                  <div className="spinner"></div>
-                  <span>Upload en cours...</span>
-                </div>
-              ) : (
-                <div className="upload-prompt">
-                  <span className="upload-icon">📸</span>
-                  <span>Cliquez pour uploader une photo</span>
-                  <span className="upload-hint">PNG, JPG, WEBP jusqu'à 10MB</span>
-                </div>
-              )}
-            </label>
-          </div>
+          {!characterPhoto && (
+            <div className="upload-area">
+              <input
+                type="file"
+                id="character-photo-upload"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="file-input"
+                disabled={uploadingPhoto}
+              />
+              <label htmlFor="character-photo-upload" className="upload-label">
+                {uploadingPhoto ? (
+                  <div className="uploading-state">
+                    <div className="spinner"></div>
+                    <span>Upload en cours...</span>
+                  </div>
+                ) : (
+                  <div className="upload-prompt">
+                    <span className="upload-icon">📸</span>
+                    <span>Cliquez pour uploader une photo</span>
+                    <span className="upload-hint">PNG, JPG, WEBP jusqu'à 10MB</span>
+                  </div>
+                )}
+              </label>
+            </div>
+          )}
 
           {characterPhoto && (
             <div className="photo-preview">
