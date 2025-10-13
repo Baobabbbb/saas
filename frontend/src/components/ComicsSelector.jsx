@@ -140,16 +140,16 @@ const ComicsSelector = ({
             Uploadez une photo pour créer un personnage ressemblant ! L'IA analysera la photo et créera un personnage de BD similaire.
           </p>
           
-          {!characterPhoto && (
-            <div className="upload-area">
-              <input
-                type="file"
-                id="character-photo-upload"
-                accept="image/*"
-                onChange={handleFileUpload}
-                className="file-input"
-                disabled={uploadingPhoto}
-              />
+          <div className="upload-area">
+            <input
+              type="file"
+              id="character-photo-upload"
+              accept="image/*"
+              onChange={handleFileUpload}
+              className="file-input"
+              disabled={uploadingPhoto}
+            />
+            {!characterPhoto && (
               <label htmlFor="character-photo-upload" className="upload-label">
                 {uploadingPhoto ? (
                   <div className="uploading-state">
@@ -164,8 +164,8 @@ const ComicsSelector = ({
                   </div>
                 )}
               </label>
-            </div>
-          )}
+            )}
+          </div>
 
           {characterPhoto && (
             <div className="photo-preview">
