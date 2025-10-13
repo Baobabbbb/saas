@@ -401,13 +401,13 @@
   gap: 0;
 }
 
-/* Styles pour l'encart personnalisé */
-.custom-theme-input.inline-input {
+/* Styles pour l'encart personnalisé - même style que Coloriage */
+.custom-theme-input {
   margin-top: 1rem;
   overflow: hidden;
 }
 
-.custom-theme-input .custom-story-input {
+.custom-input {
   width: 100%;
   padding: 1rem 1.5rem;
   border: 2px solid #e1e5f0;
@@ -420,13 +420,13 @@
   min-height: 80px;
 }
 
-.custom-theme-input .custom-story-input:focus {
+.custom-input:focus {
   outline: none;
   border-color: #6b4eff;
   box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
 }
 
-.custom-theme-input .custom-story-input::placeholder {
+.custom-input::placeholder {
   color: #999;
 }
 

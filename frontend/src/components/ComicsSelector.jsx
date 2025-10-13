@@ -82,13 +82,13 @@ const ComicsSelector = ({
               {/* Encart personnalisé juste en dessous du bouton Personnalisé */}
               {theme.id === 'custom' && selectedTheme === 'custom' && (
                 <motion.div
-                  className="custom-theme-input inline-input"
+                  className="custom-theme-input"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   transition={{ duration: 0.3 }}
                 >
                   <textarea
-                    className="custom-story-input"
+                    className="custom-input"
                     placeholder="Décrivez votre histoire personnalisée... (ex: Une petite fille qui découvre un monde magique dans son jardin)"
                     value={customStory}
                     onChange={(e) => setCustomStory(e.target.value)}
