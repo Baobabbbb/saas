@@ -131,11 +131,6 @@ const ComicsSelector = ({
             </motion.button>
           ))}
         </div>
-          {numPages > 1 && (
-            <div className="time-warning">
-              ⏱️ <strong>Note :</strong> La génération de {numPages} pages prendra environ {Math.ceil(numPages * 1.2)} à {Math.ceil(numPages * 1.5)} minutes. Soyez patient !
-            </div>
-          )}
       </div>
 
       <div className="selector-section">
