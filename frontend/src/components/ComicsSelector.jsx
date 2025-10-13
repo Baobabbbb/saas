@@ -155,12 +155,6 @@ const ComicsSelector = ({
                   <div className="spinner"></div>
                   <span>Upload en cours...</span>
                 </div>
-              ) : characterPhoto ? (
-                <div className="uploaded-state">
-                  <span className="check-icon">✅</span>
-                  <span>Photo uploadée !</span>
-                  <span className="change-link">Changer</span>
-                </div>
               ) : (
                 <div className="upload-prompt">
                   <span className="upload-icon">📸</span>
