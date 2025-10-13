@@ -215,11 +215,11 @@
 
 /* Section personnage */
 .character-upload-section {
-  background: linear-gradient(135deg, rgba(245, 240, 255, 0.08) 0%, rgba(245, 240, 255, 0.12) 100%);
-  padding: 24px;
-  border-radius: 16px;
-  border: 2px solid rgba(245, 240, 255, 0.2);
-  box-shadow: 0 4px 16px rgba(245, 240, 255, 0.1);
+  background: linear-gradient(135deg, rgba(245, 240, 255, 0.15) 0%, rgba(245, 240, 255, 0.25) 100%);
+  padding: 28px;
+  border-radius: 20px;
+  border: 3px solid rgba(107, 78, 255, 0.3);
+  box-shadow: 0 6px 20px rgba(107, 78, 255, 0.15);
   position: relative;
   transition: all 0.3s ease;
 }
@@ -417,8 +417,8 @@
   }
 
   .character-upload-section {
-    padding: 20px;
-    border-radius: 14px;
+    padding: 24px;
+    border-radius: 16px;
   }
 
   .character-upload-section::before {
