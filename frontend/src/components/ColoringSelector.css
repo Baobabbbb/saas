@@ -108,7 +108,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: 2px solid transparent;
-  height: 140px; /* Hauteur fixe pour uniformité */
+  height: 180px; /* Hauteur augmentée pour plus de présence */
 }
 
 .theme-option:hover {
