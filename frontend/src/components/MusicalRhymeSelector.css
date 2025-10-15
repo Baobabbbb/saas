@@ -49,6 +49,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: 2px solid transparent;
+  height: 220px; /* Même hauteur que dans Coloriage pour uniformité */
 }
 
 .rhyme-card:hover {
