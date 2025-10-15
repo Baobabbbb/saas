@@ -1,6 +1,6 @@
 /* Musical Rhyme Selector Styles */
 .musical-rhyme-selector {
-  --primary: #f5f0ff;
+  --primary: #6B4EFF;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -252,7 +252,7 @@
 .music-style-card h4 {
   font-size: 1rem;
   margin: 0;
-  color: #f5f0ff;
+  color: #6B4EFF;
   font-weight: bold;
 }
 
