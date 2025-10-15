@@ -72,6 +72,13 @@ const rhymeTypes = [
     description: 'Comprendre et exprimer sentiments',
     emoji: '😊',
     musicStyle: 'expressive and gentle'
+  },
+  {
+    id: 'shapes',
+    title: 'Comptine des formes',
+    description: 'Apprendre les formes géométriques',
+    emoji: '🔺',
+    musicStyle: 'playful educational'
   }
 ];
 
