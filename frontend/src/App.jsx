@@ -153,6 +153,9 @@ function App() {
   const [selectedDuration, setSelectedDuration] = useState(null);
   const [selectedStyle, setSelectedStyle] = useState(null);
   const [customStory, setCustomStory] = useState('');
+
+  // Histoire states
+  const [selectedStory, setSelectedStory] = useState(null);
   const [animationResult, setAnimationResult] = useState(null);
   const [showAnimationViewer, setShowAnimationViewer] = useState(false);
   // Nouveau: mode de génération (demo ou production)
@@ -346,6 +349,7 @@ function App() {
     setSelectedDuration(null);
     setSelectedStyle(null);
     setCustomStory('');
+    setSelectedStory(null);
     setGeneratedResult(null);
     setColoringResult(null);
     setAnimationResult(null);
@@ -431,6 +435,44 @@ function App() {
         body: JSON.stringify(payload)
       });
       
+      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+      generatedContent = await response.json();
+    } else if (contentType === 'histoire') {
+      // Déterminer le contenu de l'histoire
+      let storyContent;
+      if (selectedStory && selectedStory !== 'custom') {
+        // Thème prédéfini - créer une histoire de base
+        const storyThemes = {
+          'space': 'Une aventure spatiale extraordinaire où un enfant explore les planètes lointaines et rencontre des aliens amicaux.',
+          'ocean': 'Une exploration sous-marine magique avec des créatures marines colorées et des trésors cachés au fond de l\'océan.',
+          'dinosaur': 'Un voyage dans le temps à l\'époque des dinosaures où un enfant devient ami avec un dinosaure gentil et découvre un monde préhistorique.',
+          'fairy': 'Un conte de fées enchanteur avec des fées bienveillantes, des châteaux magiques et des aventures pleines de poussière de fée.',
+          'superhero': 'Une histoire de super-héros où un enfant découvre ses pouvoirs extraordinaires et sauve la ville avec courage et bonté.',
+          'jungle': 'Une aventure dans la jungle tropicale remplie d\'animaux exotiques, de plantes mystérieuses et de découvertes passionnantes.'
+        };
+        storyContent = storyThemes[selectedStory] || `Une belle histoire sur le thème ${selectedStory}`;
+      } else {
+        // Histoire personnalisée
+        storyContent = customStory;
+      }
+
+      // Validation de l'histoire avant envoi
+      if (!storyContent || storyContent.trim().length < 10) {
+        throw new Error("L'histoire doit contenir au moins 10 caractères");
+      }
+
+      const payload = {
+        story_type: selectedStory === 'custom' ? 'custom' : selectedStory,
+        content: storyContent,
+        custom_request: customRequest
+      };
+
+      const response = await fetch(`${API_BASE_URL}/generate_story/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
     } else if (contentType === 'coloring') {
@@ -664,6 +706,9 @@ function App() {
     } else if (contentType === 'animation') {
       // Utiliser le titre généré par l'IA depuis l'API animation
       title = generatedContent?.title || generateChildFriendlyTitle('animation', selectedAnimationTheme || 'aventure');
+    } else if (contentType === 'histoire') {
+      // Utiliser le titre généré par l'IA depuis l'API histoire
+      title = generatedContent?.title || generateChildFriendlyTitle('histoire', selectedStory === 'custom' ? 'default' : selectedStory);
     }
 
     // Stocker le titre pour l'utiliser dans l'UI
@@ -706,6 +751,16 @@ function App() {
           theme: selectedAnimationTheme,
           clips: generatedContent?.clips || [],
           animation_data: generatedContent || {}
+        };
+      } else if (contentType === 'histoire') {
+        // Pour les histoires, utiliser les données de l'histoire
+        newCreation = {
+          id: Date.now().toString(),
+          type: contentType,
+          title: title,
+          createdAt: new Date().toISOString(),
+          content: generatedContent?.content || generatedContent || 'Histoire générée...',
+          story_type: selectedStory === 'custom' ? 'custom' : selectedStory
         };
       } else {
         // Pour les autres types (rhyme, audio)
@@ -803,6 +858,12 @@ const handleSelectCreation = (creation) => {
       if (selectedAnimationTheme === 'custom' && !customStory.trim()) return false;
       // Vérifier que l'histoire personnalisée fait au moins 10 caractères
       if (selectedAnimationTheme === 'custom' && customStory.trim().length < 10) return false;
+    } else if (contentType === 'histoire') {
+      // Pour les histoires, soit un thème soit une histoire personnalisée
+      if (!selectedStory) return false;
+      if (selectedStory === 'custom' && !customStory.trim()) return false;
+      // Vérifier que l'histoire personnalisée fait au moins 10 caractères
+      if (selectedStory === 'custom' && customStory.trim().length < 10) return false;
     }
     return true;
   };
@@ -1099,6 +1160,22 @@ const downloadPDF = async (title, content) => {
                   setGenerationMode={setGenerationMode}
                 />
               </motion.div>
+            ) : contentType === 'histoire' ? (
+              <motion.div
+                key="story-selector"
+                variants={contentVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.3 }}
+              >
+                <StorySelector
+                  selectedStory={selectedStory}
+                  setSelectedStory={setSelectedStory}
+                  customStory={customStory}
+                  setCustomStory={setCustomStory}
+                />
+              </motion.div>
             ) : null}
           </AnimatePresence>          <CustomRequest
             customRequest={customRequest}
@@ -1135,10 +1212,12 @@ const downloadPDF = async (title, content) => {
         <div className="dot"></div>
         <div className="dot"></div>
         <div className="dot"></div>
-      </div>      <p>        {contentType === 'rhyme'
+      </div>      <p>        {        contentType === 'rhyme'
           ? 'Votre comptine est en cours de création...'
           : contentType === 'audio'
           ? 'Création de l\'histoire en cours...'
+          : contentType === 'histoire'
+          ? 'Création de votre histoire en cours...'
           : contentType === 'coloring'
           ? 'Création de vos coloriages en cours...'
           : contentType === 'comic'
@@ -1358,9 +1437,11 @@ const downloadPDF = async (title, content) => {
     className="preview-logo"
   />*/}  {!generatedResult?.content && !coloringResult && (
     <div className="empty-preview">    <p>
-      {contentType === 'rhyme'
+      {        contentType === 'rhyme'
         ? 'Votre comptine apparaîtra ici'
         : contentType === 'audio'
+        ? 'Votre histoire apparaîtra ici'
+        : contentType === 'histoire'
         ? 'Votre histoire apparaîtra ici'
         : contentType === 'coloring'
         ? 'Votre coloriage apparaîtra ici'
