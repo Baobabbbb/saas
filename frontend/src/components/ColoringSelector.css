@@ -280,6 +280,9 @@
 
 .upload-icon {
   font-size: 2rem;
+  margin-bottom: 6px;
+  opacity: 1;
+  filter: drop-shadow(0 2px 4px rgba(107, 78, 255, .2));
 }
 
 .photo-preview-container {
