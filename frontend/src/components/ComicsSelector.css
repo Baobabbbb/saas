@@ -286,7 +286,7 @@
 }
 
 .upload-icon {
-  font-size: 3rem;
+  font-size: 2rem;
   margin-bottom: 6px;
   opacity: 1;
   filter: drop-shadow(0 2px 4px rgba(107, 78, 255, 0.2));
@@ -488,7 +488,7 @@
 
   .theme-icon,
   .upload-icon {
-    font-size: 2.5rem;
+    font-size: 2rem;
   }
 
   .photo-preview img {
@@ -515,7 +515,7 @@
   }
 
   .upload-icon {
-    font-size: 2.5rem;
+    font-size: 2rem;
   }
 
   .character-upload-section::before {
