@@ -48,7 +48,9 @@ const ColoringSelector = ({
     
     // Vie quotidienne
     { value: 'sports', label: 'Sports', icon: '⚽', description: 'Football, basketball, natation...' },
-    { value: 'fruits', label: 'Fruits & Légumes', icon: '🍎', description: 'Fruits rigolos, légumes souriants...' }
+    { value: 'fruits', label: 'Fruits & Légumes', icon: '🍎', description: 'Fruits rigolos, légumes souriants...' },
+    { value: 'professions', label: 'Métiers', icon: '👩‍⚕️', description: 'Médecins, pompiers, cuisiniers...' },
+    { value: 'emotions', label: 'Émotions', icon: '😄', description: 'Visages joyeux, tristes, surpris...' }
   ];
 
   const handleThemeSelect = (themeValue) => {
