@@ -257,25 +257,29 @@
 .upload-button {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  background: linear-gradient(135deg, #6B4EFF 0%, #8B5CF6 100%);
   color: white;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.9rem;
   border: none;
+  width: 100%;
+  justify-content: center;
+  max-width: 250px;
+  margin: 0 auto;
 }
 
 .upload-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 20px rgba(107, 78, 255, 0.4);
 }
 
 .upload-icon {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
 }
 
 .photo-preview-container {
