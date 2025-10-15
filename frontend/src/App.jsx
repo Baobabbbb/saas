@@ -789,8 +789,6 @@ const handleSelectCreation = (creation) => {
     } else if (contentType === 'coloring') {
       // Valide si thème sélectionné OU photo uploadée
       if (!selectedTheme && !uploadedPhoto) return false;
-      // Valide si modèle sélectionné (obligatoire)
-      if (withColoredModel === null) return false;
       // Si thème custom, vérifier le texte personnalisé
       if (selectedTheme === 'custom' && !customColoringTheme.trim()) return false;
     } else if (contentType === 'comic') {
