@@ -3,18 +3,18 @@ import { motion } from 'framer-motion';
 import './AudioStorySelector.css';
 
 const audioStories = [
-  { id: 'magic', title: 'Monde magique', description: 'Une histoire pleine de magie avec des fées et des sorciers bienveillants', emoji: '🧚‍♀️' },
-  { id: 'dinosaurs', title: 'Temps des dinosaures', description: 'Un voyage dans le passé à la rencontre de dinosaures gentils', emoji: '🦕' },
-  { id: 'space', title: 'Voyage spatial', description: 'Une aventure dans l\'espace avec des planètes et des aliens sympathiques', emoji: '🚀' },
-  { id: 'adventure', title: 'Aventure fantastique', description: 'Une aventure pleine de rebondissements et de magie', emoji: '✨' },
-  { id: 'animals', title: 'Amis animaux', description: 'Une histoire avec des animaux qui parlent et vivent des aventures', emoji: '🦊' },
-  { id: 'underwater', title: 'Monde sous-marin', description: 'Une exploration des océans avec des créatures marines extraordinaires', emoji: '🐠' },
-  { id: 'forest', title: 'Forêt enchantée', description: 'Une promenade dans une forêt mystérieuse pleine de surprises', emoji: '🌲' },
-  { id: 'funny', title: 'Histoire drôle', description: 'Un conte amusant qui fera rire votre enfant', emoji: '😄' },
-  { id: 'mystery', title: 'Petit mystère', description: 'Une énigme adaptée aux enfants à résoudre', emoji: '🔍' },
-  { id: 'friendship', title: 'Belle amitié', description: 'Une histoire touchante sur l\'amitié et l\'entraide', emoji: '👫' },
-  { id: 'learning', title: 'Conte éducatif', description: 'Une histoire qui enseigne une leçon importante', emoji: '📚' },
-  { id: 'bedtime', title: 'Histoire du soir', description: 'Un conte apaisant pour aider votre enfant à s\'endormir', emoji: '🌙' }
+  { id: 'magic', title: 'Monde magique', description: 'Fées, sorciers, créatures enchantées', emoji: '🧚‍♀️' },
+  { id: 'dinosaurs', title: 'Temps des dinosaures', description: 'Dinosaures gentils, voyages dans le temps', emoji: '🦕' },
+  { id: 'space', title: 'Voyage spatial', description: 'Planètes, fusées, aliens sympathiques', emoji: '🚀' },
+  { id: 'adventure', title: 'Aventure fantastique', description: 'Rebondissements, magie, découvertes', emoji: '✨' },
+  { id: 'animals', title: 'Amis animaux', description: 'Animaux qui parlent, aventures sauvages', emoji: '🦊' },
+  { id: 'underwater', title: 'Monde sous-marin', description: 'Océans, créatures marines, trésors', emoji: '🐠' },
+  { id: 'forest', title: 'Forêt enchantée', description: 'Forêt mystérieuse, surprises magiques', emoji: '🌲' },
+  { id: 'funny', title: 'Histoire drôle', description: 'Contes amusants, rires garantis', emoji: '😄' },
+  { id: 'mystery', title: 'Petit mystère', description: 'Énigmes pour enfants, investigations', emoji: '🔍' },
+  { id: 'friendship', title: 'Belle amitié', description: 'Histoire sur l\'amitié, entraide', emoji: '👫' },
+  { id: 'learning', title: 'Conte éducatif', description: 'Leçons importantes, apprentissage', emoji: '📚' },
+  { id: 'bedtime', title: 'Histoire du soir', description: 'Contes apaisants, sommeil doux', emoji: '🌙' }
 ];
 
 const voices = [
