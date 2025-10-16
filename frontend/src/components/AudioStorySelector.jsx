@@ -14,7 +14,9 @@ const audioStories = [
   { id: 'mystery', title: 'Petit mystère', description: 'Énigmes pour enfants, investigations', emoji: '🔍' },
   { id: 'friendship', title: 'Belle amitié', description: 'Histoire sur l\'amitié, entraide', emoji: '👫' },
   { id: 'learning', title: 'Conte éducatif', description: 'Leçons importantes, apprentissage', emoji: '📚' },
-  { id: 'bedtime', title: 'Histoire du soir', description: 'Contes apaisants, sommeil doux', emoji: '🌙' }
+  { id: 'bedtime', title: 'Histoire du soir', description: 'Contes apaisants, sommeil doux', emoji: '🌙' },
+  { id: 'robots', title: 'Robots amis', description: 'Robots gentils, inventions magiques', emoji: '🤖' },
+  { id: 'pirates', title: 'Pirates courageux', description: 'Bateaux pirates, trésors cachés', emoji: '🏴‍☠️' }
 ];
 
 const voices = [
