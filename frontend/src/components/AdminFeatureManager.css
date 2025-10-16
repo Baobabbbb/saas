@@ -34,7 +34,7 @@
 .feature-stat-number {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #f5f0ff;
+  color: #6B4EFF;
   line-height: 1;
 }
 
@@ -165,7 +165,7 @@
 }
 
 .feature-toggle input:checked + .toggle-slider {
-  background-color: #f5f0ff;
+  background-color: #6B4EFF;
 }
 
 .feature-toggle input:checked + .toggle-slider:before {
