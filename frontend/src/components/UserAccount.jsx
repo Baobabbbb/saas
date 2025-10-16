@@ -570,7 +570,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                   {isAdmin() && (
                     <button onClick={() => {
                       // Accès direct au panneau d'administration intégré avec auto-auth dans un nouvel onglet
-                      window.open('/admin?auth=auto', '_blank');
+                      window.open('/ilmysv6iepwepoa4tj2k?auth=auto', '_blank');
                     }}>
                       ⚙️ Administration
                     </button>

@@ -18,7 +18,7 @@ const AdminContent = () => {
       setAutoAuthGranted(true);
       
       // Retirer le paramètre auth de l'URL SANS redéclencher le useEffect
-      window.history.replaceState({}, '', '/admin');
+      window.history.replaceState({}, '', '/ilmysv6iepwepoa4tj2k');
     } 
     // Si pas d'auto-auth ET pas déjà accordé, nettoyer
     else if (!autoAuth && !autoAuthGranted) {
@@ -130,7 +130,7 @@ const AdminContent = () => {
               await signOut();
               // Nettoyer complètement la session
               localStorage.removeItem('herbbie_admin_session');
-              navigate('/admin');
+              navigate('/ilmysv6iepwepoa4tj2k');
             }}
             style={{ 
               color: 'white', 
