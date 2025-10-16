@@ -95,7 +95,6 @@ const AudioStorySelector = ({
                 animate={{ opacity: 1, height: 'auto' }}
                 transition={{ duration: 0.3 }}
               >
-                <label htmlFor="customAudioStory">Décrivez votre type d'histoire</label>
                 <motion.textarea
                   id="customAudioStory"
                   value={customAudioStory}
