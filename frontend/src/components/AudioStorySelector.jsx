@@ -22,10 +22,10 @@ const voices = [
   { id: 'male', name: 'Voix masculine' }
 ];
 
-const AudioStorySelector = ({ 
-  selectedAudioStory, 
-  setSelectedAudioStory, 
-  customAudioStory, 
+const AudioStorySelector = ({
+  selectedAudioStory,
+  setSelectedAudioStory,
+  customAudioStory,
   setCustomAudioStory,
   selectedVoice,
   setSelectedVoice
@@ -55,6 +55,12 @@ const AudioStorySelector = ({
     }
   };
 
+  // Liste combinée pour la grille avec slots
+  const allStories = [
+    { id: 'custom', title: 'Histoire personnalisée', description: 'Créez votre propre type d\'histoire unique', emoji: '✏️', isCustom: true },
+    ...audioStories
+  ];
+
   const handleCustomAudioStoryChange = (e) => {
     setCustomAudioStory(e.target.value);
   };
@@ -66,52 +72,44 @@ const AudioStorySelector = ({
   return (
     <div className="audio-story-selector">
       <h3>2. Choisissez un type d'histoire</h3>
-      
+
       <div className="audio-story-grid">
-        <motion.div
-          className={`audio-story-card custom-audio-story ${selectedAudioStory === 'custom' ? 'selected' : ''}`}
-          onClick={handleCustomSelect}
-          whileHover={{ y: -5 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <div className="audio-story-emoji">✏️</div>
-          <h4>Histoire personnalisée</h4>
-          <p>Créez votre propre type d'histoire unique</p>
-        </motion.div>
-        
-        {audioStories.map((story) => (
-          <motion.div
-            key={story.id}
-            className={`audio-story-card ${selectedAudioStory === story.id ? 'selected' : ''}`}
-            onClick={() => handleAudioStorySelect(story.id)}
-            whileHover={{ y: -5 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="audio-story-emoji">{story.emoji}</div>
-            <h4>{story.title}</h4>
-            <p>{story.description}</p>
-          </motion.div>
+        {allStories.map((story) => (
+          <div key={story.id} className="audio-story-slot">
+            <motion.div
+              className={`audio-story-card ${story.isCustom ? 'custom-audio-story' : ''} ${selectedAudioStory === story.id ? 'selected' : ''}`}
+              onClick={() => story.isCustom ? handleCustomSelect() : handleAudioStorySelect(story.id)}
+              whileHover={{ y: -5 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="audio-story-emoji">{story.emoji}</div>
+              <h4>{story.title}</h4>
+              <p>{story.description}</p>
+            </motion.div>
+
+            {/* Encart de personnalisation juste en dessous du bouton custom */}
+            {story.isCustom && showCustomInput && selectedAudioStory === 'custom' && (
+              <motion.div
+                className="custom-theme-input inline-input"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                transition={{ duration: 0.3 }}
+              >
+                <label htmlFor="customAudioStory">Décrivez votre type d'histoire</label>
+                <motion.textarea
+                  id="customAudioStory"
+                  value={customAudioStory}
+                  onChange={handleCustomAudioStoryChange}
+                  placeholder="Ex: Un conte qui se déroule dans un monde sous-marin avec des créatures magiques..."
+                  className="custom-input"
+                  whileFocus={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 10 }}
+                />
+              </motion.div>
+            )}
+          </div>
         ))}
       </div>
-      
-      {showCustomInput && (
-        <motion.div 
-          className="custom-audio-story-input"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          transition={{ duration: 0.3 }}
-        >
-          <label htmlFor="customAudioStory">Décrivez votre type d'histoire</label>
-          <motion.textarea
-            id="customAudioStory"
-            value={customAudioStory}
-            onChange={handleCustomAudioStoryChange}
-            placeholder="Ex: Un conte qui se déroule dans un monde sous-marin avec des créatures magiques..."
-            whileFocus={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 300, damping: 10 }}
-          />
-        </motion.div>
-      )}
 
       <div className="voice-selector-section">
         <h3>3. Choisissez une narration (optionnel)</h3>
