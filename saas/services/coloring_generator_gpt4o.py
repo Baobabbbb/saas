@@ -254,8 +254,8 @@ Subject: {subject}"""
                 print(f"[GENERATED] Image generee: {generated_width}x{generated_height} (ratio: {generated_ratio:.2f})")
                 print(f"[TARGET] Redimensionnement vers: {original_width}x{original_height} (ratio: {aspect_ratio:.2f})")
                 
-                # Déterminer la taille finale (au minimum 1792x1792 pour éviter les coupures)
-                min_size = 1792
+                # Déterminer la taille finale (au minimum 1536x1536 pour éviter les coupures)
+                min_size = 1536
                 if original_width < min_size or original_height < min_size:
                     # Si l'image originale est petite, utiliser une taille carrée plus grande
                     final_width = final_height = min_size
@@ -339,12 +339,12 @@ Subject: {subject}"""
             
             print(f"[PROMPT TEXT-TO-IMAGE] {final_prompt[:150]}...")
             
-            # Appeler gpt-image-1 avec qualité high et taille verticale plus grande
+            # Appeler gpt-image-1 avec qualité high et taille verticale disponible
             print(f"[API] Appel OpenAI images.generate...")
             response = await self.client.images.generate(
                 model="gpt-image-1",
                 prompt=final_prompt,
-                size="1024x1792",
+                size="1024x1536",
                 quality="high",
                 n=1
             )
@@ -362,8 +362,8 @@ Subject: {subject}"""
 
                 print(f"[ORIGINAL] Dimensions generees: {generated_img.size}")
 
-                # Redimensionner à un carré plus grand (1792x1792) pour éviter les coupures
-                target_size = (1792, 1792)
+                # Redimensionner à un carré plus grand (1536x1536) pour éviter les coupures
+                target_size = (1536, 1536)
                 resized_img = generated_img.resize(target_size, Image.Resampling.LANCZOS)
 
                 print(f"[RESIZED] Redimensionne vers carre: {target_size}")
@@ -371,7 +371,7 @@ Subject: {subject}"""
                 # Sauvegarder l'image redimensionnée
                 output_path = self.output_dir / f"coloring_theme_{uuid.uuid4().hex[:8]}.png"
                 resized_img.save(output_path, 'PNG', optimize=True)
-                print(f"[OK] Coloriage theme sauvegarde (1792x1792): {output_path.name}")
+                print(f"[OK] Coloriage theme sauvegarde (1536x1536): {output_path.name}")
 
                 return str(output_path)
             else:
