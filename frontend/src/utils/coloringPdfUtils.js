@@ -20,8 +20,20 @@ async function fetchImageInfo(url) {
   });
 }
 
-// Utilitaire pour un nom de fichier PDF safe
-function getSafeFilename(str) {
+// Utilitaire pour un nom de fichier safe et cohérent
+export function getSafeFilename(str, contentType = '') {
+  if (!str || str.trim() === '') {
+    // Noms par défaut selon le type de contenu
+    const defaults = {
+      'coloriage': 'coloriage',
+      'comic': 'bande_dessinee',
+      'comptine': 'comptine',
+      'histoire': 'histoire',
+      'animation': 'animation'
+    };
+    str = defaults[contentType] || 'creation';
+  }
+
   return String(str)
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // accents
     .replace(/[^a-z0-9]/gi, "_")

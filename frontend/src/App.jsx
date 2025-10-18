@@ -1389,7 +1389,8 @@ const downloadPDF = async (title, content) => {
                     const url = window.URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = `${currentTitle || 'Comptine'}.mp3`;
+                    const safeTitle = (currentTitle || 'Comptine').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                    link.download = `${safeTitle}.mp3`;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);

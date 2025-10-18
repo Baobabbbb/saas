@@ -9,7 +9,8 @@ const ColoringViewer = ({ coloringResult, onDownloadAll }) => {
   const handleDownloadImage = (imageUrl, index) => {
     const link = document.createElement('a');
     link.href = imageUrl;
-    link.download = `coloriage_${index + 1}.png`;
+    const baseName = (title || 'coloriage').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    link.download = `${baseName}_${index + 1}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

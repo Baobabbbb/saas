@@ -243,8 +243,12 @@ const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
     canvas.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = url;
-      link.download = `coloriage_colorie_${Date.now()}.png`;
+
+      // Générer un nom de fichier cohérent basé sur l'image source
+      const baseName = imageUrl.split('/').pop().split('.')[0] || 'coloriage';
+      const safeName = baseName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      link.download = `coloriage_${safeName}_colorie.png`;
+
       link.click();
       URL.revokeObjectURL(url);
     });

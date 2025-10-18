@@ -29,7 +29,8 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
     const imageUrl = `${baseUrl}${currentPageData.image_url}`;
     const link = document.createElement('a');
     link.href = imageUrl;
-    link.download = `${comic.title}_page_${currentPage + 1}.png`;
+    const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    link.download = `${safeTitle}_page_${currentPage + 1}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -41,7 +42,8 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
         const imageUrl = `${baseUrl}${page.image_url}`;
         const link = document.createElement('a');
         link.href = imageUrl;
-        link.download = `${comic.title}_page_${index + 1}.png`;
+        const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        link.download = `${safeTitle}_page_${index + 1}.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
