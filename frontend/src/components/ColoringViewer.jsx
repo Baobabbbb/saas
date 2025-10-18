@@ -1,7 +1,7 @@
 import React from 'react';
 import './ColoringViewer.css';
 
-const ColoringViewer = ({ coloringResult, onDownloadAll }) => {
+const ColoringViewer = ({ coloringResult, onDownloadAll, onOpenColoring, onColorizeNow }) => {
   if (!coloringResult || !coloringResult.images || coloringResult.images.length === 0) {
     return null;
   }
@@ -34,6 +34,29 @@ const ColoringViewer = ({ coloringResult, onDownloadAll }) => {
               </div>
               <div className="coloring-info">
                 <span>Coloriage {index + 1}</span>
+                <div className="coloring-item-actions">
+                  <button
+                    className="coloring-item-btn coloring-open-btn"
+                    onClick={() => onOpenColoring?.(imageUrl)}
+                    title="Ouvrir le coloriage"
+                  >
+                    👁️ Ouvrir
+                  </button>
+                  <button
+                    className="coloring-item-btn coloring-colorize-btn"
+                    onClick={() => onColorizeNow?.(imageUrl)}
+                    title="Colorier maintenant"
+                  >
+                    🎨 Colorier
+                  </button>
+                  <button
+                    className="coloring-item-btn coloring-download-btn"
+                    onClick={() => handleDownloadImage(imageUrl, index)}
+                    title="Télécharger le coloriage"
+                  >
+                    📥 Télécharger
+                  </button>
+                </div>
               </div>
             </div>
           );

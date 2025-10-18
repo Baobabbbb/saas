@@ -24,10 +24,14 @@ const ColoringPopup = ({ coloringResult, onClose, selectedTheme }) => {
     }
   };
   const handleDownloadPDF = () => {
-    if (coloringResult?.images) {
+    console.log('ColoringPopup handleDownloadPDF:', { coloringResult, selectedTheme });
+    if (coloringResult?.images && coloringResult.images.length > 0) {
       // Utiliser le même titre que la page principale
       const title = coloringResult.title || (selectedTheme ? `coloriages_${selectedTheme}` : 'coloriages');
+      console.log('Téléchargement PDF avec:', { title, imagesCount: coloringResult.images.length });
       downloadColoringAsPDF(coloringResult.images, title);
+    } else {
+      console.warn('Aucune image disponible pour le téléchargement PDF');
     }
   };
 
