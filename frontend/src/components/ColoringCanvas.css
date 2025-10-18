@@ -17,7 +17,7 @@
 .coloring-canvas-container {
   width: 95vw;
   height: 95vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: white;
   border-radius: 1.5rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   display: flex;
@@ -27,7 +27,7 @@
 
 /* Barre d'outils supérieure */
 .coloring-toolbar-top {
-  background: linear-gradient(135deg, #f5f0ff 0%, #8B6FFF 100%);
+  background: #6B4EFF;
   padding: 1rem 1.5rem;
   display: flex;
   justify-content: space-between;
@@ -70,7 +70,7 @@
 
 .coloring-save-btn {
   background: rgba(255, 255, 255, 0.9);
-  color: #f5f0ff;
+  color: #6B4EFF;
 }
 
 .coloring-save-btn:hover {
@@ -172,10 +172,11 @@
 }
 
 .coloring-tool-btn.active {
-  background: linear-gradient(135deg, #f5f0ff 0%, #8B6FFF 100%);
-  border-color: #f5f0ff;
+  background: #6B4EFF;
+  border-color: #6B4EFF;
   box-shadow: 0 4px 16px rgba(107, 78, 255, 0.4);
   transform: scale(1.05);
+  color: white;
 }
 
 /* Palette de couleurs */
@@ -190,7 +191,7 @@
   overflow-x: hidden;
   padding: 0.5rem;
   scrollbar-width: thin;
-  scrollbar-color: #f5f0ff #f0f0f0;
+  scrollbar-color: #6B4EFF #f0f0f0;
 }
 
 /* Scrollbar personnalisée pour Chrome/Safari */
@@ -204,7 +205,7 @@
 }
 
 .coloring-palette::-webkit-scrollbar-thumb {
-  background: #f5f0ff;
+  background: #6B4EFF;
   border-radius: 4px;
 }
 
