@@ -6,8 +6,6 @@ import ColoringCanvas from './ColoringCanvas';
 const ColoringPopup = ({ coloringResult, onClose, selectedTheme }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showColoringCanvas, setShowColoringCanvas] = useState(false);
-  const [isZoomed, setIsZoomed] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(1);
   const popupRef = useRef(null);
 
   const toggleFullscreen = () => {
@@ -45,25 +43,6 @@ const ColoringPopup = ({ coloringResult, onClose, selectedTheme }) => {
     setShowColoringCanvas(true);
   };
 
-  // Gestion du zoom
-  const toggleZoom = () => {
-    setIsZoomed(!isZoomed);
-  };
-
-  const zoomIn = () => {
-    setZoomLevel(prev => Math.min(prev + 0.5, 3));
-    setIsZoomed(true);
-  };
-
-  const zoomOut = () => {
-    if (zoomLevel > 1) {
-      setZoomLevel(prev => Math.max(prev - 0.5, 1));
-      if (zoomLevel - 0.5 <= 1) {
-        setIsZoomed(false);
-      }
-    }
-  };
-
   return (
     <>
       {showColoringCanvas ? (
@@ -85,34 +64,11 @@ const ColoringPopup = ({ coloringResult, onClose, selectedTheme }) => {
             <div className="coloring-container">
               <h2 className="coloring-title">🎨 Votre coloriage</h2>
 
-              <div className="coloring-zoom-controls">
-                <button
-                  className="coloring-zoom-btn"
-                  onClick={zoomOut}
-                  disabled={zoomLevel <= 1}
-                  title="Zoom arrière"
-                >
-                  −
-                </button>
-                <span style={{ color: '#6B4EFF', fontWeight: 'bold', minWidth: '60px', textAlign: 'center' }}>
-                  {Math.round(zoomLevel * 100)}%
-                </span>
-                <button
-                  className="coloring-zoom-btn"
-                  onClick={zoomIn}
-                  disabled={zoomLevel >= 3}
-                  title="Zoom avant"
-                >
-                  +
-                </button>
-              </div>
-
-              <div className={`coloring-image-wrapper ${isZoomed ? 'zoomed' : ''}`} onClick={toggleZoom}>
+              <div className="coloring-image-wrapper">
                 <img
                   src={imageUrl}
                   alt="Coloriage"
-                  className={`coloring-popup-image ${isZoomed ? 'zoomed' : ''}`}
-                  style={{ transform: `scale(${zoomLevel})` }}
+                  className="coloring-popup-image"
                 />
               </div>
               

@@ -6,6 +6,8 @@ const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
   const [ctx, setCtx] = useState(null);
   const [selectedColor, setSelectedColor] = useState('#FF6B6B');
   const [tool, setTool] = useState('bucket'); // 'bucket' ou 'eraser'
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [originalImageData, setOriginalImageData] = useState(null);
   const [coloringData, setColoringData] = useState(null);
@@ -254,12 +256,55 @@ const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
     ctx.putImageData(originalImageData, 0, 0);
   };
 
+  // Gestion du zoom
+  const toggleZoom = () => {
+    setIsZoomed(!isZoomed);
+  };
+
+  const zoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.5, 3));
+    setIsZoomed(true);
+  };
+
+  const zoomOut = () => {
+    if (zoomLevel > 1) {
+      setZoomLevel(prev => Math.max(prev - 0.5, 1));
+      if (zoomLevel - 0.5 <= 1) {
+        setIsZoomed(false);
+      }
+    }
+  };
+
   return (
     <div className="coloring-canvas-overlay">
       <div className="coloring-canvas-container">
         {/* Barre d'outils supérieure */}
         <div className="coloring-toolbar-top">
           <h2 className="coloring-canvas-title">🎨 Coloriez votre dessin</h2>
+
+          {/* Contrôles de zoom */}
+          <div className="coloring-zoom-controls">
+            <button
+              className="coloring-zoom-btn"
+              onClick={zoomOut}
+              disabled={zoomLevel <= 1}
+              title="Zoom arrière"
+            >
+              −
+            </button>
+            <span style={{ color: 'white', fontWeight: 'bold', minWidth: '60px', textAlign: 'center' }}>
+              {Math.round(zoomLevel * 100)}%
+            </span>
+            <button
+              className="coloring-zoom-btn"
+              onClick={zoomIn}
+              disabled={zoomLevel >= 3}
+              title="Zoom avant"
+            >
+              +
+            </button>
+          </div>
+
           <div className="coloring-toolbar-actions">
             <button className="coloring-btn coloring-reset-btn" onClick={handleReset} title="Réinitialiser">
               🔄 Réinitialiser
@@ -278,7 +323,8 @@ const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
           <canvas
             ref={canvasRef}
             onClick={handleCanvasClick}
-            className="coloring-canvas"
+            className={`coloring-canvas ${isZoomed ? 'zoomed' : ''}`}
+            style={{ transform: `scale(${zoomLevel})` }}
           />
           {!imageLoaded && (
             <div className="coloring-loading">
@@ -304,7 +350,7 @@ const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
               onClick={() => setTool('eraser')}
               title="Gomme"
             >
-              🧹
+              🧽
             </button>
           </div>
 
