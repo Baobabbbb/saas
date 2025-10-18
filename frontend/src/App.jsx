@@ -129,7 +129,7 @@ function App() {
   const [customColoringTheme, setCustomColoringTheme] = useState('');
   const [uploadedPhoto, setUploadedPhoto] = useState(null);
   const [coloringResult, setColoringResult] = useState(null);
-  const [withColoredModel, setWithColoredModel] = useState(true); // true par défaut = avec modèle coloré
+  const [withColoredModel, setWithColoredModel] = useState(null); // null = aucun choix fait, obligatoire
   
   // Comics states
   const [selectedComicsTheme, setSelectedComicsTheme] = useState(null);
@@ -846,6 +846,8 @@ const handleSelectCreation = (creation) => {
       if (!selectedTheme && !uploadedPhoto) return false;
       // Si thème custom, vérifier le texte personnalisé
       if (selectedTheme === 'custom' && !customColoringTheme.trim()) return false;
+      // Le choix du modèle (avec/sans) est obligatoire
+      if (withColoredModel === null) return false;
     } else if (contentType === 'comic') {
       // Pour les BD: thème, style et nombre de pages sont tous obligatoires
       if (!selectedComicsTheme) return false;

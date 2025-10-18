@@ -95,12 +95,8 @@ const ColoringSelector = ({
   };
 
   const handleModelSelect = (modelValue) => {
-    // Toggle: désélectionne si déjà sélectionné, sinon sélectionne
-    if (withColoredModel === modelValue) {
-      setWithColoredModel(null);
-    } else {
-      setWithColoredModel(modelValue);
-    }
+    // Sélection obligatoire: change simplement entre true et false
+    setWithColoredModel(modelValue);
   };
 
   const removePhoto = () => {
