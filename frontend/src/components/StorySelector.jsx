@@ -43,7 +43,7 @@ const StorySelector = ({ selectedStory, setSelectedStory, customStory, setCustom
           whileTap={{ scale: 0.98 }}
         >
           <div className="story-emoji">✏️</div>
-          <h4>Histoire personnalisée</h4>
+          <h4>Personnalisé</h4>
           <p>Créez votre propre type d'histoire unique</p>
         </motion.div>
         

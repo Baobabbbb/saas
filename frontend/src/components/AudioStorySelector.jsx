@@ -59,7 +59,7 @@ const AudioStorySelector = ({
 
   // Liste combinée pour la grille avec slots
   const allStories = [
-    { id: 'custom', title: 'Histoire personnalisée', description: 'Créez votre propre type d\'histoire unique', emoji: '✏️', isCustom: true },
+    { id: 'custom', title: 'Personnalisé', description: 'Créez votre propre type d\'histoire unique', emoji: '✏️', isCustom: true },
     ...audioStories
   ];
 

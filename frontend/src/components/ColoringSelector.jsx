@@ -19,7 +19,7 @@ const ColoringSelector = ({
   const themes = [
     // Options spéciales
     { value: 'upload_photo', label: 'Ma Photo', icon: '📸', description: 'Transformez votre photo en coloriage !', special: true },
-    { value: 'custom', label: 'Coloriage personnalisé', icon: '✏️', description: 'Créez votre propre thème de coloriage' },
+    { value: 'custom', label: 'Personnalisé', icon: '✏️', description: 'Créez votre propre thème de coloriage' },
     
     // Animaux & Créatures populaires
     { value: 'animals', label: 'Animaux', icon: '🐾', description: 'Chats, chiens, lions, éléphants...' },

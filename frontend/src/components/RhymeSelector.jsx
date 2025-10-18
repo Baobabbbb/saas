@@ -55,7 +55,7 @@ const RhymeSelector = ({ selectedRhyme, setSelectedRhyme, customRhyme, setCustom
           whileTap={{ scale: 0.98 }}
         >
           <div className="rhyme-emoji">✏️</div>
-          <h4>Comptine personnalisée</h4>
+          <h4>Personnalisé</h4>
           <p>Créez votre propre type de comptine unique</p>
         </motion.div>
         
