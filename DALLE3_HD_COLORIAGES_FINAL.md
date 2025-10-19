@@ -6,14 +6,14 @@ Migration complète du système de coloriages vers **DALL-E 3 HD** avec qualité
 
 ---
 
-## ⚠️ Clarification Importante : gpt-image-1
+## ⚠️ Clarification Importante : gpt-image-1-mini
 
-Après recherches approfondies, **`gpt-image-1` n'existe pas** dans l'API OpenAI officielle.
+Après recherches approfondies, **`gpt-image-1-mini` n'existe pas** dans l'API OpenAI officielle.
 
 ### Modèles de génération d'images OpenAI disponibles :
 - ✅ `dall-e-2`
 - ✅ `dall-e-3`
-- ❌ `gpt-image-1` (n'existe pas)
+- ❌ `gpt-image-1-mini` (n'existe pas)
 
 **Solution retenue** : Utilisation de **DALL-E 3 en mode HD** (`quality="hd"`) pour obtenir la **meilleure qualité possible**.
 

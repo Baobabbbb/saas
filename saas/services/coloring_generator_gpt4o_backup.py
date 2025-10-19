@@ -1,8 +1,8 @@
 """
-Service de génération de coloriages avec gpt-image-1
+Service de génération de coloriages avec gpt-image-1-mini
 - Image-to-image direct pour les photos uploadées (meilleure ressemblance)
 - Text-to-image pour les thèmes prédéfinis
-Organisation OpenAI vérifiée requise pour gpt-image-1
+Organisation OpenAI vérifiée requise pour gpt-image-1-mini
 """
 import os
 import uuid
@@ -21,7 +21,7 @@ load_dotenv()
 
 class ColoringGeneratorGPT4o:
     """
-    Générateur de coloriages avec gpt-image-1
+    Générateur de coloriages avec gpt-image-1-mini
     - Image-to-image pour photos uploadées
     - Text-to-image pour thèmes
     """
@@ -84,8 +84,8 @@ Subject: {subject}"""
 Subject: {subject}"""
             
             print(f"OK: ColoringGeneratorGPT4o initialise")
-            print(f"   - Photos: gpt-image-1 image-to-image (ressemblance maximale)")
-            print(f"   - Themes: gpt-image-1 text-to-image")
+            print(f"   - Photos: gpt-image-1-mini image-to-image (ressemblance maximale)")
+            print(f"   - Themes: gpt-image-1-mini text-to-image")
             print(f"   - Quality: high")
             print(f"   - API Key presente: Oui")
         except Exception as e:
@@ -101,7 +101,7 @@ Subject: {subject}"""
         with_colored_model: bool = True
     ) -> Dict[str, Any]:
         """
-        Convertit une photo en coloriage avec gpt-image-1 IMAGE-TO-IMAGE DIRECT
+        Convertit une photo en coloriage avec gpt-image-1-mini IMAGE-TO-IMAGE DIRECT
         Cette méthode utilise l'édition d'image directe pour maximiser la ressemblance
         
         Args:
@@ -115,8 +115,8 @@ Subject: {subject}"""
         try:
             print(f"[COLORING PHOTO] Conversion IMAGE-TO-IMAGE: {photo_path}")
             
-            # Utiliser l'édition d'image DIRECTE avec gpt-image-1 (IMAGE-TO-IMAGE)
-            print(f"[IMAGE-TO-IMAGE] Transformation directe avec gpt-image-1 edit...")
+            # Utiliser l'édition d'image DIRECTE avec gpt-image-1-mini (IMAGE-TO-IMAGE)
+            print(f"[IMAGE-TO-IMAGE] Transformation directe avec gpt-image-1-mini edit...")
             coloring_path_str = await self._edit_photo_to_coloring_direct(
                 photo_path, 
                 custom_prompt, 
@@ -124,7 +124,7 @@ Subject: {subject}"""
             )
             
             if not coloring_path_str:
-                raise Exception("Echec de la generation gpt-image-1 (image-to-image)")
+                raise Exception("Echec de la generation gpt-image-1-mini (image-to-image)")
             
             # Convertir en Path
             coloring_path = Path(coloring_path_str)
@@ -135,14 +135,14 @@ Subject: {subject}"""
                 "source_photo": photo_path,
                 "images": [{
                     "image_url": f"{self.base_url}/static/coloring/{coloring_path.name}",
-                    "source": "gpt-image-1 (image-to-image direct)"
+                    "source": "gpt-image-1-mini (image-to-image direct)"
                 }],
                 "total_images": 1,
                 "metadata": {
                     "source_photo": photo_path,
                     "method": "image-to-image direct editing",
                     "created_at": datetime.now().isoformat(),
-                    "model": "gpt-image-1",
+                    "model": "gpt-image-1-mini",
                     "with_colored_model": with_colored_model
                 }
             }
@@ -167,7 +167,7 @@ Subject: {subject}"""
         with_colored_model: bool = True
     ) -> Optional[str]:
         """
-        Édite directement une photo en coloriage avec gpt-image-1 (IMAGE-TO-IMAGE)
+        Édite directement une photo en coloriage avec gpt-image-1-mini (IMAGE-TO-IMAGE)
         CETTE MÉTHODE MAXIMISE LA RESSEMBLANCE en envoyant directement l'image
         
         Args:
@@ -199,19 +199,19 @@ Subject: {subject}"""
             
             print(f"[API] Appel OpenAI images.edit avec photo ({len(image_data)} bytes)...")
             
-            # Appeler gpt-image-1 avec images.edit (IMAGE-TO-IMAGE)
+            # Appeler gpt-image-1-mini avec images.edit (IMAGE-TO-IMAGE)
             # IMPORTANT: Passer un tuple (filename, file_data) pour que l'API détecte le MIME type
             response = await self.client.images.edit(
-                model="gpt-image-1",
+                model="gpt-image-1-mini",
                 image=(filename, image_data),  # Tuple (filename, data) pour détecter le MIME type
                 prompt=final_prompt,
                 size="1024x1024",
                 n=1
             )
             
-            print(f"[RESPONSE] Reponse recue de gpt-image-1 edit")
+            print(f"[RESPONSE] Reponse recue de gpt-image-1-mini edit")
             
-            # gpt-image-1 retourne base64
+            # gpt-image-1-mini retourne base64
             if hasattr(response, 'data') and len(response.data) > 0:
                 image_b64 = response.data[0].b64_json
                 print(f"[OK] Image editee recue (base64: {len(image_b64)} bytes)")
@@ -226,7 +226,7 @@ Subject: {subject}"""
                 return str(output_path)
             else:
                 print(f"[ERROR] Format de reponse inattendu")
-                raise Exception("Format de reponse gpt-image-1 edit inattendu")
+                raise Exception("Format de reponse gpt-image-1-mini edit inattendu")
             
         except Exception as e:
             print(f"[ERROR] Erreur edition image-to-image: {e}")
@@ -242,7 +242,7 @@ Subject: {subject}"""
         with_colored_model: bool = True
     ) -> Optional[str]:
         """
-        Génère un coloriage avec gpt-image-1 (TEXT-TO-IMAGE)
+        Génère un coloriage avec gpt-image-1-mini (TEXT-TO-IMAGE)
         Utilisé pour la génération par thème
         
         Args:
@@ -263,19 +263,19 @@ Subject: {subject}"""
             
             print(f"[PROMPT TEXT-TO-IMAGE] {final_prompt[:150]}...")
             
-            # Appeler gpt-image-1 avec qualité high
+            # Appeler gpt-image-1-mini avec qualité high
             print(f"[API] Appel OpenAI images.generate...")
             response = await self.client.images.generate(
-                model="gpt-image-1",
+                model="gpt-image-1-mini",
                 prompt=final_prompt,
                 size="1024x1024",
                 quality="high",
                 n=1
             )
             
-            print(f"[RESPONSE] Reponse recue de gpt-image-1 generate")
+            print(f"[RESPONSE] Reponse recue de gpt-image-1-mini generate")
             
-            # gpt-image-1 retourne base64
+            # gpt-image-1-mini retourne base64
             if hasattr(response, 'data') and len(response.data) > 0:
                 image_b64 = response.data[0].b64_json
                 print(f"[OK] Image generee recue (base64: {len(image_b64)} bytes)")
@@ -290,7 +290,7 @@ Subject: {subject}"""
                 return str(output_path)
             else:
                 print(f"[ERROR] Format de reponse inattendu")
-                raise Exception("Format de reponse gpt-image-1 generate inattendu")
+                raise Exception("Format de reponse gpt-image-1-mini generate inattendu")
             
         except Exception as e:
             print(f"[ERROR] Erreur generation text-to-image: {e}")
@@ -349,13 +349,13 @@ Subject: {subject}"""
             description = theme_descriptions.get(theme.lower(), f"A {theme} scene suitable for children coloring")
             print(f"[DESCRIPTION] {description}")
             
-            # Générer avec gpt-image-1 (text-to-image)
+            # Générer avec gpt-image-1-mini (text-to-image)
             coloring_path_str = await self._generate_coloring_with_gpt_image_1(description, None, with_colored_model)
             
             if not coloring_path_str:
-                raise Exception("Echec de la generation gpt-image-1 - chemin vide")
+                raise Exception("Echec de la generation gpt-image-1-mini - chemin vide")
             
-            print(f"[OK] Chemin gpt-image-1 recu: {coloring_path_str}")
+            print(f"[OK] Chemin gpt-image-1-mini recu: {coloring_path_str}")
             
             # Convertir en Path
             coloring_path = Path(coloring_path_str)
@@ -367,14 +367,14 @@ Subject: {subject}"""
                 "images": [{
                     "image_url": f"{self.base_url}/static/coloring/{coloring_path.name}",
                     "theme": theme,
-                    "source": "gpt-image-1 (text-to-image)"
+                    "source": "gpt-image-1-mini (text-to-image)"
                 }],
                 "total_images": 1,
                 "metadata": {
                     "theme": theme,
                     "description": description,
                     "created_at": datetime.now().isoformat(),
-                    "model": "gpt-image-1",
+                    "model": "gpt-image-1-mini",
                     "method": "text-to-image",
                     "with_colored_model": with_colored_model
                 }

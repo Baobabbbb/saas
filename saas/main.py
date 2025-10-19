@@ -31,6 +31,7 @@ from services.coloring_generator_gpt4o import ColoringGeneratorGPT4o
 from services.comics_generator_gpt4o import ComicsGeneratorGPT4o
 from services.real_animation_generator import RealAnimationGenerator
 from services.local_animation_generator import LocalAnimationGenerator
+from services.sora2_zseedance_generator import Sora2ZseedanceGenerator
 from utils.translate import translate_text
 from routes.admin_features import router as admin_features_router, load_features_config, CONFIG_FILE
 # from models.animation import AnimationRequest
@@ -62,6 +63,7 @@ class AnimationRequest(BaseModel):
     style: Optional[str] = "cartoon"
     mode: Optional[str] = "demo"
     custom_prompt: Optional[str] = None
+    generation_mode: Optional[str] = "demo"  # demo, sora2, production
 
 # Modèle pour le formulaire de contact
 class ContactForm(BaseModel):
@@ -495,9 +497,9 @@ def get_coloring_generator():
 @app.post("/generate_coloring/{content_type_id}")
 async def generate_coloring(request: dict, content_type_id: int = None):
     """
-    Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1
+    Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1-mini-mini
     Supporte deux formats d'URL pour compatibilité frontend
-    Organisation OpenAI vérifiée requise pour gpt-image-1
+    Organisation OpenAI vérifiée requise pour gpt-image-1-mini-mini
     """
     try:
         # Validation des données d'entrée
@@ -506,9 +508,9 @@ async def generate_coloring(request: dict, content_type_id: int = None):
         with_colored_model = request.get("with_colored_model", True)  # Par défaut avec modèle
         
         if custom_prompt:
-            print(f"[COLORING] Generation coloriage personnalisé gpt-image-1: '{custom_prompt}' ({'avec' if with_colored_model else 'sans'} modèle coloré)")
+            print(f"[COLORING] Generation coloriage personnalisé gpt-image-1-mini-mini: '{custom_prompt}' ({'avec' if with_colored_model else 'sans'} modèle coloré)")
         else:
-            print(f"[COLORING] Generation coloriage gpt-image-1: {theme} ({'avec' if with_colored_model else 'sans'} modèle coloré) (content_type_id={content_type_id})")
+            print(f"[COLORING] Generation coloriage gpt-image-1-mini-mini: {theme} ({'avec' if with_colored_model else 'sans'} modèle coloré) (content_type_id={content_type_id})")
         
         # Vérifier la clé API OpenAI
         openai_key = os.getenv("OPENAI_API_KEY")
@@ -524,7 +526,7 @@ async def generate_coloring(request: dict, content_type_id: int = None):
         # Debug: afficher les paramètres
         print(f"[DEBUG] Parametres: theme={theme}, with_colored_model={with_colored_model}, custom_prompt={custom_prompt}")
         
-        # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1 (génération)
+        # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1-mini-mini (génération)
         result = await generator.generate_coloring_from_theme(theme, with_colored_model, custom_prompt)
         
         print(f"[DEBUG] Resultat recu: {result.get('success', False)}")
@@ -534,9 +536,9 @@ async def generate_coloring(request: dict, content_type_id: int = None):
                 "status": "success",
                 "theme": theme,
                 "images": result.get("images", []),
-                "message": "Coloriage généré avec succès avec gpt-image-1 !",
+                "message": "Coloriage généré avec succès avec gpt-image-1-mini-mini !",
                 "type": "coloring",
-                "model": "gpt-image-1"
+                "model": "gpt-image-1-mini"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la génération du coloriage")
@@ -607,7 +609,7 @@ async def upload_photo_for_coloring(file: UploadFile = File(...)):
 @app.post("/convert_photo_to_coloring/")
 async def convert_photo_to_coloring(request: dict):
     """
-    Convertit une photo uploadée en coloriage avec GPT-4o-mini + gpt-image-1
+    Convertit une photo uploadée en coloriage avec GPT-4o-mini + gpt-image-1-mini
     """
     try:
         # Récupérer les paramètres
@@ -629,7 +631,7 @@ async def convert_photo_to_coloring(request: dict):
         
         # Récupérer le choix de modèle coloré
         with_colored_model = request.get("with_colored_model", True)  # Par défaut avec modèle
-        print(f"[COLORING] Conversion photo en coloriage avec gpt-image-1 ({'avec' if with_colored_model else 'sans'} modèle coloré): {photo_path}")
+        print(f"[COLORING] Conversion photo en coloriage avec gpt-image-1-mini ({'avec' if with_colored_model else 'sans'} modèle coloré): {photo_path}")
         
         # Vérifier que le fichier existe
         if not photo_path_obj.exists():
@@ -641,7 +643,7 @@ async def convert_photo_to_coloring(request: dict):
         # Obtenir l'instance du générateur
         generator = get_coloring_generator()
         
-        # Convertir avec GPT-4o-mini (analyse) + gpt-image-1 (génération)
+        # Convertir avec GPT-4o-mini (analyse) + gpt-image-1-mini (génération)
         result = await generator.generate_coloring_from_photo(
             photo_path=photo_path,
             custom_prompt=custom_prompt,
@@ -656,7 +658,7 @@ async def convert_photo_to_coloring(request: dict):
                 "message": "Photo convertie en coloriage avec succès !",
                 "type": "coloring",
                 "source": "photo",
-                "model": "gpt-image-1"
+                "model": "gpt-image-1-mini"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la conversion")
@@ -944,9 +946,12 @@ async def generate_animation(request: AnimationRequest):
             "status": "processing"
         }
 
-        # Lancer la génération en arrière-plan
+        # Lancer la génération en arrière-plan selon le mode
         import asyncio
-        asyncio.create_task(generate_real_animation_task(task_id, theme, duration))
+        if generationMode == 'sora2':
+            asyncio.create_task(generate_sora2_animation_task(task_id, theme, duration))
+        else:
+            asyncio.create_task(generate_real_animation_task(task_id, theme, duration))
 
         # Retourner immédiatement le task_id
         result = {
@@ -980,20 +985,15 @@ async def generate_real_animation_task(task_id: str, theme: str, duration: int):
         # Mettre à jour le statut
         task_storage[task_id]["status"] = "generating"
         
-        # Vérifier si on a les API keys pour le vrai système
-        has_real_apis = bool(os.getenv("WAVESPEED_API_KEY") and os.getenv("FAL_API_KEY"))
+        # Sélection du générateur Sora 2 zseedance (workflow fidèle à zseedance.json)
+        # Utilise uniquement Sora 2 basé sur le workflow zseedance
+
+        # Utiliser le générateur Sora 2 zseedance (identique au workflow n8n)
+        generator = Sora2ZseedanceGenerator()
+        print(f"🎬 Utilisation de SORA 2 ZSEEDANCE (workflow n8n identique)")
         
-        if has_real_apis:
-            # Utiliser le générateur seedance réel
-            generator = RealAnimationGenerator()
-            print(f"🎬 Utilisation du VRAI système seedance")
-        else:
-            # Utiliser le générateur local complet
-            generator = LocalAnimationGenerator()
-            print(f"🎬 Utilisation du générateur LOCAL complet")
-        
-        # Générer l'animation complète
-        animation_result = await generator.generate_complete_animation(theme, duration)
+        # Générer l'animation complète avec le workflow zseedance
+        animation_result = await generator.generate_complete_animation_zseedance(theme)
         
         # Stocker le résultat
         task_storage[task_id]["result"] = animation_result
@@ -1126,13 +1126,42 @@ async def get_animation_status(task_id: str):
                 }
             }
             
-        return result
-        
+            return result
+
     except HTTPException:
         raise
     except Exception as e:
         print(f"❌ Erreur récupération statut: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération du statut : {str(e)}")
+
+
+async def generate_sora2_animation_task(task_id: str, theme: str, duration: int):
+    """
+    Tâche en arrière-plan pour la génération Sora 2 d'animation
+    """
+    try:
+        print(f"🚀 Démarrage génération Sora 2 pour {task_id}")
+
+        # Mettre à jour le statut
+        task_storage[task_id]["status"] = "generating"
+
+        # Utiliser le générateur Sora 2
+        generator = Sora2Generator()
+        print(f"🎬 Utilisation de SORA 2 (plateforme: {generator.selected_platform})")
+
+        # Générer l'animation Sora 2
+        animation_result = await generator.generate_complete_animation(theme, duration)
+
+        # Stocker le résultat
+        task_storage[task_id]["result"] = animation_result
+        task_storage[task_id]["status"] = "completed"
+
+        print(f"✅ Animation Sora 2 {task_id} générée avec succès!")
+
+    except Exception as e:
+        print(f"❌ Erreur génération Sora 2 {task_id}: {e}")
+        task_storage[task_id]["status"] = "failed"
+        task_storage[task_id]["error"] = str(e)
 
 # === ROUTES D'AUTHENTIFICATION JWT ===
 

@@ -3,15 +3,17 @@ import { motion } from 'framer-motion';
 import { API_ENDPOINTS } from '../config/api';
 import './AnimationSelector.css';
 
-const AnimationSelector = ({ 
-  selectedTheme, 
-  setSelectedTheme, 
-  selectedDuration, 
+const AnimationSelector = ({
+  selectedTheme,
+  setSelectedTheme,
+  selectedDuration,
   setSelectedDuration,
   selectedStyle,
   setSelectedStyle,
   customStory,
-  setCustomStory
+  setCustomStory,
+  selectedMode,
+  setSelectedMode
 }) => {
   
   const [animationThemes, setAnimationThemes] = useState([]);
@@ -99,20 +101,34 @@ const AnimationSelector = ({
     { id: 'pastel', name: 'Pastel', description: 'Couleurs douces et tendres', emoji: '🌸' }
   ];
 
+  const generationModes = [
+    { id: 'demo', name: 'Mode Démo', description: 'Génération rapide avec qualité standard', icon: '⚡' },
+    { id: 'sora2', name: 'Sora 2', description: 'IA avancée OpenAI pour qualité cinéma', icon: '🎭' },
+    { id: 'production', name: 'Production', description: 'Qualité maximale (plus lent)', icon: '🏆' }
+  ];
+
   // Fonctions de toggle pour désélectionner en recliquant
   const handleThemeSelect = (themeId) => {
     if (selectedTheme === themeId) {
       setSelectedTheme(null); // Désélectionner si déjà sélectionné
     } else {
-      setSelectedTheme(themeId); // Sélectionner si pas encore sélectionné
+      setSelectedTheme(themeId);
     }
   };
 
-  const handleDurationSelect = (durationValue) => {
-    if (selectedDuration === durationValue) {
+  const handleModeSelect = (modeId) => {
+    if (selectedMode === modeId) {
+      setSelectedMode(null); // Désélectionner si déjà sélectionné
+    } else {
+      setSelectedMode(modeId);
+    }
+  };
+
+  const handleDurationSelect = (duration) => {
+    if (selectedDuration === duration) {
       setSelectedDuration(null); // Désélectionner si déjà sélectionné
     } else {
-      setSelectedDuration(durationValue); // Sélectionner si pas encore sélectionné
+      setSelectedDuration(duration);
     }
   };
 
@@ -120,9 +136,16 @@ const AnimationSelector = ({
     if (selectedStyle === styleId) {
       setSelectedStyle(null); // Désélectionner si déjà sélectionné
     } else {
-      setSelectedStyle(styleId); // Sélectionner si pas encore sélectionné
+      setSelectedStyle(styleId);
     }
   };
+
+  // Initialiser le mode par défaut si non défini
+  useEffect(() => {
+    if (!selectedMode) {
+      setSelectedMode('demo'); // Mode par défaut
+    }
+  }, [selectedMode, setSelectedMode]);
 
   if (loading) {
     return (
@@ -178,6 +201,28 @@ const AnimationSelector = ({
             </div>
           </motion.div>
         )}
+      </div>
+
+      {/* Section 2.5: Mode de génération */}
+      <div className="selector-section">
+        <h4>2. Choisissez le mode de génération</h4>
+        <div className="generation-modes">
+          {generationModes.map((mode) => (
+            <motion.div
+              key={mode.id}
+              className={`generation-mode ${selectedMode === mode.id ? 'selected' : ''}`}
+              onClick={() => handleModeSelect(mode.id)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="mode-icon">{mode.icon}</div>
+              <div className="mode-content">
+                <h5>{mode.name}</h5>
+                <p>{mode.description}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       {/* Section 3: Durée */}
