@@ -30,26 +30,26 @@ class Sora2ZseedanceGenerator:
         # Configuration Sora 2 - utiliser les APIs existantes
         self.sora_platforms = {
             "openai": {
-                "name": "OpenAI Sora 2",
+                "name": "OpenAI (Non disponible)",
                 "base_url": "https://api.openai.com/v1",
                 "api_key": self.openai_api_key,
                 "model": "sora-2",  # Modèle hypothétique Sora 2
-                "available": bool(self.openai_api_key),
-                "priority": 1
+                "available": False,  # Désactivé car pas disponible publiquement
+                "priority": 99  # Priorité très basse
             },
             "runway": {
-                "name": "Runway ML (Sora Partner)",
+                "name": "Runway ML (Veo 3.1 Fast)",
                 "base_url": "https://api.runwayml.com/v1",
                 "api_key": os.getenv("RUNWAY_API_KEY"),
-                "model": "sora-v2",
+                "model": "veo3.1_fast",
                 "available": bool(os.getenv("RUNWAY_API_KEY")),
-                "priority": 2
+                "priority": 1  # Priorité la plus haute maintenant
             },
             "pika": {
-                "name": "Pika Labs (Sora Access)",
+                "name": "Pika Labs (Alternative)",
                 "base_url": "https://api.pika.art/v1",
                 "api_key": os.getenv("PIKA_API_KEY"),
-                "model": "sora-2",
+                "model": "pika-1.0",  # Modèle réel Pika
                 "available": bool(os.getenv("PIKA_API_KEY")),
                 "priority": 3
             }

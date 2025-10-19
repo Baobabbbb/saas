@@ -1,8 +1,8 @@
-# 🎭 Sora 2 Zseedance - Workflow n8n Identique
+# 🎭 Veo 3.1 Fast Zseedance - Workflow n8n Identique
 
 ## 📋 Vue d'ensemble
 
-HERBBIE utilise maintenant **Sora 2** avec un workflow **identique** à `zseedance.json`, offrant une qualité cinéma exceptionnelle pour les animations enfants.
+HERBBIE utilise maintenant **Runway ML Veo 3.1 Fast** avec un workflow **identique** à `zseedance.json`, offrant une qualité cinéma exceptionnelle pour les animations enfants.
 
 ---
 
@@ -15,15 +15,15 @@ HERBBIE utilise maintenant **Sora 2** avec un workflow **identique** à `zseedan
    ↓
 2. Prompts AI Agent (OpenAI GPT-4o-mini)
    ↓
-3. Create Clips (Sora 2 au lieu de Seedance)
+3. Create Clips (Veo 3.1 Fast au lieu de Seedance)
    ↓
 4. Sequence Video (simplifié car audio intégré)
 ```
 
 ### **Avantages vs zseedance.json**
 - ✅ **Même workflow fiable** - Pas de modes différents
-- ✅ **Audio intégré** - Sora 2 génère l'audio automatiquement
-- ✅ **Qualité supérieure** - Sora 2 vs Seedance
+- ✅ **Audio intégré** - Veo 3.1 Fast génère l'audio automatiquement
+- ✅ **Qualité supérieure** - Veo 3.1 Fast vs Seedance
 - ✅ **Pas de fallbacks** - Système unique et prévisible
 
 ---
@@ -40,17 +40,17 @@ class Sora2ZseedanceGenerator:
     async def generate_prompts_agent(self, idea_data) -> Dict[str, Any]:
         # Prompts AI Agent - Même prompt système
 
-    async def create_sora2_clip(self, scene_prompt, idea, environment) -> str:
-        # Create Clips - Sora 2 au lieu de Seedance
+    async def create_veo_clip(self, scene_prompt, idea, environment) -> str:
+        # Create Clips - Veo 3.1 Fast au lieu de Seedance
         # Format identique: 10s, 9:16, même prompt structure
 
-    async def sequence_sora2_video(self, video_urls) -> str:
+    async def sequence_veo_video(self, video_urls) -> str:
         # Sequence Video - Simplifié (audio intégré)
 ```
 
 ### **Intégration Backend** (`main.py`)
 ```python
-# Utilise uniquement Sora 2 zseedance (pas de modes différents)
+# Utilise uniquement Veo 3.1 Fast zseedance (pas de modes différents)
 generator = Sora2ZseedanceGenerator()
 animation_result = await generator.generate_complete_animation_zseedance(theme)
 ```
@@ -68,25 +68,25 @@ start_sora2.bat
 ### **Configuration Requise**
 Configurez au moins une plateforme dans votre `.env` :
 ```env
-# OpenAI Sora (si disponible)
-OPENAI_API_KEY=sk-your-key
-
-# Runway ML (recommandé)
+# Runway ML Veo 3.1 Fast (recommandé)
 RUNWAY_API_KEY=your-runway-key
 
 # Pika Labs (optionnel)
 PIKA_API_KEY=your-pika-key
+
+# OpenAI (gardé pour GPT-4o-mini)
+OPENAI_API_KEY=sk-your-key
 ```
 
 ---
 
-## 📊 Comparaison zseedance.json vs Sora 2
+## 📊 Comparaison zseedance.json vs Veo 3.1 Fast
 
-| Aspect | zseedance.json (Seedance) | Sora 2 Zseedance |
-|--------|---------------------------|------------------|
+| Aspect | zseedance.json (Seedance) | Veo 3.1 Fast Zseedance |
+|--------|---------------------------|-------------------------|
 | **Workflow** | ✅ Même workflow n8n | ✅ Même workflow n8n |
-| **Génération vidéo** | Seedance (Wavespeed) | Sora 2 (meilleure qualité) |
-| **Audio** | FAL AI séparé | ✅ Intégré à Sora 2 |
+| **Génération vidéo** | Seedance (Wavespeed) | Veo 3.1 Fast (meilleure qualité) |
+| **Audio** | FAL AI séparé | ✅ Intégré à Veo 3.1 Fast |
 | **Qualité** | Bonne | ⭐ Excellente |
 | **Modes** | ❌ Multiples modes | ✅ Système unique |
 | **Fiabilité** | Dépend API externes | ✅ Plus stable |
@@ -105,9 +105,9 @@ PIKA_API_KEY=your-pika-key
 - **Input** : Idée de l'étape 1
 - **Output** : 3 scènes détaillées (Scene 1, Scene 2, Scene 3)
 
-### **Étape 3: Create Clips** (Sora 2 au lieu de Seedance)
+### **Étape 3: Create Clips** (Veo 3.1 Fast au lieu de Seedance)
 - **Format identique** : 10 secondes, 9:16, même structure de prompt
-- **Prompt Sora 2** : `VIDEO THEME: {idea} | WHAT HAPPENS: {scene} | WHERE: {environment}`
+- **Prompt Veo 3.1 Fast** : `VIDEO THEME: {idea} | WHAT HAPPENS: {scene} | WHERE: {environment}`
 - **Batching** : Même logique de batching que zseedance
 
 ### **Étape 4: Sequence Video** (Simplifié)
@@ -145,7 +145,7 @@ python test_sora2_zseedance.py
 - **Pas de fallbacks** - système unique et fiable
 
 ### **Différences avec zseedance.json**
-- **Seedance → Sora 2** : Meilleure qualité vidéo
+- **Seedance → Veo 3.1 Fast** : Meilleure qualité vidéo
 - **Audio séparé → intégré** : Plus simple et plus rapide
 - **Pas de modes** : Système unique et prévisible
 
@@ -159,7 +159,7 @@ python test_sora2_zseedance.py
 - ✅ **Audio intégré** : Moins d'étapes, moins de pannes
 
 ### **Qualité**
-- ✅ **Sora 2 supérieur** : Qualité cinéma vs Seedance
+- ✅ **Veo 3.1 Fast supérieur** : Qualité cinéma vs Seedance
 - ✅ **Cohérence narrative** : Même workflow fiable
 - ✅ **Optimisé enfants** : Prompts adaptés aux 4-10 ans
 
@@ -180,12 +180,12 @@ python test_sora2_zseedance.py
 
 ## 🎯 Conclusion
 
-**Sora 2 Zseedance** représente la solution idéale : le workflow fiable de `zseedance.json` avec la qualité exceptionnelle de Sora 2, sans les complications des modes différents ou des fallbacks.
+**Veo 3.1 Fast Zseedance** représente la solution idéale : le workflow fiable de `zseedance.json` avec la qualité exceptionnelle de Veo 3.1 Fast, sans les complications des modes différents ou des fallbacks.
 
-**Recommandation** : Utilisez Runway ML comme plateforme principale pour un excellent rapport qualité/prix et une disponibilité fiable.
+**Recommandation** : Utilisez Runway ML Veo 3.1 Fast comme plateforme principale pour un excellent rapport qualité/prix et une disponibilité fiable.
 
-**🎭 Résultat** : HERBBIE avec Sora 2 - Système fiable, qualité cinéma, workflow éprouvé !
+**🎭 Résultat** : HERBBIE avec Veo 3.1 Fast - Système fiable, qualité cinéma, workflow éprouvé !
 
 ---
 
-*Document généré automatiquement - Sora 2 Zseedance HERBBIE v2.0*
+*Document généré automatiquement - Veo 3.1 Fast Zseedance HERBBIE v2.0*

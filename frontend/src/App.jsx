@@ -356,6 +356,13 @@ function App() {
     setCurrentTitle(null);
   }, [contentType]);
 
+  // Initialiser le thème par défaut pour les animations
+  useEffect(() => {
+    if (contentType === 'animation' && !selectedAnimationTheme) {
+      setSelectedAnimationTheme('space'); // Thème par défaut
+    }
+  }, [contentType, selectedAnimationTheme]);
+
   // Mettre à jour le texte du bouton selon le statut admin et le type de contenu
   const updateButtonText = (adminStatus) => {
     if (adminStatus) {
@@ -638,7 +645,7 @@ function App() {
         };
       } else if (generationMode === 'demo') {
         // Mode démo - utiliser generate-quick
-        endpoint = `${ANIMATION_API_BASE_URL}/generate-quick?theme=${encodeURIComponent(selectedTheme)}&duration=${selectedDuration}`;
+        endpoint = `${ANIMATION_API_BASE_URL}/generate-quick?theme=${encodeURIComponent(selectedAnimationTheme || 'space')}&duration=${selectedDuration}`;
         fetchOptions = {
           method: 'POST',
           headers: {

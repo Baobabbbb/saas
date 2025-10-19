@@ -1,6 +1,6 @@
 @echo off
-echo 🚀 Démarrage HERBBIE avec Sora 2 Zseedance
-echo ========================================
+echo 🚀 Démarrage HERBBIE avec Veo 3.1 Fast Zseedance
+echo ================================================
 echo.
 
 REM Vérifier si on est dans le bon dossier
@@ -25,7 +25,7 @@ if errorlevel 1 (
 echo ✅ Dépendances installées
 
 echo.
-echo 🎭 Test du générateur Sora 2 Zseedance...
+echo 🎭 Test du générateur Veo 3.1 Fast Zseedance...
 echo.
 
 REM Exécuter le test
@@ -36,10 +36,8 @@ if errorlevel 1 (
     echo.
     echo ❌ Test échoué - Vérifiez la configuration des clés API
     echo.
-    echo 💡 Configurez au moins une de ces variables dans .env:
-    echo    OPENAI_API_KEY=sk-your-key
-    echo    RUNWAY_API_KEY=your-key
-    echo    PIKA_API_KEY=your-key
+    echo 💡 Configurez RUNWAY_API_KEY dans .env:
+    echo    RUNWAY_API_KEY=your-runway-key
     echo.
     set /p choice="Voulez-vous continuer malgré tout? (o/n): "
     if /i not "%choice%"=="o" (
@@ -50,11 +48,11 @@ if errorlevel 1 (
 )
 
 echo.
-echo 🚀 Démarrage du serveur HERBBIE avec Sora 2...
+echo 🚀 Démarrage du serveur HERBBIE avec Veo 3.1 Fast...
 echo.
 echo 🌐 Frontend: http://localhost:8006
 echo 📚 Documentation API: http://localhost:8006/docs
-echo 🎭 Générateur: Sora 2 Zseedance (workflow n8n)
+echo 🎭 Générateur: Veo 3.1 Fast Zseedance (workflow n8n)
 echo.
 
 REM Démarrer le serveur

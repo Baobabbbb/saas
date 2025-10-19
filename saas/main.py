@@ -920,16 +920,33 @@ async def get_themes():
 # --- Animation ---
 @app.post("/generate_animation/")
 @app.post("/generate-quick")  # Route alternative pour compatibilité frontend
-async def generate_animation(request: AnimationRequest):
+@app.get("/generate-quick")   # Ajouter support GET pour compatibilité
+async def generate_animation(
+    theme: str = "space",
+    duration: int = 30,
+    style: str = "cartoon",
+    mode: str = "demo",
+    custom_prompt: str = None
+):
     """
     Génère une VRAIE animation avec les APIs Wavespeed et Fal AI
     """
     try:
-        # Extraire les paramètres depuis le modèle Pydantic
-        style = request.style
-        theme = request.theme
-        duration = request.duration
-        mode = request.mode
+        # Vérifier si c'est un appel GET (query params) ou POST (body JSON)
+        if hasattr(request, 'style'):  # C'est une requête POST avec body JSON
+            style = request.style
+            theme = request.theme
+            duration = request.duration
+            mode = request.mode
+        else:  # C'est une requête GET avec query params
+            # Les paramètres sont déjà extraits par FastAPI
+            pass
+
+        # Valider et corriger le thème si nécessaire
+        valid_themes = ["space", "ocean", "forest", "city", "adventure", "fantasy", "cartoon"]
+        if theme not in valid_themes:
+            print(f"⚠️ Thème invalide '{theme}', utilisation de 'space' par défaut")
+            theme = "space"
 
         print(f"🎬 VRAIE Génération animation: {theme} / {style} / {duration}s / mode: {mode}")
 
@@ -985,12 +1002,12 @@ async def generate_real_animation_task(task_id: str, theme: str, duration: int):
         # Mettre à jour le statut
         task_storage[task_id]["status"] = "generating"
         
-        # Sélection du générateur Sora 2 zseedance (workflow fidèle à zseedance.json)
-        # Utilise uniquement Sora 2 basé sur le workflow zseedance
+        # Sélection du générateur Veo 3.1 Fast (workflow fidèle à zseedance.json)
+        # Utilise Runway ML Veo 3.1 Fast basé sur le workflow zseedance
 
-        # Utiliser le générateur Sora 2 zseedance (identique au workflow n8n)
+        # Utiliser le générateur Veo 3.1 Fast (identique au workflow n8n)
         generator = Sora2ZseedanceGenerator()
-        print(f"🎬 Utilisation de SORA 2 ZSEEDANCE (workflow n8n identique)")
+        print(f"🎬 Utilisation de RUNWAY VEO 3.1 FAST (workflow n8n identique)")
         
         # Générer l'animation complète avec le workflow zseedance
         animation_result = await generator.generate_complete_animation_zseedance(theme)

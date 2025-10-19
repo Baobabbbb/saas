@@ -27,26 +27,26 @@ class Sora2Generator:
         # Configuration des APIs Sora 2 disponibles
         self.sora_platforms = {
             "openai": {
-                "name": "OpenAI Sora",
+                "name": "OpenAI (Non disponible)",
                 "base_url": "https://api.openai.com/v1",
                 "api_key": os.getenv("OPENAI_API_KEY"),
                 "model": "sora-2",  # Modèle hypothétique Sora 2
-                "available": False,  # Sera déterminé dynamiquement
-                "priority": 1  # Priorité la plus haute
+                "available": False,  # Désactivé car pas disponible publiquement
+                "priority": 99  # Priorité très basse
             },
             "runway": {
-                "name": "Runway ML (Sora Partner)",
+                "name": "Runway ML (Veo 3.1 Fast)",
                 "base_url": "https://api.runwayml.com/v1",
                 "api_key": os.getenv("RUNWAY_API_KEY"),
-                "model": "sora-v2",
+                "model": "veo3.1_fast",
                 "available": bool(os.getenv("RUNWAY_API_KEY")),
-                "priority": 2
+                "priority": 1  # Priorité la plus haute
             },
             "pika": {
-                "name": "Pika Labs (Sora Access)",
+                "name": "Pika Labs (Alternative)",
                 "base_url": "https://api.pika.art/v1",
                 "api_key": os.getenv("PIKA_API_KEY"),
-                "model": "sora-2",
+                "model": "pika-1.0",
                 "available": bool(os.getenv("PIKA_API_KEY")),
                 "priority": 3
             },
