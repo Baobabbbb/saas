@@ -7,6 +7,7 @@ Basé sur le workflow zseedance.json mais avec Veo 3.1 Fast
 import asyncio
 import aiohttp
 import time
+import os
 from typing import List, Dict, Any, Optional
 from config import config
 from models.schemas import Scene, VideoClip
