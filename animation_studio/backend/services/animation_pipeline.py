@@ -10,27 +10,27 @@ from models.schemas import (
 )
 from .idea_generator import IdeaGenerator
 from .scene_creator import SceneCreator
-from .wan25_generator import Wan25Generator
+from .veo31_generator import Veo31Generator
 from .video_assembler import VideoAssembler
 
 class AnimationPipeline:
     """
-    Pipeline 100% Wan 2.5 pour génération de dessins animés
-    Basé sur zseedance.json mais adapté pour Wan 2.5 (Alibaba)
+    Pipeline 100% Veo 3.1 Fast pour génération de dessins animés
+    Basé sur zseedance.json mais adapté pour Veo 3.1 Fast (Runway ML)
     Audio intégré automatiquement - pas besoin de génération séparée
     """
-    
+
     def __init__(self):
         self.idea_generator = IdeaGenerator()
         self.scene_creator = SceneCreator()
-        self.wan25_generator = Wan25Generator()  # Remplace VideoGenerator
+        self.veo31_generator = Veo31Generator()  # Remplace Wan25Generator
         self.video_assembler = VideoAssembler()
-        # Plus besoin d'AudioGenerator - audio intégré dans Wan 2.5
-        
+        # Plus besoin d'AudioGenerator - audio intégré dans Veo 3.1 Fast
+
         # Cache pour suivre les animations en cours
         self.active_animations: Dict[str, AnimationResult] = {}
-        
-        print("🎬 Pipeline Wan 2.5 initialisé (audio intégré)")
+
+        print("🎬 Pipeline Veo 3.1 Fast initialisé (audio intégré)")
     
     async def generate_animation(
         self,
@@ -82,13 +82,13 @@ class AnimationPipeline:
             scenes = await self.scene_creator.create_scenes_from_idea(story_idea, request.duration)
             result.scenes = scenes
             
-            # Étape 3: Génération des clips Wan 2.5 avec audio intégré
+            # Étape 3: Génération des clips Veo 3.1 Fast avec audio intégré
             await self._update_progress(animation_id, AnimationStatus.GENERATING_CLIPS, 40,
-                                      f"Génération de {len(scenes)} clips Wan 2.5 avec audio intégré...", 
+                                      f"Génération de {len(scenes)} clips Veo 3.1 Fast avec audio intégré...",
                                       progress_callback)
-            
-            # Générer tous les clips avec Wan 2.5 (audio inclus automatiquement)
-            video_clips = await self.wan25_generator.generate_all_clips(scenes)
+
+            # Générer tous les clips avec Veo 3.1 Fast (audio inclus automatiquement)
+            video_clips = await self.veo31_generator.generate_all_clips(scenes)
             result.video_clips = video_clips
             
             # Vérifier qu'au moins un clip a été généré avec succès
@@ -98,27 +98,27 @@ class AnimationPipeline:
                 failed_details = "; ".join(
                     [f"scene {c.scene_number}: {c.status}" for c in video_clips if c.status and c.status.startswith("failed")]
                 ) or "aucun détail"
-                hints = "Vérifiez WAVESPEED_API_KEY et la connexion à l'API Wan 2.5"
-                result.error_message = f"Aucun clip Wan 2.5 n'a pu être généré ({failed_details}). {hints}"
+                hints = "Vérifiez RUNWAY_API_KEY et la connexion à l'API Veo 3.1 Fast"
+                result.error_message = f"Aucun clip Veo 3.1 Fast n'a pu être généré ({failed_details}). {hints}"
                 raise Exception(result.error_message)
             
-            print(f"✅ {len(valid_clips)}/{len(scenes)} clips Wan 2.5 générés avec succès (audio inclus)")
-            
-            # Note: Pas d'étape audio séparée - Wan 2.5 l'intègre automatiquement
-            
-            # Étape 4: Assemblage final simplifié (clips Wan 2.5 déjà complets avec audio)
+            print(f"✅ {len(valid_clips)}/{len(scenes)} clips Veo 3.1 Fast générés avec succès (audio inclus)")
+
+            # Note: Pas d'étape audio séparée - Veo 3.1 Fast l'intègre automatiquement
+
+            # Étape 4: Assemblage final simplifié (clips Veo 3.1 Fast déjà complets avec audio)
             await self._update_progress(animation_id, AnimationStatus.ASSEMBLING_VIDEO, 85,
                                       "Assemblage de la vidéo finale...", progress_callback)
-            
+
             try:
-                # Assemblage simple - clips Wan 2.5 ont déjà l'audio intégré
-                final_video_url = await self.video_assembler.assemble_wan25_clips(
+                # Assemblage simple - clips Veo 3.1 Fast ont déjà l'audio intégré
+                final_video_url = await self.video_assembler.assemble_veo31_clips(
                     valid_clips, request.duration
                 )
             except Exception as e:
                 # Fallback: créer une séquence simple des clips
                 print(f"Échec assemblage complet, essai séquence simple: {e}")
-                final_video_url = await self.video_assembler.create_simple_wan25_sequence(valid_clips)
+                final_video_url = await self.video_assembler.create_simple_veo31_sequence(valid_clips)
             
             if not final_video_url:
                 # Dernière solution: retourner le premier clip valide

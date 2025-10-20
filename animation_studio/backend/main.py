@@ -61,31 +61,31 @@ pipeline = AnimationPipeline()
 async def lifespan(app: FastAPI):
     """Gestion du cycle de vie de l'application (Wan 2.5)"""
     # Startup
-    print("🎬 Animation Studio Wan 2.5 - Démarrage du serveur...")
+    print("🎬 Animation Studio Veo 3.1 Fast - Démarrage du serveur...")
     
     # Mode rapide par défaut
     print("⚡ Mode démarrage rapide")
     # Validation ultra-rapide des clés
     if config.OPENAI_API_KEY:
         print("✅ Clé OpenAI détectée (génération idées)")
-    if config.WAVESPEED_API_KEY:
-        print(f"✅ Clé Wavespeed détectée (Wan 2.5: {config.WAN25_MODEL})")
-    
-    print(f"🎨 Résolution par défaut: {config.WAN25_DEFAULT_RESOLUTION}")
-    print(f"🎵 Audio intégré: {config.WAN25_AUDIO_INTEGRATED}")
-    print("🚀 Prêt pour génération Wan 2.5!")
+    if os.getenv("RUNWAY_API_KEY"):
+        print(f"✅ Clé Runway détectée (Veo 3.1 Fast: {config.VEO31_MODEL})")
+
+    print(f"🎨 Résolution par défaut: {config.VEO31_DEFAULT_RESOLUTION}")
+    print(f"🎵 Audio intégré: {config.VEO31_AUDIO_INTEGRATED}")
+    print("🚀 Prêt pour génération Veo 3.1 Fast!")
     
     yield
     
     # Shutdown
-    print("🛑 Arrêt du serveur Wan 2.5...")
+    print("🛑 Arrêt du serveur Veo 3.1 Fast...")
     pipeline.cleanup_old_animations()
 
 # Création de l'app FastAPI
 app = FastAPI(
-    title="Animation Studio API (Wan 2.5)",
-    description="API de génération de dessins animés pour enfants avec Wan 2.5 (Alibaba) - Audio intégré",
-    version="2.0.0-wan25",
+    title="Animation Studio API (Veo 3.1 Fast)",
+    description="API de génération de dessins animés pour enfants avec Veo 3.1 Fast (Runway ML) - Audio intégré",
+    version="2.0.0-veo31",
     lifespan=lifespan
 )
 

@@ -13,12 +13,12 @@ class Config:
     WAVESPEED_API_KEY = os.getenv("WAVESPEED_API_KEY", "1611882205be3979e2cc2c83a5265c1882838dd59ce222f77b3cd4cfc2ac6dea")
     
     # ==========================================
-    # WAN 2.5 CONFIGURATION (Alibaba)
+    # VEO 3.1 FAST CONFIGURATION (Runway ML)
     # ==========================================
-    WAN25_MODEL = "alibaba/wan-2.5/text-to-video-fast"
-    WAN25_BASE_URL = "https://api.wavespeed.ai/api/v3"
-    WAN25_MAX_DURATION = 10  # Durée maximale par clip (5s ou 10s)
-    WAN25_MIN_DURATION = 5   # Durée minimale par clip
+    VEO31_MODEL = "veo3.1_fast"
+    VEO31_BASE_URL = "https://api.runwayml.com/v1"
+    VEO31_MAX_DURATION = 60  # Durée maximale par clip (jusqu'à 60s)
+    VEO31_MIN_DURATION = 5   # Durée minimale par clip
     
     # Résolutions supportées par Wan 2.5
     WAN25_RESOLUTIONS = {
