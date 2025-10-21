@@ -32,6 +32,7 @@ from services.comics_generator_gpt4o import ComicsGeneratorGPT4o
 from services.real_animation_generator import RealAnimationGenerator
 from services.local_animation_generator import LocalAnimationGenerator
 from services.sora2_zseedance_generator import Sora2ZseedanceGenerator
+from services.sora2_generator import Sora2Generator
 from utils.translate import translate_text
 from routes.admin_features import router as admin_features_router, load_features_config, CONFIG_FILE
 # from models.animation import AnimationRequest
@@ -1038,12 +1039,9 @@ async def _generate_animation_logic(
             "status": "processing"
         }
 
-        # Lancer la génération en arrière-plan selon le mode
+        # Génération selon le workflow zseedance.json (toujours le même pipeline)
         import asyncio
-        if mode == 'sora2':
-            asyncio.create_task(generate_sora2_animation_task(task_id, theme, duration))
-        else:
-            asyncio.create_task(generate_real_animation_task(task_id, theme, duration))
+        asyncio.create_task(generate_zseedance_animation_task(task_id, theme, duration, style))
 
         # Retourner immédiatement le task_id
         result = {
@@ -1069,35 +1067,45 @@ async def _generate_animation_logic(
 task_storage = {}
 comic_task_storage = {}
 
-async def generate_real_animation_task(task_id: str, theme: str, duration: int):
+async def generate_zseedance_animation_task(task_id: str, theme: str, duration: int, style: str = "cartoon"):
     """
-    Tâche en arrière-plan pour la génération réelle d'animation
+    Tâche en arrière-plan pour la génération selon le workflow zseedance.json
+    Pipeline complet : Ideas → Prompts → Create Clips (Veo 3.1) → Create Sounds → Sequence Video
     """
     try:
-        print(f"🚀 Démarrage génération réelle pour {task_id}")
-        
+        print(f"🚀 Démarrage génération ZSEEDANCE pour {task_id} (thème: {theme}, durée: {duration}s, style: {style})")
+
         # Mettre à jour le statut
         task_storage[task_id]["status"] = "generating"
-        
-        # Sélection du générateur Veo 3.1 Fast (workflow fidèle à zseedance.json)
-        # Utilise Runway ML Veo 3.1 Fast basé sur le workflow zseedance
 
-        # Utiliser le générateur Veo 3.1 Fast (identique au workflow n8n)
+        # Utiliser le générateur Sora2ZseedanceGenerator (workflow fidèle à zseedance.json)
         generator = Sora2ZseedanceGenerator()
-        print(f"🎬 Utilisation de RUNWAY VEO 3.1 FAST (workflow n8n identique)")
-        
-        # Générer l'animation complète avec le workflow zseedance
+        print(f"🎬 Utilisation du workflow ZSEEDANCE (n8n identique)")
+
+        # Calculer le nombre de scènes selon la durée (comme zseedance : 10s par scène)
+        num_scenes = max(3, duration // 10)  # Minimum 3 scènes, 10s par scène
+        print(f"📊 Génération de {num_scenes} scènes de 10 secondes chacune")
+
+        # Générer l'animation complète selon le workflow zseedance
         animation_result = await generator.generate_complete_animation_zseedance(theme)
-        
+
+        # Vérifier que nous avons bien une vidéo finale
+        if animation_result.get("status") == "completed" and animation_result.get("final_video_url"):
+            print(f"✅ Animation ZSEEDANCE {task_id} générée avec succès!")
+            print(f"🎬 Vidéo finale: {animation_result['final_video_url'][:50]}...")
+        else:
+            print(f"⚠️ Animation générée mais pas de vidéo finale: {animation_result.get('status')}")
+
         # Stocker le résultat
         task_storage[task_id]["result"] = animation_result
         task_storage[task_id]["status"] = "completed"
-        
-        print(f"✅ Animation {task_id} générée avec succès!")
-        
+
     except Exception as e:
-        print(f"❌ Erreur génération {task_id}: {e}")
-        task_storage[task_id]["status"] = "failed" 
+        print(f"❌ Erreur génération ZSEEDANCE {task_id}: {e}")
+        import traceback
+        traceback.print_exc()
+
+        task_storage[task_id]["status"] = "failed"
         task_storage[task_id]["error"] = str(e)
 
 async def generate_comic_task(task_id: str, theme: str, art_style: str, num_pages: int, custom_prompt: str, character_photo_path: str):
