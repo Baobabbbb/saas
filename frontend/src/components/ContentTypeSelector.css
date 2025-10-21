@@ -31,6 +31,26 @@
   width: 100%;
 }
 
+.animation-full-width {
+  grid-column: 1 / -1; /* Prend toute la largeur de la grille */
+  padding: 1.5rem; /* Plus de padding pour le rendre plus grand */
+  font-size: 1.1em; /* Texte légèrement plus grand */
+}
+
+.animation-full-width .content-type-icon {
+  font-size: 2.5rem; /* Icône plus grande */
+}
+
+.animation-full-width .content-type-details h4 {
+  font-size: 1.2rem; /* Titre plus grand */
+  margin-bottom: 0.75rem; /* Plus d'espace */
+}
+
+.animation-full-width .content-type-details p {
+  font-size: 0.95rem; /* Description plus grande */
+  line-height: 1.4; /* Meilleure lisibilité */
+}
+
 .content-type-option:hover {
   background-color: #ede5ff;
 }
@@ -115,8 +135,25 @@
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
-  
+
   .content-type-option {
     padding: 0.75rem;
+  }
+
+  .animation-full-width {
+    padding: 1.2rem; /* Légèrement moins de padding sur mobile */
+    font-size: 1em; /* Taille normale sur mobile */
+  }
+
+  .animation-full-width .content-type-icon {
+    font-size: 2.2rem; /* Icône légèrement plus petite sur mobile */
+  }
+
+  .animation-full-width .content-type-details h4 {
+    font-size: 1.1rem; /* Titre légèrement plus petit sur mobile */
+  }
+
+  .animation-full-width .content-type-details p {
+    font-size: 0.9rem; /* Description légèrement plus petite sur mobile */
   }
 }
