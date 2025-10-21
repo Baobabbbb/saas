@@ -68,8 +68,11 @@ async def lifespan(app: FastAPI):
     # Validation ultra-rapide des clés
     if config.OPENAI_API_KEY:
         print("✅ Clé OpenAI détectée (génération idées)")
-    if os.getenv("RUNWAY_API_KEY"):
+    runway_key = os.getenv("RUNWAY_API_KEY")
+    if runway_key and runway_key != "your-runway-api-key-here":
         print(f"✅ Clé Runway détectée (Veo 3.1 Fast: {config.VEO31_MODEL})")
+    else:
+        print("⚠️ Clé Runway non configurée ou invalide")
 
     print(f"🎨 Résolution par défaut: {config.VEO31_DEFAULT_RESOLUTION}")
     print(f"🎵 Audio intégré: {config.VEO31_AUDIO_INTEGRATED}")

@@ -119,3 +119,4 @@ if __name__ == "__main__":
     else:
         print("\n❌ Résultat: Problèmes détectés - Vérifiez la configuration")
         sys.exit(1)
+

@@ -19,7 +19,17 @@ class Veo31Generator:
         self.base_url = config.VEO31_BASE_URL
         self.api_key = os.getenv("RUNWAY_API_KEY")  # Utilise RUNWAY_API_KEY au lieu de WAVESPEED_API_KEY
         self.model = config.VEO31_MODEL
-        self.default_resolution = "720p"  # Veo 3.1 Fast supporte différentes résolutions
+        self.default_resolution = config.VEO31_DEFAULT_RESOLUTION  # Utilise la configuration
+
+        # Vérifier si la clé API est valide
+        self.api_configured = bool(self.api_key and self.api_key != "your-runway-api-key-here")
+
+        if not self.api_configured:
+            print("⚠️ Clé API Runway non configurée - mode simulation")
+
+    def is_available(self) -> bool:
+        """Vérifie si l'API Veo 3.1 Fast est disponible"""
+        return self.api_configured
 
     async def generate_video_clip(self, scene: Scene) -> VideoClip:
         """
