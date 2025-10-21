@@ -33,7 +33,7 @@
 
 .animation-full-width {
   grid-column: 1 / -1; /* Prend toute la largeur de la grille */
-  padding: 1.2rem; /* Padding réduit pour le rendre plus fin */
+  padding: 1rem; /* Padding encore plus réduit pour le rendre plus fin */
   font-size: 1.1em; /* Texte légèrement plus grand */
 }
 
@@ -141,7 +141,7 @@
   }
 
   .animation-full-width {
-    padding: 1rem; /* Padding encore plus réduit sur mobile pour rester fin */
+    padding: 0.9rem; /* Padding encore plus réduit sur mobile pour rester fin */
     font-size: 1em; /* Taille normale sur mobile */
   }
 

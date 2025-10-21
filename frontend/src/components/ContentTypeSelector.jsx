@@ -25,8 +25,13 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
       setEnabledFeatures(enabled);
       
       // Si la fonctionnalité actuellement sélectionnée est désactivée,
-      // ne rien sélectionner par défaut (laisser contentType à null)
-      // L'utilisateur devra explicitement choisir un type de contenu
+      // basculer vers la première fonctionnalité disponible (sauf si c'est animation qui doit rester par défaut)
+      if (!enabled[contentType] && contentType !== 'animation') {
+        const firstEnabled = Object.keys(enabled).find(key => enabled[key].enabled);
+        if (firstEnabled) {
+          setContentType(firstEnabled);
+        }
+      }
     });
     
     return cleanup;

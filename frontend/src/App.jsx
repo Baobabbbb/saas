@@ -104,7 +104,7 @@ const getSafeFilename = (title) => {
 };
 
 function App() {
-  const [contentType, setContentType] = useState(null); // 'rhyme', 'audio', 'coloring', 'animation' - aucun sélectionné par défaut
+  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'audio', 'coloring', 'animation' - Dessin animé sélectionné par défaut
   const [selectedRhyme, setSelectedRhyme] = useState(null);
   const [customRhyme, setCustomRhyme] = useState('');
   
