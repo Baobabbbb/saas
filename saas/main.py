@@ -992,7 +992,7 @@ async def _generate_animation_logic(
     """
     Logique commune de génération d'animation
     """
-
+    try:
         # Nettoyer et valider le thème (gérer le cas "null")
         if isinstance(theme, str):
             theme = theme.strip().lower()
