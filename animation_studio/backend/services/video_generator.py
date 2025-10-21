@@ -2,24 +2,24 @@ import asyncio
 import aiohttp
 import time
 from typing import List, Dict, Any
-from config import config
+import os
 from models.schemas import Scene, VideoClip
 
 class VideoGenerator:
     """Service de génération vidéo via Wavespeed AI SeedANce"""
     
     def __init__(self):
-        self.base_url = config.WAVESPEED_BASE_URL
-        self.api_key = config.WAVESPEED_API_KEY
-        self.model = config.WAVESPEED_MODEL
+        self.base_url = "https://api.wavespeed.ai"
+        self.api_key = os.getenv("WAVESPEED_API_KEY")
+        self.model = "bytedance/seedance-v1-pro-t2v-480p"
     
     async def generate_video_clip(self, scene: Scene) -> VideoClip:
         """Génère un clip vidéo pour une scène donnée via Wavespeed AI"""
         
         # Préparer les paramètres selon l'API Wavespeed (inspiré de zseedance.json)
-        req_duration = min(int(scene.duration), config.WAVESPEED_MAX_DURATION)
+        req_duration = min(int(scene.duration), 30)  # Max 30s pour Seedance
         video_params = {
-            "aspect_ratio": config.VIDEO_ASPECT_RATIO,
+            "aspect_ratio": "9:16",  # Format vertical
             "duration": req_duration,
             "prompt": scene.prompt
         }
