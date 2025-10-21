@@ -953,12 +953,12 @@ async def generate_animation_post(
         custom_prompt=request.custom_prompt
     )
 
-@app.post("/generate-quick")  # Route alternative pour compatibilité frontend
-async def generate_quick_post(
+@app.post("/generate-quick-json")
+async def generate_quick_json(
     request: GenerateQuickRequest
 ):
     """
-    Génère une animation via POST avec body JSON (route quick)
+    Génère une animation via POST avec body JSON uniquement (nouvelle route)
     """
     return await _generate_animation_logic(
         theme=request.theme,
