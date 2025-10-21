@@ -1,15 +1,15 @@
 import asyncio
 import aiohttp
 from typing import List, Dict, Any
-from config import config
+import os
 from models.schemas import StoryIdea, VideoClip, AudioTrack
 
 class AudioGenerator:
     """Service de génération audio via FAL AI (basé sur mmaudio-v2 du workflow zseedance.json)"""
     
     def __init__(self):
-        self.fal_api_key = config.FAL_API_KEY
-        self.audio_model = config.FAL_AUDIO_MODEL
+        self.fal_api_key = os.getenv("FAL_API_KEY")
+        self.audio_model = "fal-ai/mmaudio-v2"  # Modèle par défaut
         self.base_url = "https://queue.fal.run"
     
     async def generate_audio_for_video(self, story_idea: StoryIdea, video_clips: List[VideoClip], total_duration: int) -> AudioTrack:
