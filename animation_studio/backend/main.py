@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from typing import Dict, Any
 
-from config import config
+import os
 from models.schemas import (
     AnimationRequest, AnimationResult, AnimationProgress, 
     DiagnosticResponse, AnimationTheme, AnimationDuration
@@ -66,16 +66,16 @@ async def lifespan(app: FastAPI):
     # Mode rapide par défaut
     print("⚡ Mode démarrage rapide")
     # Validation ultra-rapide des clés
-    if config.OPENAI_API_KEY:
+    if os.getenv("OPENAI_API_KEY"):
         print("✅ Clé OpenAI détectée (génération idées)")
     runway_key = os.getenv("RUNWAY_API_KEY")
     if runway_key and runway_key != "your-runway-api-key-here":
-        print(f"✅ Clé Runway détectée (Veo 3.1 Fast: {config.VEO31_MODEL})")
+        print("✅ Clé Runway détectée (Veo 3.1 Fast: veo3.1_fast)")
     else:
         print("⚠️ Clé Runway non configurée ou invalide")
 
-    print(f"🎨 Résolution par défaut: {config.VEO31_DEFAULT_RESOLUTION}")
-    print(f"🎵 Audio intégré: {config.VEO31_AUDIO_INTEGRATED}")
+    print("🎨 Résolution par défaut: 720p")
+    print("🎵 Audio intégré: True")
     print("🚀 Prêt pour génération Veo 3.1 Fast!")
     
     yield
@@ -126,9 +126,9 @@ async def diagnostic():
         health = await pipeline.validate_pipeline_health()
         
         return DiagnosticResponse(
-            openai_configured=bool(config.OPENAI_API_KEY),
-            wavespeed_configured=bool(config.WAVESPEED_API_KEY),
-            wan25_model=config.WAN25_MODEL,
+            openai_configured=bool(os.getenv("OPENAI_API_KEY")),
+            wavespeed_configured=bool(os.getenv("WAVESPEED_API_KEY")),
+            wan25_model=os.getenv("WAN25_MODEL", "alibaba/wan-2.5/text-to-video-fast"),
             all_systems_operational=health["pipeline_operational"],
             details=health
         )
@@ -162,7 +162,7 @@ async def get_themes():
         return {
             "themes": formatted_themes,
             "durations": [30, 60, 120, 180, 240, 300],
-            "default_duration": config.DEFAULT_DURATION
+            "default_duration": 30
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur récupération thèmes: {str(e)}")
@@ -382,11 +382,11 @@ if __name__ == "__main__":
     backend_dir = Path(__file__).parent
     sys.path.insert(0, str(backend_dir))
     
-    print(f"🚀 Démarrage sur http://{config.HOST}:{config.PORT}")
+    print("🚀 Démarrage sur http://0.0.0.0:8007")
     uvicorn.run(
         app,  # Utiliser l'objet app directement
-        host=config.HOST,
-        port=config.PORT,
+        host="0.0.0.0",
+        port=8007,
         reload=False,  # Désactivé pour éviter les conflits d'imports
         log_level="warning",  # Mode rapide
         access_log=False      # Désactiver logs d'accès
