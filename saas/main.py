@@ -169,6 +169,19 @@ async def health_check():
         "timestamp": datetime.now().isoformat()
     }
 
+# Route pour servir le favicon.ico
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Serve favicon.ico"""
+    favicon_path = static_dir / "favicon.ico"
+    if favicon_path.exists():
+        return FileResponse(favicon_path)
+    # Fallback vers le logo si favicon n'existe pas
+    logo_path = static_dir / "logo_v.png"
+    if logo_path.exists():
+        return FileResponse(logo_path, media_type="image/png")
+    raise HTTPException(status_code=404, detail="Favicon not found")
+
 # Endpoint pour fournir les variables d'environnement au frontend
 @app.get("/api/config")
 async def get_config():
@@ -922,6 +935,7 @@ async def get_themes():
 @app.post("/generate-quick")  # Route alternative pour compatibilité frontend
 @app.get("/generate-quick")   # Ajouter support GET pour compatibilité
 async def generate_animation(
+    request: Request = None,
     theme: str = "space",
     duration: int = 30,
     style: str = "cartoon",
@@ -930,23 +944,53 @@ async def generate_animation(
 ):
     """
     Génère une VRAIE animation avec les APIs Wavespeed et Fal AI
+    Supporte les requêtes GET avec query parameters et POST avec JSON body
     """
     try:
-        # Vérifier si c'est un appel GET (query params) ou POST (body JSON)
-        if hasattr(request, 'style'):  # C'est une requête POST avec body JSON
-            style = request.style
-            theme = request.theme
-            duration = request.duration
-            mode = request.mode
-        else:  # C'est une requête GET avec query params
-            # Les paramètres sont déjà extraits par FastAPI
-            pass
+        # Récupérer les paramètres selon le type de requête
+        if request and request.method == "POST":
+            # Requête POST avec body JSON
+            try:
+                body = await request.json()
+                theme = body.get("theme", theme)
+                duration = body.get("duration", duration)
+                style = body.get("style", style)
+                mode = body.get("mode", mode)
+                custom_prompt = body.get("custom_prompt", custom_prompt)
+            except:
+                # Si le body n'est pas du JSON valide, utiliser les paramètres par défaut
+                pass
+        # Les paramètres GET sont automatiquement extraits par FastAPI
 
-        # Valider et corriger le thème si nécessaire
+        # Nettoyer et valider le thème (gérer le cas "null")
+        if isinstance(theme, str):
+            theme = theme.strip().lower()
+            if theme == "null" or theme == "" or not theme:
+                theme = "space"
+
+        # Valider et corriger les autres paramètres
         valid_themes = ["space", "ocean", "forest", "city", "adventure", "fantasy", "cartoon"]
         if theme not in valid_themes:
             print(f"⚠️ Thème invalide '{theme}', utilisation de 'space' par défaut")
             theme = "space"
+
+        # Valider la durée
+        try:
+            duration = int(duration)
+            if duration < 30 or duration > 300:
+                duration = 30
+        except:
+            duration = 30
+
+        # Valider le style
+        valid_styles = ["cartoon", "3d", "manga", "comics", "realistic", "watercolor"]
+        if style not in valid_styles:
+            style = "cartoon"
+
+        # Valider le mode
+        valid_modes = ["demo", "sora2", "production"]
+        if mode not in valid_modes:
+            mode = "demo"
 
         print(f"🎬 VRAIE Génération animation: {theme} / {style} / {duration}s / mode: {mode}")
 
@@ -965,7 +1009,7 @@ async def generate_animation(
 
         # Lancer la génération en arrière-plan selon le mode
         import asyncio
-        if generationMode == 'sora2':
+        if mode == 'sora2':
             asyncio.create_task(generate_sora2_animation_task(task_id, theme, duration))
         else:
             asyncio.create_task(generate_real_animation_task(task_id, theme, duration))
@@ -986,6 +1030,8 @@ async def generate_animation(
 
     except Exception as e:
         print(f"❌ Erreur génération animation: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erreur lors de la génération de l'animation : {str(e)}")
 
 # Stockage temporaire des tâches en cours (en production, utiliser Redis/DB)
