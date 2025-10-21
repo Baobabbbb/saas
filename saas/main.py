@@ -935,7 +935,7 @@ async def get_themes():
 @app.post("/generate-quick")  # Route alternative pour compatibilité frontend
 @app.get("/generate-quick")   # Ajouter support GET pour compatibilité
 async def generate_animation(
-    request: Request = None,
+    request: Request,
     theme: str = "space",
     duration: int = 30,
     style: str = "cartoon",
@@ -948,7 +948,7 @@ async def generate_animation(
     """
     try:
         # Récupérer les paramètres selon le type de requête
-        if request and request.method == "POST":
+        if request.method == "POST":
             # Requête POST avec body JSON
             try:
                 body = await request.json()
@@ -957,9 +957,9 @@ async def generate_animation(
                 style = body.get("style", style)
                 mode = body.get("mode", mode)
                 custom_prompt = body.get("custom_prompt", custom_prompt)
-            except:
-                # Si le body n'est pas du JSON valide, utiliser les paramètres par défaut
-                pass
+            except Exception as e:
+                print(f"⚠️ Erreur parsing JSON body: {e}")
+                # Les paramètres GET sont automatiquement extraits par FastAPI
         # Les paramètres GET sont automatiquement extraits par FastAPI
 
         # Nettoyer et valider le thème (gérer le cas "null")
