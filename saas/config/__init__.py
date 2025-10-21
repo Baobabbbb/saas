@@ -18,6 +18,12 @@ STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
 SUNO_API_KEY = os.getenv("SUNO_API_KEY")
 SUNO_BASE_URL = os.getenv("SUNO_BASE_URL", "https://api.sunoapi.org/api/v1")
 
+# --- Wan 2.5 (Animations intégrées avec audio) ---
+WAN25_MODEL = os.getenv("WAN25_MODEL", "alibaba/wan-2.5/text-to-video-fast")
+WAN25_BASE_URL = os.getenv("WAN25_BASE_URL", "https://api.wavespeed.ai")
+WAN25_DEFAULT_RESOLUTION = os.getenv("WAN25_DEFAULT_RESOLUTION", "720p")
+WAN25_MAX_DURATION = int(os.getenv("WAN25_MAX_DURATION", "10"))
+
 # --- Sora 2 (Animations avancées) ---
 SORA2_PLATFORMS = {
     "openai": {
@@ -82,5 +88,6 @@ __all__ = [
     'TEXT_MODEL', 'IMAGE_MODEL', 'TTS_MODEL', 'STT_MODEL',
     'OPENAI_API_KEY', 'STABILITY_API_KEY',
     'SUNO_API_KEY', 'SUNO_BASE_URL',
+    'WAN25_MODEL', 'WAN25_BASE_URL', 'WAN25_DEFAULT_RESOLUTION', 'WAN25_MAX_DURATION',
     'SORA2_PLATFORMS', 'SORA2_CONFIG', 'SORA2_BEST_PLATFORM'
 ]
