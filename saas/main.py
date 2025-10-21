@@ -65,6 +65,13 @@ class AnimationRequest(BaseModel):
     custom_prompt: Optional[str] = None
     generation_mode: Optional[str] = "demo"  # demo, sora2, production
 
+class GenerateQuickRequest(BaseModel):
+    theme: str = "space"
+    duration: int = 30
+    style: str = "cartoon"
+    mode: str = "demo"
+    custom_prompt: Optional[str] = None
+
 # Modèle pour le formulaire de contact
 class ContactForm(BaseModel):
     firstName: str
@@ -932,10 +939,37 @@ async def get_themes():
 
 # --- Animation ---
 @app.post("/generate_animation/")
+async def generate_animation_post(
+    request: AnimationRequest
+):
+    """
+    Génère une animation via POST avec body JSON
+    """
+    return await _generate_animation_logic(
+        theme=request.theme,
+        duration=request.duration or 30,
+        style=request.style or "cartoon",
+        mode=request.mode or "demo",
+        custom_prompt=request.custom_prompt
+    )
+
 @app.post("/generate-quick")  # Route alternative pour compatibilité frontend
+async def generate_quick_post(
+    request: GenerateQuickRequest
+):
+    """
+    Génère une animation via POST avec body JSON (route quick)
+    """
+    return await _generate_animation_logic(
+        theme=request.theme,
+        duration=request.duration,
+        style=request.style,
+        mode=request.mode,
+        custom_prompt=request.custom_prompt
+    )
+
 @app.get("/generate-quick")   # Ajouter support GET pour compatibilité
 async def generate_animation(
-    request: Request,
     theme: str = "space",
     duration: int = 30,
     style: str = "cartoon",
@@ -944,23 +978,20 @@ async def generate_animation(
 ):
     """
     Génère une VRAIE animation avec les APIs Wavespeed et Fal AI
-    Supporte les requêtes GET avec query parameters et POST avec JSON body
+    Supporte les requêtes GET avec query parameters
     """
-    try:
-        # Récupérer les paramètres selon le type de requête
-        if request.method == "POST":
-            # Requête POST avec body JSON
-            try:
-                body = await request.json()
-                theme = body.get("theme", theme)
-                duration = body.get("duration", duration)
-                style = body.get("style", style)
-                mode = body.get("mode", mode)
-                custom_prompt = body.get("custom_prompt", custom_prompt)
-            except Exception as e:
-                print(f"⚠️ Erreur parsing JSON body: {e}")
-                # Les paramètres GET sont automatiquement extraits par FastAPI
-        # Les paramètres GET sont automatiquement extraits par FastAPI
+    return await _generate_animation_logic(theme, duration, style, mode, custom_prompt)
+
+async def _generate_animation_logic(
+    theme: str,
+    duration: int,
+    style: str,
+    mode: str,
+    custom_prompt: str = None
+):
+    """
+    Logique commune de génération d'animation
+    """
 
         # Nettoyer et valider le thème (gérer le cas "null")
         if isinstance(theme, str):
