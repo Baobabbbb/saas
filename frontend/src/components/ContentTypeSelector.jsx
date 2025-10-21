@@ -24,14 +24,9 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
       
       setEnabledFeatures(enabled);
       
-      // Si la fonctionnalité actuellement sélectionnée est désactivée, 
-      // basculer vers la première fonctionnalité disponible
-      if (!enabled[contentType]) {
-        const firstEnabled = Object.keys(enabled).find(key => enabled[key].enabled);
-        if (firstEnabled) {
-          setContentType(firstEnabled);
-        }
-      }
+      // Si la fonctionnalité actuellement sélectionnée est désactivée,
+      // ne rien sélectionner par défaut (laisser contentType à null)
+      // L'utilisateur devra explicitement choisir un type de contenu
     });
     
     return cleanup;
