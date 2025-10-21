@@ -149,7 +149,7 @@ function App() {
   }, [contentType]);
 
   // Animation states
-  const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null);
+  const [selectedAnimationTheme, setSelectedAnimationTheme] = useState('space'); // Thème par défaut
   const [selectedDuration, setSelectedDuration] = useState(null);
   const [selectedStyle, setSelectedStyle] = useState(null);
   const [customStory, setCustomStory] = useState('');
@@ -362,6 +362,9 @@ function App() {
       setSelectedAnimationTheme('space'); // Thème par défaut
     }
   }, [contentType, selectedAnimationTheme]);
+
+  // S'assurer que le thème est toujours défini
+  const currentTheme = selectedAnimationTheme || 'space';
 
   // Mettre à jour le texte du bouton selon le statut admin et le type de contenu
   const updateButtonText = (adminStatus) => {
@@ -587,7 +590,8 @@ function App() {
     } else if (contentType === 'animation') {
       // Déterminer le contenu de l'histoire
       let story;
-      if (selectedAnimationTheme && selectedAnimationTheme !== 'custom') {
+      const currentTheme = selectedAnimationTheme || 'space'; // Fallback si null
+      if (currentTheme && currentTheme !== 'custom') {
         // Thème prédéfini - créer une histoire de base
         const themeStories = {
           'magie': 'Une histoire magique avec des créatures fantastiques dans un monde enchanté',
@@ -598,7 +602,7 @@ function App() {
           'amitié': 'Une belle histoire d\'amitié et de solidarité',
           'famille': 'Une histoire touchante sur les liens familiaux'
         };
-        story = themeStories[selectedAnimationTheme] || `Une belle histoire sur le thème ${selectedAnimationTheme}`;
+        story = themeStories[currentTheme] || `Une belle histoire sur le thème ${currentTheme}`;
       } else {
         // Histoire personnalisée
         story = customStory;
@@ -619,7 +623,7 @@ function App() {
         'amitié': 'friendship',
         'famille': 'friendship'
       };
-      const normalizedTheme = normalizedThemeMap[selectedAnimationTheme] || selectedAnimationTheme || 'adventure';
+      const normalizedTheme = normalizedThemeMap[currentTheme] || currentTheme || 'adventure';
 
       const payload = {
         theme: normalizedTheme,
@@ -645,7 +649,7 @@ function App() {
         };
       } else if (generationMode === 'demo') {
         // Mode démo - utiliser generate-quick
-        endpoint = `${ANIMATION_API_BASE_URL}/generate-quick?theme=${encodeURIComponent(selectedAnimationTheme || 'space')}&duration=${selectedDuration}`;
+        endpoint = `${ANIMATION_API_BASE_URL}/generate-quick?theme=${encodeURIComponent(currentTheme || 'space')}&duration=${selectedDuration}`;
         fetchOptions = {
           method: 'POST',
           headers: {
@@ -728,7 +732,7 @@ function App() {
       title = comicsResult?.title || 'Ma Bande Dessinée 📚';
     } else if (contentType === 'animation') {
       // Utiliser le titre généré par l'IA depuis l'API animation
-      title = generatedContent?.title || generateChildFriendlyTitle('animation', selectedAnimationTheme || 'aventure');
+      title = generatedContent?.title || generateChildFriendlyTitle('animation', currentTheme || 'aventure');
     } else if (contentType === 'histoire') {
       // Utiliser le titre généré par l'IA depuis l'API histoire
       title = generatedContent?.title || generateChildFriendlyTitle('histoire', selectedStory === 'custom' ? 'default' : selectedStory);
@@ -771,7 +775,7 @@ function App() {
           title: title,
           createdAt: new Date().toISOString(),
           content: generatedContent ? `Animation de ${generatedContent.actual_duration}s avec ${generatedContent.total_scenes} scènes` : 'Animation générée',
-          theme: selectedAnimationTheme,
+          theme: currentTheme,
           clips: generatedContent?.clips || [],
           animation_data: generatedContent || {}
         };
