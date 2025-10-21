@@ -6,20 +6,19 @@ Basé sur le workflow zseedance.json mais avec Veo 3.1 Fast
 
 import asyncio
 import aiohttp
-import time
 import os
+import time
 from typing import List, Dict, Any, Optional
-from config import config
 from models.schemas import Scene, VideoClip
 
 class Veo31Generator:
     """Service de génération vidéo EXCLUSIF Veo 3.1 Fast avec audio intégré"""
 
     def __init__(self):
-        self.base_url = config.VEO31_BASE_URL
+        self.base_url = "https://api.runwayml.com/v1"
         self.api_key = os.getenv("RUNWAY_API_KEY")  # Utilise RUNWAY_API_KEY au lieu de WAVESPEED_API_KEY
-        self.model = config.VEO31_MODEL
-        self.default_resolution = config.VEO31_DEFAULT_RESOLUTION  # Utilise la configuration
+        self.model = "veo3.1_fast"
+        self.default_resolution = "720p"  # Utilise la configuration
 
         # Vérifier si la clé API est valide
         self.api_configured = bool(self.api_key and self.api_key != "your-runway-api-key-here")
@@ -43,8 +42,8 @@ class Veo31Generator:
         """
 
         # Adaptation durée Veo 3.1 Fast (max 60s)
-        duration = min(int(scene.duration), config.VEO31_MAX_DURATION)
-        duration = max(duration, config.VEO31_MIN_DURATION)  # Min 5s
+        duration = min(int(scene.duration), 60)  # Max 60s pour Veo 3.1 Fast
+        duration = max(duration, 5)  # Min 5s
 
         # Créer le prompt optimisé pour Veo 3.1 Fast
         optimized_prompt = self._create_veo31_optimized_prompt(scene)
