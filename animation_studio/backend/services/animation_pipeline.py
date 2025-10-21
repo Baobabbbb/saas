@@ -3,7 +3,7 @@ import uuid
 import time
 from datetime import datetime
 from typing import Dict, Any, Optional, Callable
-from config import config
+import os
 from models.schemas import (
     AnimationRequest, AnimationResult, AnimationProgress, AnimationStatus,
     StoryIdea, Scene, VideoClip, AudioTrack, AnimationTheme
@@ -267,12 +267,13 @@ class AnimationPipeline:
         
         # Tester Wan 2.5 (génération vidéo avec audio intégré)
         try:
-            if config.WAVESPEED_API_KEY:
+            wavespeed_key = os.getenv("WAVESPEED_API_KEY")
+            if wavespeed_key:
                 health_check["services"]["wan25_generator"] = {
                     "status": "configured",
-                    "model": config.WAN25_MODEL,
-                    "max_duration": config.WAN25_MAX_DURATION,
-                    "resolution": config.WAN25_DEFAULT_RESOLUTION,
+                    "model": os.getenv("WAN25_MODEL", "alibaba/wan-2.5/text-to-video-fast"),
+                    "max_duration": int(os.getenv("WAN25_MAX_DURATION", "10")),
+                    "resolution": os.getenv("WAN25_DEFAULT_RESOLUTION", "720p"),
                     "audio_integrated": True
                 }
             else:
