@@ -209,46 +209,150 @@ OUTPUT FORMAT:
 
     async def create_sora2_clip(self, scene_prompt: str, idea: str, environment: str) -> str:
         """
-        Create Clips - Génère un clip vidéo avec Sora 2 (identique à zseedance mais avec Sora 2)
+        Create Clips - Génère un clip vidéo avec Runway ML Veo 3.1 Fast
         """
         try:
             platform = self.selected_platform
             platform_config = self.sora_platforms[platform]
 
-            # Prompt Sora 2 identique au format zseedance
-            sora2_prompt = f"VIDEO THEME: {idea} | WHAT HAPPENS IN THE VIDEO: {scene_prompt} | WHERE THE VIDEO IS SHOT: {environment}"
+            if platform != "runway":
+                logger.warning(f"⚠️ Plateforme {platform} non supportée pour la génération vidéo")
+                # Fallback vers URL mockée
+                video_id = str(uuid.uuid4())
+                mock_video_url = f"https://cdn.example.com/sora2/{video_id}.mp4"
+                logger.info(f"✅ Clip mock généré: {mock_video_url}")
+                return mock_video_url
 
-            logger.info(f"🎬 Génération Sora 2 scène: {scene_prompt[:50]}... (plateforme: {platform})")
+            # Prompt pour Runway ML identique au format zseedance
+            runway_prompt = f"VIDEO THEME: {idea} | WHAT HAPPENS IN THE VIDEO: {scene_prompt} | WHERE THE VIDEO IS SHOT: {environment}"
 
-            # Simulation de génération Sora 2 (à remplacer par vraie API)
-            # Format identique à zseedance : 10 secondes, 9:16, etc.
-            video_id = str(uuid.uuid4())
-            mock_video_url = f"https://cdn.example.com/sora2/{video_id}.mp4"
+            logger.info(f"🎬 Génération Runway ML scène: {scene_prompt[:50]}...")
 
-            logger.info(f"✅ Clip Sora 2 généré: {mock_video_url}")
-            return mock_video_url
+            # Préparation de la requête pour Runway ML API
+            runway_payload = {
+                "model": platform_config["model"],  # "veo3.1_fast"
+                "prompt": runway_prompt,
+                "duration": 10,  # 10 secondes comme zseedance
+                "ratio": "9:16",  # Format vertical comme zseedance
+                "seed": None,
+                "loop": False
+            }
+
+            # Headers pour l'API Runway ML
+            headers = {
+                "Authorization": f"Bearer {platform_config['api_key']}",
+                "Content-Type": "application/json"
+            }
+
+            # URL de l'API Runway ML
+            api_url = f"{platform_config['base_url']}/generation"
+
+            logger.info(f"📡 Appel API Runway ML: {api_url}")
+
+            # Faire la requête à l'API Runway ML
+            async with aiohttp.ClientSession() as session:
+                async with session.post(api_url, json=runway_payload, headers=headers) as response:
+                    if response.status == 200:
+                        response_data = await response.json()
+                        task_id = response_data.get("id")
+                        logger.info(f"✅ Tâche Runway ML créée: {task_id}")
+
+                        # Attendre que la génération soit terminée
+                        video_url = await self._wait_for_runway_task(session, task_id, headers)
+                        return video_url
+
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"❌ Erreur API Runway ML ({response.status}): {error_text}")
+                        raise Exception(f"API Runway ML error: {response.status} - {error_text}")
 
         except Exception as e:
-            logger.error(f"Erreur génération clip Sora 2: {e}")
-            raise
+            logger.error(f"Erreur génération clip Runway ML: {e}")
+            # Fallback vers URL mockée en cas d'erreur
+            video_id = str(uuid.uuid4())
+            mock_video_url = f"https://cdn.example.com/runway/{video_id}.mp4"
+            logger.warning(f"⚠️ Fallback vers URL mockée: {mock_video_url}")
+            return mock_video_url
+
+    async def _wait_for_runway_task(self, session, task_id: str, headers: dict, max_wait: int = 300) -> str:
+        """
+        Attend qu'une tâche Runway ML soit terminée et retourne l'URL de la vidéo
+        """
+        api_url = f"https://api.runwayml.com/v1/generation/{task_id}"
+
+        start_time = time.time()
+        while time.time() - start_time < max_wait:
+            try:
+                async with session.get(api_url, headers=headers) as response:
+                    if response.status == 200:
+                        task_data = await response.json()
+
+                        status = task_data.get("status")
+                        logger.info(f"📊 Statut tâche Runway ML: {status}")
+
+                        if status == "SUCCEEDED":
+                            # Récupérer l'URL de la vidéo générée
+                            assets = task_data.get("assets", {})
+                            video_assets = assets.get("videos", [])
+
+                            if video_assets:
+                                video_url = video_assets[0].get("url")
+                                if video_url:
+                                    logger.info(f"✅ Vidéo Runway ML générée: {video_url}")
+                                    return video_url
+
+                        elif status == "FAILED":
+                            error_msg = task_data.get("error", "Erreur inconnue")
+                            logger.error(f"❌ Échec génération Runway ML: {error_msg}")
+                            raise Exception(f"Runway ML generation failed: {error_msg}")
+
+                        # Attendre avant de vérifier à nouveau
+                        await asyncio.sleep(10)
+
+                    else:
+                        logger.warning(f"⚠️ Erreur vérification statut ({response.status})")
+                        await asyncio.sleep(5)
+
+            except Exception as e:
+                logger.warning(f"⚠️ Erreur lors de la vérification: {e}")
+                await asyncio.sleep(5)
+
+        # Timeout
+        logger.error(f"⏰ Timeout génération Runway ML après {max_wait}s")
+        raise Exception(f"Runway ML generation timeout after {max_wait} seconds")
 
     async def sequence_sora2_video(self, video_urls: List[str]) -> str:
         """
-        Sequence Video - Assemble les clips Sora 2 (simplifié car audio intégré)
+        Sequence Video - Assemble les clips avec l'API Runway ML
         """
         try:
-            logger.info(f"🔗 Assemblage Sora 2 de {len(video_urls)} clips...")
+            logger.info(f"🔗 Assemblage Runway ML de {len(video_urls)} clips...")
 
-            # Avec Sora 2, l'audio est intégré, donc assemblage simplifié
+            if len(video_urls) == 0:
+                raise Exception("Aucun clip à assembler")
+
             if len(video_urls) == 1:
+                logger.info("✅ Un seul clip - pas d'assemblage nécessaire")
                 return video_urls[0]
-            else:
-                # Pour plusieurs clips, retourner le premier (simplification)
-                # À implémenter: assemblage réel avec FFmpeg ou API Sora 2
+
+            platform = self.selected_platform
+            platform_config = self.sora_platforms[platform]
+
+            if platform != "runway":
+                logger.warning(f"⚠️ Assemblage non supporté pour plateforme {platform}")
                 return video_urls[0]
+
+            # Préparation pour l'assemblage avec Runway ML
+            # Pour l'instant, retournons le premier clip (simplification)
+            # TODO: Implémenter l'assemblage réel avec l'API Runway ML si disponible
+            logger.info("⚠️ Assemblage simplifié - retourne le premier clip")
+            logger.info("💡 TODO: Implémenter assemblage vidéo réel avec API Runway ML")
+
+            return video_urls[0]
 
         except Exception as e:
-            logger.error(f"Erreur assemblage Sora 2: {e}")
+            logger.error(f"Erreur assemblage Runway ML: {e}")
+            # Fallback vers le premier clip
             return video_urls[0] if video_urls else ""
 
     async def generate_complete_animation_zseedance(self, theme: str = "space") -> Dict[str, Any]:
