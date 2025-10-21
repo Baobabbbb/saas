@@ -149,7 +149,7 @@ function App() {
   }, [contentType]);
 
   // Animation states
-  const [selectedAnimationTheme, setSelectedAnimationTheme] = useState('space'); // Thème par défaut
+  const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null); // Aucun thème par défaut
   const [selectedDuration, setSelectedDuration] = useState(null);
   const [selectedStyle, setSelectedStyle] = useState(null);
   const [customStory, setCustomStory] = useState('');
@@ -359,7 +359,7 @@ function App() {
   // Initialiser le thème par défaut pour les animations
   useEffect(() => {
     if (contentType === 'animation' && !selectedAnimationTheme) {
-      setSelectedAnimationTheme('space'); // Thème par défaut
+      setSelectedAnimationTheme(null); // Aucun thème par défaut
     }
   }, [contentType, selectedAnimationTheme]);
 
