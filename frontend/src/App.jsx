@@ -630,15 +630,13 @@ function App() {
         custom_prompt: story || undefined
       };
 
-      // Utiliser toujours le vrai pipeline zseedance (endpoint generate-quick)
-      const endpoint = `${API_BASE_URL}/generate-quick?theme=${encodeURIComponent(normalizedTheme)}&duration=${selectedDuration}&style=${selectedStyle || 'cartoon'}`;
+      // Utiliser toujours le vrai pipeline zseedance (endpoint generate-quick - GET seulement)
+      const endpoint = `${API_BASE_URL}/generate-quick?theme=${encodeURIComponent(normalizedTheme)}&duration=${selectedDuration}&style=${selectedStyle || 'cartoon'}&custom_prompt=${encodeURIComponent(story || '')}`;
       const fetchOptions = {
-        method: 'POST',
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json; charset=utf-8',
           'Accept': 'application/json'
-        },
-        body: JSON.stringify(payload)
+        }
       };
 
       const response = await fetch(endpoint, fetchOptions);
