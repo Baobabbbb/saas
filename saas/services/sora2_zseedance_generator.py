@@ -404,7 +404,7 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
             runway_payload = {
                 "model": "veo3.1_fast",  # Veo 3.1 Fast - text-to-video
                 "promptText": runway_prompt,  # Prompt texte pour génération directe
-                "duration": 10,  # 10 secondes comme zseedance
+                "duration": 8,  # 8 secondes max pour veo3.1_fast (4, 6 ou 8)
                 "ratio": "1920:1080",  # Format 16:9 en pixels (requis par API)
                 "watermark": False
             }
@@ -703,9 +703,9 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
         try:
             logger.info(f"🚀 Démarrage génération ZSEEDANCE: {theme} ({duration}s, style: {style})")
 
-            # Calculer le nombre de scènes selon la durée (comme zseedance : 10s par scène)
-            num_scenes = max(3, duration // 10)  # Minimum 3 scènes
-            logger.info(f"📊 Génération de {num_scenes} scènes de 10 secondes chacune")
+            # Calculer le nombre de scènes selon la durée (8s par scène avec veo3.1_fast)
+            num_scenes = max(3, duration // 8)  # Minimum 3 scènes, 8s par scène
+            logger.info(f"📊 Génération de {num_scenes} scènes de 8 secondes chacune")
 
             # Étape 1: Ideas AI Agent avec adaptation au thème choisi
             logger.info("📝 Étape 1: Ideas AI Agent (adapté au thème)...")

@@ -1118,9 +1118,9 @@ async def generate_zseedance_animation_task(task_id: str, theme: str, duration: 
             raise init_error
         print(f"🎬 Utilisation du workflow ZSEEDANCE (n8n identique)")
 
-        # Calculer le nombre de scènes selon la durée (comme zseedance : 10s par scène)
-        num_scenes = max(3, duration // 10)  # Minimum 3 scènes, 10s par scène
-        print(f"📊 Génération de {num_scenes} scènes de 10 secondes chacune")
+        # Calculer le nombre de scènes selon la durée (8s par scène avec veo3.1_fast)
+        num_scenes = max(3, duration // 8)  # Minimum 3 scènes, 8s par scène
+        print(f"📊 Génération de {num_scenes} scènes de 8 secondes chacune")
 
         # Générer l'animation complète selon le workflow zseedance
         print(f"🚀 Appel generate_complete_animation_zseedance avec thème: {theme}")
