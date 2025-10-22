@@ -179,7 +179,7 @@ function App() {
     
     while (attempts < maxAttempts) {
       try {
-        const res = await fetch(`${ANIMATION_API_BASE_URL}/status/${taskId}`);
+        const res = await fetch(`${API_BASE_URL}/status/${taskId}`);
         
         if (res.ok) {
           const statusPayload = await res.json();

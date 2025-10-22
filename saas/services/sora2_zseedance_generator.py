@@ -435,7 +435,8 @@ OUTPUT FORMAT (JSON):
             # Headers pour l'API Runway ML
             headers = {
                 "Authorization": f"Bearer {platform_config['api_key']}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "X-Runway-Version": "2024-09-13"  # Version requise par l'API
             }
 
             # URL de l'API Runway ML
@@ -462,11 +463,8 @@ OUTPUT FORMAT (JSON):
 
         except Exception as e:
             logger.error(f"Erreur génération clip Runway ML: {e}")
-            # Fallback vers URL mockée en cas d'erreur
-            video_id = str(uuid.uuid4())
-            mock_video_url = f"https://cdn.example.com/runway/{video_id}.mp4"
-            logger.warning(f"⚠️ Fallback vers URL mockée: {mock_video_url}")
-            return mock_video_url
+            # Pas de fallback - lever l'exception pour arrêter le processus
+            raise Exception(f"Échec génération vidéo Runway ML: {e}")
 
     async def _wait_for_runway_task(self, session, task_id: str, headers: dict, max_wait: int = 300) -> str:
         """
@@ -562,7 +560,8 @@ OUTPUT FORMAT (JSON):
             platform_config = self.sora_platforms["runway"]
             headers = {
                 "Authorization": f"Bearer {platform_config['api_key']}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "X-Runway-Version": "2024-09-13"  # Version requise par l'API
             }
 
             # Préparer les keyframes pour Runway ML
