@@ -158,8 +158,6 @@ function App() {
   const [selectedStory, setSelectedStory] = useState(null);
   const [animationResult, setAnimationResult] = useState(null);
   const [showAnimationViewer, setShowAnimationViewer] = useState(false);
-  // Mode de génération (demo, sora2, production)
-  const [generationMode, setGenerationMode] = useState('demo');
 
   // États pour le système de paiement
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -632,43 +630,16 @@ function App() {
         custom_prompt: story || undefined
       };
 
-      // Adaptation pour les différents modes de génération
-      let endpoint;
-      let fetchOptions;
-
-      if (generationMode === 'sora2') {
-        // Mode Sora 2 - utiliser l'endpoint Sora 2
-        endpoint = `${API_BASE_URL}/generate_animation_sora2`;
-        fetchOptions = {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        };
-      } else if (generationMode === 'demo') {
-        // Mode démo - utiliser generate-quick
-        endpoint = `${ANIMATION_API_BASE_URL}/generate-quick?theme=${encodeURIComponent(currentTheme || 'space')}&duration=${selectedDuration}`;
-        fetchOptions = {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json'
-          }
-          // Pas de body pour /generate-quick, les paramètres sont dans l'URL
-        };
-      } else {
-        // Mode production - utiliser generate normal
-        endpoint = `${ANIMATION_API_BASE_URL}/generate`;
-        fetchOptions = {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        };
-      }
+      // Utiliser toujours le vrai pipeline zseedance (endpoint generate-quick)
+      const endpoint = `${API_BASE_URL}/generate-quick?theme=${encodeURIComponent(normalizedTheme)}&duration=${selectedDuration}&style=${selectedStyle || 'cartoon'}`;
+      const fetchOptions = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      };
 
       const response = await fetch(endpoint, fetchOptions);
 
@@ -1185,8 +1156,6 @@ const downloadPDF = async (title, content) => {
                   setSelectedStyle={setSelectedStyle}
                   customStory={customStory}
                   setCustomStory={setCustomStory}
-                  selectedMode={generationMode}
-                  setSelectedMode={setGenerationMode}
                 />
               </motion.div>
             ) : contentType === 'histoire' ? (

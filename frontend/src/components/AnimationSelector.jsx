@@ -11,9 +11,7 @@ const AnimationSelector = ({
   selectedStyle,
   setSelectedStyle,
   customStory,
-  setCustomStory,
-  selectedMode,
-  setSelectedMode
+  setCustomStory
 }) => {
   
   const [animationThemes, setAnimationThemes] = useState([]);
@@ -101,12 +99,6 @@ const AnimationSelector = ({
     { id: 'pastel', name: 'Pastel', description: 'Couleurs douces et tendres', emoji: '🌸' }
   ];
 
-  const generationModes = [
-    { id: 'demo', name: 'Mode Démo', description: 'Génération rapide avec qualité standard', icon: '⚡' },
-    { id: 'sora2', name: 'Sora 2', description: 'IA avancée OpenAI pour qualité cinéma', icon: '🎭' },
-    { id: 'production', name: 'Production', description: 'Qualité maximale (plus lent)', icon: '🏆' }
-  ];
-
   // Fonctions de toggle pour désélectionner en recliquant
   const handleThemeSelect = (themeId) => {
     if (selectedTheme === themeId) {
@@ -116,13 +108,6 @@ const AnimationSelector = ({
     }
   };
 
-  const handleModeSelect = (modeId) => {
-    if (selectedMode === modeId) {
-      setSelectedMode(null); // Désélectionner si déjà sélectionné
-    } else {
-      setSelectedMode(modeId);
-    }
-  };
 
   const handleDurationSelect = (duration) => {
     if (selectedDuration === duration) {
@@ -203,31 +188,10 @@ const AnimationSelector = ({
         )}
       </div>
 
-      {/* Section 2.5: Mode de génération */}
-      <div className="selector-section">
-        <h4>2. Choisissez le mode de génération</h4>
-        <div className="generation-modes">
-          {generationModes.map((mode) => (
-            <motion.div
-              key={mode.id}
-              className={`generation-mode ${selectedMode === mode.id ? 'selected' : ''}`}
-              onClick={() => handleModeSelect(mode.id)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="mode-icon">{mode.icon}</div>
-              <div className="mode-content">
-                <h5>{mode.name}</h5>
-                <p>{mode.description}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
 
-      {/* Section 3: Durée */}
+      {/* Section 2: Durée */}
       <div className="selector-section">
-        <h4>3. Choisissez la durée de l'animation</h4>
+        <h4>2. Choisissez la durée de l'animation</h4>
         <div className="duration-options">
           {durations.map((duration) => (
             <motion.div
@@ -243,9 +207,9 @@ const AnimationSelector = ({
         </div>
       </div>
 
-      {/* Section 4: Style visuel */}
+      {/* Section 3: Style visuel */}
       <div className="selector-section">
-        <h4>4. Choisissez un style visuel</h4>
+        <h4>3. Choisissez un style visuel</h4>
         <div className="style-options">
           {visualStyles.map((style) => (
             <motion.div
