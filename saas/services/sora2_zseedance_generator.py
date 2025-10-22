@@ -405,7 +405,7 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
 
             # Headers pour l'API Runway ML
             headers = {
-                "Authorization": f"Bearer key_{platform_config['api_key']}",
+                "Authorization": f"Bearer {platform_config['api_key']}",
                 "Content-Type": "application/json",
                 "X-Runway-Version": "2024-09-13"  # Version requise par l'API
             }
@@ -417,7 +417,7 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
 
             # Faire la requête à l'API Runway ML
             logger.info(f"🌐 Requête Runway ML: POST {api_url}")
-            logger.info(f"📋 Headers: Authorization=Bearer key_..., X-Runway-Version={headers.get('X-Runway-Version')}")
+            logger.info(f"📋 Headers: Authorization=Bearer {api_key[:20]}..., X-Runway-Version={headers.get('X-Runway-Version')}")
             logger.info(f"📦 Payload: {runway_payload}")
 
             async with aiohttp.ClientSession() as session:
