@@ -1,6 +1,6 @@
 """
-Service de génération d'animations avec Runway ML Gen3a Turbo basé exactement sur le workflow zseedance.json
-Implémentation fidèle au workflow n8n avec Gen3a Turbo pour la génération vidéo
+Service de génération d'animations avec Runway ML Veo 3.1 Fast basé exactement sur le workflow zseedance.json
+Implémentation fidèle au workflow n8n avec Veo 3.1 Fast pour la génération vidéo
 """
 
 import asyncio
@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 
 class Sora2ZseedanceGenerator:
     """
-    Générateur d'animations utilisant Runway ML Gen3a Turbo en suivant exactement le workflow zseedance.json
-    Workflow identique : Ideas → Prompts → Clips Gen3a Turbo → Sequence (sans audio séparé)
+    Générateur d'animations utilisant Runway ML Veo 3.1 Fast en suivant exactement le workflow zseedance.json
+    Workflow identique : Ideas → Prompts → Clips Veo 3.1 Fast → Sequence (sans audio séparé)
     """
 
     def __init__(self):
@@ -29,26 +29,26 @@ class Sora2ZseedanceGenerator:
 
         # Vérification détaillée de la clé Runway
         runway_key = os.getenv("RUNWAY_API_KEY")
-        logger.info(f"🔑 Initialisation Runway ML Gen3a Turbo - RUNWAY_API_KEY: {'présente' if runway_key else 'ABSENTE'}")
+        logger.info(f"🔑 Initialisation Runway ML Veo 3.1 Fast - RUNWAY_API_KEY: {'présente' if runway_key else 'ABSENTE'}")
         if runway_key:
             logger.info(f"🔑 Format clé: {'✅ OK (key_)' if runway_key.startswith('key_') else '❌ ERREUR format'}")
             logger.info(f"🔑 Longueur: {len(runway_key)} caractères")
 
-        # Configuration Runway ML Gen3a Turbo - text-to-video natif
+        # Configuration Runway ML Veo 3.1 Fast - text-to-video via /v1/text_to_video
         self.sora_platforms = {
             "openai": {
                 "name": "OpenAI (Non disponible)",
                 "base_url": "https://api.openai.com/v1",
                 "api_key": self.openai_api_key,
-                "model": "gen3a_turbo",  # Modèle Gen3a Turbo
+                "model": "veo3.1_fast",  # Modèle Veo 3.1 Fast
                 "available": False,  # Désactivé car pas disponible publiquement
                 "priority": 99  # Priorité très basse
             },
             "runway": {
-                "name": "Runway ML (Gen3a Turbo)",
+                "name": "Runway ML (Veo 3.1 Fast)",
                 "base_url": "https://api.dev.runwayml.com",
                 "api_key": runway_key,
-                "model": "gen3a_turbo",  # Gen3a Turbo - text-to-video natif
+                "model": "veo3.1_fast",  # Veo 3.1 Fast - text-to-video natif
                 "available": bool(runway_key and runway_key.startswith('key_')),
                 "priority": 1  # Priorité la plus haute maintenant
             },
@@ -399,10 +399,10 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
 
             logger.info(f"✅ Clé API Runway valide: {api_key[:20]}...")
 
-            # Préparation de la requête pour Runway ML gen3a_turbo (text-to-video)
-            # gen3a_turbo supporte text-to-video pur sans image requise
+            # Préparation de la requête pour Runway ML veo3.1_fast (text-to-video)
+            # Utilisation de l'endpoint /v1/text_to_video (text-to-video pur)
             runway_payload = {
-                "model": "gen3a_turbo",  # Gen3a Turbo - text-to-video natif
+                "model": "veo3.1_fast",  # Veo 3.1 Fast - text-to-video
                 "promptText": runway_prompt,  # Prompt texte pour génération directe
                 "duration": 10,  # 10 secondes comme zseedance
                 "watermark": False
@@ -415,8 +415,8 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
                 "X-Runway-Version": "2024-09-13"  # Version requise par l'API
             }
 
-            # URL de l'API Runway ML - endpoint generations pour text-to-video
-            api_url = f"{platform_config['base_url']}/v1/generations"
+            # URL de l'API Runway ML - endpoint text_to_video pour veo3.1_fast
+            api_url = f"{platform_config['base_url']}/v1/text_to_video"
 
             logger.info(f"📡 Appel API Runway ML: {api_url}")
 
