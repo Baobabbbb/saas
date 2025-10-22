@@ -1,8 +1,16 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Configuration par défaut
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://xfbmdeuzuyixpmouhqcv.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmYm1kZXV6dXlpeHBtb3VocWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMzE3ODQsImV4cCI6MjA2NDkwNzc4NH0.XzFIT3BwW9dKRrmFFbSAufCpC1SZuUI-VU2Uer5VoTw'
+// Configuration Supabase - DOIT être définie dans Railway
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+// Vérification obligatoire des variables d'environnement
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('❌ ERREUR CRITIQUE: Variables Supabase manquantes!');
+  console.error('VITE_SUPABASE_URL:', supabaseUrl);
+  console.error('VITE_SUPABASE_ANON_KEY présente:', !!supabaseAnonKey);
+  throw new Error('Variables d\'environnement Supabase non configurées. Configurez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY dans Railway.');
+}
 
 // Créer le client Supabase
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
