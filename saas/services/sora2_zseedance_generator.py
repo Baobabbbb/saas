@@ -453,8 +453,8 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
         """
         Attend qu'une tâche Runway ML soit terminée et retourne l'URL de la vidéo
         """
-        # Endpoint correct pour vérifier le statut (pluriel)
-        api_url = f"https://api.dev.runwayml.com/v1/generations/{task_id}"
+        # Endpoint correct pour vérifier le statut d'une tâche
+        api_url = f"https://api.dev.runwayml.com/v1/tasks/{task_id}"
         logger.info(f"🔍 URL vérification statut: {api_url}")
 
         start_time = time.time()
