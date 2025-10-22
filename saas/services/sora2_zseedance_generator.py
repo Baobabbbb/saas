@@ -453,43 +453,51 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
         """
         Attend qu'une tâche Runway ML soit terminée et retourne l'URL de la vidéo
         """
-        api_url = f"https://api.dev.runwayml.com/v1/generation/{task_id}"
+        # Endpoint correct pour vérifier le statut (pluriel)
+        api_url = f"https://api.dev.runwayml.com/v1/generations/{task_id}"
+        logger.info(f"🔍 URL vérification statut: {api_url}")
 
         start_time = time.time()
+        attempt = 0
         while time.time() - start_time < max_wait:
             try:
+                attempt += 1
                 async with session.get(api_url, headers=headers) as response:
                     if response.status == 200:
                         task_data = await response.json()
 
                         status = task_data.get("status")
-                        logger.info(f"📊 Statut tâche Runway ML: {status}")
+                        progress = task_data.get("progress", 0)
+                        logger.info(f"📊 Statut tâche Runway ML (tentative {attempt}): {status} - Progression: {progress}%")
 
                         if status == "SUCCEEDED":
                             # Récupérer l'URL de la vidéo générée
-                            assets = task_data.get("assets", {})
-                            video_assets = assets.get("videos", [])
-
-                            if video_assets:
-                                video_url = video_assets[0].get("url")
-                                if video_url:
-                                    logger.info(f"✅ Vidéo Runway ML générée: {video_url}")
-                                    return video_url
+                            output = task_data.get("output", [])
+                            
+                            if output and len(output) > 0:
+                                video_url = output[0]
+                                logger.info(f"✅ Vidéo Runway ML générée: {video_url}")
+                                return video_url
+                            else:
+                                logger.error(f"❌ Pas de vidéo dans la réponse: {task_data}")
+                                raise Exception("No video URL in Runway ML response")
 
                         elif status == "FAILED":
-                            error_msg = task_data.get("error", "Erreur inconnue")
+                            error_msg = task_data.get("failure", "Erreur inconnue")
                             logger.error(f"❌ Échec génération Runway ML: {error_msg}")
+                            logger.error(f"🔍 Détails: {task_data}")
                             raise Exception(f"Runway ML generation failed: {error_msg}")
 
                         # Attendre avant de vérifier à nouveau
                         await asyncio.sleep(10)
 
                     else:
-                        logger.warning(f"⚠️ Erreur vérification statut ({response.status})")
+                        error_text = await response.text()
+                        logger.warning(f"⚠️ Erreur vérification statut ({response.status}): {error_text[:200]}")
                         await asyncio.sleep(5)
 
             except Exception as e:
-                logger.warning(f"⚠️ Erreur lors de la vérification: {e}")
+                logger.warning(f"⚠️ Erreur lors de la vérification (tentative {attempt}): {e}")
                 await asyncio.sleep(5)
 
         # Timeout
