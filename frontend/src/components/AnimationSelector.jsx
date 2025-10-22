@@ -125,12 +125,6 @@ const AnimationSelector = ({
     }
   };
 
-  // Initialiser le mode par défaut si non défini
-  useEffect(() => {
-    if (!selectedMode) {
-      setSelectedMode('demo'); // Mode par défaut
-    }
-  }, [selectedMode, setSelectedMode]);
 
   if (loading) {
     return (
