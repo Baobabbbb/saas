@@ -53,6 +53,21 @@ print(f"🌐 BASE_URL: {BASE_URL}")
 print(f"✅ OPENAI_API_KEY: {'Configurée' if os.getenv('OPENAI_API_KEY') else '❌ NON CONFIGURÉE'}")
 print(f"🎵 SUNO_API_KEY: {'Configurée' if os.getenv('SUNO_API_KEY') else '❌ NON CONFIGURÉE'}")
 print(f"🎨 STABILITY_API_KEY: {'Configurée' if os.getenv('STABILITY_API_KEY') else '❌ NON CONFIGURÉE'}")
+
+# Vérification des clés API pour l'animation
+runway_key = os.getenv('RUNWAY_API_KEY')
+fal_key = os.getenv('FAL_API_KEY')
+
+print(f"🎬 RUNWAY_API_KEY: {'Configurée' if runway_key else '❌ NON CONFIGURÉE'}")
+if runway_key:
+    print(f"   🔑 Format: {'✅ OK' if runway_key.startswith('key_') else '❌ ERREUR - doit commencer par key_'}")
+    print(f"   📏 Longueur: {len(runway_key)} caractères")
+    print(f"   👁️  Aperçu: {runway_key[:15]}...{runway_key[-5:] if len(runway_key) > 20 else runway_key}")
+
+print(f"🔧 FAL_API_KEY: {'Configurée' if fal_key else '❌ NON CONFIGURÉE'}")
+if fal_key:
+    print(f"   📏 Longueur: {len(fal_key)} caractères")
+
 print("=" * 60)
 
 app = FastAPI(title="API FRIDAY - Contenu Créatif IA", version="2.0", description="API pour générer du contenu créatif pour enfants : BD, coloriages, histoires, comptines")
