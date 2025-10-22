@@ -1,6 +1,6 @@
 """
-Service de génération d'animations avec Sora 2 basé exactement sur le workflow zseedance.json
-Implémentation fidèle au workflow n8n avec Sora 2 pour la génération vidéo
+Service de génération d'animations avec Veo 3.1 Fast basé exactement sur le workflow zseedance.json
+Implémentation fidèle au workflow n8n avec Veo 3.1 Fast pour la génération vidéo
 """
 
 import asyncio
@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 
 class Sora2ZseedanceGenerator:
     """
-    Générateur d'animations utilisant Sora 2 en suivant exactement le workflow zseedance.json
-    Workflow identique : Ideas → Prompts → Clips Sora 2 → Sequence (sans audio séparé)
+    Générateur d'animations utilisant Veo 3.1 Fast en suivant exactement le workflow zseedance.json
+    Workflow identique : Ideas → Prompts → Clips Veo 3.1 Fast → Sequence (sans audio séparé)
     """
 
     def __init__(self):
@@ -27,22 +27,29 @@ class Sora2ZseedanceGenerator:
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
         self.text_model = os.getenv("TEXT_MODEL", "gpt-4o-mini")
 
-        # Configuration Sora 2 - utiliser les APIs existantes
+        # Vérification détaillée de la clé Runway
+        runway_key = os.getenv("RUNWAY_API_KEY")
+        logger.info(f"🔑 Initialisation Veo 3.1 Fast - RUNWAY_API_KEY: {'présente' if runway_key else 'ABSENTE'}")
+        if runway_key:
+            logger.info(f"🔑 Format clé: {'✅ OK (key_)' if runway_key.startswith('key_') else '❌ ERREUR format'}")
+            logger.info(f"🔑 Longueur: {len(runway_key)} caractères")
+
+        # Configuration Veo 3.1 Fast - utiliser les APIs existantes
         self.sora_platforms = {
             "openai": {
                 "name": "OpenAI (Non disponible)",
                 "base_url": "https://api.openai.com/v1",
                 "api_key": self.openai_api_key,
-                "model": "sora-2",  # Modèle hypothétique Sora 2
+                "model": "veo3.1_fast",  # Modèle Veo 3.1 Fast
                 "available": False,  # Désactivé car pas disponible publiquement
                 "priority": 99  # Priorité très basse
             },
             "runway": {
                 "name": "Runway ML (Veo 3.1 Fast)",
                 "base_url": "https://api.dev.runwayml.com",
-                "api_key": os.getenv("RUNWAY_API_KEY"),
+                "api_key": runway_key,
                 "model": "veo3.1_fast",
-                "available": bool(os.getenv("RUNWAY_API_KEY")),
+                "available": bool(runway_key and runway_key.startswith('key_')),
                 "priority": 1  # Priorité la plus haute maintenant
             },
             "pika": {
@@ -58,7 +65,7 @@ class Sora2ZseedanceGenerator:
         # Sélectionner la plateforme disponible avec la priorité la plus haute
         self.selected_platform = self._select_best_platform()
 
-        # Configuration Sora 2 optimisée pour enfants (identique à zseedance)
+        # Configuration Veo 3.1 Fast optimisée pour enfants (identique à zseedance)
         self.sora2_config = {
             "aspect_ratio": "9:16",  # Format vertical comme zseedance
             "duration_per_clip": 10,  # 10 secondes par clip comme zseedance
@@ -70,21 +77,21 @@ class Sora2ZseedanceGenerator:
         logger.info(f"🎬 Sora2ZseedanceGenerator initialisé avec plateforme: {self.selected_platform}")
 
     def _select_best_platform(self) -> str:
-        """Sélectionne la plateforme Sora 2 disponible avec la priorité la plus haute"""
+        """Sélectionne la plateforme Veo 3.1 Fast disponible avec la priorité la plus haute"""
         available_platforms = [
             (name, config) for name, config in self.sora_platforms.items()
             if config["available"]
         ]
 
         if not available_platforms:
-            logger.warning("⚠️ Aucune plateforme Sora 2 disponible - vérifiez les clés API")
-            return "openai"  # Fallback sur OpenAI même si non configuré
+            logger.error("❌ Aucune plateforme Veo 3.1 Fast disponible - vérifiez les clés API")
+            raise Exception("Aucune plateforme Veo 3.1 Fast disponible - configurez RUNWAY_API_KEY")
 
         # Trier par priorité
         available_platforms.sort(key=lambda x: x[1]["priority"])
         best_platform = available_platforms[0][0]
 
-        logger.info(f"✅ Plateforme Sora 2 sélectionnée: {best_platform}")
+        logger.info(f"✅ Plateforme Veo 3.1 Fast sélectionnée: {best_platform}")
         return best_platform
 
     async def generate_ideas_agent_adapted(self, theme: str = "space") -> Dict[str, Any]:
@@ -192,28 +199,16 @@ OUTPUT FORMAT (JSON):
                     idea_data = json.loads(content)
                     return idea_data
                 except json.JSONDecodeError:
-                    # Si parsing échoue, créer une structure par défaut
-                    logger.warning("Impossible de parser la réponse JSON, utilisation d'un fallback")
-                    return self._create_fallback_idea(theme, theme_config)
+                    logger.error(f"Erreur parsing JSON OpenAI: réponse invalide")
+                    raise Exception(f"OpenAI API a retourné un JSON invalide pour le thème '{theme}'")
 
             except Exception as api_error:
-                logger.warning(f"Erreur API OpenAI: {api_error}, utilisation du fallback")
-                return self._create_fallback_idea(theme, theme_config)
+                logger.error(f"Erreur API OpenAI: {api_error}")
+                raise Exception(f"Échec génération idée pour thème '{theme}': {api_error}")
 
         except Exception as e:
             logger.error(f"Erreur génération idée adaptée: {e}")
-            # Fallback final
-            return self._create_fallback_idea(theme, {"subject": theme, "environment": f"{theme} setting", "sound": "happy music"})
-
-    def _create_fallback_idea(self, theme: str, config: dict) -> Dict[str, Any]:
-        """Crée une idée par défaut en cas d'erreur"""
-        return {
-            "Caption": f"🎬 Aventure {theme} magique #magie #aventure #amis",
-            "Idea": f"Des amis partent à la découverte d'un monde {theme} rempli de magie et de surprises joyeuses.",
-            "Environment": f"Environnement {theme} enchanteur avec des éléments magiques",
-            "Sound": f"{config.get('sound', 'musique joyeuse')}, rires d'enfants, sons magiques",
-            "Status": "for children"
-        }
+            raise Exception(f"Échec génération idée pour thème '{theme}': {e}")
 
     async def generate_prompts_agent_adapted(self, idea_data: Dict[str, Any], num_scenes: int = 3) -> Dict[str, Any]:
         """
@@ -290,43 +285,17 @@ OUTPUT FORMAT (JSON):
                     scenes_data = json.loads(content)
                     return scenes_data
                 except json.JSONDecodeError:
-                    # Si parsing échoue, créer des scènes par défaut
-                    logger.warning("Impossible de parser la réponse JSON des scènes, utilisation d'un fallback")
-                    return self._create_fallback_scenes(idea_data, num_scenes)
+                    logger.error(f"Erreur parsing JSON OpenAI: réponse invalide pour {num_scenes} scènes")
+                    raise Exception(f"OpenAI API a retourné un JSON invalide pour {num_scenes} scènes")
 
             except Exception as api_error:
-                logger.warning(f"Erreur API OpenAI pour les scènes: {api_error}, utilisation du fallback")
-                return self._create_fallback_scenes(idea_data, num_scenes)
+                logger.error(f"Erreur API OpenAI: {api_error}")
+                raise Exception(f"Échec génération scènes: {api_error}")
 
         except Exception as e:
             logger.error(f"Erreur génération prompts adaptés: {e}")
-            # Fallback final
-            return self._create_fallback_scenes(idea_data, num_scenes)
+            raise Exception(f"Échec génération {num_scenes} scènes: {e}")
 
-    def _create_fallback_scenes(self, idea_data: Dict[str, Any], num_scenes: int) -> Dict[str, Any]:
-        """Crée des scènes par défaut cohérentes en cas d'erreur"""
-        base_scenes = {
-                "Idea": idea_data["Idea"],
-                "Environment": idea_data["Environment"],
-            "Sound": idea_data["Sound"]
-        }
-
-        # Scènes génériques mais cohérentes pour former une histoire
-        generic_scenes = [
-            "Colorful animated scene showing friendly characters starting their magical adventure in a vibrant environment, with sparkles and joyful expressions.",
-            "Exciting middle scene where characters discover magical wonders, interact with friendly creatures, and experience joyful discoveries together.",
-            "Happy ending scene showing characters celebrating their successful adventure, sharing friendship and magical moments in a colorful finale."
-        ]
-
-        # Ajouter le nombre demandé de scènes
-        for i in range(num_scenes):
-            scene_num = i + 1
-            if i < len(generic_scenes):
-                base_scenes[f"Scene {scene_num}"] = generic_scenes[i]
-            else:
-                base_scenes[f"Scene {scene_num}"] = f"Continuation scene {scene_num} maintaining the magical adventure with joyful discoveries and friendly interactions."
-
-        return base_scenes
 
     async def add_audio_to_clip(self, video_url: str, sound_description: str) -> str:
         """
@@ -471,7 +440,7 @@ OUTPUT FORMAT (JSON):
 
         except Exception as e:
             logger.error(f"Erreur génération clip Runway ML: {e}")
-            # Pas de fallback - lever l'exception pour arrêter le processus
+            # Échec définitif - pas de fallback autorisé
             raise Exception(f"Échec génération vidéo Runway ML: {e}")
 
     async def _wait_for_runway_task(self, session, task_id: str, headers: dict, max_wait: int = 300) -> str:
@@ -545,20 +514,16 @@ OUTPUT FORMAT (JSON):
                     logger.warning(f"⚠️ Assemblage Runway ML échoué: {e}")
                     logger.info("🔄 Tentative avec FAL AI...")
 
-            # Fallback vers FAL AI pour l'assemblage
+            # Essayer FAL AI pour l'assemblage
             try:
                 return await self._assemble_with_fal(video_urls)
             except Exception as e:
-                logger.warning(f"⚠️ Assemblage FAL AI échoué: {e}")
-                logger.info("🔄 Fallback vers le premier clip")
-
-            # Dernier fallback : retourner le premier clip
-            return video_urls[0]
+                logger.error(f"❌ Assemblage FAL AI échoué: {e}")
+                raise Exception(f"Échec assemblage vidéo FAL AI: {e}")
 
         except Exception as e:
             logger.error(f"Erreur assemblage vidéo: {e}")
-            # Fallback vers le premier clip
-            return video_urls[0] if video_urls else ""
+            raise Exception(f"Échec assemblage vidéo complet: {e}")
 
     async def _assemble_with_runway(self, video_urls: List[str]) -> str:
         """
@@ -809,23 +774,23 @@ OUTPUT FORMAT (JSON):
             }
 
         except Exception as e:
-            logger.error(f"❌ Erreur génération Sora 2 zseedance: {e}")
+            logger.error(f"❌ Erreur génération Veo 3.1 Fast zseedance: {e}")
             return {
                 "status": "failed",
                 "error": str(e),
                 "theme": theme,
-                "type": "sora2_zseedance",
+                "type": "veo3_1_fast_zseedance",
                 "platform": self.selected_platform
             }
 
     def is_available(self) -> bool:
-        """Vérifie si au moins une plateforme Sora 2 est disponible"""
+        """Vérifie si au moins une plateforme Veo 3.1 Fast est disponible"""
         return any(config["available"] for config in self.sora_platforms.values())
 
     def get_available_platforms(self) -> List[str]:
-        """Retourne la liste des plateformes Sora 2 disponibles"""
+        """Retourne la liste des plateformes Veo 3.1 Fast disponibles"""
         return [name for name, config in self.sora_platforms.items() if config["available"]]
 
 
-# Instance globale du générateur Sora 2 zseedance
+# Instance globale du générateur Veo 3.1 Fast zseedance
 sora2_zseedance_generator = Sora2ZseedanceGenerator()
