@@ -393,10 +393,10 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
 
             logger.info(f"✅ Clé API Runway valide: {api_key[:20]}...")
 
-            # Préparation de la requête pour Runway ML Gen-3 Alpha API
+            # Préparation de la requête pour Runway ML veo3.1_fast
             runway_payload = {
-                "model": "gen3a_turbo",  # Runway Gen-3 Alpha Turbo
-                "text_prompt": runway_prompt,
+                "model": "veo3.1_fast",  # Veo 3.1 Fast sur Runway ML
+                "promptText": runway_prompt,  # Prompt texte pour génération
                 "duration": 10,  # 10 secondes comme zseedance
                 "ratio": "16:9",  # Format horizontal standard
                 "watermark": False
@@ -409,9 +409,9 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
                 "X-Runway-Version": "2024-09-13"  # Version requise par l'API
             }
 
-            # URL de l'API Runway ML Gen-3 Alpha Turbo
-            # Runway ML Gen-3 Alpha est leur modèle de génération vidéo text-to-video
-            api_url = f"{platform_config['base_url']}/v1/text_to_video"
+            # URL de l'API Runway ML - endpoint image_to_video pour veo3.1_fast
+            # veo3.1_fast accepte text OU image comme input
+            api_url = f"{platform_config['base_url']}/v1/image_to_video"
 
             logger.info(f"📡 Appel API Runway ML: {api_url}")
 
