@@ -373,10 +373,16 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
             if platform != "runway":
                 raise Exception(f"❌ Plateforme {platform} non supportée - seule Runway ML est disponible")
 
-            # Prompt pour Runway ML identique au format zseedance
-            runway_prompt = f"VIDEO THEME: {idea} | WHAT HAPPENS IN THE VIDEO: {scene_prompt} | WHERE THE VIDEO IS SHOT: {environment}"
+            # Prompt pour Runway ML - limité à 1000 caractères max
+            # Format simplifié pour respecter la limite de l'API
+            runway_prompt = f"{scene_prompt} in {environment}"
+            
+            # Limiter à 1000 caractères si nécessaire
+            if len(runway_prompt) > 1000:
+                runway_prompt = runway_prompt[:997] + "..."
 
             logger.info(f"🎬 Génération Runway ML scène: {scene_prompt[:50]}...")
+            logger.info(f"📝 Prompt longueur: {len(runway_prompt)} caractères")
 
             # Vérification détaillée de la clé API
             api_key = platform_config['api_key']
@@ -393,10 +399,35 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
 
             logger.info(f"✅ Clé API Runway valide: {api_key[:20]}...")
 
+            # Générer une image de départ avec DALL-E pour l'endpoint image_to_video
+            logger.info("🎨 Génération image de départ avec DALL-E...")
+            try:
+                from openai import AsyncOpenAI
+                openai_client = AsyncOpenAI(api_key=self.openai_api_key)
+                
+                # Créer un prompt court pour l'image (max 1000 char)
+                image_prompt = scene_prompt[:400] if len(scene_prompt) > 400 else scene_prompt
+                
+                image_response = await openai_client.images.generate(
+                    model="dall-e-3",
+                    prompt=f"A single frame showing: {image_prompt}. Cinematic, high quality.",
+                    size="1792x1024",  # Format 16:9
+                    quality="standard",
+                    n=1
+                )
+                
+                prompt_image_url = image_response.data[0].url
+                logger.info(f"✅ Image générée: {prompt_image_url[:50]}...")
+                
+            except Exception as e:
+                logger.error(f"❌ Erreur génération image DALL-E: {e}")
+                raise Exception(f"Échec génération image de départ: {e}")
+            
             # Préparation de la requête pour Runway ML veo3.1_fast
             runway_payload = {
                 "model": "veo3.1_fast",  # Veo 3.1 Fast sur Runway ML
-                "promptText": runway_prompt,  # Prompt texte pour génération
+                "promptImage": prompt_image_url,  # URL de l'image de départ
+                "promptText": runway_prompt,  # Prompt texte pour l'animation
                 "duration": 10,  # 10 secondes comme zseedance
                 "ratio": "16:9",  # Format horizontal standard
                 "watermark": False
