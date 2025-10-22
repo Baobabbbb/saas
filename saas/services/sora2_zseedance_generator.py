@@ -422,6 +422,14 @@ OUTPUT FORMAT (JSON):
 
             logger.info(f"🎬 Génération Runway ML scène: {scene_prompt[:50]}...")
 
+            # Vérification de la clé API
+            api_key = platform_config['api_key']
+            if not api_key:
+                raise Exception("❌ RUNWAY_API_KEY non configurée dans les variables d'environnement Railway")
+            if not api_key.startswith('key_'):
+                raise Exception(f"❌ RUNWAY_API_KEY mal formatée: doit commencer par 'key_' (actuellement: {api_key[:10]}...)")
+            logger.info(f"🔑 Clé API Runway détectée: {api_key[:15]}...")
+
             # Préparation de la requête pour Runway ML API
             runway_payload = {
                 "model": platform_config["model"],  # "veo3.1_fast"
