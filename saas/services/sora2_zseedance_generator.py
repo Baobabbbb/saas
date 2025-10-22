@@ -434,7 +434,7 @@ OUTPUT FORMAT (JSON):
 
             # Headers pour l'API Runway ML
             headers = {
-                "Authorization": f"Bearer {platform_config['api_key']}",
+                "Authorization": f"Bearer key_{platform_config['api_key']}",
                 "Content-Type": "application/json",
                 "X-Runway-Version": "2024-09-13"  # Version requise par l'API
             }
@@ -559,7 +559,7 @@ OUTPUT FORMAT (JSON):
         try:
             platform_config = self.sora_platforms["runway"]
             headers = {
-                "Authorization": f"Bearer {platform_config['api_key']}",
+                "Authorization": f"Bearer key_{platform_config['api_key']}",
                 "Content-Type": "application/json",
                 "X-Runway-Version": "2024-09-13"  # Version requise par l'API
             }
