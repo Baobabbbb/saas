@@ -375,13 +375,20 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
 
             logger.info(f"🎬 Génération Runway ML scène: {scene_prompt[:50]}...")
 
-            # Vérification de la clé API
+            # Vérification détaillée de la clé API
             api_key = platform_config['api_key']
+            logger.info(f"🔍 DEBUG - Platform config: {platform_config}")
+            logger.info(f"🔍 DEBUG - API key présente: {bool(api_key)}")
+            logger.info(f"🔍 DEBUG - API key longueur: {len(api_key) if api_key else 0}")
+            logger.info(f"🔍 DEBUG - API key commence par 'key_': {api_key.startswith('key_') if api_key else False}")
+            logger.info(f"🔍 DEBUG - API key préfixe: {api_key[:10] if api_key else 'None'}")
+
             if not api_key:
                 raise Exception("❌ RUNWAY_API_KEY non configurée dans les variables d'environnement Railway")
             if not api_key.startswith('key_'):
                 raise Exception(f"❌ RUNWAY_API_KEY mal formatée: doit commencer par 'key_' (actuellement: {api_key[:10]}...)")
-            logger.info(f"🔑 Clé API Runway détectée: {api_key[:15]}...")
+
+            logger.info(f"✅ Clé API Runway valide: {api_key[:20]}...")
 
             # Préparation de la requête pour Runway ML API
             runway_payload = {
@@ -406,6 +413,10 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
             logger.info(f"📡 Appel API Runway ML: {api_url}")
 
             # Faire la requête à l'API Runway ML
+            logger.info(f"🌐 Requête Runway ML: POST {api_url}")
+            logger.info(f"📋 Headers: Authorization=Bearer key_..., X-Runway-Version={headers.get('X-Runway-Version')}")
+            logger.info(f"📦 Payload: {runway_payload}")
+
             async with aiohttp.ClientSession() as session:
                 async with session.post(api_url, json=runway_payload, headers=headers) as response:
                     if response.status == 200:
@@ -420,6 +431,8 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
                     else:
                         error_text = await response.text()
                         logger.error(f"❌ Erreur API Runway ML ({response.status}): {error_text}")
+                        logger.error(f"🔍 DEBUG - Headers de réponse: {dict(response.headers)}")
+                        logger.error(f"🔍 DEBUG - URL complète: {api_url}")
                         raise Exception(f"API Runway ML error: {response.status} - {error_text}")
 
         except Exception as e:
