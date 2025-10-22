@@ -148,15 +148,12 @@ class AnimationRequest(BaseModel):
     theme: str
     duration: Optional[int] = 30
     style: Optional[str] = "cartoon"
-    mode: Optional[str] = "demo"
     custom_prompt: Optional[str] = None
-    generation_mode: Optional[str] = "demo"  # demo, sora2, production
 
 class GenerateQuickRequest(BaseModel):
     theme: str = "space"
     duration: int = 30
     style: str = "cartoon"
-    mode: str = "demo"
     custom_prompt: Optional[str] = None
 
 # Modèle pour le formulaire de contact
@@ -1036,7 +1033,6 @@ async def generate_animation_post(
         theme=request.theme,
         duration=request.duration or 30,
         style=request.style or "cartoon",
-        mode=request.mode or "demo",
         custom_prompt=request.custom_prompt
     )
 
@@ -1051,7 +1047,6 @@ async def generate_quick_json(
         theme=request.theme,
         duration=request.duration,
         style=request.style,
-        mode=request.mode,
         custom_prompt=request.custom_prompt
     )
 
@@ -1060,20 +1055,18 @@ async def generate_animation(
     theme: str = "space",
     duration: int = 30,
     style: str = "cartoon",
-    mode: str = "demo",
     custom_prompt: str = None
 ):
     """
-    Génère une VRAIE animation avec les APIs Wavespeed et Fal AI
-    Supporte les requêtes GET avec query parameters
+    Génère une VRAIE animation avec Runway ML Veo 3.1 Fast (workflow zseedance)
+    Supporte les requêtes GET avec query parameters - PLUS DE MODE, toujours vrai pipeline
     """
-    return await _generate_animation_logic(theme, duration, style, mode, custom_prompt)
+    return await _generate_animation_logic(theme, duration, style, custom_prompt)
 
 async def _generate_animation_logic(
     theme: str,
     duration: int,
     style: str,
-    mode: str,
     custom_prompt: str = None
 ):
     """
@@ -1105,12 +1098,7 @@ async def _generate_animation_logic(
         if style not in valid_styles:
             style = "cartoon"
 
-        # Valider le mode
-        valid_modes = ["demo", "sora2", "production"]
-        if mode not in valid_modes:
-            mode = "demo"
-
-        print(f"🎬 VRAIE Génération animation: {theme} / {style} / {duration}s / mode: {mode}")
+        print(f"🎬 VRAIE Génération animation: {theme} / {style} / {duration}s / workflow: ZSEEDANCE")
 
         task_id = str(uuid.uuid4())
         print(f"📋 Task ID créé: {task_id}")
@@ -1121,7 +1109,7 @@ async def _generate_animation_logic(
             "theme": theme,
             "duration": duration,
             "style": style,
-            "mode": mode,
+            "workflow": "zseedance",
             "status": "processing"
         }
 
