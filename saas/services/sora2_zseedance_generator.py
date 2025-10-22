@@ -399,35 +399,11 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
 
             logger.info(f"✅ Clé API Runway valide: {api_key[:20]}...")
 
-            # Générer une image de départ avec DALL-E pour l'endpoint image_to_video
-            logger.info("🎨 Génération image de départ avec DALL-E...")
-            try:
-                from openai import AsyncOpenAI
-                openai_client = AsyncOpenAI(api_key=self.openai_api_key)
-                
-                # Créer un prompt court pour l'image (max 1000 char)
-                image_prompt = scene_prompt[:400] if len(scene_prompt) > 400 else scene_prompt
-                
-                image_response = await openai_client.images.generate(
-                    model="dall-e-3",
-                    prompt=f"A single frame showing: {image_prompt}. Cinematic, high quality.",
-                    size="1792x1024",  # Format 16:9
-                    quality="standard",
-                    n=1
-                )
-                
-                prompt_image_url = image_response.data[0].url
-                logger.info(f"✅ Image générée: {prompt_image_url[:50]}...")
-                
-            except Exception as e:
-                logger.error(f"❌ Erreur génération image DALL-E: {e}")
-                raise Exception(f"Échec génération image de départ: {e}")
-            
-            # Préparation de la requête pour Runway ML veo3.1_fast
+            # Préparation de la requête pour Runway ML veo3.1_fast (text-to-video)
+            # veo3.1_fast supporte text-to-video directement, pas besoin de DALL-E
             runway_payload = {
                 "model": "veo3.1_fast",  # Veo 3.1 Fast sur Runway ML
-                "promptImage": prompt_image_url,  # URL de l'image de départ
-                "promptText": runway_prompt,  # Prompt texte pour l'animation
+                "promptText": runway_prompt,  # Prompt texte pour génération directe
                 "duration": 10,  # 10 secondes comme zseedance
                 "ratio": "16:9",  # Format horizontal standard
                 "watermark": False
