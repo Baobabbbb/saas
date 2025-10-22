@@ -1161,7 +1161,15 @@ async def generate_zseedance_animation_task(task_id: str, theme: str, duration: 
         task_storage[task_id]["status"] = "generating"
 
         # Utiliser le générateur Sora2ZseedanceGenerator (workflow fidèle à zseedance.json)
-        generator = Sora2ZseedanceGenerator()
+        print(f"🔧 Initialisation du générateur Sora2ZseedanceGenerator...")
+        try:
+            generator = Sora2ZseedanceGenerator()
+            print(f"✅ Générateur initialisé avec succès")
+        except Exception as init_error:
+            print(f"❌ ERREUR lors de l'initialisation du générateur: {init_error}")
+            import traceback
+            traceback.print_exc()
+            raise init_error
         print(f"🎬 Utilisation du workflow ZSEEDANCE (n8n identique)")
 
         # Calculer le nombre de scènes selon la durée (comme zseedance : 10s par scène)
@@ -1169,7 +1177,15 @@ async def generate_zseedance_animation_task(task_id: str, theme: str, duration: 
         print(f"📊 Génération de {num_scenes} scènes de 10 secondes chacune")
 
         # Générer l'animation complète selon le workflow zseedance
-        animation_result = await generator.generate_complete_animation_zseedance(theme)
+        print(f"🚀 Appel generate_complete_animation_zseedance avec thème: {theme}")
+        try:
+            animation_result = await generator.generate_complete_animation_zseedance(theme)
+            print(f"✅ generate_complete_animation_zseedance terminé avec résultat: {animation_result.get('status', 'unknown')}")
+        except Exception as gen_error:
+            print(f"❌ ERREUR lors de l'appel generate_complete_animation_zseedance: {gen_error}")
+            import traceback
+            traceback.print_exc()
+            raise gen_error
 
         # Vérifier que nous avons bien une vidéo finale
         if animation_result.get("status") == "completed" and animation_result.get("final_video_url"):
