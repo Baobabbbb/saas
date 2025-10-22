@@ -99,7 +99,8 @@ class AnimationService {
         throw new Error('Task ID requis');
       }
 
-      const url = `${this.animationBaseURL}/status/${taskId}`;
+      // Utiliser le serveur saas principal pour vérifier le statut (pas le serveur d'animation)
+      const url = `${this.baseURL}/status/${taskId}`;
 
       const response = await fetch(url, {
         method: 'GET',

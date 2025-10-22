@@ -36,7 +36,7 @@ class Sora2Generator:
             },
             "runway": {
                 "name": "Runway ML (Veo 3.1 Fast)",
-                "base_url": "https://api.runwayml.com/v1",
+                "base_url": "https://api.dev.runwayml.com",
                 "api_key": os.getenv("RUNWAY_API_KEY"),
                 "model": "veo3.1_fast",
                 "available": bool(os.getenv("RUNWAY_API_KEY")),

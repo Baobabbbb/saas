@@ -39,7 +39,7 @@ class Sora2ZseedanceGenerator:
             },
             "runway": {
                 "name": "Runway ML (Veo 3.1 Fast)",
-                "base_url": "https://api.runwayml.com/v1",
+                "base_url": "https://api.dev.runwayml.com",
                 "api_key": os.getenv("RUNWAY_API_KEY"),
                 "model": "veo3.1_fast",
                 "available": bool(os.getenv("RUNWAY_API_KEY")),
@@ -306,8 +306,8 @@ OUTPUT FORMAT (JSON):
     def _create_fallback_scenes(self, idea_data: Dict[str, Any], num_scenes: int) -> Dict[str, Any]:
         """Crée des scènes par défaut cohérentes en cas d'erreur"""
         base_scenes = {
-            "Idea": idea_data["Idea"],
-            "Environment": idea_data["Environment"],
+                "Idea": idea_data["Idea"],
+                "Environment": idea_data["Environment"],
             "Sound": idea_data["Sound"]
         }
 
@@ -472,7 +472,7 @@ OUTPUT FORMAT (JSON):
         """
         Attend qu'une tâche Runway ML soit terminée et retourne l'URL de la vidéo
         """
-        api_url = f"https://api.runwayml.com/v1/generation/{task_id}"
+        api_url = f"https://api.dev.runwayml.com/v1/generation/{task_id}"
 
         start_time = time.time()
         while time.time() - start_time < max_wait:
@@ -666,7 +666,7 @@ OUTPUT FORMAT (JSON):
         """
         Attendre qu'un assemblage Runway ML soit terminé
         """
-        api_url = f"https://api.runwayml.com/v1/tasks/{task_id}"
+        api_url = f"https://api.dev.runwayml.com/v1/tasks/{task_id}"
         start_time = time.time()
 
         while time.time() - start_time < max_wait:
