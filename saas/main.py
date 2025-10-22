@@ -75,7 +75,7 @@ print(f"✅ OPENAI_API_KEY: {'Configurée' if os.getenv('OPENAI_API_KEY') else '
 print(f"🎵 SUNO_API_KEY: {'Configurée' if os.getenv('SUNO_API_KEY') else '❌ NON CONFIGURÉE'}")
 print(f"🎨 STABILITY_API_KEY: {'Configurée' if os.getenv('STABILITY_API_KEY') else '❌ NON CONFIGURÉE'}")
 
-# Vérification des clés API pour l'animation
+        # Vérification des clés API pour l'animation
 runway_key = os.getenv('RUNWAY_API_KEY')
 fal_key = os.getenv('FAL_API_KEY')
 
@@ -83,7 +83,11 @@ print(f"🎬 RUNWAY_API_KEY: {'Configurée' if runway_key else '❌ NON CONFIGUR
 if runway_key:
     print(f"   🔑 Format: {'✅ OK' if runway_key.startswith('key_') else '❌ ERREUR - doit commencer par key_'}")
     print(f"   📏 Longueur: {len(runway_key)} caractères")
-    print(f"   👁️  Aperçu: {runway_key[:15]}...{runway_key[-5:] if len(runway_key) > 20 else runway_key}")
+    print(f"   👁️  Aperçu: {runway_key[:20]}...{runway_key[-10:] if len(runway_key) > 30 else runway_key}")
+
+    # Afficher la clé complète pour vérification
+    print(f"   🔐 CLÉ COMPLÈTE (pour vérification): {runway_key}")
+    print("   ⚠️  ATTENTION: Cette clé sera visible dans les logs Railway !")
 
 print(f"🔧 FAL_API_KEY: {'Configurée' if fal_key else '❌ NON CONFIGURÉE'}")
 if fal_key:
