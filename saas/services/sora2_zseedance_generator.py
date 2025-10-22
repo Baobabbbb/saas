@@ -405,6 +405,7 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
                 "model": "veo3.1_fast",  # Veo 3.1 Fast - text-to-video
                 "promptText": runway_prompt,  # Prompt texte pour génération directe
                 "duration": 10,  # 10 secondes comme zseedance
+                "ratio": "1920:1080",  # Format 16:9 en pixels (requis par API)
                 "watermark": False
             }
 
