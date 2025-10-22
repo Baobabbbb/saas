@@ -75,6 +75,12 @@ class Sora2ZseedanceGenerator:
         }
 
         logger.info(f"🎬 Sora2ZseedanceGenerator initialisé avec plateforme: {self.selected_platform}")
+        logger.info(f"🔧 Plateformes disponibles: {[name for name, config in self.sora_platforms.items() if config['available']]}")
+        logger.info(f"🔑 RUNWAY_API_KEY détectée: {bool(os.getenv('RUNWAY_API_KEY'))}")
+        if os.getenv('RUNWAY_API_KEY'):
+            key = os.getenv('RUNWAY_API_KEY')
+            logger.info(f"🔑 Format clé: {'✅ OK' if key.startswith('key_') else '❌ ERREUR'}")
+            logger.info(f"🔑 Longueur: {len(key)} caractères")
 
     def _select_best_platform(self) -> str:
         """Sélectionne la plateforme Veo 3.1 Fast disponible avec la priorité la plus haute"""
@@ -358,17 +364,14 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
         """
         Create Clips - Génère un clip vidéo avec Runway ML Veo 3.1 Fast
         """
+        logger.info(f"🎬 Début create_sora2_clip - plateforme sélectionnée: {self.selected_platform}")
         try:
             platform = self.selected_platform
             platform_config = self.sora_platforms[platform]
+            logger.info(f"🎬 Platform config chargé: {platform} - available: {platform_config.get('available', False)}")
 
             if platform != "runway":
-                logger.warning(f"⚠️ Plateforme {platform} non supportée pour la génération vidéo")
-                # Fallback vers URL mockée
-                video_id = str(uuid.uuid4())
-                mock_video_url = f"https://cdn.example.com/sora2/{video_id}.mp4"
-                logger.info(f"✅ Clip mock généré: {mock_video_url}")
-                return mock_video_url
+                raise Exception(f"❌ Plateforme {platform} non supportée - seule Runway ML est disponible")
 
             # Prompt pour Runway ML identique au format zseedance
             runway_prompt = f"VIDEO THEME: {idea} | WHAT HAPPENS IN THE VIDEO: {scene_prompt} | WHERE THE VIDEO IS SHOT: {environment}"
