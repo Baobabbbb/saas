@@ -693,6 +693,7 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
         Pipeline complet basé exactement sur zseedance.json
         Génère un nombre de scènes adapté à la durée demandée (10s par scène)
         """
+        logger.info(f"🎬 ZSEEDANCE: Démarrage génération complète - thème: {theme}, durée: {duration}s, style: {style}")
         try:
             logger.info(f"🚀 Démarrage génération ZSEEDANCE: {theme} ({duration}s, style: {style})")
 
@@ -703,10 +704,12 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
             # Étape 1: Ideas AI Agent avec adaptation au thème choisi
             logger.info("📝 Étape 1: Ideas AI Agent (adapté au thème)...")
             idea_data = await self.generate_ideas_agent_adapted(theme)
+            logger.info(f"✅ Étape 1 terminée: {idea_data.get('Idea', 'N/A')[:50]}...")
 
             # Étape 2: Prompts AI Agent adapté pour générer le bon nombre de scènes
             logger.info(f"📝 Étape 2: Prompts AI Agent ({num_scenes} scènes)...")
             prompts_data = await self.generate_prompts_agent_adapted(idea_data, num_scenes)
+            logger.info(f"✅ Étape 2 terminée: {num_scenes} scènes générées")
 
             # Étape 3: Create Clips avec Veo 3.1 Fast
             logger.info("🎬 Étape 3: Create Clips avec Veo 3.1 Fast...")
@@ -714,6 +717,7 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
 
             # Générer les clips selon le nombre calculé
             for i in range(1, num_scenes + 1):
+                logger.info(f"🎬 Génération clip {i}/{num_scenes}...")
                 scene_key = f"Scene {i}"
                 if scene_key in prompts_data:
                     scene_prompt = prompts_data[scene_key]
