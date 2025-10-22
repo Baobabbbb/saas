@@ -439,8 +439,8 @@ OUTPUT FORMAT (JSON):
                 "X-Runway-Version": "2024-09-13"  # Version requise par l'API
             }
 
-            # URL de l'API Runway ML
-            api_url = f"{platform_config['base_url']}/generation"
+            # URL de l'API Runway ML pour Veo
+            api_url = f"{platform_config['base_url']}/v1/veo"
 
             logger.info(f"📡 Appel API Runway ML: {api_url}")
 
