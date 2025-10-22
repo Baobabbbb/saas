@@ -93,52 +93,6 @@ print(f"🔧 FAL_API_KEY: {'Configurée' if fal_key else '❌ NON CONFIGURÉE'}"
 if fal_key:
     print(f"   📏 Longueur: {len(fal_key)} caractères")
 
-# Test de validation direct de la clé Runway ML avec requête réelle
-print("\n🔍 TEST DE VALIDATION RUNWAY ML (requête réelle):")
-if runway_key:
-    import aiohttp
-    import asyncio
-
-    async def test_runway_key_validation():
-        try:
-            headers = {
-                "Authorization": f"Bearer key_{runway_key}",
-                "Content-Type": "application/json",
-                "X-Runway-Version": "2024-09-13"
-            }
-
-            print("   📡 Test de connexion à l'API Runway ML...")
-            async with aiohttp.ClientSession() as session:
-                async with session.get("https://api.dev.runwayml.com/v1/user", headers=headers, timeout=10) as response:
-                    print(f"   📊 Status HTTP: {response.status}")
-
-                    if response.status == 200:
-                        user_data = await response.json()
-                        print("   ✅ CLÉ API VALIDE !")
-                        print(f"   👤 Utilisateur: {user_data.get('name', 'Unknown')}")
-                        print(f"   📧 Email: {user_data.get('email', 'Unknown')}")
-                        print("   🎉 La clé Runway ML fonctionne correctement !")
-                    elif response.status == 401:
-                        error_data = await response.json()
-                        print(f"   ❌ CLÉ INVALIDE: {error_data.get('error', 'Erreur inconnue')}")
-                        print("   🔧 SOLUTION: Générez une nouvelle clé API sur https://runwayml.com")
-                    else:
-                        print(f"   ⚠️  Erreur inattendue: {response.status}")
-                        error_text = await response.text()
-                        print(f"   📄 Détails: {error_text[:200]}...")
-
-        except asyncio.TimeoutError:
-            print("   ⏰ Timeout: L'API Runway ML ne répond pas")
-        except Exception as e:
-            print(f"   💥 Erreur de connexion: {str(e)}")
-            print("   💡 Vérifiez votre connexion internet et réessayez")
-
-    # Lancer le test au démarrage
-    asyncio.run(test_runway_key_validation())
-else:
-    print("   ❌ RUNWAY_API_KEY manquante - définissez-la dans Railway Variables")
-    print("   🔧 Allez sur https://railway.app → Variables → Ajouter RUNWAY_API_KEY")
-
 print("=" * 60)
 
 app = FastAPI(title="API FRIDAY - Contenu Créatif IA", version="2.0", description="API pour générer du contenu créatif pour enfants : BD, coloriages, histoires, comptines")
