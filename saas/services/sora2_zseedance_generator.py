@@ -143,30 +143,25 @@ class Sora2ZseedanceGenerator:
             # Récupérer l'adaptation du thème ou utiliser une valeur par défaut
             theme_config = theme_adaptations.get(theme.lower(), theme_adaptations["space"])
 
-            # Prompt système adapté pour les enfants
-            system_prompt = f"""You are a creative storyteller specializing in animated stories for children aged 4-10.
+            # Prompt système strict pour forcer du JSON valide
+            system_prompt = f"""You are a JSON generator for children's animation story ideas.
 
-Create a magical animated story concept for the theme: {theme_config['subject']}
+Create a magical animated story concept for: {theme_config['subject']}
 
 REQUIREMENTS:
-- The story must be suitable for children 4-10 years old
-- Include friendly, positive characters
+- Suitable for children 4-10 years old
+- Friendly, positive characters only
 - No scary elements, violence, or danger
-- Focus on wonder, discovery, friendship, and joy
-- The animation should be colorful and magical
-- Include at least 3-5 friendly characters or creatures
+- Focus on wonder, discovery, friendship, joy
+- Colorful, magical animation style
+- 3-5 friendly characters or creatures
+- Complete story with beginning, middle, happy ending
 
-STORY STRUCTURE:
-- A clear beginning, middle, and happy ending
-- Characters go on an adventure or solve a fun problem
-- Everyone learns something positive
-- The ending is happy and uplifting
-
-OUTPUT FORMAT (JSON):
+OUTPUT: Return ONLY valid JSON with this exact structure:
 {{
   "Caption": "🎬 [Short title with emoji] #adventure #magic #friendship",
-  "Idea": "[2-3 sentence description of the complete story]",
-  "Environment": "[Magical setting description for {theme_config['style']}]",
+  "Idea": "[2-3 sentence complete story description]",
+  "Environment": "[Magical {theme_config['style']} setting]",
   "Sound": "{theme_config['sound']}, happy children's music, joyful sounds",
   "Status": "for children"
 }}"""
@@ -184,9 +179,10 @@ OUTPUT FORMAT (JSON):
                     model=TEXT_MODEL,
                     messages=[
                         {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": f"Create a magical animated story for children about: {theme_config['subject']}"}
+                        {"role": "user", "content": f"Create a magical animated story idea for children about {theme_config['subject']}."}
                     ],
-                    max_tokens=300,
+                    response_format={"type": "json_object"},
+                    max_tokens=600,
                     temperature=0.8
                 )
 
@@ -216,45 +212,32 @@ OUTPUT FORMAT (JSON):
         Adapté pour les enfants et génère des scènes cohérentes formant une histoire complète
         """
         try:
-            # Prompt système adapté pour les enfants et les animations cohérentes
-            system_prompt = f"""You are a cinematic prompt generator specializing in animated stories for children aged 4-10.
+            # Créer la liste des scènes attendues
+            scenes_keys = [f"Scene {i+1}" for i in range(num_scenes)]
 
-Your task is to create {num_scenes} detailed scene descriptions that together tell a complete, coherent animated story.
+            # Prompt système strict pour forcer du JSON valide
+            system_prompt = f"""You are a JSON generator for children's animation scenes.
 
-STORY TO ADAPT: {idea_data['Idea']}
+STORY: {idea_data['Idea']}
 ENVIRONMENT: {idea_data['Environment']}
 SOUND: {idea_data['Sound']}
 
-REQUIREMENTS FOR EACH SCENE:
-- Each scene must be exactly 10 seconds long
-- Scenes must flow logically: beginning → middle → climax → happy ending
-- Include colorful, magical elements suitable for children
-- Focus on positive emotions, friendship, discovery, and joy
-- No scary elements, danger, or negative emotions
-- Characters should be expressive and friendly
-- Use vibrant colors, magical effects, and child-friendly settings
+Create {num_scenes} detailed scene descriptions for a children's animated story.
+Each scene is exactly 10 seconds long and they form a complete story arc.
 
-SCENE STRUCTURE:
-- Scene 1: Introduction and setup (beginning of the story)
-- Scene 2-{num_scenes-1}: Development and adventure (middle of the story)
-- Scene {num_scenes}: Happy resolution (end of the story)
+REQUIREMENTS:
+- Magical, colorful, child-friendly content only
+- Positive emotions, friendship, discovery, joy
+- Disney/Pixar style 2D animation
+- Vibrant colors, magical effects, expressive characters
+- No scary elements or negative emotions
 
-VISUAL STYLE:
-- 2D cartoon animation in Disney/Pixar style
-- Bright, vibrant colors
-- Smooth fluid animation
-- Expressive character faces
-- Magical sparkles and effects
-- Child-friendly proportions
-
-OUTPUT FORMAT (JSON):
+OUTPUT: Return ONLY valid JSON with this exact structure:
 {{
   "Idea": "{idea_data['Idea']}",
   "Environment": "{idea_data['Environment']}",
   "Sound": "{idea_data['Sound']}",
-  "Scene 1": "Detailed description of scene 1 for 10-second animation clip",
-  "Scene 2": "Detailed description of scene 2 for 10-second animation clip",
-  "Scene 3": "Detailed description of scene 3 for 10-second animation clip"
+  {', '.join([f'"{key}": "Detailed description for {key.lower()}"' for key in scenes_keys])}
 }}"""
 
             # Générer les scènes avec GPT-4o-mini
@@ -270,9 +253,10 @@ OUTPUT FORMAT (JSON):
                     model=TEXT_MODEL,
                     messages=[
                         {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": f"Create {num_scenes} detailed animation scenes for this children's story: {idea_data['Idea']}. Each scene should be suitable for a 10-second animation clip and together form a complete, coherent story."}
+                        {"role": "user", "content": f"Generate {num_scenes} connected animation scenes for this children's story. Each scene must be detailed enough for a 10-second animation clip."}
                     ],
-                    max_tokens=800,
+                    response_format={"type": "json_object"},
+                    max_tokens=1000,
                     temperature=0.7
                 )
 
