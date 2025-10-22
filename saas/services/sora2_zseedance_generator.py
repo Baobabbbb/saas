@@ -704,8 +704,10 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
             logger.info(f"🚀 Démarrage génération ZSEEDANCE: {theme} ({duration}s, style: {style})")
 
             # Calculer le nombre de scènes selon la durée (8s par scène avec veo3.1_fast)
-            num_scenes = max(3, duration // 8)  # Minimum 3 scènes, 8s par scène
-            logger.info(f"📊 Génération de {num_scenes} scènes de 8 secondes chacune")
+            # Arrondir pour être plus proche de la durée demandée
+            num_scenes = max(3, round(duration / 8))  # Minimum 3 scènes, ~8s par scène
+            total_duration = num_scenes * 8
+            logger.info(f"📊 Génération de {num_scenes} scènes de 8 secondes chacune (durée totale: {total_duration}s pour {duration}s demandés)")
 
             # Étape 1: Ideas AI Agent avec adaptation au thème choisi
             logger.info("📝 Étape 1: Ideas AI Agent (adapté au thème)...")
