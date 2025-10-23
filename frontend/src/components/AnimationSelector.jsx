@@ -95,7 +95,7 @@ const AnimationSelector = ({
   }, []);
 
   const visualStyles = [
-    { id: '3d', name: '3D', description: 'Animation 3D moderne', emoji: '🎮' },
+    { id: '3d', name: '3D', description: 'Animation 3D moderne', emoji: '🎭' },
     { id: 'realistic', name: 'Réaliste', description: 'Style cinématographique', emoji: '🎬' },
     { id: 'cartoon', name: 'Cartoon', description: 'Style dessin animé coloré', emoji: '🎨' },
     { id: 'anime', name: 'Anime', description: 'Style manga japonais', emoji: '🇯🇵', useImage: true, imagePath: '/assets/japan-flag.png' }
