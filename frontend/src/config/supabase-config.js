@@ -1,6 +1,6 @@
 // Configuration centralisée Supabase - Valeurs hardcodées pour le frontend statique
 export const SUPABASE_CONFIG = {
-  url: 'https://jjqruvvqkqjsxzjcxwai.supabase.co',
+  url: 'https://xfbmdeuzuyixpmouhqcv.supabase.co',
   anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqcXJ1dnZxa3Fqc3h6amN4d2FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MzE0NzcsImV4cCI6MjA1MDIwNzQ3N30.rKqHwGxGBFVxwHlpwAaGq2yjNPEFVWMdZKrQQdvRHqM'
 };
 
