@@ -404,11 +404,10 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
                         if status == "SUCCEEDED":
                             # Récupérer l'URL de la vidéo générée
                             output = task_data.get("output", [])
-
                             if output and len(output) > 0:
                                 video_url = output[0]
-                                    logger.info(f"✅ Vidéo Runway ML générée: {video_url}")
-                                    return video_url
+                                logger.info(f"✅ Vidéo Runway ML générée: {video_url}")
+                                return video_url
                             else:
                                 logger.error(f"❌ Pas de vidéo dans la réponse: {task_data}")
                                 raise Exception("No video URL in Runway ML response")
@@ -705,11 +704,11 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
                 "clips": [
                     {
                         "scene_number": i + 1,
-                        "video_url": audio_video_urls[i],
-                        "duration": 10,
+                        "video_url": video_urls[i],
+                        "duration": 8,  # 8 secondes par clip
                         "status": "success"
                     }
-                    for i in range(len(audio_video_urls))
+                    for i in range(len(video_urls))
                 ]
             }
 
