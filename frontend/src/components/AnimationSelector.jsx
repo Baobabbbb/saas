@@ -22,7 +22,7 @@ const AnimationSelector = ({
   // Initialiser directement avec les thèmes (évite les appels API pour garantir l'affichage des nouveaux thèmes) - Build: 2024
   useEffect(() => {
     setAnimationThemes([
-      { id: 'custom', name: 'Dessin animé personnalisé', description: 'Écrivez votre propre histoire', emoji: '✏️' },
+      { id: 'custom', name: 'Personnalisé', description: 'Écrivez votre propre histoire', emoji: '✏️' },
       { id: 'space', name: 'Espace', description: 'Voyages spatiaux', emoji: '🚀' },
       { id: 'nature', name: 'Nature', description: 'Monde naturel', emoji: '🌳' },
       { id: 'adventure', name: 'Aventure', description: 'Voyages et explorations', emoji: '🏰' },
@@ -84,42 +84,44 @@ const AnimationSelector = ({
         <h4>2. Choisissez un thème pour votre dessin animé</h4>
         <div className="themes-grid">
           {animationThemes.map((theme) => (
-            <motion.div
-              key={theme.id}
-              className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''} ${theme.id === 'custom' ? 'custom-animation' : ''}`}
-              onClick={() => handleThemeSelect(theme.id)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="theme-emoji">{theme.emoji}</div>
-              <div className="theme-content">
-                <h5>{theme.name}</h5>
-                <p>{theme.description}</p>
-              </div>
-            </motion.div>
+            <div key={theme.id}>
+              <motion.div
+                className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''} ${theme.id === 'custom' ? 'custom-animation' : ''}`}
+                onClick={() => handleThemeSelect(theme.id)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="theme-emoji">{theme.emoji}</div>
+                <div className="theme-content">
+                  <h5>{theme.name}</h5>
+                  <p>{theme.description}</p>
+                </div>
+              </motion.div>
+
+              {/* Encart personnalisé juste en dessous du bouton Personnalisé */}
+              {theme.id === 'custom' && selectedTheme === 'custom' && (
+                <motion.div
+                  className="custom-theme-input"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <textarea
+                    className="custom-story-textarea"
+                    value={customStory}
+                    onChange={(e) => setCustomStory(e.target.value)}
+                    placeholder="Il était une fois... Racontez votre histoire ici. Plus elle est détaillée, plus l'animation sera riche et personnalisée !"
+                    rows={4}
+                  />
+                  <div className="character-count">
+                    {customStory.length}/500 caractères
+                  </div>
+                </motion.div>
+              )}
+            </div>
           ))}
         </div>
 
-        {selectedTheme === 'custom' && (
-          <motion.div 
-            className="custom-story-section"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-          >
-            <h4>Écrivez votre histoire</h4>
-            <textarea
-              className="custom-story-textarea"
-              value={customStory}
-              onChange={(e) => setCustomStory(e.target.value)}
-              placeholder="Il était une fois... Racontez votre histoire ici. Plus elle est détaillée, plus l'animation sera riche et personnalisée !"
-              rows={4}
-            />
-            <div className="character-count">
-              {customStory.length}/500 caractères
-            </div>
-          </motion.div>
-        )}
       </div>
 
 
