@@ -11,6 +11,8 @@ const ResetPasswordPage = () => {
   const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isInvalidLink, setIsInvalidLink] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     let timeoutId;
@@ -189,28 +191,48 @@ const ResetPasswordPage = () => {
         <form onSubmit={handleSubmit} className="reset-password-form">
           <div className="form-group">
             <label htmlFor="newPassword">Nouveau mot de passe</label>
-            <input
-              type="password"
-              id="newPassword"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Entrez votre nouveau mot de passe"
-              required
-              minLength="6"
-            />
+            <div className="password-input-container">
+              <input
+                type={showNewPassword ? "text" : "password"}
+                id="newPassword"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Entrez votre nouveau mot de passe"
+                required
+                minLength="6"
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                aria-label={showNewPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              >
+                {showNewPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirmer le mot de passe</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirmez votre nouveau mot de passe"
-              required
-              minLength="6"
-            />
+            <div className="password-input-container">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirmez votre nouveau mot de passe"
+                required
+                minLength="6"
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                aria-label={showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              >
+                {showConfirmPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
           </div>
 
           {error && (

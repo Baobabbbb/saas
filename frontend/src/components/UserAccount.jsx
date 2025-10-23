@@ -42,6 +42,10 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   const [resetEmail, setResetEmail] = useState('');
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
+
+  // États pour la visibilité des mots de passe
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   
   // Vérifier si l'utilisateur connecté est administrateur (en vérifiant le rôle dans la base)
   useEffect(() => {
@@ -366,14 +370,25 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     user={null}
                     onEmailSubmit={() => {}}
                   />
-                  <input
-                    type="password"
-                    placeholder="Mot de passe"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={isAuthenticating}
-                  />
+                  <div className="password-input-container">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Mot de passe"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      disabled={isAuthenticating}
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={isAuthenticating}
+                      aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    >
+                      {showPassword ? "🙈" : "👁️"}
+                    </button>
+                  </div>
                   {error && <div className="error-message">{error}</div>}
                   <div className="form-buttons">
                     <button
@@ -452,15 +467,26 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     user={null}
                     onEmailSubmit={() => {}}
                   />
-                  <input
-                    type="password"
-                    placeholder="Mot de passe (min 6 caractères)"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                    disabled={isAuthenticating}
-                  />
+                  <div className="password-input-container">
+                    <input
+                      type={showSignupPassword ? "text" : "password"}
+                      placeholder="Mot de passe (min 6 caractères)"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      disabled={isAuthenticating}
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      disabled={isAuthenticating}
+                      aria-label={showSignupPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    >
+                      {showSignupPassword ? "🙈" : "👁️"}
+                    </button>
+                  </div>
                   {error && <div className="error-message">{error}</div>}
                   <div className="form-buttons">
                     <button

@@ -153,6 +153,52 @@
   box-shadow: none;
 }
 
+/* Styles pour les champs de mot de passe avec icône œil */
+.password-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-container input {
+  width: 100%;
+  padding: 12px 50px 12px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+  background: white;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #666;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.3s ease, background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+}
+
+.password-toggle:hover:not(:disabled) {
+  background-color: rgba(107, 78, 255, 0.1);
+  color: #6B4EFF;
+}
+
+.password-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .login-spinner {
   width: 16px;
   height: 16px;
