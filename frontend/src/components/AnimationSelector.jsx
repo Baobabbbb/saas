@@ -113,9 +113,6 @@ const AnimationSelector = ({
                     placeholder="Il était une fois... Racontez votre histoire ici. Plus elle est détaillée, plus l'animation sera riche et personnalisée !"
                     rows={4}
                   />
-                  <div className="character-count">
-                    {customStory.length}/500 caractères
-                  </div>
                 </motion.div>
               )}
             </div>
