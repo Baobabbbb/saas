@@ -362,13 +362,15 @@
 }
 
 .upload-text strong {
-  color: var(--text);
-  font-size: 1.1rem;
+  font-size: 0.9rem;
+  color: #666666;
+  font-weight: 500;
 }
 
 .upload-text span {
-  color: #999;
   font-size: 0.9rem;
+  color: #666666;
+  font-weight: 500;
 }
 
 .character-preview {
