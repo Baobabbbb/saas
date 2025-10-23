@@ -32,27 +32,15 @@
 /* Grille des thèmes - style harmonisé avec BD */
 .themes-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   margin-bottom: 1rem;
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
+  width: 100%;
+  max-height: none !important;
+  overflow: visible !important;
+  height: auto !important;
 }
 
-.themes-grid::-webkit-scrollbar {
-  width: 6px;
-}
-
-.themes-grid::-webkit-scrollbar-track {
-  background: #f5f0ff;
-  border-radius: 10px;
-}
-
-.themes-grid::-webkit-scrollbar-thumb {
-  background: #c4b5ff;
-  border-radius: 10px;
-}
 
 .theme-card {
   background-color: #f5f0ff;
@@ -267,7 +255,7 @@
   }
   
   .themes-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.8rem;
   }
   
