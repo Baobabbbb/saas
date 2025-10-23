@@ -18,82 +18,28 @@ const AnimationSelector = ({
   
   const [animationThemes, setAnimationThemes] = useState([]);
   const [durations, setDurations] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  // Charger les thèmes et durées depuis Animation Studio
+  // Initialiser directement avec les thèmes (évite les appels API pour garantir l'affichage des nouveaux thèmes) - Build: 2024
   useEffect(() => {
-    const loadThemesAndDurations = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(API_ENDPOINTS.animationThemes);
-        const data = await response.json();
-        
-        if (data.themes) {
-          // Convertir les thèmes reçus au format attendu
-          const formattedThemes = Object.entries(data.themes).map(([key, theme]) => ({
-            id: key,
-            name: theme.name,
-            description: theme.description,
-            emoji: theme.icon
-          }));
-          
-          // Ajouter l'option personnalisée en premier
-          setAnimationThemes([
-            { id: 'custom', name: 'Dessin animé personnalisé', description: 'Écrivez votre propre histoire', emoji: '✏️' },
-            ...formattedThemes
-          ]);
-        }
-        
-        if (data.durations) {
-          // Convertir les durées au format attendu
-          const formattedDurations = data.durations.map(duration => ({
-            value: duration,
-            label: duration >= 60 ? `${duration / 60} minute${duration > 60 ? 's' : ''}` : `${duration} secondes`
-          }));
-          setDurations(formattedDurations);
-        }
-        
-      } catch (error) {
-        console.error('Erreur lors du chargement des thèmes:', error);
-        // Fallback avec thèmes par défaut
-        setAnimationThemes([
-          { id: 'custom', name: 'Dessin animé personnalisé', description: 'Écrivez votre propre histoire', emoji: '✏️' },
-          { id: 'space', name: 'Espace', description: 'Voyages spatiaux', emoji: '🚀' },
-          { id: 'nature', name: 'Nature', description: 'Monde naturel', emoji: '🌳' },
-          { id: 'adventure', name: 'Aventure', description: 'Voyages et explorations', emoji: '🏰' },
-          { id: 'animals', name: 'Animaux', description: 'Histoires d\'animaux mignons', emoji: '🐾' },
-          { id: 'magic', name: 'Magie', description: 'Monde magique et sortilèges', emoji: '✨' },
-          { id: 'friendship', name: 'Amitié', description: 'Histoires d\'amitié', emoji: '🤝' },
-          { id: 'ocean', name: 'Sous-marin', description: 'Exploration sous-marine', emoji: '🐠' },
-          { id: 'circus', name: 'Cirque', description: 'Spectacle de cirque magique', emoji: '🎪' }
-        ]);
-        setDurations([
-          { value: 30, label: '30 secondes' },
-          { value: 60, label: '1 minute' },
-          { value: 120, label: '2 minutes' },
-          { value: 180, label: '3 minutes' },
-          { value: 240, label: '4 minutes' },
-          { value: 300, label: '5 minutes' }
-        ]);
-      } finally {
-        setLoading(false);
-      }
-      
-      // Toujours définir les durées par défaut même si l'API fonctionne
-      // Au cas où l'API ne retourne pas les durées
-      if (durations.length === 0) {
-        setDurations([
-          { value: 30, label: '30 secondes' },
-          { value: 60, label: '1 minute' },
-          { value: 120, label: '2 minutes' },
-          { value: 180, label: '3 minutes' },
-          { value: 240, label: '4 minutes' },
-          { value: 300, label: '5 minutes' }
-        ]);
-      }
-    };
-
-    loadThemesAndDurations();
+    setAnimationThemes([
+      { id: 'custom', name: 'Dessin animé personnalisé', description: 'Écrivez votre propre histoire', emoji: '✏️' },
+      { id: 'space', name: 'Espace', description: 'Voyages spatiaux', emoji: '🚀' },
+      { id: 'nature', name: 'Nature', description: 'Monde naturel', emoji: '🌳' },
+      { id: 'adventure', name: 'Aventure', description: 'Voyages et explorations', emoji: '🏰' },
+      { id: 'animals', name: 'Animaux', description: 'Histoires d\'animaux mignons', emoji: '🐾' },
+      { id: 'magic', name: 'Magie', description: 'Monde magique et sortilèges', emoji: '✨' },
+      { id: 'friendship', name: 'Amitié', description: 'Histoires d\'amitié', emoji: '🤝' },
+      { id: 'ocean', name: 'Sous-marin', description: 'Exploration sous-marine', emoji: '🐠' },
+      { id: 'circus', name: 'Cirque', description: 'Spectacle de cirque magique', emoji: '🎪' }
+    ]);
+    setDurations([
+      { value: 30, label: '30 secondes' },
+      { value: 60, label: '1 minute' },
+      { value: 120, label: '2 minutes' },
+      { value: 180, label: '3 minutes' },
+      { value: 240, label: '4 minutes' },
+      { value: 300, label: '5 minutes' }
+    ]);
   }, []);
 
   const visualStyles = [
@@ -130,16 +76,6 @@ const AnimationSelector = ({
   };
 
 
-  if (loading) {
-    return (
-      <div className="animation-selector loading">
-        <div className="loading-message">
-          <div className="spinner">🎬</div>
-          <p>Chargement des thèmes d'animation...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="animation-selector">
