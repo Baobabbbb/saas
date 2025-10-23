@@ -19,7 +19,8 @@ logger = logging.getLogger(__name__)
 class Sora2ZseedanceGenerator:
     """
     Générateur d'animations utilisant Runway ML Veo 3.1 Fast en suivant exactement le workflow zseedance.json
-    Workflow identique : Ideas → Prompts → Clips Veo 3.1 Fast → Sequence (sans audio séparé)
+    Workflow optimisé : Ideas → Prompts → Clips Veo 3.1 Fast (avec audio intégré) → Sequence
+    Note: Veo 3.1 Fast génère automatiquement l'audio, pas besoin d'ajout séparé
     """
 
     def __init__(self):
@@ -287,78 +288,8 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
             raise Exception(f"Échec génération {num_scenes} scènes: {e}")
 
 
-    async def add_audio_to_clip(self, video_url: str, sound_description: str) -> str:
-        """
-        Ajoute l'audio à un clip vidéo avec FAL AI MMAudio (comme dans zseedance.json)
-        """
-        try:
-            fal_key = os.getenv("FAL_API_KEY")
-            if not fal_key:
-                logger.warning("FAL_API_KEY non configurée, retour du clip sans audio")
-                return video_url
-
-            headers = {
-                "Authorization": f"Key {fal_key}",
-                "Content-Type": "application/json"
-            }
-
-            payload = {
-                "prompt": f"sound effects: {sound_description}. Gentle, magical, child-friendly music and sounds suitable for children's animation",
-                "duration": 10,
-                "video_url": video_url
-            }
-
-            logger.info(f"🎵 Ajout audio avec FAL AI: {sound_description[:50]}...")
-
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    "https://queue.fal.run/fal-ai/mmaudio-v2",
-                    headers=headers,
-                    json=payload
-                ) as response:
-                    if response.status == 200:
-                        result = await response.json()
-                        request_id = result.get("request_id")
-
-                        # Attendre que l'audio soit ajouté
-                        final_url = await self._wait_fal_audio(request_id, headers)
-                        return final_url
-                    else:
-                        error_text = await response.text()
-                        logger.warning(f"Erreur FAL AI audio ({response.status}): {error_text}")
-                        return video_url  # Retourner le clip sans audio
-
-        except Exception as e:
-            logger.error(f"Erreur ajout audio: {e}")
-            return video_url  # Fallback: clip sans audio
-
-    async def _wait_fal_audio(self, request_id: str, headers: dict, max_wait: int = 120) -> str:
-        """
-        Attend que FAL AI termine l'ajout d'audio
-        """
-        api_url = f"https://queue.fal.run/fal-ai/mmaudio-v2/requests/{request_id}"
-        start_time = time.time()
-
-        while time.time() - start_time < max_wait:
-            try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(api_url, headers=headers) as response:
-                        if response.status == 200:
-                            result = await response.json()
-                            status = result.get("status")
-
-                            if status == "COMPLETED":
-                                return result.get("video_url") or result.get("output_url")
-                            elif status == "FAILED":
-                                raise Exception(f"Échec ajout audio: {result.get('error')}")
-
-                    await asyncio.sleep(5)
-
-            except Exception as e:
-                logger.warning(f"Erreur vérification audio FAL: {e}")
-                await asyncio.sleep(5)
-
-        raise Exception(f"Timeout ajout audio après {max_wait}s")
+    # NOTE: add_audio_to_clip et _wait_fal_audio supprimées car Veo 3.1 Fast génère déjà l'audio automatiquement
+    # Les clips générés par Veo 3.1 Fast incluent déjà l'audio, pas besoin d'ajout séparé
 
     async def create_sora2_clip(self, scene_prompt: str, idea: str, environment: str) -> str:
         """
@@ -473,11 +404,11 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
                         if status == "SUCCEEDED":
                             # Récupérer l'URL de la vidéo générée
                             output = task_data.get("output", [])
-                            
+
                             if output and len(output) > 0:
                                 video_url = output[0]
-                                logger.info(f"✅ Vidéo Runway ML générée: {video_url}")
-                                return video_url
+                                    logger.info(f"✅ Vidéo Runway ML générée: {video_url}")
+                                    return video_url
                             else:
                                 logger.error(f"❌ Pas de vidéo dans la réponse: {task_data}")
                                 raise Exception("No video URL in Runway ML response")
@@ -750,21 +681,10 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
                     )
                     video_urls.append(video_url)
 
-            # Étape 4: Create Sounds avec FAL AI MMAudio
-            logger.info("🎵 Étape 4: Create Sounds avec FAL AI...")
-            audio_video_urls = []
-            for i, video_url in enumerate(video_urls):
-                logger.info(f"🎵 Ajout audio à la scène {i+1}...")
-                audio_video_url = await self.add_audio_to_clip(video_url, prompts_data["Sound"])
-                audio_video_urls.append(audio_video_url)
-
-                # Attendre entre les générations audio
-                if i > 0:
-                    await asyncio.sleep(2)
-
-            # Étape 5: Sequence Video - Assemblage final
-            logger.info("🔗 Étape 5: Sequence Video (assemblage final)...")
-            final_video_url = await self.sequence_sora2_video(audio_video_urls)
+            # Étape 4: Sequence Video - Assemblage final
+            # Note: Veo 3.1 Fast génère déjà l'audio automatiquement, pas besoin d'ajout audio séparé
+            logger.info("🔗 Étape 4: Sequence Video (assemblage final des clips avec audio intégré)...")
+            final_video_url = await self.sequence_sora2_video(video_urls)
 
             logger.info("✅ Animation ZSEEDANCE terminée avec succès!")
 
