@@ -285,6 +285,26 @@
   font-weight: 600;
 }
 
+.upload-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.upload-text strong {
+  font-size: 0.9rem;
+  color: #6B4EFF;
+  font-weight: 600;
+}
+
+.upload-text span {
+  font-size: 0.9rem;
+  color: #6B4EFF;
+  font-weight: 600;
+}
+
 .upload-icon {
   font-size: 2rem;
   margin-bottom: 6px;

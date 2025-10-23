@@ -166,7 +166,10 @@ const ComicsSelector = ({
                 ) : (
                   <div className="upload-prompt">
                     <span className="upload-icon">📸</span>
-                    <span>Cliquez pour uploader une photo</span>
+                    <div className="upload-text">
+                      <strong>Cliquez pour uploader une photo</strong>
+                      <span>ou glissez-déposez une image ici</span>
+                    </div>
                     <span className="upload-hint">PNG, JPG, WEBP jusqu'à 10MB</span>
                   </div>
                 )}
