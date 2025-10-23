@@ -410,8 +410,9 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
                             output = task_data.get("output", [])
                             if output and len(output) > 0:
                                 video_url = output[0]
-                                    logger.info(f"✅ Vidéo Runway ML générée: {video_url}")
-                                    return video_url
+                                logger.info(f"✅ Vidéo Runway ML générée: {video_url}")
+                                # Indentation corrigée pour éviter IndentationError
+                                return video_url
                             else:
                                 logger.error(f"❌ Pas de vidéo dans la réponse: {task_data}")
                                 raise Exception("No video URL in Runway ML response")
