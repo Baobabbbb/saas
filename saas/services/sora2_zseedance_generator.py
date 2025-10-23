@@ -80,8 +80,12 @@ class Sora2ZseedanceGenerator:
         logger.info(f"🔑 RUNWAY_API_KEY détectée: {bool(os.getenv('RUNWAY_API_KEY'))}")
         if os.getenv('RUNWAY_API_KEY'):
             key = os.getenv('RUNWAY_API_KEY')
-            logger.info(f"🔑 Format clé: {'✅ OK' if key.startswith('key_') else '❌ ERREUR'}")
-            logger.info(f"🔑 Longueur: {len(key)} caractères")
+            logger.info(f"🔑 Format clé Runway: {'✅ OK' if key.startswith('key_') else '❌ ERREUR'}")
+            logger.info(f"🔑 Longueur clé Runway: {len(key)} caractères")
+        logger.info(f"🔑 FAL_API_KEY détectée: {bool(os.getenv('FAL_API_KEY'))}")
+        if os.getenv('FAL_API_KEY'):
+            fal_key = os.getenv('FAL_API_KEY')
+            logger.info(f"🔑 Longueur clé FAL: {len(fal_key)} caractères")
 
     def _select_best_platform(self) -> str:
         """Sélectionne la plateforme Veo 3.1 Fast disponible avec la priorité la plus haute"""
@@ -450,17 +454,21 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
 
             platform = self.selected_platform
 
-            # Essayer d'abord Runway ML pour l'assemblage
+            # Essayer d'abord Runway ML pour l'assemblage (si disponible)
             if platform == "runway":
                 try:
+                    logger.info("🔧 Tentative assemblage avec Runway ML...")
                     return await self._assemble_with_runway(video_urls)
                 except Exception as e:
                     logger.warning(f"⚠️ Assemblage Runway ML échoué: {e}")
-                    logger.info("🔄 Tentative avec FAL AI...")
+                    logger.info("🔄 Basculement vers FAL AI pour l'assemblage...")
 
-            # Essayer FAL AI pour l'assemblage
+            # Utiliser FAL AI pour l'assemblage (fallback ou méthode principale)
+            logger.info("🔧 Assemblage avec FAL AI...")
             try:
-                return await self._assemble_with_fal(video_urls)
+                final_url = await self._assemble_with_fal(video_urls)
+                logger.info(f"✅ Assemblage FAL AI réussi: {final_url}")
+                return final_url
             except Exception as e:
                 logger.error(f"❌ Assemblage FAL AI échoué: {e}")
                 raise Exception(f"Échec assemblage vidéo FAL AI: {e}")
@@ -475,8 +483,10 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
         """
         try:
             platform_config = self.sora_platforms["runway"]
+            api_key = platform_config['api_key']
+            # La clé contient déjà le préfixe 'key_', ne pas le dupliquer
             headers = {
-                "Authorization": f"Bearer key_{platform_config['api_key']}",
+                "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
                 "X-Runway-Version": "2024-09-13"  # Version requise par l'API
             }
