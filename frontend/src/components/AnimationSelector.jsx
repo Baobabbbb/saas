@@ -24,12 +24,12 @@ const AnimationSelector = ({
     setAnimationThemes([
       { id: 'custom', name: 'Personnalisé', description: 'Écrivez votre propre histoire', emoji: '✏️' },
       { id: 'space', name: 'Espace', description: 'Voyages spatiaux', emoji: '🚀' },
+      { id: 'ocean', name: 'Sous-marin', description: 'Exploration sous-marine', emoji: '🐠' },
       { id: 'nature', name: 'Nature', description: 'Monde naturel', emoji: '🌳' },
       { id: 'adventure', name: 'Aventure', description: 'Voyages et explorations', emoji: '🏰' },
       { id: 'animals', name: 'Animaux', description: 'Histoires d\'animaux mignons', emoji: '🐾' },
       { id: 'magic', name: 'Magie', description: 'Monde magique et sortilèges', emoji: '✨' },
       { id: 'friendship', name: 'Amitié', description: 'Histoires d\'amitié', emoji: '🤝' },
-      { id: 'ocean', name: 'Sous-marin', description: 'Exploration sous-marine', emoji: '🐠' },
       { id: 'circus', name: 'Cirque', description: 'Spectacle de cirque magique', emoji: '🎪' }
     ]);
     setDurations([
