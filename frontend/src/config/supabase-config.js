@@ -1,15 +1,8 @@
-// Configuration centralisée Supabase - DOIT être définie dans Railway
+// Configuration centralisée Supabase - Valeurs hardcodées pour le frontend statique
 export const SUPABASE_CONFIG = {
-  url: import.meta.env.VITE_SUPABASE_URL,
-  anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY
+  url: 'https://jjqruvvqkqjsxzjcxwai.supabase.co',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqcXJ1dnZxa3Fqc3h6amN4d2FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MzE0NzcsImV4cCI6MjA1MDIwNzQ3N30.rKqHwGxGBFVxwHlpwAaGq2yjNPEFVWMdZKrQQdvRHqM'
 };
-
-// Vérification obligatoire
-if (!SUPABASE_CONFIG.url || !SUPABASE_CONFIG.anonKey) {
-  console.error('❌ ERREUR CRITIQUE: Variables Supabase manquantes dans Railway!');
-  console.error('Configurez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY dans Railway > Variables');
-  throw new Error('Configuration Supabase manquante');
-}
 
 // Diagnostic des variables d'environnement
 export function diagnoseEnvironmentVariables() {
