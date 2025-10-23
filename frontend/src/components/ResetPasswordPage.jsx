@@ -207,7 +207,6 @@ const ResetPasswordPage = () => {
                 onClick={() => setShowNewPassword(!showNewPassword)}
                 aria-label={showNewPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
               >
-                {showNewPassword ? "🙈" : "👁️"}
               </button>
             </div>
           </div>
@@ -230,7 +229,6 @@ const ResetPasswordPage = () => {
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 aria-label={showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
               >
-                {showConfirmPassword ? "🙈" : "👁️"}
               </button>
             </div>
           </div>

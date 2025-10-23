@@ -386,7 +386,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                       disabled={isAuthenticating}
                       aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                     >
-                      {showPassword ? "🙈" : "👁️"}
                     </button>
                   </div>
                   {error && <div className="error-message">{error}</div>}
@@ -484,7 +483,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                       disabled={isAuthenticating}
                       aria-label={showSignupPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                     >
-                      {showSignupPassword ? "🙈" : "👁️"}
                     </button>
                   </div>
                   {error && <div className="error-message">{error}</div>}

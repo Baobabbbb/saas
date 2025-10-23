@@ -93,7 +93,6 @@ const AdminLogin = () => {
                 disabled={loading}
                 aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
               >
-                {showPassword ? "🙈" : "👁️"}
               </button>
             </div>
           </div>
