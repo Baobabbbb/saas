@@ -11,7 +11,9 @@ const AnimationSelector = ({
   selectedStyle,
   setSelectedStyle,
   customStory,
-  setCustomStory
+  setCustomStory,
+  characterImage,
+  setCharacterImage
 }) => {
   
   const [animationThemes, setAnimationThemes] = useState([]);
@@ -93,10 +95,10 @@ const AnimationSelector = ({
   }, []);
 
   const visualStyles = [
-    { id: 'cartoon', name: 'Cartoon', description: 'Style dessin animé coloré', emoji: '🎨' },
-    { id: 'anime', name: 'Anime', description: 'Style manga japonais', emoji: '🇯🇵', useImage: true, imagePath: '/assets/japan-flag.png' },
+    { id: '3d', name: '3D', description: 'Animation 3D moderne', emoji: '🎮' },
     { id: 'realistic', name: 'Réaliste', description: 'Style cinématographique', emoji: '🎬' },
-    { id: 'pastel', name: 'Pastel', description: 'Couleurs douces et tendres', emoji: '🌸' }
+    { id: 'cartoon', name: 'Cartoon', description: 'Style dessin animé coloré', emoji: '🎨' },
+    { id: 'anime', name: 'Anime', description: 'Style manga japonais', emoji: '🇯🇵', useImage: true, imagePath: '/assets/japan-flag.png' }
   ];
 
   // Fonctions de toggle pour désélectionner en recliquant
@@ -235,6 +237,57 @@ const AnimationSelector = ({
               </div>
             </motion.div>
           ))}
+        </div>
+      </div>
+
+      {/* Section 4: Personnage principal (optionnel) */}
+      <div className="selector-section">
+        <h4>4. Personnage principal (optionnel)</h4>
+        <p className="section-description">
+          Uploadez une photo pour créer un personnage personnalisé dans votre dessin animé
+        </p>
+        
+        <div className="character-upload-container">
+          {!characterImage ? (
+            <motion.label 
+              className="character-upload-zone"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      setCharacterImage(reader.result);
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                style={{ display: 'none' }}
+              />
+              <div className="upload-icon">📸</div>
+              <div className="upload-text">
+                <strong>Cliquez pour uploader une photo</strong>
+                <span>ou glissez-déposez une image ici</span>
+              </div>
+            </motion.label>
+          ) : (
+            <div className="character-preview">
+              <img src={characterImage} alt="Personnage" className="character-image" />
+              <motion.button
+                className="remove-character-btn"
+                onClick={() => setCharacterImage(null)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                ✕ Supprimer
+              </motion.button>
+            </div>
+          )}
         </div>
       </div>
     </div>

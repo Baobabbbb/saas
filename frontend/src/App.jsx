@@ -153,6 +153,7 @@ function App() {
   const [selectedDuration, setSelectedDuration] = useState(null);
   const [selectedStyle, setSelectedStyle] = useState(null);
   const [customStory, setCustomStory] = useState('');
+  const [characterImage, setCharacterImage] = useState(null);
 
   // Histoire states
   const [selectedStory, setSelectedStory] = useState(null);
@@ -1154,6 +1155,8 @@ const downloadPDF = async (title, content) => {
                   setSelectedStyle={setSelectedStyle}
                   customStory={customStory}
                   setCustomStory={setCustomStory}
+                  characterImage={characterImage}
+                  setCharacterImage={setCharacterImage}
                 />
               </motion.div>
             ) : contentType === 'histoire' ? (
