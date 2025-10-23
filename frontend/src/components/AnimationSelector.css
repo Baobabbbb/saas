@@ -52,7 +52,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  height: 140px; /* Hauteur fixe pour uniformité */
+  height: 220px; /* Même hauteur que ColoringSelector pour cohérence */
   justify-content: center;
   align-items: center;
   text-align: center;
