@@ -44,7 +44,76 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   const [isAdminUser, setIsAdminUser] = useState(false);
 
   // États pour la visibilité des mots de passe
-  
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+
+  // Initialiser Feather Icons et les event listeners
+  useEffect(() => {
+    if (window.feather) {
+      window.feather.replace();
+    }
+
+    // Gestionnaire pour le champ de connexion
+    const loginEye = document.querySelector('.password-field .feather-eye');
+    const loginEyeOff = document.querySelector('.password-field .feather-eye-off');
+    const loginPasswordField = document.querySelector('.password-field input[type="password"], .password-field input[type="text"]');
+
+    if (loginEye && loginEyeOff && loginPasswordField) {
+      const handleLoginEyeClick = () => {
+        loginEye.style.display = 'none';
+        loginEyeOff.style.display = 'block';
+        loginPasswordField.type = 'text';
+        setShowPassword(true);
+      };
+
+      const handleLoginEyeOffClick = () => {
+        loginEyeOff.style.display = 'none';
+        loginEye.style.display = 'block';
+        loginPasswordField.type = 'password';
+        setShowPassword(false);
+      };
+
+      loginEye.addEventListener('click', handleLoginEyeClick);
+      loginEyeOff.addEventListener('click', handleLoginEyeOffClick);
+
+      return () => {
+        loginEye.removeEventListener('click', handleLoginEyeClick);
+        loginEyeOff.removeEventListener('click', handleLoginEyeOffClick);
+      };
+    }
+  }, []);
+
+  // Gestionnaire séparé pour le champ d'inscription
+  useEffect(() => {
+    const signupEye = document.querySelectorAll('.password-field .feather-eye')[1];
+    const signupEyeOff = document.querySelectorAll('.password-field .feather-eye-off')[1];
+    const signupPasswordFields = document.querySelectorAll('.password-field input[type="password"], .password-field input[type="text"]');
+
+    if (signupEye && signupEyeOff && signupPasswordFields[1]) {
+      const handleSignupEyeClick = () => {
+        signupEye.style.display = 'none';
+        signupEyeOff.style.display = 'block';
+        signupPasswordFields[1].type = 'text';
+        setShowSignupPassword(true);
+      };
+
+      const handleSignupEyeOffClick = () => {
+        signupEyeOff.style.display = 'none';
+        signupEye.style.display = 'block';
+        signupPasswordFields[1].type = 'password';
+        setShowSignupPassword(false);
+      };
+
+      signupEye.addEventListener('click', handleSignupEyeClick);
+      signupEyeOff.addEventListener('click', handleSignupEyeOffClick);
+
+      return () => {
+        signupEye.removeEventListener('click', handleSignupEyeClick);
+        signupEyeOff.removeEventListener('click', handleSignupEyeOffClick);
+      };
+    }
+  }, []);
+
   // Vérifier si l'utilisateur connecté est administrateur (en vérifiant le rôle dans la base)
   useEffect(() => {
     const checkAdminRole = async () => {
@@ -368,14 +437,20 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     user={null}
                     onEmailSubmit={() => {}}
                   />
-                  <input
-                    type="password"
-                    placeholder="Mot de passe"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={isAuthenticating}
-                  />
+                  <label className="password-field">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Mot de passe"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      disabled={isAuthenticating}
+                    />
+                    <div className="password-icon">
+                      <i data-feather="eye"></i>
+                      <i data-feather="eye-off"></i>
+                    </div>
+                  </label>
                   {error && <div className="error-message">{error}</div>}
                   <div className="form-buttons">
                     <button
@@ -454,15 +529,21 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     user={null}
                     onEmailSubmit={() => {}}
                   />
-                  <input
-                    type="password"
-                    placeholder="Mot de passe (min 6 caractères)"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                    disabled={isAuthenticating}
-                  />
+                  <label className="password-field">
+                    <input
+                      type={showSignupPassword ? "text" : "password"}
+                      placeholder="Mot de passe (min 6 caractères)"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      disabled={isAuthenticating}
+                    />
+                    <div className="password-icon">
+                      <i data-feather="eye"></i>
+                      <i data-feather="eye-off"></i>
+                    </div>
+                  </label>
                   {error && <div className="error-message">{error}</div>}
                   <div className="form-buttons">
                     <button

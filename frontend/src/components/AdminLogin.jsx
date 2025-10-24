@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import './AdminLogin.css';
@@ -9,7 +9,43 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { signIn } = useAuth();
+
+  // Initialiser Feather Icons
+  useEffect(() => {
+    if (window.feather) {
+      window.feather.replace();
+    }
+
+    const eye = document.querySelector('.password-field .feather-eye');
+    const eyeoff = document.querySelector('.password-field .feather-eye-off');
+    const passwordField = document.querySelector('.password-field input[type="password"], .password-field input[type="text"]');
+
+    if (eye && eyeoff && passwordField) {
+      const handleEyeClick = () => {
+        eye.style.display = 'none';
+        eyeoff.style.display = 'block';
+        passwordField.type = 'text';
+        setShowPassword(true);
+      };
+
+      const handleEyeOffClick = () => {
+        eyeoff.style.display = 'none';
+        eye.style.display = 'block';
+        passwordField.type = 'password';
+        setShowPassword(false);
+      };
+
+      eye.addEventListener('click', handleEyeClick);
+      eyeoff.addEventListener('click', handleEyeOffClick);
+
+      return () => {
+        eye.removeEventListener('click', handleEyeClick);
+        eyeoff.removeEventListener('click', handleEyeOffClick);
+      };
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -74,16 +110,22 @@ const AdminLogin = () => {
 
           <div className="login-field">
             <label htmlFor="password">Mot de passe</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              disabled={loading}
-              autoComplete="current-password"
-            />
+            <label className="password-field">
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                disabled={loading}
+                autoComplete="current-password"
+              />
+              <div className="password-icon">
+                <i data-feather="eye"></i>
+                <i data-feather="eye-off"></i>
+              </div>
+            </label>
           </div>
 
           <button
