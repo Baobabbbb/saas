@@ -171,9 +171,18 @@
   background: white;
 }
 
-.password-toggle {
+.password-icon {
+  display: flex;
+  align-items: center;
   position: absolute;
-  right: 12px;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  color: #666;
+  transition: color 0.3s ease;
+}
+
+.password-toggle {
   background: none;
   border: none;
   cursor: pointer;
@@ -183,32 +192,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  color: #666;
-}
-
-.password-toggle::before {
-  content: '';
-  display: inline-block;
-  width: 16px;
-  height: 12px;
-  border: 2px solid currentColor;
-  border-top: none;
-  border-radius: 50% 50% 0 0;
-  position: relative;
-}
-
-.password-toggle::after {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  background: currentColor;
-  border-radius: 50%;
-  position: absolute;
-  top: 3px;
-  left: 5px;
+  width: 32px;
+  height: 32px;
 }
 
 .password-toggle:hover:not(:disabled) {
@@ -219,6 +204,22 @@
 .password-toggle:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.feather-eye.active {
+  display: block;
+}
+
+.feather-eye-off.active {
+  display: block;
+}
+
+.feather-eye:not(.active) {
+  display: none;
+}
+
+.feather-eye-off:not(.active) {
+  display: none;
 }
 
 .login-spinner {
