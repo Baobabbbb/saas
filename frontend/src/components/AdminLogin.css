@@ -189,9 +189,9 @@
 
 .password-toggle-btn {
   position: absolute !important;
-  top: 50% !important;
+  top: 0 !important;
   right: 15px !important;
-  transform: translateY(-50%) !important;
+  bottom: 0 !important;
   background: none !important;
   border: none !important;
   cursor: pointer !important;
@@ -202,7 +202,6 @@
   align-items: center !important;
   justify-content: center !important;
   width: 20px !important;
-  height: 20px !important;
 }
 
 .password-toggle-btn:hover {
