@@ -156,8 +156,6 @@
 /* Styles pour les champs de mot de passe avec icône œil */
 .password-input-container {
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
 .password-input-container input {
