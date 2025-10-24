@@ -47,72 +47,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   const [showPassword, setShowPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
 
-  // Initialiser Feather Icons et les event listeners
-  useEffect(() => {
-    if (window.feather) {
-      window.feather.replace();
-    }
-
-    // Gestionnaire pour le champ de connexion
-    const loginEye = document.querySelector('.password-field .feather-eye');
-    const loginEyeOff = document.querySelector('.password-field .feather-eye-off');
-    const loginPasswordField = document.querySelector('.password-field input[type="password"], .password-field input[type="text"]');
-
-    if (loginEye && loginEyeOff && loginPasswordField) {
-      const handleLoginEyeClick = () => {
-        loginEye.style.display = 'none';
-        loginEyeOff.style.display = 'block';
-        loginPasswordField.type = 'text';
-        setShowPassword(true);
-      };
-
-      const handleLoginEyeOffClick = () => {
-        loginEyeOff.style.display = 'none';
-        loginEye.style.display = 'block';
-        loginPasswordField.type = 'password';
-        setShowPassword(false);
-      };
-
-      loginEye.addEventListener('click', handleLoginEyeClick);
-      loginEyeOff.addEventListener('click', handleLoginEyeOffClick);
-
-      return () => {
-        loginEye.removeEventListener('click', handleLoginEyeClick);
-        loginEyeOff.removeEventListener('click', handleLoginEyeOffClick);
-      };
-    }
-  }, []);
-
-  // Gestionnaire séparé pour le champ d'inscription
-  useEffect(() => {
-    const signupEye = document.querySelectorAll('.password-field .feather-eye')[1];
-    const signupEyeOff = document.querySelectorAll('.password-field .feather-eye-off')[1];
-    const signupPasswordFields = document.querySelectorAll('.password-field input[type="password"], .password-field input[type="text"]');
-
-    if (signupEye && signupEyeOff && signupPasswordFields[1]) {
-      const handleSignupEyeClick = () => {
-        signupEye.style.display = 'none';
-        signupEyeOff.style.display = 'block';
-        signupPasswordFields[1].type = 'text';
-        setShowSignupPassword(true);
-      };
-
-      const handleSignupEyeOffClick = () => {
-        signupEyeOff.style.display = 'none';
-        signupEye.style.display = 'block';
-        signupPasswordFields[1].type = 'password';
-        setShowSignupPassword(false);
-      };
-
-      signupEye.addEventListener('click', handleSignupEyeClick);
-      signupEyeOff.addEventListener('click', handleSignupEyeOffClick);
-
-      return () => {
-        signupEye.removeEventListener('click', handleSignupEyeClick);
-        signupEyeOff.removeEventListener('click', handleSignupEyeOffClick);
-      };
-    }
-  }, []);
 
   // Vérifier si l'utilisateur connecté est administrateur (en vérifiant le rôle dans la base)
   useEffect(() => {
@@ -437,7 +371,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     user={null}
                     onEmailSubmit={() => {}}
                   />
-                  <label className="password-field">
+                  <div className="password-input-container">
                     <input
                       type={showPassword ? "text" : "password"}
                       placeholder="Mot de passe"
@@ -445,12 +379,28 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       disabled={isAuthenticating}
+                      className="password-input"
                     />
-                    <div className="password-icon">
-                      <i data-feather="eye"></i>
-                      <i data-feather="eye-off"></i>
-                    </div>
-                  </label>
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={isAuthenticating}
+                      aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    >
+                      {showPassword ? (
+                        <svg className="password-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                          <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                      ) : (
+                        <svg className="password-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                   {error && <div className="error-message">{error}</div>}
                   <div className="form-buttons">
                     <button
@@ -529,7 +479,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     user={null}
                     onEmailSubmit={() => {}}
                   />
-                  <label className="password-field">
+                  <div className="password-input-container">
                     <input
                       type={showSignupPassword ? "text" : "password"}
                       placeholder="Mot de passe (min 6 caractères)"
@@ -538,12 +488,28 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                       required
                       minLength={6}
                       disabled={isAuthenticating}
+                      className="password-input"
                     />
-                    <div className="password-icon">
-                      <i data-feather="eye"></i>
-                      <i data-feather="eye-off"></i>
-                    </div>
-                  </label>
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      disabled={isAuthenticating}
+                      aria-label={showSignupPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    >
+                      {showSignupPassword ? (
+                        <svg className="password-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                          <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                      ) : (
+                        <svg className="password-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                   {error && <div className="error-message">{error}</div>}
                   <div className="form-buttons">
                     <button

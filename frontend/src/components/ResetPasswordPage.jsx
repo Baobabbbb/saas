@@ -14,72 +14,6 @@ const ResetPasswordPage = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Initialiser Feather Icons et les event listeners
-  useEffect(() => {
-    if (window.feather) {
-      window.feather.replace();
-    }
-
-    // Gestionnaire pour le premier champ (nouveau mot de passe)
-    const newPasswordEye = document.querySelector('.password-field .feather-eye');
-    const newPasswordEyeOff = document.querySelector('.password-field .feather-eye-off');
-    const newPasswordField = document.querySelector('.password-field input[id="newPassword"], .password-field input[id="newPassword"][type="text"]');
-
-    if (newPasswordEye && newPasswordEyeOff && newPasswordField) {
-      const handleNewPasswordEyeClick = () => {
-        newPasswordEye.style.display = 'none';
-        newPasswordEyeOff.style.display = 'block';
-        newPasswordField.type = 'text';
-        setShowNewPassword(true);
-      };
-
-      const handleNewPasswordEyeOffClick = () => {
-        newPasswordEyeOff.style.display = 'none';
-        newPasswordEye.style.display = 'block';
-        newPasswordField.type = 'password';
-        setShowNewPassword(false);
-      };
-
-      newPasswordEye.addEventListener('click', handleNewPasswordEyeClick);
-      newPasswordEyeOff.addEventListener('click', handleNewPasswordEyeOffClick);
-
-      return () => {
-        newPasswordEye.removeEventListener('click', handleNewPasswordEyeClick);
-        newPasswordEyeOff.removeEventListener('click', handleNewPasswordEyeOffClick);
-      };
-    }
-  }, []);
-
-  // Gestionnaire séparé pour le deuxième champ (confirmation)
-  useEffect(() => {
-    const confirmPasswordEye = document.querySelectorAll('.password-field .feather-eye')[1];
-    const confirmPasswordEyeOff = document.querySelectorAll('.password-field .feather-eye-off')[1];
-    const confirmPasswordField = document.querySelector('.password-field input[id="confirmPassword"], .password-field input[id="confirmPassword"][type="text"]');
-
-    if (confirmPasswordEye && confirmPasswordEyeOff && confirmPasswordField) {
-      const handleConfirmPasswordEyeClick = () => {
-        confirmPasswordEye.style.display = 'none';
-        confirmPasswordEyeOff.style.display = 'block';
-        confirmPasswordField.type = 'text';
-        setShowConfirmPassword(true);
-      };
-
-      const handleConfirmPasswordEyeOffClick = () => {
-        confirmPasswordEyeOff.style.display = 'none';
-        confirmPasswordEye.style.display = 'block';
-        confirmPasswordField.type = 'password';
-        setShowConfirmPassword(false);
-      };
-
-      confirmPasswordEye.addEventListener('click', handleConfirmPasswordEyeClick);
-      confirmPasswordEyeOff.addEventListener('click', handleConfirmPasswordEyeOffClick);
-
-      return () => {
-        confirmPasswordEye.removeEventListener('click', handleConfirmPasswordEyeClick);
-        confirmPasswordEyeOff.removeEventListener('click', handleConfirmPasswordEyeOffClick);
-      };
-    }
-  }, []);
 
   useEffect(() => {
     let timeoutId;
@@ -258,40 +192,70 @@ const ResetPasswordPage = () => {
         <form onSubmit={handleSubmit} className="reset-password-form">
           <div className="form-group">
             <label htmlFor="newPassword">Nouveau mot de passe</label>
-            <label className="password-field">
+            <div className="password-input-container">
               <input
-                type="password"
+                type={showNewPassword ? "text" : "password"}
                 id="newPassword"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Entrez votre nouveau mot de passe"
                 required
                 minLength="6"
+                className="password-input"
               />
-              <div className="password-icon">
-                <i data-feather="eye"></i>
-                <i data-feather="eye-off"></i>
-              </div>
-            </label>
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                aria-label={showNewPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              >
+                {showNewPassword ? (
+                  <svg className="password-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                ) : (
+                  <svg className="password-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirmer le mot de passe</label>
-            <label className="password-field">
+            <div className="password-input-container">
               <input
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 id="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirmez votre nouveau mot de passe"
                 required
                 minLength="6"
+                className="password-input"
               />
-              <div className="password-icon">
-                <i data-feather="eye"></i>
-                <i data-feather="eye-off"></i>
-              </div>
-            </label>
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                aria-label={showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              >
+                {showConfirmPassword ? (
+                  <svg className="password-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                ) : (
+                  <svg className="password-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           {error && (
