@@ -28,22 +28,40 @@ def wait_for_runway_task(task_id, headers, max_attempts=30):
                 output = task_data.get("output", {})
                 print(f"🔍 Output de la tâche: {output}")
 
-                # Gérer le cas où output est une liste ou un dict
+                # Gérer les différents formats d'output
                 if isinstance(output, list) and len(output) > 0:
-                    # Si c'est une liste, prendre le premier élément
-                    output = output[0]
-                    print(f"📋 Output converti depuis liste: {output}")
+                    first_item = output[0]
+                    print(f"📋 Premier élément de la liste: {first_item}")
 
-                if isinstance(output, dict):
+                    # Si c'est une string qui ressemble à une URL, c'est l'audio_url
+                    if isinstance(first_item, str) and (first_item.startswith('http') or 'cloudfront' in first_item):
+                        print(f"✅ URL audio trouvée directement: {first_item}")
+                        return first_item
+                    # Si c'est un dict, chercher audio_url
+                    elif isinstance(first_item, dict):
+                        audio_url = first_item.get("audio_url")
+                        if audio_url:
+                            return audio_url
+                        else:
+                            print(f"❌ Pas d'audio_url dans dict: {first_item}")
+                            raise ValueError(f"No audio_url in task output dict: {first_item}")
+
+                elif isinstance(output, dict):
                     audio_url = output.get("audio_url")
                     if audio_url:
                         return audio_url
                     else:
-                        print(f"❌ Pas d'audio_url dans output: {output}")
-                        raise ValueError(f"No audio_url in task output: {output}")
+                        print(f"❌ Pas d'audio_url dans output dict: {output}")
+                        raise ValueError(f"No audio_url in task output dict: {output}")
+
+                elif isinstance(output, str) and (output.startswith('http') or 'cloudfront' in output):
+                    # L'output est directement l'URL
+                    print(f"✅ Output est directement l'URL audio: {output}")
+                    return output
+
                 else:
-                    print(f"❌ Output inattendu (ni dict ni list): {type(output)} - {output}")
-                    raise ValueError(f"Unexpected output format: {output}")
+                    print(f"❌ Format d'output non reconnu: {type(output)} - {output}")
+                    raise ValueError(f"Unrecognized output format: {output}")
 
             elif status == "FAILED":
                 failure_reason = task_data.get("failure_reason", "Unknown failure")
