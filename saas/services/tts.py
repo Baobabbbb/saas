@@ -96,13 +96,27 @@ def generate_speech(text, voice=None, filename=None):
             print(f"❌ Payload: {payload}")
             response.raise_for_status()
 
+        # Vérifier si la réponse est un fichier audio ou une erreur JSON
+        content_length = len(response.content)
+        print(f"✅ Réponse reçue (taille: {content_length} bytes)")
+
+        # Si la réponse est très petite, c'est probablement une erreur JSON
+        if content_length < 1000:
+            try:
+                error_data = response.json()
+                print(f"❌ Erreur JSON retournée par Runway: {error_data}")
+                raise ValueError(f"Runway API returned error: {error_data}")
+            except ValueError:
+                # Ce n'est pas du JSON, c'est probablement un petit fichier audio
+                print("ℹ️ Réponse courte mais pas du JSON - probablement un fichier audio")
+
         # Runway retourne directement l'audio en streaming
-        print(f"✅ Audio généré avec succès via Runway (taille: {len(response.content)} bytes)")
+        print(f"✅ Sauvegarde du fichier audio: {path}")
 
         with open(path, "wb") as f:
             f.write(response.content)
 
-        print(f"📁 Fichier sauvegardé: {path}")
+        print(f"📁 Fichier sauvegardé: {path} ({content_length} bytes)")
         return path
 
     except requests.exceptions.Timeout:
