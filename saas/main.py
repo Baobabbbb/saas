@@ -490,14 +490,18 @@ async def stream_audio(filename: str, download: bool = False):
 @app.post("/generate_audio_story/")
 async def generate_audio_story(request: dict):
     try:
+        print(f"🎯 Début génération histoire audio - request: {request}")
+
         # Validation des données d'entrée
         # Vérifier la clé API
         openai_key = os.getenv("OPENAI_API_KEY")
         if not openai_key or openai_key.startswith("sk-votre"):
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
             )
+
+        print(f"✅ Clé API OpenAI vérifiée: {openai_key[:15]}...")
         
         story_type = request.get("story_type", "aventure")
         custom_request = request.get("custom_request", "")
@@ -557,10 +561,12 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         audio_path = None
         voice = request.get("voice")
         print(f"🎤 Requête audio - voice: {voice}, story_type: {story_type}")
+        print(f"📝 Titre: {title[:50]}...")
+        print(f"📖 Longueur contenu: {len(story_content)} caractères")
 
         if voice:
             try:
-                print(f"🎵 Génération audio avec voice: {voice}")
+                print(f"🎵 Génération audio avec voice: {voice} - début appel generate_speech")
                 # Utiliser le contenu de l'histoire pour l'audio, pas le titre
                 # Utiliser le titre comme nom de fichier pour l'audio
                 audio_path = generate_speech(story_content, voice=voice, filename=title)
@@ -583,9 +589,13 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         print(f"📤 Réponse histoire audio: {result}")
         return result
     except HTTPException:
+        print("🔄 HTTPException relayée")
         raise
     except Exception as e:
         print(f"❌ Erreur génération histoire: {e}")
+        import traceback
+        traceback.print_exc()
+        # Retourner une erreur 500 au lieu de laisser FastAPI gérer une exception non gérée
         raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
 
 # --- Coloriage ---
