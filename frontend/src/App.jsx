@@ -886,12 +886,29 @@ const downloadPDF = async (title, content) => {
       format: "a4"
     });
 
-    const marginTop = 40;
+    const marginTop = 50;
     const pageWidth = 210;
     const pageHeight = 297;
-    const lineHeight = 8;
-    const maxLinesPerPage = Math.floor((pageHeight - marginTop * 2) / lineHeight);
-    const fontSize = 12;
+    const lineHeight = 6; // Correspond à line-height: 2 en CSS
+    const maxLinesPerPage = Math.floor((pageHeight - marginTop - 30) / lineHeight); // Ajuster pour le titre
+
+    // 🌠 Chargement de l'image de fond (comme dans StoryPopup)
+    const loadImage = (url) => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error("Impossible de charger l'image de fond"));
+        img.src = url;
+      });
+    };
+
+    let backgroundImage = null;
+    try {
+      backgroundImage = await loadImage("/assets/fond_etoiles.png");
+    } catch (error) {
+      console.warn("Fond étoilé non disponible pour le PDF:", error);
+    }
 
     // 🏷️ Titre réel (extrait du markdown **titre**)
     let finalTitle = title;
@@ -900,33 +917,42 @@ const downloadPDF = async (title, content) => {
       content = content.replace(`**${finalTitle}**`, "").trim();
     }
 
-    // ✂️ Texte découpé
-    const lines = doc.splitTextToSize(content, 160); // max 160mm pour plus de lisibilité
+    // ✂️ Texte découpé (largeur similaire à la popup)
+    const lines = doc.splitTextToSize(content, 150); // max 150mm comme dans la popup
     let currentLine = 0;
 
     for (let page = 0; currentLine < lines.length; page++) {
       if (page > 0) doc.addPage();
 
-      // 🎨 Titre (uniquement page 1)
-      if (page === 0) {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(20);
-        doc.setTextColor(110, 50, 230); // Violet
-        doc.text(finalTitle, pageWidth / 2, marginTop - 10, { align: "center" });
+      // 🌟 Ajouter le fond étoilé (comme dans StoryPopup.css)
+      if (backgroundImage) {
+        try {
+          doc.addImage(backgroundImage, "PNG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
+        } catch (error) {
+          console.warn("Erreur lors de l'ajout du fond:", error);
+        }
       }
 
-      // ✍️ Texte principal
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(fontSize);
-      doc.setTextColor(25, 25, 112); // Bleu nuit
+      // 🎨 Titre (comme dans StoryPopup.css : 1.8rem, bold, violet)
+      if (page === 0) {
+        doc.setFont("courier", "bold"); // Police monospace comme dans CSS
+        doc.setFontSize(18); // ~1.8rem
+        doc.setTextColor(110, 50, 230); // Violet exact
+        doc.text(finalTitle, pageWidth / 2, marginTop - 20, { align: "center" });
+      }
+
+      // ✍️ Texte principal (comme dans StoryPopup.css : 1rem, bold, bleu nuit, line-height: 2)
+      doc.setFont("courier", "bold"); // Police monospace bold
+      doc.setFontSize(10); // ~1rem
+      doc.setTextColor(25, 25, 112); // Bleu nuit exact
 
       for (let i = 0; i < maxLinesPerPage && currentLine < lines.length; i++, currentLine++) {
         const y = marginTop + i * lineHeight;
         doc.text(lines[currentLine], pageWidth / 2, y, { align: "center" });
       }
 
-      // 📄 Pagination
-      doc.setFontSize(10);
+      // 📄 Pagination (violet doux comme dans la popup)
+      doc.setFontSize(8);
       doc.setTextColor(106, 90, 205); // Violet doux
       doc.text(`Page ${page + 1}`, pageWidth - 15, pageHeight - 10, { align: "right" });
     }
