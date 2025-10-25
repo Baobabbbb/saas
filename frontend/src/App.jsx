@@ -1561,6 +1561,66 @@ const downloadPDF = async (title, content) => {
         </div>
       </div>
     </motion.div>
+  ) : generatedResult && contentType === 'histoire' ? (
+    <motion.div
+      className="generated-result"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      key="story-result"
+    >
+      <div
+        style={{
+          height: '300px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '1rem',
+          padding: '1rem',
+          overflowY: 'auto'
+        }}
+      >
+        {/* Boutons d'action pour histoires texte */}
+        <div style={{
+          display: 'flex',
+          gap: '1rem',
+          width: '100%',
+          justifyContent: 'center',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            onClick={() => setShowStoryPopup(true)}
+            style={{
+              padding: '0.6rem 1.4rem',
+              backgroundColor: '#6B4EFF',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontWeight: '600'
+            }}
+          >
+            📖 Ouvrir l'histoire
+          </button>
+
+          <button
+            onClick={() => downloadPDF(generatedResult.title, generatedResult.content)}
+            style={{
+              padding: '0.6rem 1.4rem',
+              backgroundColor: '#6B4EFF',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontWeight: '600'
+            }}
+          >
+            📄 Télécharger l'histoire
+          </button>
+        </div>
+      </div>
+    </motion.div>
   ) : (
 
     <motion.div
