@@ -20,7 +20,7 @@ def test_runway_api_key():
         url = "https://api.runwayml.com/v1/organization"
         headers = {
             "Authorization": f"Bearer {runway_api_key}",
-            "X-Runway-Version": "2024-11-06"
+            "X-Runway-Version": "2024-09-13"  # Version utilisée dans les vidéos
         }
 
         response = requests.get(url, headers=headers, timeout=10)
@@ -77,7 +77,7 @@ def generate_speech(text, voice=None, filename=None):
         headers = {
             "Authorization": f"Bearer {runway_api_key}",
             "Content-Type": "application/json",
-            "X-Runway-Version": "2024-11-06"
+            "X-Runway-Version": "2024-09-13"  # Même version que pour les vidéos
         }
 
         payload = {
