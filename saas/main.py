@@ -443,6 +443,30 @@ async def test_suno():
         }
 
 # --- Test Runway API ---
+# --- Audio Streaming ---
+@app.get("/audio/{filename}")
+async def stream_audio(filename: str):
+    """
+    Endpoint spécialisé pour streamer les fichiers audio avec les bons headers
+    """
+    file_path = f"static/{filename}"
+
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Audio file not found")
+
+    # Headers pour un streaming audio correct
+    headers = {
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "public, max-age=31536000",  # Cache 1 an
+        "Content-Type": "audio/mpeg",
+    }
+
+    return FileResponse(
+        file_path,
+        media_type="audio/mpeg",
+        headers=headers
+    )
+
 # Endpoint Runway supprimé - retour à OpenAI TTS
 
 # --- Histoire Audio ---

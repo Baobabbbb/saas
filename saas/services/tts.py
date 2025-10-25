@@ -54,8 +54,13 @@ def generate_speech(text, voice=None, filename=None):
             f.write(response.content)
 
         file_size = len(response.content)
+        # Convertir en minutes:secondes pour plus de lisibilité
+        duration_estimate = file_size / (128 * 1024 / 8)  # Estimation basée sur 128kbps
+        minutes = int(duration_estimate // 60)
+        seconds = int(duration_estimate % 60)
+
         print(f"✅ Audio généré avec succès: {path} ({file_size} bytes)")
-        print(f"🎵 Modèle utilisé: TTS-1-HD | Voix: {voice_id}")
+        print(f"🎵 Durée estimée: {minutes}min{seconds}s | Modèle: TTS-1-HD | Voix: {voice_id}")
 
         return path
 

@@ -1484,7 +1484,7 @@ const downloadPDF = async (title, content) => {
                 height: '40px',
                 outline: 'none'
               }}
-              src={`${API_BASE_URL}/${generatedResult.audio_path}`}
+              src={`${API_BASE_URL}/audio/${generatedResult.audio_path.split('/').pop()}`}
             >
               Votre navigateur ne supporte pas l'élément audio.
             </audio>
@@ -1533,7 +1533,7 @@ const downloadPDF = async (title, content) => {
             <button
               onClick={async () => {
                 try {
-                  const audioUrl = `${API_BASE_URL}/${generatedResult.audio_path}`;
+                  const audioUrl = `${API_BASE_URL}/audio/${generatedResult.audio_path.split('/').pop()}`;
                   console.log('Téléchargement audio depuis:', audioUrl);
 
                   const response = await fetch(audioUrl);
