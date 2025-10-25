@@ -4,10 +4,10 @@ from unidecode import unidecode
 import openai
 
 # Mapping des voix OpenAI TTS-1 pour différenciation homme/femme
-# Versions plus douces et naturelles
+# Versions optimisées : shimmer (féminin douce) + onyx (masculin profonde)
 VOICE_MAP = {
     "female": "shimmer", # Voix féminine douce et naturelle (américaine)
-    "male": "fable",     # Voix masculine douce et british (plus douce qu'echo)
+    "male": "onyx",      # Voix masculine profonde et autoritaire (meilleure qualité)
 }
 
 # Fonctions Runway supprimées - utilisation OpenAI TTS-1 avec voix douces
