@@ -74,7 +74,7 @@ def generate_speech(text, voice=None, filename=None):
 
         payload = {
             "model": "eleven_multilingual_v2",
-            "text": input_text,
+            "promptText": input_text,
             "voice": {
                 "type": "runway-preset",
                 "presetId": voice_preset
