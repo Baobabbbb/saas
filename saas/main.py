@@ -514,15 +514,22 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         # Génération de l'audio si une voix est spécifiée
         audio_path = None
         voice = request.get("voice")
+        print(f"🎤 Requête audio - voice: {voice}, story_type: {story_type}")
+
         if voice:
             try:
+                print(f"🎵 Génération audio avec voice: {voice}")
                 # Utiliser le contenu de l'histoire pour l'audio, pas le titre
                 # Utiliser le titre comme nom de fichier pour l'audio
                 audio_path = generate_speech(story_content, voice=voice, filename=title)
-                print(f"✅ Audio généré avec la voix: {voice}")
+                print(f"✅ Audio généré avec succès: {audio_path}")
             except Exception as audio_error:
-                print(f"⚠️ Erreur génération audio: {audio_error}")
+                print(f"❌ Erreur génération audio: {audio_error}")
+                import traceback
+                traceback.print_exc()
                 audio_path = None
+        else:
+            print(f"⚠️ Pas de voix spécifiée, audio non généré")
         
         return {
             "title": title,

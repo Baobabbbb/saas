@@ -435,11 +435,15 @@ function App() {
         if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
         generatedContent = await response.json();
       } else if (contentType === 'audio') {
+      // Définit une voix par défaut si aucune n'est sélectionnée
+      const defaultVoice = selectedVoice || 'female';
+
       const payload = {
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
-        voice: selectedVoice,
+        voice: defaultVoice,
         custom_request: customRequest
-      };      const response = await fetch(`${API_BASE_URL}/generate_audio_story/`, {
+      };
+      const response = await fetch(`${API_BASE_URL}/generate_audio_story/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
