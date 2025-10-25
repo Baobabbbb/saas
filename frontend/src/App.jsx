@@ -435,12 +435,9 @@ function App() {
         if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
         generatedContent = await response.json();
       } else if (contentType === 'audio') {
-      // Définit une voix par défaut si aucune n'est sélectionnée
-      const defaultVoice = selectedVoice || 'female';
-
       const payload = {
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
-        voice: defaultVoice,
+        voice: selectedVoice,
         custom_request: customRequest
       };
       const response = await fetch(`${API_BASE_URL}/generate_audio_story/`, {
@@ -448,9 +445,10 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      
+
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
+      console.log('📥 Réponse reçue pour histoire audio:', generatedContent);
     } else if (contentType === 'histoire') {
       // Déterminer le contenu de l'histoire
       let storyContent;
@@ -1475,8 +1473,16 @@ const downloadPDF = async (title, content) => {
     </p>
     </div>
   )}
-  {/* 🎵 Audio présent pour autres contenus */}
-{contentType !== 'rhyme' && generatedResult?.audio_path && (
+  {/* 🎵 Audio présent pour histoires audio seulement */}
+{contentType === 'audio' && generatedResult?.audio_path && (() => {
+  console.log('🎵 Affichage audio:', {
+    contentType,
+    hasAudioPath: !!generatedResult?.audio_path,
+    audioPath: generatedResult?.audio_path,
+    fullSrc: `${API_BASE_URL}/${generatedResult.audio_path}`
+  });
+  return true;
+})() && (
   <div
     style={{
       height: '300px', // 👈 même hauteur que le bloc boutons

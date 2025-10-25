@@ -531,13 +531,15 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         else:
             print(f"⚠️ Pas de voix spécifiée, audio non généré")
         
-        return {
+        result = {
             "title": title,
             "content": story_content,
             "audio_path": audio_path,
             "audio_generated": audio_path is not None,
             "type": "audio"
         }
+        print(f"📤 Réponse histoire audio: {result}")
+        return result
     except HTTPException:
         raise
     except Exception as e:
