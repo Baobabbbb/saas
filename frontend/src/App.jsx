@@ -1531,15 +1531,40 @@ const downloadPDF = async (title, content) => {
 
           {generatedResult.audio_path && (
             <button
-              onClick={() => {
-                const audioUrl = `${API_BASE_URL}/${generatedResult.audio_path}`;
-                const link = document.createElement('a');
-                link.href = audioUrl;
-                const safeTitle = (generatedResult.title || 'Histoire').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                link.download = `${safeTitle}.mp3`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+              onClick={async () => {
+                try {
+                  const audioUrl = `${API_BASE_URL}/${generatedResult.audio_path}`;
+                  console.log('Téléchargement audio depuis:', audioUrl);
+
+                  const response = await fetch(audioUrl);
+                  if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                  }
+
+                  const blob = await response.blob();
+                  console.log('Blob reçu, taille:', blob.size, 'bytes');
+
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+
+                  const safeTitle = (generatedResult.title || 'Histoire').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                  link.download = `${safeTitle}.mp3`;
+
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+
+                  // Nettoyer l'URL après un délai
+                  setTimeout(() => {
+                    window.URL.revokeObjectURL(url);
+                  }, 100);
+
+                  console.log('Téléchargement audio initié avec succès');
+                } catch (error) {
+                  console.error('Erreur lors du téléchargement audio:', error);
+                  alert('Erreur lors du téléchargement. Veuillez réessayer.');
+                }
               }}
               style={{
                 padding: '0.6rem 1.4rem',
