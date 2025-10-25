@@ -23,8 +23,8 @@ import openai
 from openai import AsyncOpenAI
 
 from datetime import datetime
-# from services.tts import generate_speech
-# from services.stt import transcribe_audio
+from services.tts import generate_speech
+from services.stt import transcribe_audio
 
 # Authentification gérée par Supabase - modules supprimés car inutiles avec Vercel
 from services.coloring_generator_gpt4o import ColoringGeneratorGPT4o

@@ -1,6 +1,5 @@
 import os
 import openai
-from config import OPENAI_API_KEY, TTS_MODEL
 from datetime import datetime
 from unidecode import unidecode  # ✅ Ajout pour nettoyer les accents
 
@@ -21,6 +20,9 @@ def generate_speech(text, voice=None, filename=None):
     input_text = text[:4096]  # Limite imposée par OpenAI TTS
     voice_id = VOICE_MAP.get(voice, "nova")
     print(f"🎵 TTS: Voice mappée: {voice} -> {voice_id}")
+
+    # Configuration de l'API OpenAI
+    openai.api_key = os.getenv("OPENAI_API_KEY")
 
     # Si aucun nom de fichier fourni, générer un nom avec timestamp
     if not filename:
