@@ -1471,17 +1471,6 @@ const downloadPDF = async (title, content) => {
           width: '100%',
           boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
         }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            marginBottom: '14px'
-          }}>
-            <span style={{ fontSize: '24px' }}>🎵</span>
-            <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
-              Votre histoire audio est prête !
-            </h4>
-          </div>
           <audio
             controls
             preload="metadata"
