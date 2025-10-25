@@ -3,17 +3,18 @@ from datetime import datetime
 from unidecode import unidecode
 import openai
 
-# Mapping des voix OpenAI TTS-1-HD pour différenciation homme/femme
+# Mapping des voix OpenAI TTS-1 pour différenciation homme/femme
+# Versions plus douces et naturelles
 VOICE_MAP = {
-    "female": "alloy",   # Voix féminine claire et professionnelle
-    "male": "echo",      # Voix masculine profonde et naturelle
+    "female": "shimmer", # Voix féminine douce et naturelle (américaine)
+    "male": "fable",     # Voix masculine douce et british (plus douce qu'echo)
 }
 
-# Fonctions Runway supprimées - retour à OpenAI TTS-1-HD
+# Fonctions Runway supprimées - utilisation OpenAI TTS-1 avec voix douces
 
 def generate_speech(text, voice=None, filename=None):
-    """Génération audio avec OpenAI TTS-1-HD"""
-    print(f"🎵 TTS: Génération audio OpenAI TTS-1-HD - voice={voice}, filename={filename}")
+    """Génération audio avec OpenAI TTS-1 (meilleures voix douces)"""
+    print(f"🎵 TTS: Génération audio OpenAI TTS-1 - voice={voice}, filename={filename}")
 
     try:
         # Configuration OpenAI
@@ -21,11 +22,11 @@ def generate_speech(text, voice=None, filename=None):
         if not openai.api_key:
             raise ValueError("OPENAI_API_KEY not configured")
 
-        # Utilisation du mapping des voix
-        voice_id = VOICE_MAP.get(voice, "alloy")  # Default to alloy (female)
+        # Utilisation du mapping des voix (versions plus douces)
+        voice_id = VOICE_MAP.get(voice, "shimmer")  # Default to shimmer (female)
 
-        # OpenAI TTS-1-HD permet jusqu'à 4096 caractères (plus long que Runway)
-        input_text = text[:4096]  # Limite OpenAI TTS-1-HD
+        # OpenAI TTS-1 permet jusqu'à 4096 caractères
+        input_text = text[:4096]  # Limite OpenAI TTS-1
 
         print(f"🎤 Voix sélectionnée: {voice_id}")
         print(f"📝 Longueur texte: {len(text)} → {len(input_text)} caractères utilisés")
@@ -41,9 +42,9 @@ def generate_speech(text, voice=None, filename=None):
 
         path = f"static/{filename}"
 
-        # Génération audio avec OpenAI TTS-1-HD
+        # Génération audio avec OpenAI TTS-1 (modèle standard, voix plus douces)
         response = openai.audio.speech.create(
-            model="tts-1-hd",  # Modèle HD de haute qualité
+            model="tts-1",  # Modèle standard (plus rapide et moins cher que HD)
             voice=voice_id,
             input=input_text,
             response_format="mp3"
@@ -60,7 +61,7 @@ def generate_speech(text, voice=None, filename=None):
         seconds = int(duration_estimate % 60)
 
         print(f"✅ Audio généré avec succès: {path} ({file_size} bytes)")
-        print(f"🎵 Durée estimée: {minutes}min{seconds}s | Modèle: TTS-1-HD | Voix: {voice_id}")
+        print(f"🎵 Durée estimée: {minutes}min{seconds}s | Modèle: TTS-1 | Voix: {voice_id}")
 
         return path
 
