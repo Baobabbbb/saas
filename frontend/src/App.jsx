@@ -1481,7 +1481,7 @@ const downloadPDF = async (title, content) => {
               controlsList="nodownload"
               style={{
                 width: '100%',
-                height: '60px',
+                height: '40px',
                 outline: 'none'
               }}
               src={`${API_BASE_URL}/${generatedResult.audio_path}`}
@@ -1531,24 +1531,10 @@ const downloadPDF = async (title, content) => {
 
           {generatedResult.audio_path && (
             <button
-              onClick={async () => {
-                try {
-                  const audioUrl = `${API_BASE_URL}/${generatedResult.audio_path}`;
-                  const response = await fetch(audioUrl);
-                  const blob = await response.blob();
-                  const url = window.URL.createObjectURL(blob);
-                  const link = document.createElement('a');
-                  link.href = url;
-                  const safeTitle = (generatedResult.title || 'Histoire').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                  link.download = `${safeTitle}.mp3`;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  window.URL.revokeObjectURL(url);
-                } catch (error) {
-                  // Fallback si CORS bloque
-                  window.open(`${API_BASE_URL}/${generatedResult.audio_path}`, '_blank');
-                }
+              onClick={() => {
+                const audioUrl = `${API_BASE_URL}/${generatedResult.audio_path}`;
+                // Ouvrir dans un nouvel onglet pour permettre le téléchargement
+                window.open(audioUrl, '_blank');
               }}
               style={{
                 padding: '0.6rem 1.4rem',
