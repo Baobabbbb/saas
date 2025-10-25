@@ -124,15 +124,15 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
 
           {enabledFeatures.audio && (
             <motion.div
-              className={`content-type-option ${contentType === 'audio' ? 'selected' : ''}`}
-              onClick={() => handleContentTypeSelect('audio')}
+              className={`content-type-option ${contentType === 'histoire' ? 'selected' : ''}`}
+              onClick={() => handleContentTypeSelect('histoire')}
               whileHover={{ y: -5 }}
               whileTap={{ scale: 0.98 }}
             >
               <div className="content-type-icon">📖</div>
               <div className="content-type-details">
                 <h4>Histoire</h4>
-                <p>Créez une histoire audio avec narration et effets sonores</p>
+                <p>Créez une histoire avec possibilité d'ajouter une narration audio</p>
               </div>
             </motion.div>
           )}

@@ -410,12 +410,7 @@ function App() {
 
   // Fonction pour démarrer la génération (après vérification permissions)
   const startGeneration = async () => {
-    console.log('🚀 startGeneration appelée avec:', {
-      contentType,
-      selectedStory,
-      selectedAudioStory,
-      selectedVoice
-    });
+  console.log('🚀 startGeneration appelée avec contentType:', contentType, 'selectedStory:', selectedStory, 'selectedAudioStory:', selectedAudioStory, 'selectedVoice:', selectedVoice);
     setIsGenerating(true);
     setGeneratedResult(null);
     // setShowConfetti(true);
@@ -440,7 +435,7 @@ function App() {
 
         if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
         generatedContent = await response.json();
-      } else if (contentType === 'audio') {
+      } else if (contentType === 'audio' || (contentType === 'histoire' && selectedVoice)) {
       const payload = {
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
         voice: selectedVoice,
@@ -456,7 +451,7 @@ function App() {
       generatedContent = await response.json();
       console.log('📥 Réponse reçue pour histoire audio:', generatedContent);
       } else if (contentType === 'histoire') {
-      console.log('📝 Génération histoire texte:', { contentType, selectedStory });
+      console.log('📝 Génération histoire texte avec contentType:', contentType, 'selectedStory:', selectedStory);
       // Déterminer le contenu de l'histoire
       let storyContent;
       if (selectedStory && selectedStory !== 'custom') {
@@ -1449,7 +1444,7 @@ const downloadPDF = async (title, content) => {
         )}
       </div>
     </motion.div>
-  ) : generatedResult && contentType === 'audio' && generatedResult.audio_path ? (
+  ) : generatedResult && ((contentType === 'audio' && generatedResult.audio_path) || (contentType === 'histoire' && generatedResult.audio_path)) ? (
     <motion.div
       className="generated-result"
       initial={{ opacity: 0 }}
@@ -1569,13 +1564,7 @@ const downloadPDF = async (title, content) => {
       </div>
     </motion.div>
   ) : (() => {
-    console.log('🔍 Debug display conditions:', {
-      hasGeneratedResult: !!generatedResult,
-      contentType,
-      isHistoireType: contentType === 'histoire',
-      generatedResultKeys: generatedResult ? Object.keys(generatedResult) : 'null',
-      condition: generatedResult && contentType === 'histoire'
-    });
+    console.log('🔍 Debug display conditions - hasGeneratedResult:', !!generatedResult, 'contentType:', contentType, 'isHistoireType:', contentType === 'histoire', 'generatedResultKeys:', generatedResult ? Object.keys(generatedResult) : 'null', 'condition:', generatedResult && contentType === 'histoire');
     return generatedResult && contentType === 'histoire';
   })() ? (
     <motion.div
