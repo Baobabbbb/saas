@@ -1491,7 +1491,8 @@ const downloadPDF = async (title, content) => {
           display: 'flex',
           gap: '1rem',
           width: '100%',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          flexWrap: 'wrap'
         }}>
           <button
             onClick={() => setShowStoryPopup(true)}
@@ -1521,6 +1522,41 @@ const downloadPDF = async (title, content) => {
             }}
           >
             📄 Télécharger l'histoire
+          </button>
+
+          <button
+            onClick={async () => {
+              if (generatedResult.audio_path) {
+                try {
+                  const audioUrl = `${API_BASE_URL}/${generatedResult.audio_path}`;
+                  const response = await fetch(audioUrl);
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  const safeTitle = (generatedResult.title || 'Histoire').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                  link.download = `${safeTitle}.mp3`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  window.URL.revokeObjectURL(url);
+                } catch (error) {
+                  // Fallback si CORS bloque
+                  window.open(`${API_BASE_URL}/${generatedResult.audio_path}`, '_blank');
+                }
+              }
+            }}
+            style={{
+              padding: '0.6rem 1.4rem',
+              backgroundColor: '#6B4EFF',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontWeight: '600'
+            }}
+          >
+            🎵 Télécharger l'audio
           </button>
         </div>
       </div>
