@@ -170,30 +170,3 @@ Réponds UNIQUEMENT avec le prompt optimisé, sans explications supplémentaires
         raise HTTPException(500, f"Error: {str(e)}")
 
 
-@router.get("/proxy_audio")
-async def proxy_audio(url: str, filename: str = "comptine.mp3"):
-    """Proxy pour télécharger l'audio depuis Suno (évite les problèmes CORS)"""
-    import httpx
-    from fastapi.responses import StreamingResponse
-    import io
-
-    try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.get(url)
-            response.raise_for_status()
-
-            # Créer un flux de données
-            data = io.BytesIO(response.content)
-
-            # Retourner le fichier avec les bons headers
-            return StreamingResponse(
-                data,
-                media_type="audio/mpeg",
-                headers={
-                    "Content-Disposition": f"attachment; filename={filename}",
-                    "Content-Length": str(len(response.content))
-                }
-            )
-    except Exception as e:
-        raise HTTPException(500, f"Erreur proxy audio: {str(e)}")
-
