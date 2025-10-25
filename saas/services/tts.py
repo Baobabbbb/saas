@@ -2,6 +2,7 @@ import os
 import requests
 from datetime import datetime
 from unidecode import unidecode  # ✅ Ajout pour nettoyer les accents
+import openai  # Import OpenAI en fallback
 
 # Mapping des voix pour Runway eleven_multilingual_v2
 # Utilisation de voix spécifiques de haute qualité pour Herbbie
@@ -17,26 +18,80 @@ VOICE_MAP = {
     "petite-fille": "Maya"   # Voix féminine jeune
 }
 
+def generate_speech_openai_fallback(text, voice=None, filename=None):
+    """Fallback vers OpenAI TTS si Runway échoue"""
+    print(f"🔄 TTS: Fallback vers OpenAI TTS - voice={voice}, filename={filename}")
+
+    try:
+        # Configuration OpenAI
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        if not openai.api_key:
+            raise ValueError("OPENAI_API_KEY not available for fallback")
+
+        # Mapping des voix OpenAI
+        openai_voice_map = {
+            "Maya": "shimmer",      # Féminin doux
+            "Arjun": "echo",        # Masculin clair
+            "female": "shimmer",
+            "male": "echo",
+            "grand-pere": "echo",
+            "grand-mere": "shimmer",
+            "pere": "echo",
+            "mere": "shimmer",
+            "petit-garcon": "echo",
+            "petite-fille": "nova"
+        }
+
+        voice_id = openai_voice_map.get(voice, "nova")
+        input_text = text[:4096]  # Limite OpenAI
+
+        # Si aucun nom de fichier fourni, générer un nom avec timestamp
+        if not filename:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"audio_{timestamp}.mp3"
+        else:
+            filename = unidecode(filename).lower().replace(" ", "_").replace("'", "").replace("’", "").replace(",", "")
+            if not filename.endswith(".mp3"):
+                filename += ".mp3"
+
+        path = f"static/{filename}"
+
+        response = openai.audio.speech.create(
+            model="tts-1",
+            voice=voice_id,
+            input=input_text
+        )
+
+        with open(path, "wb") as f:
+            f.write(response.content)
+
+        print(f"✅ TTS: Fallback OpenAI réussi: {path}")
+        return path
+
+    except Exception as e:
+        print(f"❌ TTS: Échec du fallback OpenAI: {e}")
+        raise
+
 def generate_speech(text, voice=None, filename=None):
-    print(f"🎵 TTS: Génération audio avec Runway - voice={voice}, filename={filename}")
+    print(f"🎵 TTS: Tentative génération audio avec Runway - voice={voice}, filename={filename}")
 
     # Limite de caractères pour Runway (basé sur la tarification: 1 crédit / 50 caractères)
     input_text = text[:2500]  # Limite conservatrice pour éviter les coûts élevés
-    voice_model = VOICE_MAP.get(voice, "eleven_multilingual_v2")
+    voice_model = VOICE_MAP.get(voice, "Maya")  # Default to Maya if no voice specified
     print(f"🎵 TTS: Voice mappée: {voice} -> {voice_model}")
 
     # Configuration de l'API Runway
     runway_api_key = os.getenv("RUNWAY_API_KEY")
     if not runway_api_key:
-        print("❌ RUNWAY_API_KEY environment variable is not set")
-        raise ValueError("RUNWAY_API_KEY environment variable is not set")
+        print("⚠️ RUNWAY_API_KEY non configurée, utilisation du fallback OpenAI")
+        return generate_speech_openai_fallback(text, voice, filename)
 
     # Validation basique de la clé API
     if not runway_api_key.startswith("key_"):
-        print(f"❌ RUNWAY_API_KEY format invalide: doit commencer par 'key_' (actuellement: {runway_api_key[:10]}...)")
-        raise ValueError("RUNWAY_API_KEY doit commencer par 'key_'")
+        print(f"⚠️ RUNWAY_API_KEY format invalide, utilisation du fallback OpenAI (clé: {runway_api_key[:10]}...)")
+        return generate_speech_openai_fallback(text, voice, filename)
 
-    print(f"🔑 RUNWAY_API_KEY détectée: {runway_api_key[:10]}...")
+    print(f"🔑 RUNWAY_API_KEY détectée et valide: {runway_api_key[:10]}...")
 
     # Si aucun nom de fichier fourni, générer un nom avec timestamp
     if not filename:
@@ -157,8 +212,20 @@ def generate_speech(text, voice=None, filename=None):
     except requests.exceptions.RequestException as e:
         print(f"❌ Erreur API Runway: {e}")
         if hasattr(e, 'response') and e.response:
+            print(f"❌ Code HTTP: {e.response.status_code}")
             print(f"❌ Détails erreur: {e.response.text}")
+
+            # Si c'est une erreur 401 (Unauthorized), utiliser le fallback OpenAI
+            if e.response.status_code == 401:
+                print("🔄 Erreur 401 Runway - Tentative fallback vers OpenAI TTS")
+                return generate_speech_openai_fallback(text, voice, filename)
         raise
     except Exception as e:
-        print(f"❌ Erreur inattendue: {e}")
-        raise
+        print(f"❌ Erreur inattendue Runway: {e}")
+        # En cas d'erreur inattendue, essayer le fallback OpenAI
+        print("🔄 Erreur inattendue Runway - Tentative fallback vers OpenAI TTS")
+        try:
+            return generate_speech_openai_fallback(text, voice, filename)
+        except Exception as fallback_error:
+            print(f"❌ Échec du fallback OpenAI: {fallback_error}")
+            raise
