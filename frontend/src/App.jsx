@@ -1533,8 +1533,13 @@ const downloadPDF = async (title, content) => {
             <button
               onClick={() => {
                 const audioUrl = `${API_BASE_URL}/${generatedResult.audio_path}`;
-                // Ouvrir dans un nouvel onglet pour permettre le téléchargement
-                window.open(audioUrl, '_blank');
+                const link = document.createElement('a');
+                link.href = audioUrl;
+                const safeTitle = (generatedResult.title || 'Histoire').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                link.download = `${safeTitle}.mp3`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
               }}
               style={{
                 padding: '0.6rem 1.4rem',
