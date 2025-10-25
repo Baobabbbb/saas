@@ -447,7 +447,7 @@ async def test_suno():
 @app.get("/audio/{filename}")
 async def stream_audio(filename: str, download: bool = False):
     """
-    Endpoint spécialisé pour streamer les fichiers audio
+    Endpoint pour servir les fichiers audio avec FileResponse optimisé
     """
     import os
     file_path = f"static/{filename}"
@@ -455,46 +455,29 @@ async def stream_audio(filename: str, download: bool = False):
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Audio file not found")
 
-    # Obtenir la taille du fichier
-    file_size = os.path.getsize(file_path)
-
     if download:
-        # Pour le téléchargement : retourner le fichier complet avec les bons headers
+        # Pour le téléchargement : forcer le téléchargement avec Content-Disposition
         headers = {
             "Content-Type": "audio/mpeg",
             "Content-Disposition": f'attachment; filename="{filename}"',
-            "Content-Length": str(file_size),
+            "Cache-Control": "no-cache",
         }
 
-        def file_generator():
-            """Générateur pour le fichier complet"""
-            with open(file_path, "rb") as f:
-                while chunk := f.read(65536):  # Lire par blocs de 64KB pour téléchargement
-                    yield chunk
-
-        return StreamingResponse(
-            file_generator(),
+        return FileResponse(
+            file_path,
             media_type="audio/mpeg",
             headers=headers
         )
     else:
-        # Pour le streaming/lecture : utiliser des chunks plus petits
-        def file_generator():
-            """Générateur pour streamer le fichier par chunks"""
-            with open(file_path, "rb") as f:
-                while chunk := f.read(8192):  # Lire par blocs de 8KB pour streaming
-                    yield chunk
-
-        # Headers optimisés pour le streaming audio
+        # Pour la lecture : servir normalement avec headers optimisés
         headers = {
-            "Accept-Ranges": "bytes",
             "Content-Type": "audio/mpeg",
-            "Cache-Control": "no-cache",
-            "Content-Length": str(file_size),
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "public, max-age=3600",  # Cache 1 heure pour la lecture
         }
 
-        return StreamingResponse(
-            file_generator(),
+        return FileResponse(
+            file_path,
             media_type="audio/mpeg",
             headers=headers
         )

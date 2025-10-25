@@ -1531,25 +1531,56 @@ const downloadPDF = async (title, content) => {
 
           {generatedResult.audio_path && (
             <button
-              onClick={() => {
-                const filename = generatedResult.audio_path.split('/').pop();
-                const audioUrl = `${API_BASE_URL}/audio/${filename}?download=true`;
-                const safeTitle = (generatedResult.title || 'Histoire').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+              onClick={async () => {
+                try {
+                  const filename = generatedResult.audio_path.split('/').pop();
+                  const audioUrl = `${API_BASE_URL}/audio/${filename}?download=true`;
+                  const safeTitle = (generatedResult.title || 'Histoire').replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-                console.log('Téléchargement audio depuis:', audioUrl);
+                  console.log('Téléchargement audio depuis:', audioUrl);
 
-                // Créer un lien temporaire pour forcer le téléchargement
-                const link = document.createElement('a');
-                link.href = audioUrl;
-                link.download = `${safeTitle}.mp3`;
-                link.target = '_blank';
+                  // Utiliser fetch pour récupérer le fichier et créer un blob
+                  const response = await fetch(audioUrl);
+                  if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                  }
 
-                // Simuler un clic pour déclencher le téléchargement
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                  const blob = await response.blob();
+                  console.log('Blob reçu, taille:', blob.size, 'bytes');
 
-                console.log('Téléchargement audio initié');
+                  // Créer une URL d'objet pour le blob
+                  const blobUrl = window.URL.createObjectURL(blob);
+
+                  // Créer un lien pour déclencher le téléchargement
+                  const link = document.createElement('a');
+                  link.href = blobUrl;
+                  link.download = `${safeTitle}.mp3`;
+
+                  // Déclencher le téléchargement
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+
+                  // Nettoyer l'URL du blob après un court délai
+                  setTimeout(() => {
+                    window.URL.revokeObjectURL(blobUrl);
+                  }, 100);
+
+                  console.log('Téléchargement audio réussi');
+                } catch (error) {
+                  console.error('Erreur lors du téléchargement audio:', error);
+
+                  // Fallback : ouvrir dans un nouvel onglet
+                  try {
+                    const filename = generatedResult.audio_path.split('/').pop();
+                    const audioUrl = `${API_BASE_URL}/audio/${filename}?download=true`;
+                    window.open(audioUrl, '_blank');
+                    console.log('Fallback : ouverture dans nouvel onglet');
+                  } catch (fallbackError) {
+                    console.error('Erreur fallback:', fallbackError);
+                    alert('Erreur lors du téléchargement. Veuillez réessayer.');
+                  }
+                }
               }}
               style={{
                 padding: '0.6rem 1.4rem',
