@@ -17,7 +17,7 @@ def test_runway_api_key():
             return False, "RUNWAY_API_KEY non configurée"
 
         # Test simple avec l'endpoint d'organisation (ne coûte rien)
-        url = "https://api.runwayml.com/v1/organization"
+        url = "https://api.dev.runwayml.com/v1/organization"
         headers = {
             "Authorization": f"Bearer {runway_api_key}",
             "X-Runway-Version": "2024-09-13"  # Version utilisée dans les vidéos
@@ -65,7 +65,7 @@ def generate_speech(text, voice=None, filename=None):
         path = f"static/{filename}"
 
         # Préparation de la requête Runway API selon la documentation
-        url = "https://api.runwayml.com/v1/text_to_speech"
+        url = "https://api.dev.runwayml.com/v1/text_to_speech"
         headers = {
             "Authorization": f"Bearer {runway_api_key}",
             "Content-Type": "application/json",
