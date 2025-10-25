@@ -4,9 +4,9 @@ from datetime import datetime
 from unidecode import unidecode
 
 # Mapping des voix Runway pour différenciation homme/femme
-# Versions améliorées avec de meilleures qualités vocales
+# Versions optimisées : Eleanor (féminin moins aiguë) + Bernard (masculin)
 VOICE_MAP = {
-    "female": "Serene",  # Voix féminine douce et naturelle, excellente qualité
+    "female": "Eleanor", # Voix féminine élégante et raffinée, moins aiguë que Serene
     "male": "Bernard",   # Voix masculine profonde et professionnelle
 }
 
