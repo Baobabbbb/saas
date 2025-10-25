@@ -484,6 +484,32 @@ async def stream_audio(filename: str, download: bool = False):
 
 # Endpoint Runway supprimé - retour à OpenAI TTS
 
+# --- Test Audio ---
+@app.get("/test-audio")
+async def test_audio():
+    """Test endpoint pour vérifier la génération audio"""
+    try:
+        print("🧪 Test audio - début")
+        from services.tts import generate_speech
+
+        test_text = "Bonjour, ceci est un test audio."
+        result = generate_speech(test_text, voice="female", filename="test_audio")
+
+        return {
+            "status": "success",
+            "audio_path": result,
+            "message": "Test audio réussi"
+        }
+    except Exception as e:
+        print(f"❌ Erreur test audio: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "status": "error",
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
 # --- Histoire Audio ---
 # Ancien modèle remplacé par ValidatedAudioStoryRequest dans validators.py
 
