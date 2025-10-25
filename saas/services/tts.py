@@ -46,16 +46,8 @@ def generate_speech(text, voice=None, filename=None):
             print("❌ RUNWAY_API_KEY non configurée")
             raise ValueError("RUNWAY_API_KEY environment variable is not set")
 
-        # Test de la validité de la clé API avant génération
-        print("🔍 Test de la clé API Runway...")
-        key_valid, key_message = test_runway_api_key()
-        print(f"🔑 Test clé API: {key_message}")
-
-        if not key_valid:
-            print(f"❌ Clé API invalide: {key_message}")
-            raise ValueError(f"RUNWAY_API_KEY invalide: {key_message}")
-
-        print("✅ Clé API Runway validée")
+        # Note: La clé fonctionne pour les vidéos, on suppose qu'elle fonctionne aussi pour TTS
+        print("✅ Clé API Runway présumée valide (fonctionne pour les vidéos)")
 
         # Utilisation du mapping des voix
         voice_preset = VOICE_MAP.get(voice, "Maya")  # Default to Maya (female)
@@ -94,17 +86,18 @@ def generate_speech(text, voice=None, filename=None):
         print(f"📝 Texte à traiter: {input_text[:50]}...")
 
         # Faire la requête
+        print(f"🌐 Envoi requête à: {url}")
         response = requests.post(url, json=payload, headers=headers, timeout=30)
 
-        if response.status_code == 401:
-            print(f"❌ Erreur 401 - Clé API invalide ou expirée")
-            print(f"🔍 Vérifiez RUNWAY_API_KEY dans Railway")
-            raise ValueError("RUNWAY_API_KEY invalide - vérifiez la configuration dans Railway")
-
-        response.raise_for_status()
+        if response.status_code != 200:
+            print(f"❌ Erreur HTTP {response.status_code}")
+            print(f"❌ Réponse: {response.text}")
+            print(f"❌ Headers envoyés: {headers}")
+            print(f"❌ Payload: {payload}")
+            response.raise_for_status()
 
         # Runway retourne directement l'audio en streaming
-        print(f"✅ Audio généré avec succès via Runway")
+        print(f"✅ Audio généré avec succès via Runway (taille: {len(response.content)} bytes)")
 
         with open(path, "wb") as f:
             f.write(response.content)
