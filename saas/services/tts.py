@@ -28,7 +28,15 @@ def generate_speech(text, voice=None, filename=None):
     # Configuration de l'API Runway
     runway_api_key = os.getenv("RUNWAY_API_KEY")
     if not runway_api_key:
+        print("❌ RUNWAY_API_KEY environment variable is not set")
         raise ValueError("RUNWAY_API_KEY environment variable is not set")
+
+    # Validation basique de la clé API
+    if not runway_api_key.startswith("key_"):
+        print(f"❌ RUNWAY_API_KEY format invalide: doit commencer par 'key_' (actuellement: {runway_api_key[:10]}...)")
+        raise ValueError("RUNWAY_API_KEY doit commencer par 'key_'")
+
+    print(f"🔑 RUNWAY_API_KEY détectée: {runway_api_key[:10]}...")
 
     # Si aucun nom de fichier fourni, générer un nom avec timestamp
     if not filename:
