@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 // import Confetti from 'react-confetti';
 import './App.css';
+import { jsPDF } from 'jspdf';
 import Header from './components/Header';
 import ContentTypeSelector from './components/ContentTypeSelector';
 import RhymeSelector from './components/RhymeSelector';
@@ -878,77 +879,68 @@ const downloadPDF = async (title, content) => {
     return;
   }
 
-  const doc = new jsPDF({
-    orientation: "p",
-    unit: "mm",
-    format: "a4"
-  });
-
-  const marginTop = 40;
-  const pageWidth = 210;
-  const pageHeight = 297;
-  const lineHeight = 12;
-  const maxLinesPerPage = Math.floor((pageHeight - marginTop * 2) / lineHeight);
-  const fontSize = 13;
-
-  // 🏷️ Titre réel (extrait du markdown **titre**)
-  let finalTitle = title;
-  if (content.startsWith("**") && content.includes("**", 2)) {
-    finalTitle = content.split("**")[1].trim();
-    content = content.replace(`**${finalTitle}**`, "").trim();
-  }
-
-  // 🌠 Chargement de l’image de fond
-  const loadImage = (url) =>
-    new Promise((resolve) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.src = url;
-      img.onload = () => resolve(img);
+  try {
+    const doc = new jsPDF({
+      orientation: "p",
+      unit: "mm",
+      format: "a4"
     });
 
-  const backgroundImageUrl = "/assets/fond_etoiles.png";
-  const backgroundImage = await loadImage(backgroundImageUrl);
+    const marginTop = 40;
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const lineHeight = 8;
+    const maxLinesPerPage = Math.floor((pageHeight - marginTop * 2) / lineHeight);
+    const fontSize = 12;
 
-  // ✂️ Texte découpé
-  const lines = doc.splitTextToSize(content, 150); // max 150mm
-  let currentLine = 0;
-
-  for (let page = 0; currentLine < lines.length; page++) {
-    if (page > 0) doc.addPage();
-
-    doc.addImage(backgroundImage, "PNG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
-
-    // 🎨 Titre (uniquement page 1)
-    if (page === 0) {
-      doc.setFont("courier", "bold");
-      doc.setFontSize(22);
-      doc.setTextColor(110, 50, 230); // Violet
-      doc.text(finalTitle, pageWidth / 2, marginTop - 20, { align: "center" });
+    // 🏷️ Titre réel (extrait du markdown **titre**)
+    let finalTitle = title;
+    if (content.startsWith("**") && content.includes("**", 2)) {
+      finalTitle = content.split("**")[1].trim();
+      content = content.replace(`**${finalTitle}**`, "").trim();
     }
 
-    // ✍️ Texte principal (gras et bleu nuit)
-    doc.setFont("courier", "bold");
-    doc.setFontSize(fontSize);
-    doc.setTextColor(25, 25, 112); // Bleu nuit
+    // ✂️ Texte découpé
+    const lines = doc.splitTextToSize(content, 160); // max 160mm pour plus de lisibilité
+    let currentLine = 0;
 
-    for (let i = 0; i < maxLinesPerPage && currentLine < lines.length; i++, currentLine++) {
-      const y = marginTop + i * lineHeight;
-      doc.text(lines[currentLine], pageWidth / 2, y, { align: "center" });
+    for (let page = 0; currentLine < lines.length; page++) {
+      if (page > 0) doc.addPage();
+
+      // 🎨 Titre (uniquement page 1)
+      if (page === 0) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.setTextColor(110, 50, 230); // Violet
+        doc.text(finalTitle, pageWidth / 2, marginTop - 10, { align: "center" });
+      }
+
+      // ✍️ Texte principal
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(fontSize);
+      doc.setTextColor(25, 25, 112); // Bleu nuit
+
+      for (let i = 0; i < maxLinesPerPage && currentLine < lines.length; i++, currentLine++) {
+        const y = marginTop + i * lineHeight;
+        doc.text(lines[currentLine], pageWidth / 2, y, { align: "center" });
+      }
+
+      // 📄 Pagination
+      doc.setFontSize(10);
+      doc.setTextColor(106, 90, 205); // Violet doux
+      doc.text(`Page ${page + 1}`, pageWidth - 15, pageHeight - 10, { align: "right" });
     }
 
-    // 📄 Pagination
-    doc.setFontSize(11);
-    doc.setTextColor(106, 90, 205); // Violet doux
-    doc.text(`Page ${page + 1}`, pageWidth - 15, 290, { align: "right" });
+    // 📁 Nom de fichier propre
+    const safeTitle = finalTitle
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+
+    doc.save(`${safeTitle}.pdf`);
+  } catch (error) {
+    console.error("Erreur lors de la génération du PDF:", error);
+    alert("Erreur lors de la génération du PDF. Veuillez réessayer.");
   }
-
-  // 📁 Nom de fichier propre
-  const safeTitle = finalTitle
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
-
-  doc.save(`${safeTitle}.pdf`);
 };
 
  // Fonction de polling automatique pour vérifier le statut des tâches musicales Suno
