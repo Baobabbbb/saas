@@ -130,9 +130,13 @@ def generate_speech(text, voice=None, filename=None):
 
         # Utilisation du mapping des voix
         voice_preset = VOICE_MAP.get(voice, "Eleanor")  # Default to Eleanor (female)
-        input_text = text[:1000]  # Limite Runway pour text_to_speech
+
+        # Limite plus stricte pour éviter la coupure à 1min11
+        # Environ 500-600 caractères = ~45-60 secondes d'audio
+        input_text = text[:600]
 
         print(f"🎤 Configuration voix - voice param: '{voice}', voice_preset: '{voice_preset}'")
+        print(f"📝 Longueur texte: {len(text)} caractères → {len(input_text)} utilisés")
 
         # Nettoyer le nom de fichier
         if not filename:
