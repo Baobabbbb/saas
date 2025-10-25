@@ -552,9 +552,9 @@ def get_coloring_generator():
 @app.post("/generate_coloring/{content_type_id}")
 async def generate_coloring(request: dict, content_type_id: int = None):
     """
-    Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1-mini-mini
+    Génère un coloriage basé sur un thème avec GPT-4o-mini + dall-e-3
     Supporte deux formats d'URL pour compatibilité frontend
-    Organisation OpenAI vérifiée requise pour gpt-image-1-mini-mini
+    Organisation OpenAI vérifiée requise pour dall-e-3
     """
     try:
         # Validation des données d'entrée
@@ -563,9 +563,9 @@ async def generate_coloring(request: dict, content_type_id: int = None):
         with_colored_model = request.get("with_colored_model", True)  # Par défaut avec modèle
         
         if custom_prompt:
-            print(f"[COLORING] Generation coloriage personnalisé gpt-image-1-mini-mini: '{custom_prompt}' ({'avec' if with_colored_model else 'sans'} modèle coloré)")
+            print(f"[COLORING] Generation coloriage personnalisé dall-e-3: '{custom_prompt}' ({'avec' if with_colored_model else 'sans'} modèle coloré)")
         else:
-            print(f"[COLORING] Generation coloriage gpt-image-1-mini-mini: {theme} ({'avec' if with_colored_model else 'sans'} modèle coloré) (content_type_id={content_type_id})")
+            print(f"[COLORING] Generation coloriage dall-e-3: {theme} ({'avec' if with_colored_model else 'sans'} modèle coloré) (content_type_id={content_type_id})")
         
         # Vérifier la clé API OpenAI
         openai_key = os.getenv("OPENAI_API_KEY")
@@ -584,7 +584,7 @@ async def generate_coloring(request: dict, content_type_id: int = None):
                 detail="Service de génération de coloriage non disponible. Vérifiez la configuration des clés API."
             )
 
-        # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1-mini-mini (génération)
+        # Générer le coloriage avec GPT-4o-mini (analyse) + dall-e-3 (génération)
         result = await generator.generate_coloring_from_theme(theme, with_colored_model, custom_prompt)
         
         if result.get("success") == True:
@@ -592,7 +592,7 @@ async def generate_coloring(request: dict, content_type_id: int = None):
                 "status": "success",
                 "theme": theme,
                 "images": result.get("images", []),
-                "message": "Coloriage généré avec succès avec gpt-image-1-mini-mini !",
+                "message": "Coloriage généré avec succès avec dall-e-3 !",
                 "type": "coloring",
                 "model": "gpt-image-1-mini"
             }
