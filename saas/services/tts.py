@@ -129,8 +129,10 @@ def generate_speech(text, voice=None, filename=None):
         print("✅ Clé API Runway présumée valide (fonctionne pour les vidéos)")
 
         # Utilisation du mapping des voix
-        voice_preset = VOICE_MAP.get(voice, "Maya")  # Default to Maya (female)
+        voice_preset = VOICE_MAP.get(voice, "Eleanor")  # Default to Eleanor (female)
         input_text = text[:1000]  # Limite Runway pour text_to_speech
+
+        print(f"🎤 Configuration voix - voice param: '{voice}', voice_preset: '{voice_preset}'")
 
         # Nettoyer le nom de fichier
         if not filename:
