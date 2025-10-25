@@ -1531,40 +1531,25 @@ const downloadPDF = async (title, content) => {
 
           {generatedResult.audio_path && (
             <button
-              onClick={async () => {
-                try {
-                  const audioUrl = `${API_BASE_URL}/audio/${generatedResult.audio_path.split('/').pop()}`;
-                  console.log('Téléchargement audio depuis:', audioUrl);
+              onClick={() => {
+                const filename = generatedResult.audio_path.split('/').pop();
+                const audioUrl = `${API_BASE_URL}/audio/${filename}?download=true`;
+                const safeTitle = (generatedResult.title || 'Histoire').replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-                  const response = await fetch(audioUrl);
-                  if (!response.ok) {
-                    throw new Error(`Erreur HTTP: ${response.status}`);
-                  }
+                console.log('Téléchargement audio depuis:', audioUrl);
 
-                  const blob = await response.blob();
-                  console.log('Blob reçu, taille:', blob.size, 'bytes');
+                // Créer un lien temporaire pour forcer le téléchargement
+                const link = document.createElement('a');
+                link.href = audioUrl;
+                link.download = `${safeTitle}.mp3`;
+                link.target = '_blank';
 
-                  const url = window.URL.createObjectURL(blob);
-                  const link = document.createElement('a');
-                  link.href = url;
+                // Simuler un clic pour déclencher le téléchargement
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
 
-                  const safeTitle = (generatedResult.title || 'Histoire').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                  link.download = `${safeTitle}.mp3`;
-
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-
-                  // Nettoyer l'URL après un délai
-                  setTimeout(() => {
-                    window.URL.revokeObjectURL(url);
-                  }, 100);
-
-                  console.log('Téléchargement audio initié avec succès');
-                } catch (error) {
-                  console.error('Erreur lors du téléchargement audio:', error);
-                  alert('Erreur lors du téléchargement. Veuillez réessayer.');
-                }
+                console.log('Téléchargement audio initié');
               }}
               style={{
                 padding: '0.6rem 1.4rem',

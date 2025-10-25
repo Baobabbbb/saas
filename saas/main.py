@@ -445,27 +445,59 @@ async def test_suno():
 # --- Test Runway API ---
 # --- Audio Streaming ---
 @app.get("/audio/{filename}")
-async def stream_audio(filename: str):
+async def stream_audio(filename: str, download: bool = False):
     """
-    Endpoint spécialisé pour streamer les fichiers audio avec les bons headers
+    Endpoint spécialisé pour streamer les fichiers audio
     """
+    import os
     file_path = f"static/{filename}"
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Audio file not found")
 
-    # Headers pour un streaming audio correct
-    headers = {
-        "Accept-Ranges": "bytes",
-        "Cache-Control": "public, max-age=31536000",  # Cache 1 an
-        "Content-Type": "audio/mpeg",
-    }
+    # Obtenir la taille du fichier
+    file_size = os.path.getsize(file_path)
 
-    return FileResponse(
-        file_path,
-        media_type="audio/mpeg",
-        headers=headers
-    )
+    if download:
+        # Pour le téléchargement : retourner le fichier complet avec les bons headers
+        headers = {
+            "Content-Type": "audio/mpeg",
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(file_size),
+        }
+
+        def file_generator():
+            """Générateur pour le fichier complet"""
+            with open(file_path, "rb") as f:
+                while chunk := f.read(65536):  # Lire par blocs de 64KB pour téléchargement
+                    yield chunk
+
+        return StreamingResponse(
+            file_generator(),
+            media_type="audio/mpeg",
+            headers=headers
+        )
+    else:
+        # Pour le streaming/lecture : utiliser des chunks plus petits
+        def file_generator():
+            """Générateur pour streamer le fichier par chunks"""
+            with open(file_path, "rb") as f:
+                while chunk := f.read(8192):  # Lire par blocs de 8KB pour streaming
+                    yield chunk
+
+        # Headers optimisés pour le streaming audio
+        headers = {
+            "Accept-Ranges": "bytes",
+            "Content-Type": "audio/mpeg",
+            "Cache-Control": "no-cache",
+            "Content-Length": str(file_size),
+        }
+
+        return StreamingResponse(
+            file_generator(),
+            media_type="audio/mpeg",
+            headers=headers
+        )
 
 # Endpoint Runway supprimé - retour à OpenAI TTS
 
