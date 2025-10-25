@@ -484,50 +484,19 @@ async def stream_audio(filename: str, download: bool = False):
 
 # Endpoint Runway supprimé - retour à OpenAI TTS
 
-# --- Test Audio ---
-@app.get("/test-audio")
-async def test_audio():
-    """Test endpoint pour vérifier la génération audio"""
-    try:
-        print("🧪 Test audio - début")
-        from services.tts import generate_speech
-
-        test_text = "Bonjour, ceci est un test audio."
-        result = generate_speech(test_text, voice="female", filename="test_audio")
-
-        return {
-            "status": "success",
-            "audio_path": result,
-            "message": "Test audio réussi"
-        }
-    except Exception as e:
-        print(f"❌ Erreur test audio: {e}")
-        import traceback
-        traceback.print_exc()
-        return {
-            "status": "error",
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        }
-
 # --- Histoire Audio ---
 # Ancien modèle remplacé par ValidatedAudioStoryRequest dans validators.py
 
 @app.post("/generate_audio_story/")
 async def generate_audio_story(request: dict):
     try:
-        print(f"🎯 Début génération histoire audio - request: {request}")
-
         # Validation des données d'entrée
-        # Vérifier la clé API
         openai_key = os.getenv("OPENAI_API_KEY")
         if not openai_key or openai_key.startswith("sk-votre"):
             raise HTTPException(
                 status_code=400,
                 detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
             )
-
-        print(f"✅ Clé API OpenAI vérifiée: {openai_key[:15]}...")
         
         story_type = request.get("story_type", "aventure")
         custom_request = request.get("custom_request", "")
@@ -586,24 +555,13 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         # Génération de l'audio si une voix est spécifiée
         audio_path = None
         voice = request.get("voice")
-        print(f"🎤 Requête audio - voice: {voice}, story_type: {story_type}")
-        print(f"📝 Titre: {title[:50]}...")
-        print(f"📖 Longueur contenu: {len(story_content)} caractères")
 
         if voice:
             try:
-                print(f"🎵 Génération audio avec voice: {voice} - début appel generate_speech")
-                # Utiliser le contenu de l'histoire pour l'audio, pas le titre
-                # Utiliser le titre comme nom de fichier pour l'audio
                 audio_path = generate_speech(story_content, voice=voice, filename=title)
-                print(f"✅ Audio généré avec succès: {audio_path}")
             except Exception as audio_error:
                 print(f"❌ Erreur génération audio: {audio_error}")
-                import traceback
-                traceback.print_exc()
                 audio_path = None
-        else:
-            print(f"⚠️ Pas de voix spécifiée, audio non généré")
         
         result = {
             "title": title,
@@ -612,16 +570,11 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
             "audio_generated": audio_path is not None,
             "type": "audio"
         }
-        print(f"📤 Réponse histoire audio: {result}")
         return result
     except HTTPException:
-        print("🔄 HTTPException relayée")
         raise
     except Exception as e:
         print(f"❌ Erreur génération histoire: {e}")
-        import traceback
-        traceback.print_exc()
-        # Retourner une erreur 500 au lieu de laisser FastAPI gérer une exception non gérée
         raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
 
 # --- Coloriage ---
