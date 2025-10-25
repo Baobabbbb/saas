@@ -559,8 +559,7 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         if voice:
             try:
                 audio_path = generate_speech(story_content, voice=voice, filename=title)
-            except Exception as audio_error:
-                print(f"❌ Erreur génération audio: {audio_error}")
+            except Exception:
                 audio_path = None
         
         result = {
@@ -574,8 +573,7 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Erreur génération histoire: {e}")
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
+        raise HTTPException(status_code=500, detail="Erreur lors de la génération")
 
 # --- Coloriage ---
 # Ancien modèle remplacé par ValidatedColoringRequest dans validators.py

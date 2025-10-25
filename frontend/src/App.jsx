@@ -1537,8 +1537,6 @@ const downloadPDF = async (title, content) => {
                   const audioUrl = `${API_BASE_URL}/audio/${filename}?download=true`;
                   const safeTitle = (generatedResult.title || 'Histoire').replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-                  console.log('Téléchargement audio depuis:', audioUrl);
-
                   // Utiliser fetch pour récupérer le fichier et créer un blob
                   const response = await fetch(audioUrl);
                   if (!response.ok) {
@@ -1546,7 +1544,6 @@ const downloadPDF = async (title, content) => {
                   }
 
                   const blob = await response.blob();
-                  console.log('Blob reçu, taille:', blob.size, 'bytes');
 
                   // Créer une URL d'objet pour le blob
                   const blobUrl = window.URL.createObjectURL(blob);
@@ -1566,18 +1563,13 @@ const downloadPDF = async (title, content) => {
                     window.URL.revokeObjectURL(blobUrl);
                   }, 100);
 
-                  console.log('Téléchargement audio réussi');
                 } catch (error) {
-                  console.error('Erreur lors du téléchargement audio:', error);
-
                   // Fallback : ouvrir dans un nouvel onglet
                   try {
                     const filename = generatedResult.audio_path.split('/').pop();
                     const audioUrl = `${API_BASE_URL}/audio/${filename}?download=true`;
                     window.open(audioUrl, '_blank');
-                    console.log('Fallback : ouverture dans nouvel onglet');
                   } catch (fallbackError) {
-                    console.error('Erreur fallback:', fallbackError);
                     alert('Erreur lors du téléchargement. Veuillez réessayer.');
                   }
                 }

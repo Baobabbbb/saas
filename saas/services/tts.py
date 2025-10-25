@@ -52,5 +52,4 @@ def generate_speech(text, voice=None, filename=None):
         return path
 
     except Exception as e:
-        print(f"❌ Erreur génération audio OpenAI: {e}")
         raise
