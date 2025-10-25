@@ -131,12 +131,40 @@ def generate_speech(text, voice=None, filename=None):
         # Utilisation du mapping des voix
         voice_preset = VOICE_MAP.get(voice, "Eleanor")  # Default to Eleanor (female)
 
-        # Limite plus stricte pour éviter la coupure à 1min11
-        # Environ 500-600 caractères = ~45-60 secondes d'audio
-        input_text = text[:600]
+        # Vérifier si le texte est trop long et le diviser en chunks si nécessaire
+        MAX_CHUNK_LENGTH = 500  # ~35-45 secondes par chunk
 
-        print(f"🎤 Configuration voix - voice param: '{voice}', voice_preset: '{voice_preset}'")
-        print(f"📝 Longueur texte: {len(text)} caractères → {len(input_text)} utilisés")
+        if len(text) <= MAX_CHUNK_LENGTH:
+            # Texte court, traitement normal
+            input_text = text
+            chunks = [input_text]
+        else:
+            # Texte long, division en chunks
+            print(f"📝 Texte long détecté ({len(text)} caractères) - Division en chunks")
+            chunks = []
+            remaining_text = text
+
+            while remaining_text:
+                # Prendre un chunk
+                chunk = remaining_text[:MAX_CHUNK_LENGTH]
+
+                # Essayer de couper à la fin d'une phrase si possible
+                last_sentence_end = max(
+                    chunk.rfind('. '), chunk.rfind('! '), chunk.rfind('? '),
+                    chunk.rfind('.\n'), chunk.rfind('!\n'), chunk.rfind('?\n')
+                )
+
+                if last_sentence_end > MAX_CHUNK_LENGTH * 0.7:  # Si on trouve une fin de phrase raisonnable
+                    chunk = chunk[:last_sentence_end + 1]
+                    remaining_text = remaining_text[last_sentence_end + 1:].lstrip()
+                else:
+                    # Couper au milieu du mot si nécessaire
+                    remaining_text = remaining_text[MAX_CHUNK_LENGTH:]
+
+                chunks.append(chunk.strip())
+
+            print(f"📦 Texte divisé en {len(chunks)} chunks")
+            input_text = chunks[0]  # Pour la compatibilité avec le reste du code
 
         # Nettoyer le nom de fichier
         if not filename:
