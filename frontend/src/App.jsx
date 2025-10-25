@@ -410,6 +410,12 @@ function App() {
 
   // Fonction pour démarrer la génération (après vérification permissions)
   const startGeneration = async () => {
+    console.log('🚀 startGeneration appelée avec:', {
+      contentType,
+      selectedStory,
+      selectedAudioStory,
+      selectedVoice
+    });
     setIsGenerating(true);
     setGeneratedResult(null);
     // setShowConfetti(true);
@@ -449,7 +455,8 @@ function App() {
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
       console.log('📥 Réponse reçue pour histoire audio:', generatedContent);
-    } else if (contentType === 'histoire') {
+      } else if (contentType === 'histoire') {
+      console.log('📝 Génération histoire texte:', { contentType, selectedStory });
       // Déterminer le contenu de l'histoire
       let storyContent;
       if (selectedStory && selectedStory !== 'custom') {
@@ -1561,7 +1568,16 @@ const downloadPDF = async (title, content) => {
         </div>
       </div>
     </motion.div>
-  ) : generatedResult && contentType === 'histoire' ? (
+  ) : (() => {
+    console.log('🔍 Debug display conditions:', {
+      hasGeneratedResult: !!generatedResult,
+      contentType,
+      isHistoireType: contentType === 'histoire',
+      generatedResultKeys: generatedResult ? Object.keys(generatedResult) : 'null',
+      condition: generatedResult && contentType === 'histoire'
+    });
+    return generatedResult && contentType === 'histoire';
+  })() ? (
     <motion.div
       className="generated-result"
       initial={{ opacity: 0 }}
