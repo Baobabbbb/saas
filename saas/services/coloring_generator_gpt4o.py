@@ -1,8 +1,8 @@
 """
-Service de génération de coloriages avec dall-e-3
+Service de génération de coloriages avec gpt-image-1-mini
 - Image-to-image direct pour les photos uploadées (meilleure ressemblance)
 - Text-to-image pour les thèmes prédéfinis
-Organisation OpenAI vérifiée requise pour dall-e-3
+Organisation OpenAI vérifiée requise pour gpt-image-1-mini
 """
 import os
 import uuid
@@ -21,7 +21,7 @@ load_dotenv()
 
 class ColoringGeneratorGPT4o:
     """
-    Générateur de coloriages avec dall-e-3
+    Générateur de coloriages avec gpt-image-1-mini
     - Image-to-image pour photos uploadées
     - Text-to-image pour thèmes
     """
@@ -113,7 +113,7 @@ Subject: {subject}"""
         with_colored_model: bool = True
     ) -> Dict[str, Any]:
         """
-        Convertit une photo en coloriage avec dall-e-3 IMAGE-TO-IMAGE DIRECT
+        Convertit une photo en coloriage avec gpt-image-1-mini IMAGE-TO-IMAGE DIRECT
         Cette méthode utilise l'édition d'image directe pour maximiser la ressemblance
         
         Args:
@@ -127,8 +127,8 @@ Subject: {subject}"""
         try:
             print(f"[COLORING PHOTO] Conversion IMAGE-TO-IMAGE: {photo_path}")
             
-            # Utiliser l'édition d'image DIRECTE avec dall-e-3 (IMAGE-TO-IMAGE)
-            print(f"[IMAGE-TO-IMAGE] Transformation directe avec dall-e-3 edit...")
+            # Utiliser l'édition d'image DIRECTE avec gpt-image-1-mini (IMAGE-TO-IMAGE)
+            print(f"[IMAGE-TO-IMAGE] Transformation directe avec gpt-image-1-mini edit...")
             coloring_path_str = await self._edit_photo_to_coloring_direct(
                 photo_path, 
                 custom_prompt, 
@@ -136,7 +136,7 @@ Subject: {subject}"""
             )
             
             if not coloring_path_str:
-                raise Exception("Echec de la generation dall-e-3 (image-to-image)")
+                raise Exception("Echec de la generation gpt-image-1-mini (image-to-image)")
             
             # Convertir en Path
             coloring_path = Path(coloring_path_str)
@@ -147,14 +147,14 @@ Subject: {subject}"""
                 "source_photo": photo_path,
                 "images": [{
                     "image_url": f"{self.base_url}/static/coloring/{coloring_path.name}",
-                    "source": "dall-e-3 (image-to-image direct)"
+                    "source": "gpt-image-1-mini (image-to-image direct)"
                 }],
                 "total_images": 1,
                 "metadata": {
                     "source_photo": photo_path,
                     "method": "image-to-image direct editing",
                     "created_at": datetime.now().isoformat(),
-                    "model": "dall-e-3",
+                    "model": "gpt-image-1-mini",
                     "with_colored_model": with_colored_model
                 }
             }
@@ -179,7 +179,7 @@ Subject: {subject}"""
         with_colored_model: bool = True
     ) -> Optional[str]:
         """
-        Édite directement une photo en coloriage avec dall-e-3 (IMAGE-TO-IMAGE)
+        Édite directement une photo en coloriage avec gpt-image-1-mini (IMAGE-TO-IMAGE)
         CETTE MÉTHODE MAXIMISE LA RESSEMBLANCE en envoyant directement l'image
         
         Args:
@@ -211,7 +211,7 @@ Subject: {subject}"""
             aspect_ratio = original_width / original_height
             print(f"[DIMENSIONS] Image originale: {original_width}x{original_height} (ratio: {aspect_ratio:.2f})")
             
-            # Utiliser 'auto' pour que dall-e-3 détecte automatiquement les meilleures proportions
+            # Utiliser 'auto' pour que gpt-image-1-mini détecte automatiquement les meilleures proportions
             # Cela évite la déformation des images avec des ratios inhabituels
             size = "auto"
             print(f"[SIZE] Utilisation de size='auto' pour adaptation automatique")
@@ -222,17 +222,17 @@ Subject: {subject}"""
             
             print(f"[API] Appel OpenAI images.edit avec photo ({len(image_data)} bytes)...")
             
-            # Appeler dall-e-3 avec images.edit (IMAGE-TO-IMAGE)
+            # Appeler gpt-image-1-mini avec images.edit (IMAGE-TO-IMAGE)
             # IMPORTANT: Passer un tuple (filename, file_data) pour que l'API détecte le MIME type
             response = await self.client.images.edit(
-                model="dall-e-3",
+                model="gpt-image-1-mini",
                 image=(filename, image_data),  # Tuple (filename, data) pour détecter le MIME type
                 prompt=final_prompt,
                 size=size,  # Utiliser la taille adaptée aux proportions
                 n=1
             )
             
-            print(f"[RESPONSE] Reponse recue de dall-e-3 edit")
+            print(f"[RESPONSE] Reponse recue de gpt-image-1-mini edit")
             
             # gpt-image-1-mini retourne base64
             if hasattr(response, 'data') and len(response.data) > 0:
@@ -336,7 +336,7 @@ Subject: {subject}"""
             # Appeler gpt-image-1-mini avec qualité high et taille verticale disponible
             print(f"[API] Appel OpenAI images.generate...")
             response = await self.client.images.generate(
-                model="dall-e-3",
+                model="gpt-image-1-mini",
                 prompt=final_prompt,
                 size="1024x1536",
                 quality="high",
@@ -489,7 +489,7 @@ The illustration should be:
                     "theme": theme,
                     "description": description,
                     "created_at": datetime.now().isoformat(),
-                    "model": "dall-e-3",
+                    "model": "gpt-image-1-mini",
                     "method": "text-to-image",
                     "with_colored_model": with_colored_model
                 }

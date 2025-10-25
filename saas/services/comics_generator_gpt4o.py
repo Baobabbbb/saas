@@ -1,6 +1,6 @@
 """
-Générateur de bandes dessinées avec gpt-4o-mini + dall-e-3
-Architecture: gpt-4o-mini crée le scénario détaillé, dall-e-3 génère les planches
+Générateur de bandes dessinées avec gpt-4o-mini + gpt-image-1-mini
+Architecture: gpt-4o-mini crée le scénario détaillé, gpt-image-1-mini génère les planches
 """
 
 import openai
@@ -20,7 +20,7 @@ load_dotenv()
 
 
 class ComicsGeneratorGPT4o:
-    """Générateur de bandes dessinées avec GPT-4o-mini (scénario) + dall-e-3 (images)"""
+    """Générateur de bandes dessinées avec GPT-4o-mini (scénario) + gpt-image-1-mini (images)"""
     
     def __init__(self):
         self.openai_key = os.getenv("OPENAI_API_KEY")
@@ -160,7 +160,7 @@ CONSIGNES IMPORTANTES:
 2. L'histoire doit être cohérente, captivante et adaptée aux enfants
 {("3. CRITIQUE ABSOLU: Le personnage décrit ci-dessus DOIT être le HÉROS PRINCIPAL et apparaître dans LES 4 CASES de chaque planche. C'est LUI qui fait les actions, c'est LUI le protagoniste. Dans CHAQUE case, commence la description par: 'The main character (the person described above) is...' pour que gpt-image-1-mini sache que c'est ce personnage précis qui doit apparaître: " + character_description) if character_description else ""}
 3. Chaque case doit avoir:
-   - Une description visuelle ULTRA DÉTAILLÉE (pour dall-e-3)
+   - Une description visuelle ULTRA DÉTAILLÉE (pour gpt-image-1-mini)
    - Des dialogues dans des bulles (maximum 2 bulles par case)
    - Une indication de l'action ou l'émotion
 
@@ -175,7 +175,7 @@ CONSIGNES IMPORTANTES:
    - Précise la position suggérée de chaque bulle (haut-gauche, haut-droite, bas-gauche, bas-droite)
 
 5. DESCRIPTIONS VISUELLES ULTRA DÉTAILLÉES:
-   Pour chaque case, décris TOUT en détail pour que dall-e-3 puisse générer l'image parfaite:
+   Pour chaque case, décris TOUT en détail pour que gpt-image-1-mini puisse générer l'image parfaite:
    - Les personnages: âge, vêtements, couleurs, positions, expressions faciales
    - Le décor: lieu précis, objets visibles, couleurs, ambiance
    - L'action: ce qui se passe exactement dans cette case
@@ -199,7 +199,7 @@ FORMAT JSON REQUIS:
       "panels": [
         {{
           "panel_number": 1,
-          "visual_description": "Description ULTRA détaillée en anglais pour dall-e-3 (minimum 40 mots)",
+          "visual_description": "Description ULTRA détaillée en anglais pour gpt-image-1-mini (minimum 40 mots)",
           "action": "Ce qui se passe dans cette case",
           "dialogue_bubbles": [
             {{
@@ -235,7 +235,7 @@ FORMAT JSON REQUIS:
 
 RÈGLES STRICTES:
 - CHAQUE planche a EXACTEMENT 4 cases
-- Les descriptions visuelles sont en ANGLAIS (pour dall-e-3)
+- Les descriptions visuelles sont en ANGLAIS (pour gpt-image-1-mini)
 - Les dialogues sont en FRANÇAIS (pour les enfants)
 - L'histoire doit avoir un début, un milieu et une fin satisfaisante
 - Ton positif et adapté aux enfants (pas de violence, pas de peur excessive)
@@ -313,7 +313,7 @@ Génère maintenant le scénario complet en JSON:"""
                         "content": [
                             {
                                 "type": "text",
-                                "text": """Analyse cette photo et décris le personnage de manière ULTRA DÉTAILLÉE pour que dall-e-3 puisse le recréer EXACTEMENT dans une bande dessinée.
+                                "text": """Analyse cette photo et décris le personnage de manière ULTRA DÉTAILLÉE pour que gpt-image-1-mini puisse le recréer EXACTEMENT dans une bande dessinée.
 
 IMPORTANT: La description doit être suffisamment précise pour que le personnage soit PARFAITEMENT RECONNAISSABLE dans la BD.
 
@@ -332,7 +332,7 @@ Décris EN DÉTAIL:
 - Traits distinctifs: taches de rousseur, grain de beauté, fossettes, etc.
 - Expression générale et posture
 
-Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour dall-e-3), de manière factuelle et précise. Commence par "A [age] year old [gender] with..."."""
+Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), de manière factuelle et précise. Commence par "A [age] year old [gender] with..."."""
                             },
                             {
                                 "type": "image_url",
@@ -362,12 +362,12 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour dall-e-3), de mani�
         character_photo_path: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
-        Génère toutes les planches de BD avec dall-e-3
+        Génère toutes les planches de BD avec gpt-image-1-mini
         Chaque planche est une image unique contenant 4 cases + bulles + texte
         Si character_photo_path est fourni, utilise images.edit() pour intégrer le personnage
         """
         
-        print(f"🎨 Génération des planches avec dall-e-3...")
+        print(f"🎨 Génération des planches avec gpt-image-1-mini...")
         if character_photo_path:
             print(f"   📸 Photo de personnage fournie, utilisation de images.edit()")
         
@@ -384,13 +384,13 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour dall-e-3), de mani�
             try:
                 print(f"📄 Génération planche {page_num}/{story_data['total_pages']}...")
                 
-                # Construire le prompt complet pour dall-e-3
+                # Construire le prompt complet pour gpt-image-1-mini
                 # Ce prompt décrit UNE SEULE IMAGE contenant 4 cases de BD
                 page_prompt = self._build_page_prompt(page_data, style_info)
                 
                 print(f"   Prompt: {page_prompt[:200]}...")
                 
-                # Générer l'image avec dall-e-3 (avec photo si fournie)
+                # Générer l'image avec gpt-image-1-mini (avec photo si fournie)
                 image_path = await self._generate_page_with_gpt_image_1(
                     page_prompt,
                     comic_dir,
@@ -431,7 +431,7 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour dall-e-3), de mani�
         return generated_pages, comic_id
     
     def _build_page_prompt(self, page_data: Dict, style_info: Dict) -> str:
-        """Construit le prompt pour dall-e-3 pour générer UNE planche complète"""
+        """Construit le prompt pour gpt-image-1-mini pour générer UNE planche complète"""
         
         panels = page_data["panels"]
         
@@ -499,10 +499,10 @@ STYLE REQUIREMENTS:
         page_num: int,
         character_photo_path: Optional[str] = None
     ) -> Path:
-        """Génère une planche de BD avec dall-e-3 (avec ou sans photo de référence)"""
+        """Génère une planche de BD avec gpt-image-1-mini (avec ou sans photo de référence)"""
         
         try:
-            print(f"   🎨 Appel dall-e-3...")
+            print(f"   🎨 Appel gpt-image-1-mini...")
             
             # Si une photo de personnage est fournie, utiliser images.edit() pour plus de fidélité
             if character_photo_path:
