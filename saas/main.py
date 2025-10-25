@@ -535,10 +535,19 @@ coloring_generator_instance = None
 
 def get_coloring_generator():
     """Obtient l'instance du générateur de coloriage (lazy initialization)"""
-    global coloring_generator_instance
-    if coloring_generator_instance is None:
-        coloring_generator_instance = ColoringGeneratorGPT4o()
-    return coloring_generator_instance
+    from services.coloring_generator_gpt4o import coloring_generator
+
+    if coloring_generator is None:
+        try:
+            from services.coloring_generator_gpt4o import ColoringGeneratorGPT4o
+            # Assigner à la variable globale du module
+            import services.coloring_generator_gpt4o
+            services.coloring_generator_gpt4o.coloring_generator = ColoringGeneratorGPT4o()
+            return services.coloring_generator_gpt4o.coloring_generator
+        except Exception as e:
+            # En cas d'erreur d'initialisation, on retourne None
+            return None
+    return coloring_generator
 
 @app.post("/generate_coloring/")
 @app.post("/generate_coloring/{content_type_id}")

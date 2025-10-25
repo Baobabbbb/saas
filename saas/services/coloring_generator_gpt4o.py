@@ -103,9 +103,7 @@ Subject: {subject}"""
             
             # Initialisation silencieuse
         except Exception as e:
-            print(f"ERREUR: Initialisation ColoringGeneratorGPT4o: {e}")
-            import traceback
-            traceback.print_exc()
+            # Erreur silencieuse lors de l'initialisation
             raise
     
     async def generate_coloring_from_photo(
@@ -520,5 +518,4 @@ The illustration should be:
         return await self.generate_coloring_from_theme(theme)
 
 
-# Instance globale
-coloring_generator = ColoringGeneratorGPT4o()
+# Instance globale gérée dans main.py

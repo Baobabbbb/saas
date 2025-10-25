@@ -28,7 +28,10 @@ class Sora2ZseedanceGenerator:
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
         self.text_model = os.getenv("TEXT_MODEL", "gpt-4o-mini")
 
-        # Initialisation silencieuse
+        # Vérification silencieuse des clés API (sans logs)
+        runway_key = os.getenv("RUNWAY_API_KEY")
+        if not runway_key:
+            raise Exception("RUNWAY_API_KEY non configurée")
 
         # Configuration Runway ML Veo 3.1 Fast - text-to-video via /v1/text_to_video
         self.sora_platforms = {
