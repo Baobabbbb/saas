@@ -1396,24 +1396,13 @@ const downloadPDF = async (title, content) => {
 
             {/* Bouton Télécharger unique */}
             <button
-              onClick={async () => {
+              onClick={() => {
                 if (generatedResult.songs && generatedResult.songs.length > 0) {
                   const song = generatedResult.songs[0];
 
                   if (song.audio_url) {
-                    try {
-                      // Utiliser l'endpoint proxy pour éviter les problèmes CORS
-                      const safeTitle = (currentTitle || generatedResult.title || 'comptine').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                      const filename = `${safeTitle}.mp3`;
-
-                      const proxyUrl = `${API_BASE_URL}/proxy_audio?url=${encodeURIComponent(song.audio_url)}&filename=${encodeURIComponent(filename)}`;
-
-                      // Ouvrir l'URL proxy qui déclenchera automatiquement le téléchargement
-                      window.open(proxyUrl, '_blank');
-                    } catch (error) {
-                      console.error('❌ Erreur téléchargement:', error);
-                      alert('Erreur lors du téléchargement. Veuillez réessayer.');
-                    }
+                    // Ouvrir l'URL de l'audio dans un nouvel onglet
+                    window.open(song.audio_url, '_blank');
                   } else {
                     alert('Erreur: Aucune URL audio disponible pour cette comptine.');
                   }
