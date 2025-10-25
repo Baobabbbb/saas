@@ -545,8 +545,6 @@ def get_coloring_generator():
             services.coloring_generator_gpt4o.coloring_generator = ColoringGeneratorGPT4o()
             return services.coloring_generator_gpt4o.coloring_generator
         except Exception as e:
-            # Log temporaire pour déboguer
-            print(f"Erreur initialisation ColoringGeneratorGPT4o: {e}")
             return None
     return coloring_generator
 

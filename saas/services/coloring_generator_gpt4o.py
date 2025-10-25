@@ -518,4 +518,5 @@ The illustration should be:
         return await self.generate_coloring_from_theme(theme)
 
 
-# Instance globale gérée dans main.py
+# Instance globale - initialisation paresseuse gérée dans main.py
+coloring_generator = None
