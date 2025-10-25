@@ -8,6 +8,7 @@ import ContentTypeSelector from './components/ContentTypeSelector';
 import RhymeSelector from './components/RhymeSelector';
 import MusicalRhymeSelector from './components/MusicalRhymeSelector';
 import AudioStorySelector from './components/AudioStorySelector';
+import StorySelector from './components/StorySelector';
 import AnimationSelector from './components/AnimationSelector';
 import AnimationViewer from './components/AnimationViewer';
 import CustomRequest from './components/CustomRequest';

@@ -122,7 +122,7 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
             </motion.div>
           )}
 
-          {enabledFeatures.audio && (
+          {enabledFeatures.histoire && (
             <motion.div
               className={`content-type-option ${contentType === 'histoire' ? 'selected' : ''}`}
               onClick={() => handleContentTypeSelect('histoire')}
