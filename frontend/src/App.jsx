@@ -1362,19 +1362,19 @@ const downloadPDF = async (title, content) => {
         {generatedResult.songs && generatedResult.songs.length > 0 && (
           <>
             {generatedResult.songs.map((song, index) => (
-              <div key={song.id || index} style={{ 
-                background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', 
-                padding: '22px', 
+              <div key={song.id || index} style={{
+                background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                padding: '22px',
                 borderRadius: '15px',
                 border: '2px solid #dee2e6',
                 width: '100%',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
               }}>
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px', 
-                  marginBottom: '14px' 
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  marginBottom: '14px'
                 }}>
                   <span style={{ fontSize: '24px' }}>🎵</span>
                   <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
@@ -1396,7 +1396,7 @@ const downloadPDF = async (title, content) => {
                 </audio>
               </div>
             ))}
-            
+
             {/* Bouton Télécharger unique */}
             <button
               onClick={async () => {
@@ -1442,10 +1442,104 @@ const downloadPDF = async (title, content) => {
         )}
       </div>
     </motion.div>
-  ) : (
-    
+  ) : generatedResult && contentType === 'audio' && generatedResult.audio_path ? (
     <motion.div
-  className="preview-placeholder"
+      className="generated-result"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      key="audio-story-result"
+    >
+      <div
+        style={{
+          height: '300px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '1rem',
+          padding: '1rem',
+          overflowY: 'auto'
+        }}
+      >
+        {/* Audio de l'histoire */}
+        <div style={{
+          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+          padding: '22px',
+          borderRadius: '15px',
+          border: '2px solid #dee2e6',
+          width: '100%',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '14px'
+          }}>
+            <span style={{ fontSize: '24px' }}>🎵</span>
+            <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
+              Votre histoire audio est prête !
+            </h4>
+          </div>
+          <audio
+            controls
+            preload="metadata"
+            controlsList="nodownload"
+            style={{
+              width: '100%',
+              height: '60px',
+              outline: 'none'
+            }}
+            src={`${API_BASE_URL}/${generatedResult.audio_path}`}
+          >
+            Votre navigateur ne supporte pas l'élément audio.
+          </audio>
+        </div>
+
+        {/* Boutons d'action */}
+        <div style={{
+          display: 'flex',
+          gap: '1rem',
+          width: '100%',
+          justifyContent: 'center'
+        }}>
+          <button
+            onClick={() => setShowStoryPopup(true)}
+            style={{
+              padding: '0.6rem 1.4rem',
+              backgroundColor: '#6B4EFF',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontWeight: '600'
+            }}
+          >
+            📖 Ouvrir l'histoire
+          </button>
+
+          <button
+            onClick={() => downloadPDF(generatedResult.title, generatedResult.content)}
+            style={{
+              padding: '0.6rem 1.4rem',
+              backgroundColor: '#6B4EFF',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontWeight: '600'
+            }}
+          >
+            📄 Télécharger l'histoire
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  ) : (
+
+    <motion.div
+      className="preview-placeholder"
   initial={{ opacity: 0 }}
   animate={{ opacity: 1 }}
   exit={{ opacity: 0 }}
@@ -1473,80 +1567,6 @@ const downloadPDF = async (title, content) => {
     </p>
     </div>
   )}
-  {/* 🎵 Audio présent pour histoires audio seulement */}
-{(() => {
-  console.log('🎵 Debug audio display:', {
-    contentType,
-    isAudioType: contentType === 'audio',
-    generatedResult: !!generatedResult,
-    generatedResultKeys: generatedResult ? Object.keys(generatedResult) : 'null',
-    audioPath: generatedResult?.audio_path,
-    hasAudioPath: !!generatedResult?.audio_path,
-    conditionResult: contentType === 'audio' && !!generatedResult?.audio_path
-  });
-  return contentType === 'audio' && generatedResult?.audio_path;
-})() && (
-  <div
-    style={{
-      height: '300px', // 👈 même hauteur que le bloc boutons
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center', // 👈 centre l’audio verticalement aussi
-      alignItems: 'center'
-    }}
-  >
-    <audio
-      controls
-      style={{ width: '100%', maxWidth: '360px' }} // 👈 limite la largeur pour l’esthétique
-      src={`${API_BASE_URL}/${generatedResult.audio_path}`}
-      download={generatedResult.audio_path.split('/').pop()}
-    />
-  </div>
-)}
-
-{contentType === 'audio' && generatedResult?.content && (
-  <div
-    style={{
-      height: '300px', // 👈 même hauteur
-      width: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '1rem'
-    }}
-  >
-    <button
-      onClick={() => setShowStoryPopup(true)}
-      style={{
-        padding: '0.6rem 1.4rem',
-        backgroundColor: '#6B4EFF',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '0.5rem',
-        cursor: 'pointer',
-        fontWeight: '600'
-      }}
-    >
-      📖 Ouvrir l’histoire
-    </button>
-
-    <button
-      onClick={() => downloadPDF(generatedResult.title, generatedResult.content)}
-      style={{
-        padding: '0.6rem 1.4rem',
-        backgroundColor: '#6B4EFF',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '0.5rem',
-        cursor: 'pointer',
-        fontWeight: '600'
-      }}
-    >
-      📄 Télécharger l'histoire
-    </button>
-  </div>
-)}
 </motion.div>
 
   )}
