@@ -9,6 +9,53 @@ VOICE_MAP = {
     "male": "Arjun",     # Voix masculine claire
 }
 
+def wait_for_runway_task(task_id, headers, max_attempts=30):
+    """Attend qu'une tâche Runway soit terminée et retourne l'URL du résultat"""
+    print(f"⏳ Attente de la tâche Runway: {task_id}")
+
+    for attempt in range(max_attempts):
+        try:
+            task_url = f"https://api.dev.runwayml.com/v1/tasks/{task_id}"
+            task_response = requests.get(task_url, headers=headers, timeout=10)
+            task_response.raise_for_status()
+
+            task_data = task_response.json()
+            status = task_data.get("status")
+            print(f"📊 Statut tâche {attempt+1}/{max_attempts}: {status}")
+
+            if status == "SUCCEEDED":
+                # Tâche terminée avec succès
+                output = task_data.get("output", {})
+                audio_url = output.get("audio_url")
+                if audio_url:
+                    return audio_url
+                else:
+                    raise ValueError("No audio_url in task output")
+
+            elif status == "FAILED":
+                failure_reason = task_data.get("failure_reason", "Unknown failure")
+                raise ValueError(f"Task failed: {failure_reason}")
+
+            elif status in ["PENDING", "RUNNING"]:
+                # Attendre avant la prochaine vérification
+                import time
+                time.sleep(3)  # Attendre 3 secondes
+                continue
+
+            else:
+                raise ValueError(f"Unknown task status: {status}")
+
+        except requests.exceptions.RequestException as e:
+            print(f"⚠️ Erreur vérification tâche (tentative {attempt+1}): {e}")
+            if attempt < max_attempts - 1:
+                import time
+                time.sleep(3)
+                continue
+            else:
+                raise
+
+    raise TimeoutError(f"Task {task_id} did not complete within {max_attempts * 3} seconds")
+
 def test_runway_api_key():
     """Test si la clé API Runway est valide"""
     try:
@@ -96,22 +143,48 @@ def generate_speech(text, voice=None, filename=None):
             print(f"❌ Payload: {payload}")
             response.raise_for_status()
 
-        # Vérifier si la réponse est un fichier audio ou une erreur JSON
+        # Vérifier le type de réponse
         content_length = len(response.content)
-        print(f"✅ Réponse reçue (taille: {content_length} bytes)")
+        content_type = response.headers.get('content-type', '').lower()
+        print(f"✅ Réponse reçue (taille: {content_length} bytes, type: {content_type})")
 
-        # Si la réponse est très petite, c'est probablement une erreur JSON
-        if content_length < 1000:
+        # Si c'est du JSON, c'est probablement une réponse avec task_id ou une erreur
+        if 'application/json' in content_type or content_length < 1000:
             try:
-                error_data = response.json()
-                print(f"❌ Erreur JSON retournée par Runway: {error_data}")
-                raise ValueError(f"Runway API returned error: {error_data}")
-            except ValueError:
-                # Ce n'est pas du JSON, c'est probablement un petit fichier audio
-                print("ℹ️ Réponse courte mais pas du JSON - probablement un fichier audio")
+                response_data = response.json()
+                print(f"📄 Réponse JSON: {response_data}")
 
-        # Runway retourne directement l'audio en streaming
-        print(f"✅ Sauvegarde du fichier audio: {path}")
+                # Vérifier si c'est une tâche asynchrone
+                task_id = response_data.get("id")
+                if task_id:
+                    print(f"🎯 Tâche asynchrone détectée: {task_id}")
+                    # Attendre que la tâche soit terminée
+                    audio_url = wait_for_runway_task(task_id, headers)
+                    print(f"🎵 URL audio obtenue: {audio_url}")
+
+                    # Télécharger l'audio depuis l'URL
+                    audio_response = requests.get(audio_url, timeout=30)
+                    audio_response.raise_for_status()
+
+                    with open(path, "wb") as f:
+                        f.write(audio_response.content)
+
+                    print(f"📁 Audio téléchargé et sauvegardé: {path} ({len(audio_response.content)} bytes)")
+                    return path
+                else:
+                    # C'est peut-être une erreur
+                    if "error" in response_data:
+                        print(f"❌ Erreur JSON retournée par Runway: {response_data}")
+                        raise ValueError(f"Runway API returned error: {response_data}")
+                    else:
+                        print(f"⚠️ Réponse JSON inattendue: {response_data}")
+
+            except ValueError as json_error:
+                print(f"⚠️ Impossible de parser JSON: {json_error}")
+                # Si ce n'est pas du JSON valide, traiter comme fichier audio
+
+        # Traiter comme fichier audio direct
+        print(f"🎵 Sauvegarde du fichier audio direct: {path}")
 
         with open(path, "wb") as f:
             f.write(response.content)
