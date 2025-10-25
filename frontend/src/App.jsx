@@ -236,10 +236,7 @@ function App() {
             if (data?.status === 'failed') {
               throw new Error(data?.error || 'Génération échouée');
             }
-            // Afficher la progression
-            if (data?.progress) {
-              console.log(`📚 Génération BD: ${data.progress}%`);
-            }
+            // Afficher la progression silencieusement
           }
         }
       } catch (e) {
@@ -270,7 +267,7 @@ function App() {
       setCharacterPhoto(data);
       return data;
     } catch (error) {
-      console.error('Erreur upload photo personnage:', error);
+      // Erreur silencieuse
       throw error;
     }
   };
@@ -411,7 +408,6 @@ function App() {
 
   // Fonction pour démarrer la génération (après vérification permissions)
   const startGeneration = async () => {
-  console.log('🚀 startGeneration appelée avec contentType:', contentType, 'selectedStory:', selectedStory, 'selectedAudioStory:', selectedAudioStory, 'selectedVoice:', selectedVoice);
     setIsGenerating(true);
     setGeneratedResult(null);
     // setShowConfetti(true);
@@ -450,9 +446,7 @@ function App() {
 
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
-      console.log('📥 Réponse reçue pour histoire audio:', generatedContent);
       } else if (contentType === 'histoire') {
-      console.log('📝 Génération histoire texte avec contentType:', contentType, 'selectedStory:', selectedStory);
       // Déterminer le contenu de l'histoire
       let storyContent;
       if (selectedStory && selectedStory !== 'custom') {
@@ -912,7 +906,7 @@ const downloadPDF = async (title, content) => {
     try {
       backgroundImage = await loadImage("/assets/fond_etoiles.png");
     } catch (error) {
-      console.warn("Fond étoilé non disponible pour le PDF:", error);
+      // Fond non disponible silencieusement
     }
 
     // 🏷️ Titre réel (extrait du markdown **titre**)
@@ -934,7 +928,7 @@ const downloadPDF = async (title, content) => {
         try {
           doc.addImage(backgroundImage, "PNG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
         } catch (error) {
-          console.warn("Erreur lors de l'ajout du fond:", error);
+          // Erreur d'ajout du fond silencieuse
         }
       }
 
@@ -969,7 +963,7 @@ const downloadPDF = async (title, content) => {
 
     doc.save(`${safeTitle}.pdf`);
   } catch (error) {
-    console.error("Erreur lors de la génération du PDF:", error);
+    // Erreur PDF silencieuse
     alert("Erreur lors de la génération du PDF. Veuillez réessayer.");
   }
 };
