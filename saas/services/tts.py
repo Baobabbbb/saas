@@ -26,11 +26,24 @@ def wait_for_runway_task(task_id, headers, max_attempts=30):
             if status == "SUCCEEDED":
                 # Tâche terminée avec succès
                 output = task_data.get("output", {})
-                audio_url = output.get("audio_url")
-                if audio_url:
-                    return audio_url
+                print(f"🔍 Output de la tâche: {output}")
+
+                # Gérer le cas où output est une liste ou un dict
+                if isinstance(output, list) and len(output) > 0:
+                    # Si c'est une liste, prendre le premier élément
+                    output = output[0]
+                    print(f"📋 Output converti depuis liste: {output}")
+
+                if isinstance(output, dict):
+                    audio_url = output.get("audio_url")
+                    if audio_url:
+                        return audio_url
+                    else:
+                        print(f"❌ Pas d'audio_url dans output: {output}")
+                        raise ValueError(f"No audio_url in task output: {output}")
                 else:
-                    raise ValueError("No audio_url in task output")
+                    print(f"❌ Output inattendu (ni dict ni list): {type(output)} - {output}")
+                    raise ValueError(f"Unexpected output format: {output}")
 
             elif status == "FAILED":
                 failure_reason = task_data.get("failure_reason", "Unknown failure")
