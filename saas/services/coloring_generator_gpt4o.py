@@ -101,11 +101,7 @@ Subject: {subject}"""
 
 Subject: {subject}"""
             
-            print(f"OK: ColoringGeneratorGPT4o initialise")
-            print(f"   - Photos: gpt-image-1-mini-mini image-to-image (ressemblance maximale)")
-            print(f"   - Themes: gpt-image-1-mini-mini text-to-image")
-            print(f"   - Quality: high")
-            print(f"   - API Key presente: Oui")
+            # Initialisation silencieuse
         except Exception as e:
             print(f"ERREUR: Initialisation ColoringGeneratorGPT4o: {e}")
             import traceback

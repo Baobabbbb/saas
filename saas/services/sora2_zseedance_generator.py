@@ -28,12 +28,7 @@ class Sora2ZseedanceGenerator:
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
         self.text_model = os.getenv("TEXT_MODEL", "gpt-4o-mini")
 
-        # Vérification détaillée de la clé Runway
-        runway_key = os.getenv("RUNWAY_API_KEY")
-        logger.info(f"🔑 Initialisation Runway ML Veo 3.1 Fast - RUNWAY_API_KEY: {'présente' if runway_key else 'ABSENTE'}")
-        if runway_key:
-            logger.info(f"🔑 Format clé: {'✅ OK (key_)' if runway_key.startswith('key_') else '❌ ERREUR format'}")
-            logger.info(f"🔑 Longueur: {len(runway_key)} caractères")
+        # Initialisation silencieuse
 
         # Configuration Runway ML Veo 3.1 Fast - text-to-video via /v1/text_to_video
         self.sora_platforms = {
@@ -75,17 +70,7 @@ class Sora2ZseedanceGenerator:
             "negative_prompt": "blurry, low quality, distorted, violent, scary, static, motionless, dark, horror"
         }
 
-        logger.info(f"🎬 Sora2ZseedanceGenerator initialisé avec plateforme: {self.selected_platform}")
-        logger.info(f"🔧 Plateformes disponibles: {[name for name, config in self.sora_platforms.items() if config['available']]}")
-        logger.info(f"🔑 RUNWAY_API_KEY détectée: {bool(os.getenv('RUNWAY_API_KEY'))}")
-        if os.getenv('RUNWAY_API_KEY'):
-            key = os.getenv('RUNWAY_API_KEY')
-            logger.info(f"🔑 Format clé Runway: {'✅ OK' if key.startswith('key_') else '❌ ERREUR'}")
-            logger.info(f"🔑 Longueur clé Runway: {len(key)} caractères")
-        logger.info(f"🔑 FAL_API_KEY détectée: {bool(os.getenv('FAL_API_KEY'))}")
-        if os.getenv('FAL_API_KEY'):
-            fal_key = os.getenv('FAL_API_KEY')
-            logger.info(f"🔑 Longueur clé FAL: {len(fal_key)} caractères")
+        # Initialisation terminée silencieusement
 
     def _select_best_platform(self) -> str:
         """Sélectionne la plateforme Veo 3.1 Fast disponible avec la priorité la plus haute"""

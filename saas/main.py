@@ -44,56 +44,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
 BASE_URL = os.getenv("BASE_URL", "https://herbbie.com")
 
-# Logging des variables d'environnement au démarrage
-print("=" * 60)
-print("🚀 DÉMARRAGE API FRIDAY - Contenu Créatif IA")
-print("=" * 60)
-
-# Test immédiat de la configuration Runway
-runway_key = os.getenv('RUNWAY_API_KEY')
-print(f"🔑 TEST RUNWAY_API_KEY: {'présente' if runway_key else 'ABSENTE'}")
-if runway_key:
-    print(f"🔑 TEST Format: {'✅ OK' if runway_key.startswith('key_') else '❌ ERREUR'}")
-    print(f"🔑 TEST Longueur: {len(runway_key)}")
-    print(f"🔑 TEST Préfixe: {runway_key[:15]}...")
-
-    # Test de l'import du générateur
-    try:
-        from services.sora2_zseedance_generator import sora2_zseedance_generator
-        print("✅ TEST Générateur importé avec succès")
-        print(f"✅ TEST Plateforme sélectionnée: {sora2_zseedance_generator.selected_platform}")
-        print(f"✅ TEST Plateformes disponibles: {[name for name, config in sora2_zseedance_generator.sora_platforms.items() if config['available']]}")
-    except Exception as e:
-        print(f"❌ TEST ERREUR import générateur: {e}")
-else:
-    print("❌ TEST Runway API key manquante - vérifiez Railway Variables")
-
-print("=" * 60)
-print(f"📝 TEXT_MODEL: {TEXT_MODEL}")
-print(f"🌐 BASE_URL: {BASE_URL}")
-print(f"✅ OPENAI_API_KEY: {'Configurée' if os.getenv('OPENAI_API_KEY') else '❌ NON CONFIGURÉE'}")
-print(f"🎵 SUNO_API_KEY: {'Configurée' if os.getenv('SUNO_API_KEY') else '❌ NON CONFIGURÉE'}")
-print(f"🎨 STABILITY_API_KEY: {'Configurée' if os.getenv('STABILITY_API_KEY') else '❌ NON CONFIGURÉE'}")
-
-        # Vérification des clés API pour l'animation
-runway_key = os.getenv('RUNWAY_API_KEY')
-fal_key = os.getenv('FAL_API_KEY')
-
-print(f"🎬 RUNWAY_API_KEY: {'Configurée' if runway_key else '❌ NON CONFIGURÉE'}")
-if runway_key:
-    print(f"   🔑 Format: {'✅ OK' if runway_key.startswith('key_') else '❌ ERREUR - doit commencer par key_'}")
-    print(f"   📏 Longueur: {len(runway_key)} caractères")
-    print(f"   👁️  Aperçu: {runway_key[:20]}...{runway_key[-10:] if len(runway_key) > 30 else runway_key}")
-
-    # Afficher la clé complète pour vérification
-    print(f"   🔐 CLÉ COMPLÈTE (pour vérification): {runway_key}")
-    print("   ⚠️  ATTENTION: Cette clé sera visible dans les logs Railway !")
-
-print(f"🔧 FAL_API_KEY: {'Configurée' if fal_key else '❌ NON CONFIGURÉE'}")
-if fal_key:
-    print(f"   📏 Longueur: {len(fal_key)} caractères")
-
-print("=" * 60)
+# Démarrage silencieux - pas de logs sensibles
 
 app = FastAPI(title="API FRIDAY - Contenu Créatif IA", version="2.0", description="API pour générer du contenu créatif pour enfants : BD, coloriages, histoires, comptines")
 
