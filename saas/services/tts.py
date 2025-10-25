@@ -9,6 +9,32 @@ VOICE_MAP = {
     "male": "Arjun",     # Voix masculine claire
 }
 
+def test_runway_api_key():
+    """Test si la clé API Runway est valide"""
+    try:
+        runway_api_key = os.getenv("RUNWAY_API_KEY")
+        if not runway_api_key:
+            return False, "RUNWAY_API_KEY non configurée"
+
+        # Test simple avec l'endpoint d'organisation (ne coûte rien)
+        url = "https://api.runwayml.com/v1/organization"
+        headers = {
+            "Authorization": f"Bearer {runway_api_key}",
+            "X-Runway-Version": "2024-11-06"
+        }
+
+        response = requests.get(url, headers=headers, timeout=10)
+
+        if response.status_code == 200:
+            return True, "Clé API valide"
+        elif response.status_code == 401:
+            return False, "Clé API invalide ou expirée"
+        else:
+            return False, f"Erreur API: {response.status_code} - {response.text}"
+
+    except Exception as e:
+        return False, f"Erreur de connexion: {str(e)}"
+
 def generate_speech(text, voice=None, filename=None):
     """Génération audio avec Runway TTS - version simplifiée"""
     print(f"🎵 TTS: Génération audio Runway - voice={voice}, filename={filename}")
@@ -19,6 +45,17 @@ def generate_speech(text, voice=None, filename=None):
         if not runway_api_key:
             print("❌ RUNWAY_API_KEY non configurée")
             raise ValueError("RUNWAY_API_KEY environment variable is not set")
+
+        # Test de la validité de la clé API avant génération
+        print("🔍 Test de la clé API Runway...")
+        key_valid, key_message = test_runway_api_key()
+        print(f"🔑 Test clé API: {key_message}")
+
+        if not key_valid:
+            print(f"❌ Clé API invalide: {key_message}")
+            raise ValueError(f"RUNWAY_API_KEY invalide: {key_message}")
+
+        print("✅ Clé API Runway validée")
 
         # Utilisation du mapping des voix
         voice_preset = VOICE_MAP.get(voice, "Maya")  # Default to Maya (female)

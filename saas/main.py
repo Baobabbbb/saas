@@ -23,7 +23,7 @@ import openai
 from openai import AsyncOpenAI
 
 from datetime import datetime
-from services.tts import generate_speech
+from services.tts import generate_speech, test_runway_api_key
 from services.stt import transcribe_audio
 
 # Authentification gérée par Supabase - modules supprimés car inutiles avec Vercel
@@ -437,6 +437,33 @@ async def test_suno():
         import traceback
         return {
             "test": "Suno API",
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+            "timestamp": datetime.now().isoformat()
+        }
+
+# --- Test Runway API ---
+@app.get("/test-runway-api")
+async def test_runway_api():
+    """
+    Endpoint de test pour vérifier la clé API Runway
+    """
+    try:
+        from services.tts import test_runway_api_key
+        is_valid, message = test_runway_api_key()
+
+        return {
+            "test": "Runway API Key",
+            "valid": is_valid,
+            "message": message,
+            "timestamp": datetime.now().isoformat(),
+            "key_prefix": os.getenv("RUNWAY_API_KEY", "")[:15] + "..." if os.getenv("RUNWAY_API_KEY") else "Not set"
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "test": "Runway API Key",
+            "valid": False,
             "error": str(e),
             "traceback": traceback.format_exc(),
             "timestamp": datetime.now().isoformat()
