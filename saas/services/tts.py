@@ -4,10 +4,10 @@ from datetime import datetime
 from unidecode import unidecode
 
 # Mapping des voix Runway pour différenciation homme/femme
-# Versions optimisées : Eleanor (féminin moins aiguë) + Bernard (masculin)
+# Versions optimisées : Eleanor (féminin) + James (masculin chaleureux)
 VOICE_MAP = {
-    "female": "Eleanor", # Voix féminine élégante et raffinée, moins aiguë que Serene
-    "male": "Bernard",   # Voix masculine profonde et professionnelle
+    "female": "Eleanor", # Voix féminine élégante et raffinée, moins aiguë
+    "male": "James",     # Voix masculine chaleureuse et paternelle
 }
 
 def wait_for_runway_task(task_id, headers, max_attempts=30):
