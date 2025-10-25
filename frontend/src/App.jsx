@@ -1445,7 +1445,7 @@ const downloadPDF = async (title, content) => {
         )}
       </div>
     </motion.div>
-  ) : generatedResult && ((contentType === 'audio' && generatedResult.audio_path) || (contentType === 'histoire' && generatedResult.audio_path)) ? (
+  ) : generatedResult && contentType === 'audio' ? (
     <motion.div
       className="generated-result"
       initial={{ opacity: 0 }}
@@ -1465,29 +1465,31 @@ const downloadPDF = async (title, content) => {
           overflowY: 'auto'
         }}
       >
-        {/* Audio de l'histoire */}
-        <div style={{
-          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-          padding: '22px',
-          borderRadius: '15px',
-          border: '2px solid #dee2e6',
-          width: '100%',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-        }}>
-          <audio
-            controls
-            preload="metadata"
-            controlsList="nodownload"
-            style={{
-              width: '100%',
-              height: '60px',
-              outline: 'none'
-            }}
-            src={`${API_BASE_URL}/${generatedResult.audio_path}`}
-          >
-            Votre navigateur ne supporte pas l'élément audio.
-          </audio>
-        </div>
+        {/* Audio de l'histoire - seulement si disponible */}
+        {generatedResult.audio_path && (
+          <div style={{
+            background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+            padding: '22px',
+            borderRadius: '15px',
+            border: '2px solid #dee2e6',
+            width: '100%',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+          }}>
+            <audio
+              controls
+              preload="metadata"
+              controlsList="nodownload"
+              style={{
+                width: '100%',
+                height: '60px',
+                outline: 'none'
+              }}
+              src={`${API_BASE_URL}/${generatedResult.audio_path}`}
+            >
+              Votre navigateur ne supporte pas l'élément audio.
+            </audio>
+          </div>
+        )}
 
         {/* Boutons d'action */}
         <div style={{
@@ -1527,9 +1529,9 @@ const downloadPDF = async (title, content) => {
             📄 Télécharger l'histoire
           </button>
 
-          <button
-            onClick={async () => {
-              if (generatedResult.audio_path) {
+          {generatedResult.audio_path && (
+            <button
+              onClick={async () => {
                 try {
                   const audioUrl = `${API_BASE_URL}/${generatedResult.audio_path}`;
                   const response = await fetch(audioUrl);
@@ -1547,83 +1549,20 @@ const downloadPDF = async (title, content) => {
                   // Fallback si CORS bloque
                   window.open(`${API_BASE_URL}/${generatedResult.audio_path}`, '_blank');
                 }
-              }
-            }}
-            style={{
-              padding: '0.6rem 1.4rem',
-              backgroundColor: '#6B4EFF',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '0.5rem',
-              cursor: 'pointer',
-              fontWeight: '600'
-            }}
-          >
-            🎵 Télécharger l'audio
-          </button>
-        </div>
-      </div>
-    </motion.div>
-  ) : (() => {
-    console.log('🔍 Debug display conditions - hasGeneratedResult:', !!generatedResult, 'contentType:', contentType, 'isHistoireType:', contentType === 'histoire', 'generatedResultKeys:', generatedResult ? Object.keys(generatedResult) : 'null', 'condition:', generatedResult && contentType === 'histoire');
-    return generatedResult && contentType === 'histoire';
-  })() ? (
-    <motion.div
-      className="generated-result"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      key="story-result"
-    >
-      <div
-        style={{
-          height: '300px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '1rem',
-          padding: '1rem',
-          overflowY: 'auto'
-        }}
-      >
-        {/* Boutons d'action pour histoires texte */}
-        <div style={{
-          display: 'flex',
-          gap: '1rem',
-          width: '100%',
-          justifyContent: 'center',
-          flexWrap: 'wrap'
-        }}>
-          <button
-            onClick={() => setShowStoryPopup(true)}
-            style={{
-              padding: '0.6rem 1.4rem',
-              backgroundColor: '#6B4EFF',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '0.5rem',
-              cursor: 'pointer',
-              fontWeight: '600'
-            }}
-          >
-            📖 Ouvrir l'histoire
-          </button>
-
-          <button
-            onClick={() => downloadPDF(generatedResult.title, generatedResult.content)}
-            style={{
-              padding: '0.6rem 1.4rem',
-              backgroundColor: '#6B4EFF',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '0.5rem',
-              cursor: 'pointer',
-              fontWeight: '600'
-            }}
-          >
-            📄 Télécharger l'histoire
-          </button>
+              }}
+              style={{
+                padding: '0.6rem 1.4rem',
+                backgroundColor: '#6B4EFF',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontWeight: '600'
+              }}
+            >
+              🎵 Télécharger l'audio
+            </button>
+          )}
         </div>
       </div>
     </motion.div>
