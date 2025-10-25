@@ -545,7 +545,8 @@ def get_coloring_generator():
             services.coloring_generator_gpt4o.coloring_generator = ColoringGeneratorGPT4o()
             return services.coloring_generator_gpt4o.coloring_generator
         except Exception as e:
-            # En cas d'erreur d'initialisation, on retourne None
+            # Log temporaire pour déboguer
+            print(f"Erreur initialisation ColoringGeneratorGPT4o: {e}")
             return None
     return coloring_generator
 
@@ -578,14 +579,15 @@ async def generate_coloring(request: dict, content_type_id: int = None):
         
         # Obtenir l'instance du générateur
         generator = get_coloring_generator()
-        
-        # Debug: afficher les paramètres
-        print(f"[DEBUG] Parametres: theme={theme}, with_colored_model={with_colored_model}, custom_prompt={custom_prompt}")
-        
+
+        if generator is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Service de génération de coloriage non disponible. Vérifiez la configuration des clés API."
+            )
+
         # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1-mini-mini (génération)
         result = await generator.generate_coloring_from_theme(theme, with_colored_model, custom_prompt)
-        
-        print(f"[DEBUG] Resultat recu: {result.get('success', False)}")
         
         if result.get("success") == True:
             return {
