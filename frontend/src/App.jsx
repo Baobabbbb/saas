@@ -1474,14 +1474,17 @@ const downloadPDF = async (title, content) => {
     </div>
   )}
   {/* 🎵 Audio présent pour histoires audio seulement */}
-{contentType === 'audio' && generatedResult?.audio_path && (() => {
-  console.log('🎵 Affichage audio:', {
+{(() => {
+  console.log('🎵 Debug audio display:', {
     contentType,
-    hasAudioPath: !!generatedResult?.audio_path,
+    isAudioType: contentType === 'audio',
+    generatedResult: !!generatedResult,
+    generatedResultKeys: generatedResult ? Object.keys(generatedResult) : 'null',
     audioPath: generatedResult?.audio_path,
-    fullSrc: `${API_BASE_URL}/${generatedResult.audio_path}`
+    hasAudioPath: !!generatedResult?.audio_path,
+    conditionResult: contentType === 'audio' && !!generatedResult?.audio_path
   });
-  return true;
+  return contentType === 'audio' && generatedResult?.audio_path;
 })() && (
   <div
     style={{
