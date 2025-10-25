@@ -4,17 +4,17 @@ from datetime import datetime
 from unidecode import unidecode  # ✅ Ajout pour nettoyer les accents
 
 # Mapping des voix pour Runway eleven_multilingual_v2
-# Note: eleven_multilingual_v2 utilise des voix prédéfinies, pas des noms comme OpenAI
+# Utilisation de voix spécifiques de haute qualité pour Herbbie
 VOICE_MAP = {
-    "female": "eleven_multilingual_v2",  # Voix féminine par défaut
-    "male": "eleven_multilingual_v2",    # Voix masculine par défaut
-    # Anciens mappings pour compatibilité - tous utilisent eleven_multilingual_v2
-    "grand-pere": "eleven_multilingual_v2",
-    "grand-mere": "eleven_multilingual_v2",
-    "pere": "eleven_multilingual_v2",
-    "mere": "eleven_multilingual_v2",
-    "petit-garcon": "eleven_multilingual_v2",
-    "petite-fille": "eleven_multilingual_v2"
+    "female": "Maya",        # Voix féminine douce et chaleureuse, parfaite pour les histoires d'enfants
+    "male": "Arjun",         # Voix masculine claire et engageante, idéale pour la narration
+    # Anciens mappings pour compatibilité - utilisent les nouvelles voix
+    "grand-pere": "Arjun",   # Voix masculine mature
+    "grand-mere": "Maya",    # Voix féminine douce et rassurante
+    "pere": "Arjun",         # Voix masculine paternelle
+    "mere": "Maya",          # Voix féminine maternelle
+    "petit-garcon": "Arjun", # Voix masculine jeune
+    "petite-fille": "Maya"   # Voix féminine jeune
 }
 
 def generate_speech(text, voice=None, filename=None):
@@ -61,7 +61,10 @@ def generate_speech(text, voice=None, filename=None):
     payload = {
         "model": "eleven_multilingual_v2",
         "text": input_text,
-        "voice": voice_model  # eleven_multilingual_v2 est le modèle de voix lui-même
+        "voice": {
+            "type": "runway-preset",
+            "presetId": voice_model
+        }
     }
 
     try:
