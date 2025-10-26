@@ -1385,7 +1385,40 @@ const downloadPDF = async (title, content) => {
         📚 Lire la bande dessinée
       </button>
     </motion.div>
-  ) : generatedResult && contentType === 'rhyme' && (generatedResult.audio_path || generatedResult.suno_url) ? (
+  ) : generatedResult && contentType === 'rhyme' && generatedResult.suno_url && !downloadReady ? (
+    // État intermédiaire : URL disponible mais audio pas encore prêt
+    <motion.div
+      className="generated-result"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      key="preparing-audio"
+    >
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '1.5rem',
+        padding: '2rem',
+        minHeight: '300px'
+      }}>
+        <div className="loading-dots">
+          <div className="dot"></div>
+          <div className="dot"></div>
+          <div className="dot"></div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', color: '#6B4EFF', fontSize: '18px' }}>
+            🎵 Préparation de votre comptine...
+          </h3>
+          <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
+            L'audio est en cours de finalisation chez Suno AI
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  ) : generatedResult && contentType === 'rhyme' && generatedResult.suno_url && downloadReady ? (
     <motion.div
       className="generated-result"
       initial={{ opacity: 0 }}
@@ -1406,14 +1439,14 @@ const downloadPDF = async (title, content) => {
         }}
       >
         {/* Audio si disponible - Logique originale des comptines */}
-        {generatedResult.suno_url && (
+        {generatedResult.suno_url && downloadReady && (
           <>
             <div style={{
             background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
             padding: '22px',
             borderRadius: '15px',
             border: '2px solid #dee2e6',
-            width: '600px',
+            width: '450px',
             maxWidth: '90%',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}>
@@ -1446,7 +1479,7 @@ const downloadPDF = async (title, content) => {
         )}
 
         {/* Bouton Télécharger - Avec vérification de disponibilité */}
-        {generatedResult.suno_url && (
+        {generatedResult.suno_url && downloadReady && (
           <>
             <button
             onClick={async () => {
