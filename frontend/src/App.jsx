@@ -1067,8 +1067,8 @@ const downloadPDF = async (title, content) => {
           // 🎵 COMMENCER LA SURVEILLANCE DE LA DISPONIBILITÉ DU TÉLÉCHARGEMENT
           if (status.suno_url) {
             monitorDownloadReadiness(status.suno_url);
-            // NE PAS arrêter isGenerating ici - attendre que downloadReady soit true
-            return true; // Continuer le polling
+            // NE PAS arrêter isGenerating ici - attendre que downloadReady soit true dans monitorDownloadReadiness
+            return true; // Continuer le polling jusqu'à ce que downloadReady soit true
           }
 
           setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement
@@ -1422,7 +1422,7 @@ const downloadPDF = async (title, content) => {
             padding: '16px',
             borderRadius: '15px',
             border: '2px solid #dee2e6',
-            width: '400px',
+            width: '350px',
             maxWidth: '90%',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}>
