@@ -1410,7 +1410,7 @@ const downloadPDF = async (title, content) => {
               controlsList="nodownload"
               style={{
                 width: '100%',
-                height: '80px',
+                height: '120px',
                 outline: 'none'
               }}
               src={generatedResult.suno_url}
