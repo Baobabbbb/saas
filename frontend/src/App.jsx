@@ -355,64 +355,16 @@ function App() {
     setCurrentTitle(null);
   }, [contentType]);
 
-  // Fonction pour vérifier si l'URL de téléchargement est accessible
-  const checkDownloadReadiness = async (audioUrl) => {
-    try {
-      // Essayer d'abord une requête HEAD simple
-      const headResponse = await fetch(audioUrl, { method: 'HEAD' });
-      if (headResponse.ok) {
-        return true;
-      }
-
-      // Si HEAD échoue, essayer GET avec Range
-      const rangeResponse = await fetch(audioUrl, {
-        method: 'GET',
-        headers: {
-          'Range': 'bytes=0-1023'
-        }
-      });
-      if (rangeResponse.ok || rangeResponse.status === 206) {
-        return true;
-      }
-
-      // Dernière tentative : GET complet mais avec timeout court
-      const fullResponse = await fetch(audioUrl, {
-        method: 'GET',
-        signal: AbortSignal.timeout(5000) // 5 secondes timeout
-      });
-      return fullResponse.ok;
-
-    } catch (error) {
-      return false;
-    }
-  };
-
-  // Fonction pour surveiller la disponibilité du téléchargement
+  // Fonction pour surveiller la disponibilité du téléchargement avec délai fixe
   const monitorDownloadReadiness = async (audioUrl) => {
     setDownloadReady(false);
-    let attempts = 0;
-    const maxAttempts = 60; // 2 minutes max
 
-    const checkReadiness = async () => {
-      attempts++;
-      const isReady = await checkDownloadReadiness(audioUrl);
-
-      if (isReady) {
-        setDownloadReady(true);
-        setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement quand prêt
-        return;
-      }
-
-      if (attempts < maxAttempts) {
-        setTimeout(checkReadiness, 2000); // Vérifier toutes les 2 secondes
-      } else {
-        // Timeout - permettre quand même le téléchargement et arrêter le chargement
-        setDownloadReady(true);
-        setIsGenerating(false);
-      }
-    };
-
-    checkReadiness();
+    // Attendre 45 secondes après que l'URL soit disponible
+    // Suno prend généralement ce temps pour finaliser l'audio
+    setTimeout(() => {
+      setDownloadReady(true);
+      setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement après délai fixe
+    }, 45000); // 45 secondes
   };
 
   // Initialiser le thème par défaut pour les animations
@@ -1418,8 +1370,8 @@ const downloadPDF = async (title, content) => {
       <div
         style={{
           height: '300px',
-          width: '80%',
-          maxWidth: '600px',
+          width: '70%',
+          maxWidth: '500px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
