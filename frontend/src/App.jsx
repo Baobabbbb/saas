@@ -1377,7 +1377,7 @@ const downloadPDF = async (title, content) => {
           justifyContent: 'center',
           alignItems: 'center',
           gap: '0.8rem',
-          padding: '1rem',
+          padding: '0.5rem',
           overflowY: 'auto'
         }}
       >
@@ -1386,7 +1386,7 @@ const downloadPDF = async (title, content) => {
           <>
             <div style={{
             background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-            padding: '16px',
+            padding: '12px',
             borderRadius: '15px',
             border: '2px solid #dee2e6',
             width: '100%',
