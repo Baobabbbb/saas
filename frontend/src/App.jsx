@@ -1402,13 +1402,19 @@ const downloadPDF = async (title, content) => {
 
                   if (song.audio_url) {
                     try {
+                      console.log('🎵 Début du téléchargement...');
+
                       // Télécharger directement depuis Suno
                       const response = await fetch(song.audio_url);
+                      console.log('🎵 Response reçue:', response.status);
+
                       if (!response.ok) {
                         throw new Error(`Erreur HTTP: ${response.status}`);
                       }
 
                       const blob = await response.blob();
+                      console.log('🎵 Blob reçu, taille:', blob.size);
+
                       if (blob.size === 0) {
                         throw new Error('Fichier audio indisponible');
                       }
@@ -1425,10 +1431,13 @@ const downloadPDF = async (title, content) => {
                       link.click();
                       document.body.removeChild(link);
 
+                      console.log('🎵 Téléchargement déclenché avec succès');
+
                       // Nettoyer l'URL d'objet
                       setTimeout(() => window.URL.revokeObjectURL(url), 100);
 
                     } catch (error) {
+                      console.error('❌ Erreur téléchargement:', error);
                       alert(`Erreur lors du téléchargement: ${error.message}`);
                     }
                   } else {
