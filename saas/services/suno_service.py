@@ -280,41 +280,59 @@ class SunoService:
             Chemin relatif du fichier stocké, ou None en cas d'erreur
         """
         try:
+            print(f"🎵 [DOWNLOAD] Début téléchargement depuis: {audio_url[:100]}...")
+
             # Créer le dossier audio s'il n'existe pas
             audio_dir = os.path.join(os.getcwd(), "audio")
             os.makedirs(audio_dir, exist_ok=True)
+            print(f"🎵 [DOWNLOAD] Dossier audio: {audio_dir}")
 
             # Générer un nom de fichier unique
             file_extension = ".mp3"
             unique_filename = f"comptine_{task_id}_{uuid.uuid4().hex[:8]}{file_extension}"
             local_path = os.path.join(audio_dir, unique_filename)
-
-            print(f"🎵 Téléchargement automatique depuis Suno: {audio_url[:80]}...")
-            print(f"   Stockage local: {local_path}")
+            print(f"🎵 [DOWNLOAD] Chemin local: {local_path}")
 
             # Télécharger le fichier
+            print("🎵 [DOWNLOAD] Envoi requête HTTP...")
             async with aiohttp.ClientSession() as session:
                 async with session.get(
                     audio_url,
                     timeout=aiohttp.ClientTimeout(total=60)  # Timeout plus long pour les gros fichiers
                 ) as response:
+                    print(f"🎵 [DOWNLOAD] Réponse HTTP: {response.status}")
+                    print(f"🎵 [DOWNLOAD] Headers: {dict(response.headers)}")
+
                     if response.status == 200:
+                        print("🎵 [DOWNLOAD] Téléchargement en cours...")
                         # Lire le contenu en chunks pour éviter la surcharge mémoire
                         with open(local_path, 'wb') as f:
+                            chunk_count = 0
                             async for chunk in response.content.iter_chunked(8192):
                                 f.write(chunk)
+                                chunk_count += 1
+                                if chunk_count % 10 == 0:  # Log tous les 10 chunks
+                                    print(f"🎵 [DOWNLOAD] Téléchargé {chunk_count * 8192} bytes...")
 
                         file_size = os.path.getsize(local_path)
-                        print(f"✅ Audio téléchargé et stocké: {file_size} bytes")
+                        print(f"✅ [DOWNLOAD] Audio téléchargé et stocké: {file_size} bytes")
+
+                        # Vérifier que le fichier n'est pas vide
+                        if file_size == 0:
+                            print("❌ [DOWNLOAD] Fichier vide, suppression")
+                            os.remove(local_path)
+                            return None
 
                         # Retourner le chemin relatif pour l'accès via l'API
                         return f"audio/{unique_filename}"
                     else:
-                        print(f"❌ Erreur HTTP lors du téléchargement: {response.status}")
+                        print(f"❌ [DOWNLOAD] Erreur HTTP: {response.status}")
+                        response_text = await response.text()
+                        print(f"❌ [DOWNLOAD] Réponse: {response_text[:200]}")
                         return None
 
         except Exception as e:
-            print(f"❌ Erreur téléchargement automatique: {e}")
+            print(f"❌ [DOWNLOAD] Erreur téléchargement: {e}")
             import traceback
             traceback.print_exc()
             return None
@@ -408,32 +426,17 @@ class SunoService:
                                             "message": "❌ URL audio non disponible"
                                         }
 
-                                    # 🎯 TÉLÉCHARGEMENT AUTOMATIQUE POUR TÉLÉCHARGEMENT INSTANTANÉ
-                                    print("🎵 Téléchargement automatique du fichier audio...")
-                                    local_audio_path = await self.download_and_store_audio(audio_url_val, task_id)
-
-                                    if not local_audio_path:
-                                        # Fallback : retourner l'URL Suno si le téléchargement échoue
-                                        print("⚠️ Téléchargement automatique échoué, utilisation URL Suno directe")
-                                        return {
-                                            "status": "completed",
-                                            "task_id": task_id,
-                                            "audio_path": None,
-                                            "suno_url": audio_url_val,
-                                            "title": clip.get("title", "Comptine"),
-                                            "duration": clip.get("duration"),
-                                            "message": "✅ Comptine générée (téléchargement direct)"
-                                        }
-
-                                    print(f"✅ Fichier audio stocké localement: {local_audio_path}")
-
+                                    # 🎯 RETOUR AU SYSTÈME ORIGINAL : URL Suno directe
+                                    # Le téléchargement automatique sera implémenté plus tard quand les URLs seront accessibles
+                                    print(f"🎵 URL audio disponible: {audio_url_val[:100]}...")
                                     return {
                                         "status": "completed",
                                         "task_id": task_id,
-                                        "audio_path": local_audio_path,
+                                        "audio_path": None,  # Pas de fichier local pour l'instant
+                                        "suno_url": audio_url_val,
                                         "title": clip.get("title", "Comptine"),
                                         "duration": clip.get("duration"),
-                                        "message": "✅ Comptine générée et téléchargée avec succès"
+                                        "message": "✅ Comptine générée avec succès"
                                     }
                                 elif task_status == "FAILED":
                                     # Tâche échouée
