@@ -1389,8 +1389,8 @@ const downloadPDF = async (title, content) => {
             padding: '16px',
             borderRadius: '15px',
             border: '2px solid #dee2e6',
-            width: '500px',
-            maxWidth: '500px',
+            width: '100%',
+            maxWidth: '100%',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}>
             <div style={{
@@ -1410,7 +1410,7 @@ const downloadPDF = async (title, content) => {
               controlsList="nodownload"
               style={{
                 width: '100%',
-                height: '120px',
+                height: '100px',
                 outline: 'none'
               }}
               src={generatedResult.suno_url}
