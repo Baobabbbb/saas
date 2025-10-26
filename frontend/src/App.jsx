@@ -986,11 +986,11 @@ const downloadPDF = async (title, content) => {
               has_music: true,
               service: 'suno'
             };
-            
+
             // Enregistrer dans l'historique maintenant que la musique est prête
             const title = prev.title || generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme) + ' 🎵';
             setCurrentTitle(title);
-            
+
             // Créer l'entrée d'historique
             const newCreation = {
               id: Date.now().toString(),
@@ -1000,7 +1000,7 @@ const downloadPDF = async (title, content) => {
               content: prev.content || prev.rhyme || 'Comptine générée',
               songs: status.songs
             };
-            
+
             // Sauvegarder dans l'historique via Supabase
             addCreation({
               type: 'rhyme',
@@ -1009,10 +1009,48 @@ const downloadPDF = async (title, content) => {
             }).catch(historyError => {
               // Erreur silencieuse - historique non critique
             });
-            
+
             return updatedResult;
           });
           setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement
+          return true; // Arrêter le polling
+        } else if (status.songs && status.songs.length > 0 && status.songs[0].audio_url) {
+          // 🎵 OPTIMISATION : Montrer le bouton dès que l'URL audio est disponible
+          // Même si le statut n'est pas encore "completed", permettre le téléchargement
+          setGeneratedResult(prev => {
+            const updatedResult = {
+              ...prev,
+              songs: status.songs,
+              has_music: true,
+              service: 'suno'
+            };
+
+            // Enregistrer dans l'historique maintenant que la musique est prête
+            const title = prev.title || generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme) + ' 🎵';
+            setCurrentTitle(title);
+
+            // Créer l'entrée d'historique
+            const newCreation = {
+              id: Date.now().toString(),
+              type: 'rhyme',
+              title: title,
+              createdAt: new Date().toISOString(),
+              content: prev.content || prev.rhyme || 'Comptine générée',
+              songs: status.songs
+            };
+
+            // Sauvegarder dans l'historique via Supabase
+            addCreation({
+              type: 'rhyme',
+              title: title,
+              data: newCreation
+            }).catch(historyError => {
+              // Erreur silencieuse - historique non critique
+            });
+
+            return updatedResult;
+          });
+          setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement dès que l'URL est disponible
           return true; // Arrêter le polling
         } else if (status.status === 'failed') {
           // Tâche échouée
@@ -1402,19 +1440,13 @@ const downloadPDF = async (title, content) => {
 
                   if (song.audio_url) {
                     try {
-                      console.log('🎵 Début du téléchargement...');
-
                       // Télécharger directement depuis Suno
                       const response = await fetch(song.audio_url);
-                      console.log('🎵 Response reçue:', response.status);
-
                       if (!response.ok) {
                         throw new Error(`Erreur HTTP: ${response.status}`);
                       }
 
                       const blob = await response.blob();
-                      console.log('🎵 Blob reçu, taille:', blob.size);
-
                       if (blob.size === 0) {
                         throw new Error('Fichier audio indisponible');
                       }
@@ -1431,13 +1463,10 @@ const downloadPDF = async (title, content) => {
                       link.click();
                       document.body.removeChild(link);
 
-                      console.log('🎵 Téléchargement déclenché avec succès');
-
                       // Nettoyer l'URL d'objet
                       setTimeout(() => window.URL.revokeObjectURL(url), 100);
 
                     } catch (error) {
-                      console.error('❌ Erreur téléchargement:', error);
                       alert(`Erreur lors du téléchargement: ${error.message}`);
                     }
                   } else {
