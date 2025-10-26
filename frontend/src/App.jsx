@@ -1396,24 +1396,38 @@ const downloadPDF = async (title, content) => {
 
             {/* Bouton Télécharger unique */}
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (generatedResult.songs && generatedResult.songs.length > 0) {
                   const song = generatedResult.songs[0];
 
                   if (song.audio_url) {
-                    // Utiliser l'endpoint proxy pour télécharger directement le MP3
-                    const safeTitle = (currentTitle || generatedResult.title || 'comptine').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                    const filename = `${safeTitle}.mp3`;
+                    try {
+                      // Télécharger directement depuis Suno pour éviter le chargement de page
+                      const response = await fetch(song.audio_url);
+                      if (!response.ok) {
+                        throw new Error(`Erreur HTTP: ${response.status}`);
+                      }
 
-                    const proxyUrl = `${API_BASE_URL}/proxy_audio?url=${encodeURIComponent(song.audio_url)}&filename=${encodeURIComponent(filename)}`;
+                      const blob = await response.blob();
+                      const url = window.URL.createObjectURL(blob);
 
-                    // Créer un lien invisible pour déclencher le téléchargement
-                    const link = document.createElement('a');
-                    link.href = proxyUrl;
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+                      // Créer un lien pour déclencher le téléchargement
+                      const safeTitle = (currentTitle || generatedResult.title || 'comptine').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = `${safeTitle}.mp3`;
+                      link.style.display = 'none';
+
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+
+                      // Nettoyer l'URL d'objet
+                      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+                    } catch (error) {
+                      console.error('Erreur téléchargement:', error);
+                      alert('Erreur lors du téléchargement. Le fichier pourrait être temporairement indisponible.');
+                    }
                   } else {
                     alert('Erreur: Aucune URL audio disponible pour cette comptine.');
                   }
