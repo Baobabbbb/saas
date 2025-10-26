@@ -1416,19 +1416,34 @@ const downloadPDF = async (title, content) => {
                         }
 
                         const blob = await response.blob();
-                        console.log('🎵 Blob size:', blob.size);
+                        console.log('🎵 Blob size:', blob.size, 'type:', blob.type);
+
+                        if (blob.size === 0) {
+                          throw new Error('Blob vide - URL inaccessible');
+                        }
+
                         const url = window.URL.createObjectURL(blob);
+                        console.log('🎵 Object URL:', url);
 
                         // Créer un lien pour déclencher le téléchargement
                         const safeTitle = (currentTitle || generatedResult.title || 'comptine').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                        const filename = `${safeTitle}.mp3`;
+                        console.log('🎵 Filename:', filename);
+
                         const link = document.createElement('a');
                         link.href = url;
-                        link.download = `${safeTitle}.mp3`;
+                        link.download = filename;
                         link.style.display = 'none';
+                        console.log('🎵 Link created:', link.href, link.download);
 
                         document.body.appendChild(link);
+                        console.log('🎵 Link added to DOM');
+
                         link.click();
+                        console.log('🎵 Link clicked');
+
                         document.body.removeChild(link);
+                        console.log('🎵 Link removed from DOM');
 
                         console.log('🎵 Téléchargement direct réussi');
 
