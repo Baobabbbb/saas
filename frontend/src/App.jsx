@@ -358,10 +358,15 @@ function App() {
   // Fonction pour vérifier si l'URL de téléchargement est accessible
   const checkDownloadReadiness = async (audioUrl) => {
     try {
-      const response = await fetch(audioUrl, { method: 'HEAD' });
-      if (response.ok) {
-        const contentLength = response.headers.get('content-length');
-        return contentLength && parseInt(contentLength) > 1000; // Au moins 1KB
+      // Utiliser GET au lieu de HEAD car certains serveurs (comme Suno) n'acceptent pas HEAD
+      const response = await fetch(audioUrl, {
+        method: 'GET',
+        headers: {
+          'Range': 'bytes=0-1023' // Ne récupérer que les premiers 1KB pour vérifier
+        }
+      });
+      if (response.ok || response.status === 206) { // 206 = Partial Content (Range request)
+        return true;
       }
       return false;
     } catch (error) {
@@ -1414,7 +1419,7 @@ const downloadPDF = async (title, content) => {
           <>
             <div style={{
             background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-            padding: '22px',
+            padding: '16px',
             borderRadius: '15px',
             border: '2px solid #dee2e6',
             width: '400px',
@@ -1425,7 +1430,7 @@ const downloadPDF = async (title, content) => {
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
-              marginBottom: '14px'
+              marginBottom: '10px'
             }}>
               <span style={{ fontSize: '24px' }}>🎵</span>
               <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
