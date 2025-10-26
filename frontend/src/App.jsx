@@ -1397,87 +1397,44 @@ const downloadPDF = async (title, content) => {
             {/* Bouton Télécharger unique */}
             <button
               onClick={async () => {
-                console.log('🎵 Tentative de téléchargement:', generatedResult);
                 if (generatedResult.songs && generatedResult.songs.length > 0) {
                   const song = generatedResult.songs[0];
-                  console.log('🎵 Chanson trouvée:', song);
 
                   if (song.audio_url) {
                     try {
-                      console.log('🎵 URL audio:', song.audio_url);
-
-                      // Essayer d'abord le téléchargement direct depuis Suno
-                      try {
-                        console.log('🎵 Tentative fetch direct...');
-                        const response = await fetch(song.audio_url);
-                        console.log('🎵 Response status:', response.status);
-                        if (!response.ok) {
-                          throw new Error(`Erreur HTTP: ${response.status}`);
-                        }
-
-                        const blob = await response.blob();
-                        console.log('🎵 Blob size:', blob.size, 'type:', blob.type);
-
-                        if (blob.size === 0) {
-                          throw new Error('Blob vide - URL inaccessible');
-                        }
-
-                        const url = window.URL.createObjectURL(blob);
-                        console.log('🎵 Object URL:', url);
-
-                        // Créer un lien pour déclencher le téléchargement
-                        const safeTitle = (currentTitle || generatedResult.title || 'comptine').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                        const filename = `${safeTitle}.mp3`;
-                        console.log('🎵 Filename:', filename);
-
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.download = filename;
-                        link.style.display = 'none';
-                        console.log('🎵 Link created:', link.href, link.download);
-
-                        document.body.appendChild(link);
-                        console.log('🎵 Link added to DOM');
-
-                        link.click();
-                        console.log('🎵 Link clicked');
-
-                        document.body.removeChild(link);
-                        console.log('🎵 Link removed from DOM');
-
-                        console.log('🎵 Téléchargement direct réussi');
-
-                        // Nettoyer l'URL d'objet
-                        setTimeout(() => window.URL.revokeObjectURL(url), 100);
-                        return; // Sortir si ça marche
-                      } catch (directError) {
-                        console.warn('❌ Fetch direct échoué (CORS?), tentative avec proxy:', directError.message);
+                      // Télécharger directement depuis Suno
+                      const response = await fetch(song.audio_url);
+                      if (!response.ok) {
+                        throw new Error(`Erreur HTTP: ${response.status}`);
                       }
 
-                      // Fallback vers l'endpoint proxy si le fetch direct échoue
-                      console.log('🎵 Tentative avec endpoint proxy...');
+                      const blob = await response.blob();
+                      if (blob.size === 0) {
+                        throw new Error('Fichier audio indisponible');
+                      }
+
+                      const url = window.URL.createObjectURL(blob);
                       const safeTitle = (currentTitle || generatedResult.title || 'comptine').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                      const proxyUrl = `${API_BASE_URL}/proxy_audio?url=${encodeURIComponent(song.audio_url)}&filename=${encodeURIComponent(safeTitle + '.mp3')}`;
 
                       const link = document.createElement('a');
-                      link.href = proxyUrl;
+                      link.href = url;
+                      link.download = `${safeTitle}.mp3`;
                       link.style.display = 'none';
+
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);
 
-                      console.log('🎵 Téléchargement proxy déclenché');
+                      // Nettoyer l'URL d'objet
+                      setTimeout(() => window.URL.revokeObjectURL(url), 100);
 
                     } catch (error) {
-                      console.error('❌ Erreur téléchargement:', error);
                       alert(`Erreur lors du téléchargement: ${error.message}`);
                     }
                   } else {
-                    console.error('❌ Aucune URL audio trouvée');
                     alert('Erreur: Aucune URL audio disponible pour cette comptine.');
                   }
                 } else {
-                  console.error('❌ Aucune chanson trouvée');
                   alert('Erreur: Aucune comptine disponible pour le téléchargement.');
                 }
               }}
