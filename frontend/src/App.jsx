@@ -1404,7 +1404,7 @@ const downloadPDF = async (title, content) => {
     >
       <div
         style={{
-          height: '250px',
+          height: '300px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -1423,7 +1423,7 @@ const downloadPDF = async (title, content) => {
             borderRadius: '15px',
             border: '2px solid #dee2e6',
             width: '400px',
-            maxWidth: '90%',
+            maxWidth: '70%',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}>
             <div style={{
