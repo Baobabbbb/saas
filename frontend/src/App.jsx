@@ -1401,8 +1401,19 @@ const downloadPDF = async (title, content) => {
                   const song = generatedResult.songs[0];
 
                   if (song.audio_url) {
-                    // Ouvrir l'URL de l'audio dans un nouvel onglet
-                    window.open(song.audio_url, '_blank');
+                    // Utiliser l'endpoint proxy pour télécharger directement le MP3
+                    const safeTitle = (currentTitle || generatedResult.title || 'comptine').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                    const filename = `${safeTitle}.mp3`;
+
+                    const proxyUrl = `${API_BASE_URL}/proxy_audio?url=${encodeURIComponent(song.audio_url)}&filename=${encodeURIComponent(filename)}`;
+
+                    // Créer un lien invisible pour déclencher le téléchargement
+                    const link = document.createElement('a');
+                    link.href = proxyUrl;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
                   } else {
                     alert('Erreur: Aucune URL audio disponible pour cette comptine.');
                   }
