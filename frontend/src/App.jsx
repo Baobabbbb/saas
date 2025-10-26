@@ -1413,7 +1413,8 @@ const downloadPDF = async (title, content) => {
             padding: '22px',
             borderRadius: '15px',
             border: '2px solid #dee2e6',
-            width: '100%',
+            width: '600px',
+            maxWidth: '90%',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}>
             <div style={{
