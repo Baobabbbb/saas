@@ -125,6 +125,7 @@ function App() {
   const [showFullStory, setShowFullStory] = useState(false);
   const [showStoryPopup, setShowStoryPopup] = useState(false);
   const [showColoringPopup, setShowColoringPopup] = useState(false);
+  const [downloadReady, setDownloadReady] = useState(false);
 
   // Coloring states
   const [selectedTheme, setSelectedTheme] = useState(null);
@@ -353,6 +354,46 @@ function App() {
     setAnimationResult(null);
     setCurrentTitle(null);
   }, [contentType]);
+
+  // Fonction pour vérifier si l'URL de téléchargement est accessible
+  const checkDownloadReadiness = async (audioUrl) => {
+    try {
+      const response = await fetch(audioUrl, { method: 'HEAD' });
+      if (response.ok) {
+        const contentLength = response.headers.get('content-length');
+        return contentLength && parseInt(contentLength) > 1000; // Au moins 1KB
+      }
+      return false;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  // Fonction pour surveiller la disponibilité du téléchargement
+  const monitorDownloadReadiness = async (audioUrl) => {
+    setDownloadReady(false);
+    let attempts = 0;
+    const maxAttempts = 60; // 2 minutes max
+
+    const checkReadiness = async () => {
+      attempts++;
+      const isReady = await checkDownloadReadiness(audioUrl);
+
+      if (isReady) {
+        setDownloadReady(true);
+        return;
+      }
+
+      if (attempts < maxAttempts) {
+        setTimeout(checkReadiness, 2000); // Vérifier toutes les 2 secondes
+      } else {
+        // Timeout - permettre quand même le téléchargement
+        setDownloadReady(true);
+      }
+    };
+
+    checkReadiness();
+  };
 
   // Initialiser le thème par défaut pour les animations
   useEffect(() => {
@@ -978,12 +1019,12 @@ const downloadPDF = async (title, content) => {
         const status = await response.json();
         
         if (status.status === 'completed') {
-          // Tâche Suno terminée avec succès - nouveau format avec audio_path
+          // Tâche Suno terminée avec succès - URL disponible
           setGeneratedResult(prev => {
             const updatedResult = {
               ...prev,
               audio_path: status.audio_path,
-              suno_url: status.suno_url, // Fallback si audio_path échoue
+              suno_url: status.suno_url, // URL Suno pour le téléchargement
               title: status.title || prev.title,
               has_music: true,
               service: 'suno'
@@ -1015,6 +1056,12 @@ const downloadPDF = async (title, content) => {
 
             return updatedResult;
           });
+
+          // 🎵 COMMENCER LA SURVEILLANCE DE LA DISPONIBILITÉ DU TÉLÉCHARGEMENT
+          if (status.suno_url) {
+            monitorDownloadReadiness(status.suno_url);
+          }
+
           setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement
           return true; // Arrêter le polling
         } else if (status.status === 'failed') {
@@ -1397,61 +1444,62 @@ const downloadPDF = async (title, content) => {
           </>
         )}
 
-        {/* Bouton Télécharger - Logique originale des comptines */}
+        {/* Bouton Télécharger - Avec vérification de disponibilité */}
         {generatedResult.suno_url && (
           <>
             <button
-          onClick={async () => {
-            if (generatedResult.suno_url) {
-              try {
-                // Télécharger directement depuis Suno
-                const response = await fetch(generatedResult.suno_url);
-                if (!response.ok) {
-                  throw new Error(`Erreur HTTP: ${response.status}`);
+            onClick={async () => {
+              if (generatedResult.suno_url && downloadReady) {
+                try {
+                  // Télécharger directement depuis Suno
+                  const response = await fetch(generatedResult.suno_url);
+                  if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                  }
+
+                  const blob = await response.blob();
+                  if (blob.size === 0) {
+                    throw new Error('Fichier audio indisponible');
+                  }
+
+                  const url = window.URL.createObjectURL(blob);
+                  const safeTitle = (currentTitle || generatedResult.title || 'comptine').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `${safeTitle}.mp3`;
+                  link.style.display = 'none';
+
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+
+                  // Nettoyer l'URL d'objet
+                  setTimeout(() => window.URL.revokeObjectURL(url), 100);
+
+                } catch (error) {
+                  alert(`Erreur lors du téléchargement: ${error.message}`);
                 }
-
-                const blob = await response.blob();
-                if (blob.size === 0) {
-                  throw new Error('Fichier audio indisponible');
-                }
-
-                const url = window.URL.createObjectURL(blob);
-                const safeTitle = (currentTitle || generatedResult.title || 'comptine').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `${safeTitle}.mp3`;
-                link.style.display = 'none';
-
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                // Nettoyer l'URL d'objet
-                setTimeout(() => window.URL.revokeObjectURL(url), 100);
-
-              } catch (error) {
-                alert(`Erreur lors du téléchargement: ${error.message}`);
               }
-            }
-          }}
+            }}
+              disabled={!downloadReady}
               style={{
                 padding: '0.8rem 2rem',
-                backgroundColor: '#6B4EFF',
-                color: '#fff',
+                backgroundColor: downloadReady ? '#6B4EFF' : '#ccc',
+                color: downloadReady ? '#fff' : '#666',
                 border: 'none',
                 borderRadius: '10px',
-                cursor: 'pointer',
+                cursor: downloadReady ? 'pointer' : 'not-allowed',
                 fontWeight: '600',
                 fontSize: '14px',
                 marginTop: '0.8rem',
-                boxShadow: '0 4px 12px rgba(245, 240, 255, 0.3)',
+                boxShadow: downloadReady ? '0 4px 12px rgba(245, 240, 255, 0.3)' : 'none',
                 transition: 'all 0.3s ease'
               }}
-              onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-              onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+              onMouseOver={(e) => downloadReady && (e.target.style.transform = 'translateY(-2px)')}
+              onMouseOut={(e) => downloadReady && (e.target.style.transform = 'translateY(0)')}
             >
-              📥 Télécharger
+              {downloadReady ? '📥 Télécharger' : '⏳ Préparation du téléchargement...'}
             </button>
           </>
         )}
