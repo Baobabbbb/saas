@@ -1397,10 +1397,9 @@ const downloadPDF = async (title, content) => {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '10px',
-              marginBottom: '10px',
-              padding: '0 16px 0 16px'
+              marginBottom: '15px',
+              padding: '8px 16px 0 16px'
             }}>
-              <span style={{ fontSize: '24px' }}>🎵</span>
               <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
                 Votre comptine est prête !
               </h4>
