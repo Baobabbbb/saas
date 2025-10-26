@@ -381,14 +381,16 @@ function App() {
 
       if (isReady) {
         setDownloadReady(true);
+        setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement quand prêt
         return;
       }
 
       if (attempts < maxAttempts) {
         setTimeout(checkReadiness, 2000); // Vérifier toutes les 2 secondes
       } else {
-        // Timeout - permettre quand même le téléchargement
+        // Timeout - permettre quand même le téléchargement et arrêter le chargement
         setDownloadReady(true);
+        setIsGenerating(false);
       }
     };
 
@@ -1060,6 +1062,8 @@ const downloadPDF = async (title, content) => {
           // 🎵 COMMENCER LA SURVEILLANCE DE LA DISPONIBILITÉ DU TÉLÉCHARGEMENT
           if (status.suno_url) {
             monitorDownloadReadiness(status.suno_url);
+            // NE PAS arrêter isGenerating ici - attendre que downloadReady soit true
+            return true; // Continuer le polling
           }
 
           setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement
@@ -1385,39 +1389,6 @@ const downloadPDF = async (title, content) => {
         📚 Lire la bande dessinée
       </button>
     </motion.div>
-  ) : generatedResult && contentType === 'rhyme' && generatedResult.suno_url && !downloadReady ? (
-    // État intermédiaire : URL disponible mais audio pas encore prêt
-    <motion.div
-      className="generated-result"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      key="preparing-audio"
-    >
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '1.5rem',
-        padding: '2rem',
-        minHeight: '300px'
-      }}>
-        <div className="loading-dots">
-          <div className="dot"></div>
-          <div className="dot"></div>
-          <div className="dot"></div>
-        </div>
-        <div style={{ textAlign: 'center' }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', color: '#6B4EFF', fontSize: '18px' }}>
-            🎵 Préparation de votre comptine...
-          </h3>
-          <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
-            L'audio est en cours de finalisation chez Suno AI
-          </p>
-        </div>
-      </div>
-    </motion.div>
   ) : generatedResult && contentType === 'rhyme' && generatedResult.suno_url && downloadReady ? (
     <motion.div
       className="generated-result"
@@ -1446,7 +1417,7 @@ const downloadPDF = async (title, content) => {
             padding: '22px',
             borderRadius: '15px',
             border: '2px solid #dee2e6',
-            width: '450px',
+            width: '400px',
             maxWidth: '90%',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}>
