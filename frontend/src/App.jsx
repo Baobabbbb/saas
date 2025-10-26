@@ -358,44 +358,31 @@ function App() {
   // Fonction pour vérifier si l'URL de téléchargement est accessible
   const checkDownloadReadiness = async (audioUrl) => {
     try {
-      console.log('🎵 [CHECK] Vérification URL:', audioUrl.substring(0, 50) + '...');
-
       // Essayer d'abord une requête HEAD simple
-      console.log('🎵 [CHECK] Test HEAD...');
       const headResponse = await fetch(audioUrl, { method: 'HEAD' });
-      console.log('🎵 [CHECK] HEAD status:', headResponse.status);
       if (headResponse.ok) {
-        console.log('🎵 [CHECK] HEAD réussi - URL prête');
         return true;
       }
 
       // Si HEAD échoue, essayer GET avec Range
-      console.log('🎵 [CHECK] HEAD échoué, test GET avec Range...');
       const rangeResponse = await fetch(audioUrl, {
         method: 'GET',
         headers: {
           'Range': 'bytes=0-1023'
         }
       });
-      console.log('🎵 [CHECK] Range GET status:', rangeResponse.status);
       if (rangeResponse.ok || rangeResponse.status === 206) {
-        console.log('🎵 [CHECK] Range GET réussi - URL prête');
         return true;
       }
 
       // Dernière tentative : GET complet mais avec timeout court
-      console.log('🎵 [CHECK] Range échoué, test GET complet...');
       const fullResponse = await fetch(audioUrl, {
         method: 'GET',
         signal: AbortSignal.timeout(5000) // 5 secondes timeout
       });
-      console.log('🎵 [CHECK] Full GET status:', fullResponse.status);
-      const result = fullResponse.ok;
-      console.log('🎵 [CHECK] Résultat final:', result);
-      return result;
+      return fullResponse.ok;
 
     } catch (error) {
-      console.log('🎵 [CHECK] Erreur:', error.message);
       return false;
     }
   };
@@ -409,10 +396,8 @@ function App() {
     const checkReadiness = async () => {
       attempts++;
       const isReady = await checkDownloadReadiness(audioUrl);
-      console.log(`🎵 Tentative ${attempts}: isReady = ${isReady}`);
 
       if (isReady) {
-        console.log('🎵 DOWNLOAD READY - arrêt du chargement');
         setDownloadReady(true);
         setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement quand prêt
         return;
@@ -1433,6 +1418,8 @@ const downloadPDF = async (title, content) => {
       <div
         style={{
           height: '300px',
+          width: '80%',
+          maxWidth: '600px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -1450,8 +1437,8 @@ const downloadPDF = async (title, content) => {
             padding: '16px',
             borderRadius: '15px',
             border: '2px solid #dee2e6',
-            width: '400px',
-            maxWidth: '50%',
+            width: '100%',
+            maxWidth: '100%',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}>
             <div style={{
