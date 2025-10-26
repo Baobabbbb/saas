@@ -1386,18 +1386,19 @@ const downloadPDF = async (title, content) => {
           <>
             <div style={{
             background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-            padding: '12px',
             borderRadius: '15px',
             border: '2px solid #dee2e6',
             width: '100%',
             maxWidth: '100%',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            overflow: 'hidden'
           }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
-              marginBottom: '10px'
+              marginBottom: '10px',
+              padding: '0 16px 0 16px'
             }}>
               <span style={{ fontSize: '24px' }}>🎵</span>
               <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
