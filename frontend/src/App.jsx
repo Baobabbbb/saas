@@ -977,18 +977,20 @@ const downloadPDF = async (title, content) => {
         const response = await fetch(`${API_BASE_URL}/check_task_status/${taskId}`);
         const status = await response.json();
         
-        if (status.status === 'completed' && status.songs && status.songs.length > 0) {
-          // Tâche Suno terminée avec succès
+        if (status.status === 'completed') {
+          // Tâche Suno terminée avec succès - nouveau format avec audio_path
           setGeneratedResult(prev => {
             const updatedResult = {
               ...prev,
-              songs: status.songs,
+              audio_path: status.audio_path,
+              suno_url: status.suno_url, // Fallback si audio_path échoue
+              title: status.title || prev.title,
               has_music: true,
               service: 'suno'
             };
 
             // Enregistrer dans l'historique maintenant que la musique est prête
-            const title = prev.title || generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme) + ' 🎵';
+            const title = status.title || prev.title || generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme) + ' 🎵';
             setCurrentTitle(title);
 
             // Créer l'entrée d'historique
@@ -998,7 +1000,8 @@ const downloadPDF = async (title, content) => {
               title: title,
               createdAt: new Date().toISOString(),
               content: prev.content || prev.rhyme || 'Comptine générée',
-              songs: status.songs
+              audio_path: status.audio_path,
+              suno_url: status.suno_url
             };
 
             // Sauvegarder dans l'historique via Supabase
@@ -1013,44 +1016,6 @@ const downloadPDF = async (title, content) => {
             return updatedResult;
           });
           setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement
-          return true; // Arrêter le polling
-        } else if (status.songs && status.songs.length > 0 && status.songs[0].audio_url) {
-          // 🎵 OPTIMISATION : Montrer le bouton dès que l'URL audio est disponible
-          // Même si le statut n'est pas encore "completed", permettre le téléchargement
-          setGeneratedResult(prev => {
-            const updatedResult = {
-              ...prev,
-              songs: status.songs,
-              has_music: true,
-              service: 'suno'
-            };
-
-            // Enregistrer dans l'historique maintenant que la musique est prête
-            const title = prev.title || generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme) + ' 🎵';
-            setCurrentTitle(title);
-
-            // Créer l'entrée d'historique
-            const newCreation = {
-              id: Date.now().toString(),
-              type: 'rhyme',
-              title: title,
-              createdAt: new Date().toISOString(),
-              content: prev.content || prev.rhyme || 'Comptine générée',
-              songs: status.songs
-            };
-
-            // Sauvegarder dans l'historique via Supabase
-            addCreation({
-              type: 'rhyme',
-              title: title,
-              data: newCreation
-            }).catch(historyError => {
-              // Erreur silencieuse - historique non critique
-            });
-
-            return updatedResult;
-          });
-          setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement dès que l'URL est disponible
           return true; // Arrêter le polling
         } else if (status.status === 'failed') {
           // Tâche échouée
@@ -1373,7 +1338,7 @@ const downloadPDF = async (title, content) => {
         📚 Lire la bande dessinée
       </button>
     </motion.div>
-  ) : generatedResult && contentType === 'rhyme' && generatedResult.songs && generatedResult.songs.length > 0 ? (
+  ) : generatedResult && contentType === 'rhyme' && (generatedResult.audio_path || generatedResult.suno_url) ? (
     <motion.div
       className="generated-result"
       initial={{ opacity: 0 }}
@@ -1393,89 +1358,102 @@ const downloadPDF = async (title, content) => {
           overflowY: 'auto'
         }}
       >
-        {/* Audio si disponible - Une seule comptine */}
-        {generatedResult.songs && generatedResult.songs.length > 0 && (
+        {/* Audio si disponible - Même logique que les histoires */}
+        {(generatedResult.audio_path || generatedResult.suno_url) && (
           <>
-            {generatedResult.songs.map((song, index) => (
-              <div key={song.id || index} style={{
-                background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-                padding: '22px',
-                borderRadius: '15px',
-                border: '2px solid #dee2e6',
+            <div style={{
+            background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+            padding: '22px',
+            borderRadius: '15px',
+            border: '2px solid #dee2e6',
+            width: '100%',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              marginBottom: '14px'
+            }}>
+              <span style={{ fontSize: '24px' }}>🎵</span>
+              <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
+                Votre comptine est prête !
+              </h4>
+            </div>
+            <audio
+              controls
+              preload="metadata"
+              controlsList="nodownload"
+              style={{
                 width: '100%',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  marginBottom: '14px'
-                }}>
-                  <span style={{ fontSize: '24px' }}>🎵</span>
-                  <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
-                    Votre comptine est prête !
-                  </h4>
-                </div>
-                <audio
-                  controls
-                  preload="metadata"
-                  controlsList="nodownload"
-                  style={{
-                    width: '100%',
-                    height: '60px',
-                    outline: 'none'
-                  }}
-                  src={song.audio_url}
-                >
-                  Votre navigateur ne supporte pas l'élément audio.
-                </audio>
-              </div>
-            ))}
-
-            {/* Bouton Télécharger unique */}
-            <button
-              onClick={async () => {
-                if (generatedResult.songs && generatedResult.songs.length > 0) {
-                  const song = generatedResult.songs[0];
-
-                  if (song.audio_url) {
-                    try {
-                      // Télécharger directement depuis Suno
-                      const response = await fetch(song.audio_url);
-                      if (!response.ok) {
-                        throw new Error(`Erreur HTTP: ${response.status}`);
-                      }
-
-                      const blob = await response.blob();
-                      if (blob.size === 0) {
-                        throw new Error('Fichier audio indisponible');
-                      }
-
-                      const url = window.URL.createObjectURL(blob);
-                      const safeTitle = (currentTitle || generatedResult.title || 'comptine').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-
-                      const link = document.createElement('a');
-                      link.href = url;
-                      link.download = `${safeTitle}.mp3`;
-                      link.style.display = 'none';
-
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-
-                      // Nettoyer l'URL d'objet
-                      setTimeout(() => window.URL.revokeObjectURL(url), 100);
-
-                    } catch (error) {
-                      alert(`Erreur lors du téléchargement: ${error.message}`);
-                    }
-                  } else {
-                    alert('Erreur: Aucune URL audio disponible pour cette comptine.');
-                  }
-                } else {
-                  alert('Erreur: Aucune comptine disponible pour le téléchargement.');
-                }
+                height: '60px',
+                outline: 'none'
               }}
+              src={generatedResult.audio_path ? `${API_BASE_URL}/audio/${generatedResult.audio_path.split('/').pop()}` : generatedResult.suno_url}
+            >
+              Votre navigateur ne supporte pas l'élément audio.
+            </audio>
+          </div>
+          </>
+        )}
+
+        {/* Bouton Télécharger - Même logique que les histoires */}
+        {(generatedResult.audio_path || generatedResult.suno_url) && (
+          <>
+            <button
+            onClick={async () => {
+              try {
+                const safeTitle = (currentTitle || generatedResult.title || 'Comptine').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+                if (generatedResult.audio_path) {
+                  // Téléchargement depuis serveur local (instantané)
+                  const filename = generatedResult.audio_path.split('/').pop();
+                  const audioUrl = `${API_BASE_URL}/audio/${filename}?download=true`;
+
+                  const response = await fetch(audioUrl);
+                  if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                  }
+
+                  const blob = await response.blob();
+                  const blobUrl = window.URL.createObjectURL(blob);
+
+                  const link = document.createElement('a');
+                  link.href = blobUrl;
+                  link.download = `${safeTitle}.mp3`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+
+                  setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+                } else if (generatedResult.suno_url) {
+                  // Fallback vers Suno direct (plus lent)
+                  const response = await fetch(generatedResult.suno_url);
+                  if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                  }
+
+                  const blob = await response.blob();
+                  if (blob.size === 0) {
+                    throw new Error('Fichier audio indisponible');
+                  }
+
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `${safeTitle}.mp3`;
+                  link.style.display = 'none';
+
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+
+                  setTimeout(() => window.URL.revokeObjectURL(url), 100);
+                }
+              } catch (error) {
+                alert(`Erreur lors du téléchargement: ${error.message}`);
+              }
+            }}
               style={{
                 padding: '0.8rem 2rem',
                 backgroundColor: '#6B4EFF',

@@ -8,6 +8,7 @@ import aiohttp
 import asyncio
 import os
 import json
+import uuid
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 from config import SUNO_API_KEY, SUNO_BASE_URL
@@ -265,7 +266,59 @@ class SunoService:
                 "status": "error",
                 "error": str(e)
             }
-    
+
+    async def download_and_store_audio(self, audio_url: str, task_id: str) -> Optional[str]:
+        """
+        Télécharge automatiquement le fichier audio depuis Suno et le stocke côté serveur
+        pour permettre un téléchargement instantané.
+
+        Args:
+            audio_url: URL du fichier audio chez Suno
+            task_id: ID de la tâche pour nommer le fichier
+
+        Returns:
+            Chemin relatif du fichier stocké, ou None en cas d'erreur
+        """
+        try:
+            # Créer le dossier audio s'il n'existe pas
+            audio_dir = os.path.join(os.getcwd(), "audio")
+            os.makedirs(audio_dir, exist_ok=True)
+
+            # Générer un nom de fichier unique
+            file_extension = ".mp3"
+            unique_filename = f"comptine_{task_id}_{uuid.uuid4().hex[:8]}{file_extension}"
+            local_path = os.path.join(audio_dir, unique_filename)
+
+            print(f"🎵 Téléchargement automatique depuis Suno: {audio_url[:80]}...")
+            print(f"   Stockage local: {local_path}")
+
+            # Télécharger le fichier
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    audio_url,
+                    timeout=aiohttp.ClientTimeout(total=60)  # Timeout plus long pour les gros fichiers
+                ) as response:
+                    if response.status == 200:
+                        # Lire le contenu en chunks pour éviter la surcharge mémoire
+                        with open(local_path, 'wb') as f:
+                            async for chunk in response.content.iter_chunked(8192):
+                                f.write(chunk)
+
+                        file_size = os.path.getsize(local_path)
+                        print(f"✅ Audio téléchargé et stocké: {file_size} bytes")
+
+                        # Retourner le chemin relatif pour l'accès via l'API
+                        return f"audio/{unique_filename}"
+                    else:
+                        print(f"❌ Erreur HTTP lors du téléchargement: {response.status}")
+                        return None
+
+        except Exception as e:
+            print(f"❌ Erreur téléchargement automatique: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
     async def check_task_status(self, task_id: str) -> Dict[str, Any]:
         """
         Vérifie le statut d'une tâche Suno
@@ -331,38 +384,56 @@ class SunoService:
                                             "error": "Aucun audio généré",
                                             "message": "❌ Aucune chanson retournée"
                                         }
-                                    # Extraire les chansons générées (limité à 1 seule chanson)
-                                    songs = []
-                                    for idx, clip in enumerate(clips[:1]):  # Ne prendre que la première chanson
-                                        if clip:
-                                            audio_url_val = clip.get('audioUrl') or clip.get('streamAudioUrl')
-                                            print(f"🎵 Clip {idx+1}:")
-                                            print(f"   - id: {clip.get('id')}")
-                                            print(f"   - title: {clip.get('title')}")
-                                            print(f"   - audioUrl: {audio_url_val[:80] if audio_url_val else 'None'}...")
-                                            print(f"   - duration: {clip.get('duration')}")
-                                            
-                                            # IMPORTANT: Suno utilise camelCase, pas snake_case !
-                                            songs.append({
-                                                "id": clip.get("id"),
-                                                "title": clip.get("title", "Comptine"),
-                                                "audio_url": clip.get("audioUrl") or clip.get("streamAudioUrl"),
-                                                "video_url": clip.get("videoUrl"),
-                                                "image_url": clip.get("imageUrl") or clip.get("sourceImageUrl"),
-                                                "duration": clip.get("duration"),
-                                                "model_name": clip.get("modelName"),
-                                                "tags": clip.get("tags", ""),
-                                                "prompt": clip.get("prompt", "")
-                                            })
-                                    
-                                    print(f"✅ {len(songs)} chanson(s) Suno extraite(s)")
-                                    
+                                    # Prendre seulement la première chanson disponible
+                                    clip = clips[0] if clips else None
+
+                                    if not clip:
+                                        return {
+                                            "status": "failed",
+                                            "error": "Aucun audio généré",
+                                            "message": "❌ Aucune chanson retournée"
+                                        }
+
+                                    audio_url_val = clip.get('audioUrl') or clip.get('streamAudioUrl')
+                                    print(f"🎵 Clip principal:")
+                                    print(f"   - id: {clip.get('id')}")
+                                    print(f"   - title: {clip.get('title')}")
+                                    print(f"   - audioUrl: {audio_url_val[:80] if audio_url_val else 'None'}...")
+                                    print(f"   - duration: {clip.get('duration')}")
+
+                                    if not audio_url_val:
+                                        return {
+                                            "status": "failed",
+                                            "error": "URL audio manquante",
+                                            "message": "❌ URL audio non disponible"
+                                        }
+
+                                    # 🎯 TÉLÉCHARGEMENT AUTOMATIQUE POUR TÉLÉCHARGEMENT INSTANTANÉ
+                                    print("🎵 Téléchargement automatique du fichier audio...")
+                                    local_audio_path = await self.download_and_store_audio(audio_url_val, task_id)
+
+                                    if not local_audio_path:
+                                        # Fallback : retourner l'URL Suno si le téléchargement échoue
+                                        print("⚠️ Téléchargement automatique échoué, utilisation URL Suno directe")
+                                        return {
+                                            "status": "completed",
+                                            "task_id": task_id,
+                                            "audio_path": None,
+                                            "suno_url": audio_url_val,
+                                            "title": clip.get("title", "Comptine"),
+                                            "duration": clip.get("duration"),
+                                            "message": "✅ Comptine générée (téléchargement direct)"
+                                        }
+
+                                    print(f"✅ Fichier audio stocké localement: {local_audio_path}")
+
                                     return {
                                         "status": "completed",
                                         "task_id": task_id,
-                                        "songs": songs,
-                                        "total_songs": len(songs),
-                                        "message": f"✅ {len(songs)} chanson(s) générée(s) avec succès"
+                                        "audio_path": local_audio_path,
+                                        "title": clip.get("title", "Comptine"),
+                                        "duration": clip.get("duration"),
+                                        "message": "✅ Comptine générée et téléchargée avec succès"
                                     }
                                 elif task_status == "FAILED":
                                     # Tâche échouée
