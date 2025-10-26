@@ -1397,7 +1397,6 @@ const downloadPDF = async (title, content) => {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '10px',
-              marginBottom: '15px',
               padding: '8px 16px 0 16px'
             }}>
               <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
@@ -1410,7 +1409,6 @@ const downloadPDF = async (title, content) => {
               controlsList="nodownload"
               style={{
                 width: '100%',
-                height: '100px',
                 outline: 'none'
               }}
               src={generatedResult.suno_url}
