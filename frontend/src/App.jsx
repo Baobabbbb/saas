@@ -917,7 +917,7 @@ const downloadPDF = async (title, content) => {
 
     let backgroundImage = null;
     try {
-      backgroundImage = await loadImage("/assets/fond_etoiles.png");
+      backgroundImage = await loadImage("/assets/bg-stars.png");
     } catch (error) {
       // Fond non disponible silencieusement
     }
@@ -1397,7 +1397,7 @@ const downloadPDF = async (title, content) => {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '10px',
-              padding: '8px 16px 0 16px'
+              padding: '9px 50px 0px'
             }}>
               <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
                 Votre comptine est prête !
