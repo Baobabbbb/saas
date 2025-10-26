@@ -383,8 +383,10 @@ function App() {
     const checkReadiness = async () => {
       attempts++;
       const isReady = await checkDownloadReadiness(audioUrl);
+      console.log(`🎵 Tentative ${attempts}: isReady = ${isReady}`);
 
       if (isReady) {
+        console.log('🎵 DOWNLOAD READY - arrêt du chargement');
         setDownloadReady(true);
         setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement quand prêt
         return;
@@ -1404,7 +1406,7 @@ const downloadPDF = async (title, content) => {
     >
       <div
         style={{
-          height: '300px',
+          height: '220px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -1422,7 +1424,7 @@ const downloadPDF = async (title, content) => {
             padding: '16px',
             borderRadius: '15px',
             border: '2px solid #dee2e6',
-            width: '400px',
+            width: '500px',
             maxWidth: '70%',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}>
