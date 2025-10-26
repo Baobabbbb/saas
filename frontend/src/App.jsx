@@ -359,12 +359,12 @@ function App() {
   const monitorDownloadReadiness = async (audioUrl) => {
     setDownloadReady(false);
 
-    // Attendre 45 secondes après que l'URL soit disponible
+    // Attendre 50 secondes après que l'URL soit disponible
     // Suno prend généralement ce temps pour finaliser l'audio
     setTimeout(() => {
       setDownloadReady(true);
       setIsGenerating(false); // ✅ ARRÊTER l'animation de chargement après délai fixe
-    }, 45000); // 45 secondes
+    }, 50000); // 50 secondes
   };
 
   // Initialiser le thème par défaut pour les animations
@@ -1395,6 +1395,7 @@ const downloadPDF = async (title, content) => {
             <div style={{
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '10px',
               marginBottom: '10px',
               padding: '0 16px 0 16px'
