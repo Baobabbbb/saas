@@ -244,14 +244,25 @@ const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
 
+      link.href = url; // Ajout de href manquant
+
       // Générer un nom de fichier cohérent basé sur l'image source
       const baseName = imageUrl.split('/').pop().split('.')[0] || 'coloriage';
       const safeName = baseName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
       link.download = `coloriage_${safeName}_colorie.png`;
 
+      document.body.appendChild(link); // Ajout pour compatibilité
       link.click();
+      document.body.removeChild(link); // Nettoyage
       URL.revokeObjectURL(url);
     });
+  };
+
+  // Gestion du clic sur l'overlay pour fermer
+  const handleOverlayClick = (e) => {
+    if (e.target.classList.contains('coloring-canvas-overlay')) {
+      onClose();
+    }
   };
 
   // Réinitialiser le coloriage
@@ -280,7 +291,7 @@ const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
   };
 
   return (
-    <div className="coloring-canvas-overlay">
+    <div className="coloring-canvas-overlay" onClick={handleOverlayClick}>
       <div className="coloring-canvas-container">
         {/* Barre d'outils supérieure */}
         <div className="coloring-toolbar-top">
