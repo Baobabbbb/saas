@@ -53,7 +53,7 @@
 .story-background {
   position: absolute;
   inset: 0;
-  background-image: url('/assets/bg-stars.png');
+  background-image: url('/assets/fond.png');
   background-size: cover;
   background-position: center;
   background-repeat: repeat;
