@@ -441,16 +441,31 @@ async def stream_audio(filename: str, download: bool = False):
 @app.post("/generate_audio_story/")
 async def generate_audio_story(request: dict):
     try:
-        # Validation des données d'entrée
-        openai_key = os.getenv("OPENAI_API_KEY")
-        if not openai_key or openai_key.startswith("sk-votre"):
+        # Validation précoce des données d'entrée pour éviter l'erreur 520
+        if not request or not isinstance(request, dict):
             raise HTTPException(
                 status_code=400,
-                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
+                detail="❌ Données d'entrée invalides"
             )
-        
+
+        # Validation des données d'entrée
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key or openai_key.startswith("sk-votre") or openai_key.startswith("your-"):
+            raise HTTPException(
+                status_code=400,
+                detail="❌ Clé API OpenAI non configurée ou invalide"
+            )
+
         story_type = request.get("story_type", "aventure")
         custom_request = request.get("custom_request", "")
+
+        # Validation du type d'histoire
+        if not isinstance(story_type, str) or len(story_type) > 50:
+            story_type = "aventure"
+
+        # Validation de la demande personnalisée
+        if not isinstance(custom_request, str) or len(custom_request) > 200:
+            custom_request = ""
         
         prompt = f"Écris une histoire courte et captivante pour enfants sur le thème : {story_type}.\n"
         if custom_request:
@@ -508,7 +523,8 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         audio_path = None
         voice = request.get("voice")
 
-        if voice:
+        # Validation de la voix
+        if voice and isinstance(voice, str) and voice in ["male", "female"]:
             try:
                 # Timeout pour éviter les erreurs 520 lors de la génération audio
                 import asyncio
@@ -522,6 +538,9 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
             except Exception as audio_error:
                 # Erreur lors de la génération audio, continuer sans audio
                 audio_path = None
+        elif voice and voice not in ["male", "female"]:
+            # Voix invalide, ignorer l'audio
+            voice = None
         
         result = {
             "title": title,
@@ -538,7 +557,16 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         import traceback
         error_details = traceback.format_exc()
         print(f"Erreur génération audio story: {str(e)}")
-        raise HTTPException(status_code=500, detail="Erreur lors de la génération de l'histoire")
+        print(f"Details: {error_details}")
+        # Retourner une réponse valide même en cas d'erreur pour éviter l'erreur 520
+        return {
+            "title": f"Histoire {request.get('story_type', 'aventure')}",
+            "content": "Une erreur est survenue lors de la génération. Veuillez réessayer.",
+            "audio_path": None,
+            "audio_generated": False,
+            "type": "audio",
+            "error": True
+        }
 
 # --- Coloriage ---
 # Ancien modèle remplacé par ValidatedColoringRequest dans validators.py
