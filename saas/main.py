@@ -466,7 +466,7 @@ HISTOIRE: [texte de l'histoire]
 N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie TITRE."""
 
         client = AsyncOpenAI(api_key=openai_key)
-        
+
         response = await client.chat.completions.create(
             model=TEXT_MODEL,
             messages=[
@@ -474,7 +474,8 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
                 {"role": "user", "content": prompt}
             ],
             max_tokens=1000,
-            temperature=0.7
+            temperature=0.7,
+            timeout=30  # Timeout de 30 secondes pour éviter les erreurs 520
         )
         
         content = response.choices[0].message.content
@@ -509,8 +510,17 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
 
         if voice:
             try:
-                audio_path = generate_speech(story_content, voice=voice, filename=title)
-            except Exception:
+                # Timeout pour éviter les erreurs 520 lors de la génération audio
+                import asyncio
+                audio_path = await asyncio.wait_for(
+                    asyncio.get_event_loop().run_in_executor(None, generate_speech, story_content, voice, title),
+                    timeout=60  # 60 secondes maximum pour la génération audio
+                )
+            except asyncio.TimeoutError:
+                # Timeout dépassé, continuer sans audio
+                audio_path = None
+            except Exception as audio_error:
+                # Erreur lors de la génération audio, continuer sans audio
                 audio_path = None
         
         result = {
@@ -524,7 +534,11 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Erreur lors de la génération")
+        # Log détaillé pour debug mais pas d'exposition en production
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Erreur génération audio story: {str(e)}")
+        raise HTTPException(status_code=500, detail="Erreur lors de la génération de l'histoire")
 
 # --- Coloriage ---
 # Ancien modèle remplacé par ValidatedColoringRequest dans validators.py
