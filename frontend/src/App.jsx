@@ -1720,7 +1720,10 @@ const downloadPDF = async (title, content) => {
 
     {showColoringCanvas && (
       <ColoringCanvas
-        imageUrl={coloringResult?.images?.[0] ? `${API_BASE_URL}${coloringResult.images[0]}` : undefined}
+        imageUrl={(() => {
+          const imageItem = coloringResult?.images?.[0];
+          return imageItem ? (imageItem.image_url || imageItem) : undefined;
+        })()}
         onClose={() => setShowColoringCanvas(false)}
       />
     )}
