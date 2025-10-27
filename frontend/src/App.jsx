@@ -1295,14 +1295,14 @@ const downloadPDF = async (title, content) => {
           fontWeight: '600'
         }}
       >
-        🎨 Ouvrir le coloriage
+        👁️ Ouvrir le coloriage
       </button>
 
       <button
         onClick={() => setShowColoringCanvas(true)}
         style={{
           padding: '0.6rem 1.4rem',
-          backgroundColor: '#4CAF50',
+          backgroundColor: '#6B4EFF',
           color: '#fff',
           border: 'none',
           borderRadius: '0.5rem',
