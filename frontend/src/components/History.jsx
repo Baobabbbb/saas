@@ -123,7 +123,7 @@ const History = ({ onClose, onSelect }) => {
     const generatePDF = async () => {
       try {
         // 🎨 Charger l'image de fond
-        const bgImageUrl = '/assets/fond.png';
+        const bgImageUrl = '/assets/fond.png?v=1';
         let bgImage = null;
         try {
           bgImage = await loadImage(bgImageUrl);

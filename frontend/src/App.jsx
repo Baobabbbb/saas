@@ -917,7 +917,7 @@ const downloadPDF = async (title, content) => {
 
     let backgroundImage = null;
     try {
-      backgroundImage = await loadImage("/assets/fond.png");
+      backgroundImage = await loadImage("/assets/fond.png?v=1");
     } catch (error) {
       // Fond non disponible silencieusement
     }
