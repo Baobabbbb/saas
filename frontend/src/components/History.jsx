@@ -7,15 +7,11 @@ import { downloadColoringAsPDF } from '../utils/coloringPdfUtils';
 import useSupabaseUser from '../hooks/useSupabaseUser';
 import useUserCreations from '../hooks/useUserCreations';
 import { API_BASE_URL } from '../config/api';
-import ColoringCanvas from './ColoringCanvas';
 
 const History = ({ onClose, onSelect }) => {
   // Utiliser les hooks optimisés pour Supabase
   const { user } = useSupabaseUser();
   const { creations, loading: creationsLoading, refreshCreations } = useUserCreations(user?.id);
-
-  // État pour le coloriage
-  const [showColoringCanvas, setShowColoringCanvas] = useState(false);
   
 
   // Fonction de suppression mise à jour pour utiliser le hook
@@ -335,16 +331,6 @@ const History = ({ onClose, onSelect }) => {
                           📄 Télécharger le PDF
                         </button>
 
-                        <button
-                          className="btn-color"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowColoringCanvas(true);
-                          }}
-                        >
-                          🎨 Colorier maintenant
-                        </button>
-
                         {(creation.audio_path || creation.data?.audio_path) && (creation.audio_generated || creation.data?.audio_generated) && (
                           <button
                             className="btn-audio"
@@ -434,14 +420,6 @@ const History = ({ onClose, onSelect }) => {
             </div>
           )}
         </div>
-
-        {/* Canvas de coloriage pour l'image de fond */}
-        {showColoringCanvas && (
-          <ColoringCanvas
-            imageUrl="/assets/fond.png?v=1"
-            onClose={() => setShowColoringCanvas(false)}
-          />
-        )}
     </motion.div>
   );
 };

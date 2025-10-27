@@ -313,19 +313,6 @@
   box-shadow: 0 4px 16px rgba(107, 78, 255, 0.5);
 }
 
-.btn-color {
-  background: var(--success-light, #E8F5E8);
-  color: var(--success, #4CAF50);
-  border: 1px solid var(--success, #4CAF50);
-}
-
-.btn-color:hover {
-  background: var(--success, #4CAF50);
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-}
-
 .btn-delete {
   background: #dc3545;
   color: white;

@@ -18,6 +18,7 @@ import StoryPopup from './components/StoryPopup';
 import ColoringSelector from './components/ColoringSelector';
 import ColoringViewer from './components/ColoringViewer';
 import ColoringPopup from './components/ColoringPopup';
+import ColoringCanvas from './components/ColoringCanvas';
 import ComicsSelector from './components/ComicsSelector';
 import ComicsPopup from './components/ComicsPopup';
 import useSupabaseUser from './hooks/useSupabaseUser';
@@ -125,6 +126,7 @@ function App() {
   const [showFullStory, setShowFullStory] = useState(false);
   const [showStoryPopup, setShowStoryPopup] = useState(false);
   const [showColoringPopup, setShowColoringPopup] = useState(false);
+  const [showColoringCanvas, setShowColoringCanvas] = useState(false);
   const [downloadReady, setDownloadReady] = useState(false);
 
   // Coloring states
@@ -1294,7 +1296,24 @@ const downloadPDF = async (title, content) => {
         }}
       >
         🎨 Ouvrir le coloriage
-      </button>      <button
+      </button>
+
+      <button
+        onClick={() => setShowColoringCanvas(true)}
+        style={{
+          padding: '0.6rem 1.4rem',
+          backgroundColor: '#4CAF50',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '0.5rem',
+          cursor: 'pointer',
+          fontWeight: '600'
+        }}
+      >
+        🎨 Colorier maintenant
+      </button>
+
+      <button
         onClick={() => {
           if (coloringResult?.images) {
             // Utiliser le titre généré par l'IA, sinon fallback sur le thème
@@ -1696,6 +1715,13 @@ const downloadPDF = async (title, content) => {
         coloringResult={coloringResult}
         selectedTheme={selectedTheme}
         onClose={() => setShowColoringPopup(false)}
+      />
+    )}
+
+    {showColoringCanvas && (
+      <ColoringCanvas
+        imageUrl={coloringResult?.images?.[0] ? `${API_BASE_URL}${coloringResult.images[0]}` : undefined}
+        onClose={() => setShowColoringCanvas(false)}
       />
     )}
 
