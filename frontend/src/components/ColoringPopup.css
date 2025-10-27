@@ -164,6 +164,18 @@
   box-shadow: 0 6px 20px rgba(107, 78, 255, 0.4);
 }
 
+/* Synchronisation des animations - s'assurer que les deux boutons ont exactement la même animation */
+.coloring-open-btn,
+.coloring-download-btn {
+  transition: all 0.2s ease;
+}
+
+.coloring-open-btn:hover,
+.coloring-download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(107, 78, 255, 0.4);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .coloring-popup-content {
