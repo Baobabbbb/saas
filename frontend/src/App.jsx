@@ -1292,7 +1292,17 @@ const downloadPDF = async (title, content) => {
           border: 'none',
           borderRadius: '0.5rem',
           cursor: 'pointer',
-          fontWeight: '600'
+          fontWeight: '600',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 4px 16px rgba(107, 78, 255, 0.3)'
+        }}
+        onMouseOver={(e) => {
+          e.target.style.transform = 'translateY(-2px)';
+          e.target.style.boxShadow = '0 6px 20px rgba(107, 78, 255, 0.4)';
+        }}
+        onMouseOut={(e) => {
+          e.target.style.transform = 'translateY(0)';
+          e.target.style.boxShadow = '0 4px 16px rgba(107, 78, 255, 0.3)';
         }}
       >
         👁️ Ouvrir le coloriage
@@ -1307,7 +1317,17 @@ const downloadPDF = async (title, content) => {
           border: 'none',
           borderRadius: '0.5rem',
           cursor: 'pointer',
-          fontWeight: '600'
+          fontWeight: '600',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 4px 16px rgba(107, 78, 255, 0.3)'
+        }}
+        onMouseOver={(e) => {
+          e.target.style.transform = 'translateY(-2px)';
+          e.target.style.boxShadow = '0 6px 20px rgba(107, 78, 255, 0.4)';
+        }}
+        onMouseOut={(e) => {
+          e.target.style.transform = 'translateY(0)';
+          e.target.style.boxShadow = '0 4px 16px rgba(107, 78, 255, 0.3)';
         }}
       >
         🎨 Colorier maintenant
@@ -1328,7 +1348,17 @@ const downloadPDF = async (title, content) => {
           border: 'none',
           borderRadius: '0.5rem',
           cursor: 'pointer',
-          fontWeight: '600'
+          fontWeight: '600',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 4px 16px rgba(107, 78, 255, 0.3)'
+        }}
+        onMouseOver={(e) => {
+          e.target.style.transform = 'translateY(-2px)';
+          e.target.style.boxShadow = '0 6px 20px rgba(107, 78, 255, 0.4)';
+        }}
+        onMouseOut={(e) => {
+          e.target.style.transform = 'translateY(0)';
+          e.target.style.boxShadow = '0 4px 16px rgba(107, 78, 255, 0.3)';
         }}
       >
         📄 Télécharger le coloriage
