@@ -1317,7 +1317,11 @@ const downloadPDF = async (title, content) => {
         onClick={() => {
           if (coloringResult?.images) {
             // Utiliser un titre adapté pour le PDF de coloriages
+            console.log('Coloring result:', coloringResult);
+            console.log('Current title:', currentTitle);
+            console.log('Selected theme:', selectedTheme);
             const titleForDownload = currentTitle || coloringResult.theme || selectedTheme || 'Mes Coloriages';
+            console.log('Final title for download:', titleForDownload);
             downloadColoringAsPDF(coloringResult.images, titleForDownload);
           }
         }}
