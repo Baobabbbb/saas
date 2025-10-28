@@ -145,6 +145,8 @@
 
 .coloring-open-btn:hover,
 .coloring-download-btn:hover {
+  background: #6B4EFF;
+  color: white;
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(107, 78, 255, 0.4);
 }
