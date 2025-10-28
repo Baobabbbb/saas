@@ -1295,7 +1295,7 @@ const downloadPDF = async (title, content) => {
           fontWeight: '600'
         }}
       >
-        👁️ Ouvrir le coloriage
+        🎨 Ouvrir le coloriage
       </button>
 
       <button
@@ -1310,7 +1310,7 @@ const downloadPDF = async (title, content) => {
           fontWeight: '600'
         }}
       >
-        🎨 Colorier maintenant
+        🖌️ Colorier maintenant
       </button>
 
       <button
