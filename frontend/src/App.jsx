@@ -1261,7 +1261,7 @@ const downloadPDF = async (title, content) => {
           : contentType === 'histoire'
           ? 'Création de votre histoire en cours...'
           : contentType === 'coloring'
-          ? 'Création de vos coloriages en cours...'
+          ? 'Votre coloriage est en cours de création...'
           : contentType === 'comic'
           ? 'Création de votre bande dessinée en cours...'
           : contentType === 'animation'
