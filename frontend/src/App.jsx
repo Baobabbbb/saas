@@ -1316,8 +1316,8 @@ const downloadPDF = async (title, content) => {
       <button
         onClick={() => {
           if (coloringResult?.images) {
-            // Utiliser le titre généré par l'IA, sinon fallback sur le thème
-            const titleForDownload = currentTitle || (selectedTheme ? `coloriages_${selectedTheme}` : 'coloriages');
+            // Utiliser un titre adapté pour le PDF de coloriages
+            const titleForDownload = currentTitle || coloringResult.theme || selectedTheme || 'Mes Coloriages';
             downloadColoringAsPDF(coloringResult.images, titleForDownload);
           }
         }}
