@@ -1305,7 +1305,7 @@ const downloadPDF = async (title, content) => {
           e.target.style.boxShadow = '0 4px 16px rgba(107, 78, 255, 0.3)';
         }}
       >
-        👁️ Ouvrir le coloriage
+        🎨 Ouvrir le coloriage
       </button>
 
       <button
@@ -1330,7 +1330,7 @@ const downloadPDF = async (title, content) => {
           e.target.style.boxShadow = '0 4px 16px rgba(107, 78, 255, 0.3)';
         }}
       >
-        🎨 Colorier maintenant
+        🖌️ Colorier maintenant
       </button>
 
       <button
