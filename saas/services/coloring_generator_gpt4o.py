@@ -350,22 +350,16 @@ Subject: {subject}"""
                 image_b64 = response.data[0].b64_json
                 print(f"[OK] Image generee recue (base64: {len(image_b64)} bytes)")
 
-                # Décoder et redimensionner l'image pour créer un carré plus grand
+                # Décoder l'image générée par l'API
                 image_bytes = base64.b64decode(image_b64)
                 generated_img = Image.open(io.BytesIO(image_bytes))
 
                 print(f"[ORIGINAL] Dimensions generees: {generated_img.size}")
 
-                # Redimensionner à un carré plus grand (1536x1536) pour éviter les coupures
-                target_size = (1536, 1536)
-                resized_img = generated_img.resize(target_size, Image.Resampling.LANCZOS)
-
-                print(f"[RESIZED] Redimensionne vers carre: {target_size}")
-
-                # Sauvegarder l'image redimensionnée
+                # Garder les dimensions naturelles de l'image générée par l'API
                 output_path = self.output_dir / f"coloring_theme_{uuid.uuid4().hex[:8]}.png"
-                resized_img.save(output_path, 'PNG', optimize=True)
-                print(f"[OK] Coloriage theme sauvegarde (1536x1536): {output_path.name}")
+                generated_img.save(output_path, 'PNG', optimize=True)
+                print(f"[OK] Coloriage theme sauvegarde ({generated_img.size[0]}x{generated_img.size[1]}): {output_path.name}")
 
                 return str(output_path)
             else:
