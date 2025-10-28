@@ -586,7 +586,13 @@ def get_coloring_generator():
             import services.coloring_generator_gpt4o
             services.coloring_generator_gpt4o.coloring_generator = ColoringGeneratorGPT4o()
             return services.coloring_generator_gpt4o.coloring_generator
+        except ValueError as e:
+            # Clé API manquante ou invalide
+            print(f"[ERROR] Impossible d'initialiser ColoringGeneratorGPT4o: {e}")
+            return None
         except Exception as e:
+            # Autres erreurs d'initialisation
+            print(f"[ERROR] Erreur inattendue lors de l'initialisation ColoringGeneratorGPT4o: {e}")
             return None
     return coloring_generator
 
@@ -623,7 +629,7 @@ async def generate_coloring(request: dict, content_type_id: int = None):
         if generator is None:
             raise HTTPException(
                 status_code=500,
-                detail="Service de génération de coloriage non disponible. Vérifiez la configuration des clés API."
+                detail="Service de génération de coloriage non disponible. Clé API OpenAI manquante ou invalide."
             )
 
         # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1-mini (génération)
