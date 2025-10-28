@@ -1724,6 +1724,7 @@ const downloadPDF = async (title, content) => {
           const imageItem = coloringResult?.images?.[0];
           return imageItem ? (imageItem.image_url || imageItem) : undefined;
         })()}
+        theme={coloringResult?.theme || selectedTheme}
         onClose={() => setShowColoringCanvas(false)}
       />
     )}

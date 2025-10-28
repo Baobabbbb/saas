@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import './ColoringCanvas.css';
 
-const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
+const ColoringCanvas = ({ imageUrl, theme, onClose, onSave }) => {
   const canvasRef = useRef(null);
   const [ctx, setCtx] = useState(null);
   const [selectedColor, setSelectedColor] = useState('#FF6B6B');
@@ -246,10 +246,10 @@ const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
 
       link.href = url; // Ajout de href manquant
 
-      // Générer un nom de fichier cohérent basé sur l'image source
-      const baseName = imageUrl.split('/').pop().split('.')[0] || 'coloriage';
-      const safeName = baseName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      link.download = `coloriage_${safeName}_colorie.png`;
+      // Générer un nom de fichier cohérent basé sur le thème
+      const themeName = theme || 'coloriage';
+      const safeTheme = themeName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      link.download = `coloriages_${safeTheme}_colorie.png`;
 
       document.body.appendChild(link); // Ajout pour compatibilité
       link.click();
