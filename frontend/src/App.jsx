@@ -155,7 +155,7 @@ function App() {
 
   // Animation states
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null); // Aucun thème par défaut
-  const [selectedDuration, setSelectedDuration] = useState(null);
+  const [selectedDuration, setSelectedDuration] = useState(30); // Valeur par défaut de 30 secondes
   const [selectedStyle, setSelectedStyle] = useState(null);
   const [customStory, setCustomStory] = useState('');
   const [characterImage, setCharacterImage] = useState(null);
@@ -347,7 +347,7 @@ function App() {
     setCharacterPhoto(null);
     setComicsResult(null);
     setSelectedAnimationTheme(null);
-    setSelectedDuration(null);
+    setSelectedDuration(30); // Remettre à la valeur par défaut
     setSelectedStyle(null);
     setCustomStory('');
     setSelectedStory(null);
@@ -647,7 +647,8 @@ function App() {
       };
 
       // Utiliser toujours le vrai pipeline zseedance (endpoint generate-quick - GET seulement)
-      const endpoint = `${API_BASE_URL}/generate-quick?theme=${encodeURIComponent(normalizedTheme)}&duration=${selectedDuration}&style=${selectedStyle || 'cartoon'}&custom_prompt=${encodeURIComponent(story || '')}`;
+      const duration = selectedDuration || 30; // Valeur par défaut de 30 secondes si non sélectionnée
+      const endpoint = `${API_BASE_URL}/generate-quick?theme=${encodeURIComponent(normalizedTheme)}&duration=${duration}&style=${selectedStyle || 'cartoon'}&custom_prompt=${encodeURIComponent(story || '')}`;
       const fetchOptions = {
         method: 'GET',
         headers: {
