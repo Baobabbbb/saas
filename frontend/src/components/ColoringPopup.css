@@ -128,46 +128,19 @@
   justify-content: center;
 }
 
-.coloring-open-btn {
-  background: #6B4EFF;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 16px rgba(107, 78, 255, 0.3);
-}
-
-.coloring-open-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(107, 78, 255, 0.4);
-}
-
-.coloring-download-btn {
-  background: #6B4EFF;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 16px rgba(107, 78, 255, 0.3);
-}
-
-.coloring-download-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(107, 78, 255, 0.4);
-}
-
-/* Synchronisation des animations - s'assurer que les deux boutons ont exactement la même animation */
+/* Boutons ColoringPopup - styles identiques pour tous */
 .coloring-open-btn,
 .coloring-download-btn {
+  background: #6B4EFF;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
   transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(107, 78, 255, 0.3);
 }
 
 .coloring-open-btn:hover,
