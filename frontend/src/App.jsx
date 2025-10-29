@@ -458,10 +458,10 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-
+      
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
-      } else if (contentType === 'histoire') {
+    } else if (contentType === 'histoire') {
       // Déterminer le contenu de l'histoire
       let storyContent;
       if (selectedStory && selectedStory !== 'custom') {
@@ -651,10 +651,10 @@ function App() {
       const endpoint = `${API_BASE_URL}/generate-quick?theme=${encodeURIComponent(normalizedTheme)}&duration=${duration}&style=${selectedStyle || 'cartoon'}&custom_prompt=${encodeURIComponent(story || '')}`;
       const fetchOptions = {
         method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        }
-      };
+          headers: {
+            'Accept': 'application/json'
+          }
+        };
 
       const response = await fetch(endpoint, fetchOptions);
 
@@ -895,15 +895,15 @@ const downloadPDF = async (title, content) => {
   }
 
   try {
-    const doc = new jsPDF({
-      orientation: "p",
-      unit: "mm",
-      format: "a4"
-    });
+  const doc = new jsPDF({
+    orientation: "p",
+    unit: "mm",
+    format: "a4"
+  });
 
     const marginTop = 50;
-    const pageWidth = 210;
-    const pageHeight = 297;
+  const pageWidth = 210;
+  const pageHeight = 297;
     const lineHeight = 6; // Correspond à line-height: 2 en CSS
     const maxLinesPerPage = Math.floor((pageHeight - marginTop - 30) / lineHeight); // Ajuster pour le titre
 
@@ -925,59 +925,59 @@ const downloadPDF = async (title, content) => {
       // Fond non disponible silencieusement
     }
 
-    // 🏷️ Titre réel (extrait du markdown **titre**)
-    let finalTitle = title;
-    if (content.startsWith("**") && content.includes("**", 2)) {
-      finalTitle = content.split("**")[1].trim();
-      content = content.replace(`**${finalTitle}**`, "").trim();
-    }
+  // 🏷️ Titre réel (extrait du markdown **titre**)
+  let finalTitle = title;
+  if (content.startsWith("**") && content.includes("**", 2)) {
+    finalTitle = content.split("**")[1].trim();
+    content = content.replace(`**${finalTitle}**`, "").trim();
+  }
 
     // ✂️ Texte découpé (largeur similaire à la popup)
     const lines = doc.splitTextToSize(content, 150); // max 150mm comme dans la popup
-    let currentLine = 0;
+  let currentLine = 0;
 
-    for (let page = 0; currentLine < lines.length; page++) {
-      if (page > 0) doc.addPage();
+  for (let page = 0; currentLine < lines.length; page++) {
+    if (page > 0) doc.addPage();
 
       // 🌟 Ajouter le fond étoilé (comme dans StoryPopup.css)
       if (backgroundImage) {
         try {
-          doc.addImage(backgroundImage, "PNG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
+    doc.addImage(backgroundImage, "PNG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
         } catch (error) {
           // Erreur d'ajout du fond silencieuse
         }
       }
 
       // 🎨 Titre (comme dans StoryPopup.css : 1.8rem, bold, violet)
-      if (page === 0) {
+    if (page === 0) {
         doc.setFont("courier", "bold"); // Police monospace comme dans CSS
         doc.setFontSize(18); // ~1.8rem
         doc.setTextColor(110, 50, 230); // Violet exact
-        doc.text(finalTitle, pageWidth / 2, marginTop - 20, { align: "center" });
-      }
+      doc.text(finalTitle, pageWidth / 2, marginTop - 20, { align: "center" });
+    }
 
       // ✍️ Texte principal (comme dans StoryPopup.css : 1rem, bold, bleu nuit, line-height: 2)
       doc.setFont("courier", "bold"); // Police monospace bold
       doc.setFontSize(10); // ~1rem
       doc.setTextColor(25, 25, 112); // Bleu nuit exact
 
-      for (let i = 0; i < maxLinesPerPage && currentLine < lines.length; i++, currentLine++) {
-        const y = marginTop + i * lineHeight;
-        doc.text(lines[currentLine], pageWidth / 2, y, { align: "center" });
-      }
+    for (let i = 0; i < maxLinesPerPage && currentLine < lines.length; i++, currentLine++) {
+      const y = marginTop + i * lineHeight;
+      doc.text(lines[currentLine], pageWidth / 2, y, { align: "center" });
+    }
 
       // 📄 Pagination (violet doux comme dans la popup)
       doc.setFontSize(8);
-      doc.setTextColor(106, 90, 205); // Violet doux
+    doc.setTextColor(106, 90, 205); // Violet doux
       doc.text(`Page ${page + 1}`, pageWidth - 15, pageHeight - 10, { align: "right" });
-    }
+  }
 
-    // 📁 Nom de fichier propre
-    const safeTitle = finalTitle
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+  // 📁 Nom de fichier propre
+  const safeTitle = finalTitle
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
 
-    doc.save(`${safeTitle}.pdf`);
+  doc.save(`${safeTitle}.pdf`);
   } catch (error) {
     // Erreur PDF silencieuse
     alert("Erreur lors de la génération du PDF. Veuillez réessayer.");
@@ -1004,11 +1004,11 @@ const downloadPDF = async (title, content) => {
               has_music: true,
               service: 'suno'
             };
-
+            
             // Enregistrer dans l'historique maintenant que la musique est prête
             const title = status.title || prev.title || generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme) + ' 🎵';
             setCurrentTitle(title);
-
+            
             // Créer l'entrée d'historique
             const newCreation = {
               id: Date.now().toString(),
@@ -1019,7 +1019,7 @@ const downloadPDF = async (title, content) => {
               audio_path: status.audio_path,
               suno_url: status.suno_url
             };
-
+            
             // Sauvegarder dans l'historique via Supabase
             addCreation({
               type: 'rhyme',
@@ -1028,7 +1028,7 @@ const downloadPDF = async (title, content) => {
             }).catch(historyError => {
               // Erreur silencieuse - historique non critique
             });
-
+            
             return updatedResult;
           });
 
@@ -1404,79 +1404,79 @@ const downloadPDF = async (title, content) => {
         {generatedResult.suno_url && downloadReady && (
           <>
             <div style={{
-            background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-            borderRadius: '15px',
-            border: '2px solid #dee2e6',
-            width: '100%',
+                background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', 
+                borderRadius: '15px',
+                border: '2px solid #dee2e6',
+                width: '100%',
             maxWidth: '100%',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             overflow: 'hidden'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
+              }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
               justifyContent: 'center',
-              gap: '10px',
+                  gap: '10px', 
               padding: '9px 50px 0px'
-            }}>
-              <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
-                Votre comptine est prête !
-              </h4>
-            </div>
-            <audio
-              controls
-              preload="metadata"
-              controlsList="nodownload"
-              style={{
-                width: '100%',
-                outline: 'none'
-              }}
+                }}>
+                  <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
+                    Votre comptine est prête !
+                  </h4>
+                </div>
+                <audio
+                  controls
+                  preload="metadata"
+                  controlsList="nodownload"
+                  style={{
+                    width: '100%',
+                    outline: 'none'
+                  }}
               src={generatedResult.suno_url}
-            >
-              Votre navigateur ne supporte pas l'élément audio.
-            </audio>
-          </div>
+                >
+                  Votre navigateur ne supporte pas l'élément audio.
+                </audio>
+              </div>
           </>
         )}
-
+            
         {/* Bouton Télécharger - Avec vérification de disponibilité */}
         {generatedResult.suno_url && downloadReady && (
           <>
             <button
-            onClick={async () => {
+              onClick={async () => {
               if (generatedResult.suno_url && downloadReady) {
-                try {
+                  try {
                   // Télécharger directement depuis Suno
                   const response = await fetch(generatedResult.suno_url);
                   if (!response.ok) {
                     throw new Error(`Erreur HTTP: ${response.status}`);
                   }
 
-                  const blob = await response.blob();
+                    const blob = await response.blob();
                   if (blob.size === 0) {
                     throw new Error('Fichier audio indisponible');
                   }
 
-                  const url = window.URL.createObjectURL(blob);
+                    const url = window.URL.createObjectURL(blob);
                   const safeTitle = (currentTitle || generatedResult.title || 'comptine').replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-                  const link = document.createElement('a');
-                  link.href = url;
-                  link.download = `${safeTitle}.mp3`;
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `${safeTitle}.mp3`;
                   link.style.display = 'none';
 
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
 
                   // Nettoyer l'URL d'objet
                   setTimeout(() => window.URL.revokeObjectURL(url), 100);
 
-                } catch (error) {
+                  } catch (error) {
                   alert(`Erreur lors du téléchargement: ${error.message}`);
+                  }
                 }
-              }
-            }}
+              }}
               disabled={!downloadReady}
               style={{
                 padding: '0.8rem 2rem',
@@ -1503,23 +1503,23 @@ const downloadPDF = async (title, content) => {
   ) : generatedResult && contentType === 'audio' ? (
     <motion.div
       className="generated-result"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  exit={{ opacity: 0 }}
       key="audio-story-result"
     >
-      <div
-        style={{
+  <div
+    style={{
           height: '300px',
-          display: 'flex',
-          flexDirection: 'column',
+      display: 'flex',
+      flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
           gap: '1rem',
           padding: '1rem',
           overflowY: 'auto'
-        }}
-      >
+    }}
+  >
         {/* Audio de l'histoire - seulement si disponible */}
         {generatedResult.audio_path && (
           <div style={{
@@ -1530,8 +1530,8 @@ const downloadPDF = async (title, content) => {
             width: '100%',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}>
-            <audio
-              controls
+    <audio
+      controls
               preload="metadata"
               controlsList="nodownload"
               style={{
@@ -1543,46 +1543,46 @@ const downloadPDF = async (title, content) => {
             >
               Votre navigateur ne supporte pas l'élément audio.
             </audio>
-          </div>
-        )}
+  </div>
+)}
 
         {/* Boutons d'action */}
         <div style={{
-          display: 'flex',
+      display: 'flex',
           gap: '1rem',
           width: '100%',
-          justifyContent: 'center',
+      justifyContent: 'center',
           flexWrap: 'wrap'
         }}>
-          <button
-            onClick={() => setShowStoryPopup(true)}
-            style={{
-              padding: '0.6rem 1.4rem',
-              backgroundColor: '#6B4EFF',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '0.5rem',
-              cursor: 'pointer',
-              fontWeight: '600'
-            }}
-          >
+    <button
+      onClick={() => setShowStoryPopup(true)}
+      style={{
+        padding: '0.6rem 1.4rem',
+        backgroundColor: '#6B4EFF',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '0.5rem',
+        cursor: 'pointer',
+        fontWeight: '600'
+      }}
+    >
             📖 Ouvrir l'histoire
-          </button>
+    </button>
 
-          <button
-            onClick={() => downloadPDF(generatedResult.title, generatedResult.content)}
-            style={{
-              padding: '0.6rem 1.4rem',
-              backgroundColor: '#6B4EFF',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '0.5rem',
-              cursor: 'pointer',
-              fontWeight: '600'
-            }}
-          >
-            📄 Télécharger l'histoire
-          </button>
+    <button
+      onClick={() => downloadPDF(generatedResult.title, generatedResult.content)}
+      style={{
+        padding: '0.6rem 1.4rem',
+        backgroundColor: '#6B4EFF',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '0.5rem',
+        cursor: 'pointer',
+        fontWeight: '600'
+      }}
+    >
+      📄 Télécharger l'histoire
+    </button>
 
           {generatedResult.audio_path && (
             <button
@@ -1674,8 +1674,8 @@ const downloadPDF = async (title, content) => {
         ? 'Votre dessin animé apparaîtra ici'
         : 'Votre contenu apparaîtra ici'}
     </p>
-    </div>
-  )}
+  </div>
+)}
 </motion.div>
 
   )}

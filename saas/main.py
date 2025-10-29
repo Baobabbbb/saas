@@ -1181,16 +1181,20 @@ async def generate_zseedance_animation_task(task_id: str, theme: str, duration: 
             traceback.print_exc()
             raise gen_error
 
-        # Vérifier que nous avons bien une vidéo finale
-        if animation_result.get("status") == "completed" and animation_result.get("final_video_url"):
-            print(f"✅ Animation ZSEEDANCE {task_id} générée avec succès!")
-            print(f"🎬 Vidéo finale: {animation_result['final_video_url'][:50]}...")
-        else:
-            print(f"⚠️ Animation générée mais pas de vidéo finale: {animation_result.get('status')}")
+        # Vérifier le statut réel de l'animation
+        result_status = animation_result.get("status", "failed")
+        final_video_url = animation_result.get("final_video_url")
 
-        # Stocker le résultat
+        if result_status == "completed" and final_video_url:
+            print(f"✅ Animation ZSEEDANCE {task_id} générée avec succès!")
+            print(f"🎬 Vidéo finale: {final_video_url[:50]}...")
+            task_storage[task_id]["status"] = "completed"
+        else:
+            print(f"❌ Animation ZSEEDANCE {task_id} échouée: {animation_result.get('error', 'Erreur inconnue')}")
+            task_storage[task_id]["status"] = "failed"
+
+        # Stocker le résultat dans tous les cas
         task_storage[task_id]["result"] = animation_result
-        task_storage[task_id]["status"] = "completed"
 
     except Exception as e:
         print(f"❌ Erreur génération ZSEEDANCE {task_id}: {e}")

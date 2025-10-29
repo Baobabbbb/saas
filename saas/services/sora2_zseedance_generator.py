@@ -679,16 +679,22 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
                     )
                     video_urls.append(video_url)
 
-            # Étape 4: Sequence Video - Assemblage final
-            # Note: Veo 3.1 Fast génère déjà l'audio automatiquement, pas besoin d'ajout audio séparé
-            logger.info("🔗 Étape 4: Sequence Video (assemblage final des clips avec audio intégré)...")
-            final_video_url = await self.sequence_sora2_video(video_urls)
+            # Étape 4: Finalisation - Veo 3.1 Fast génère déjà l'audio, pas d'assemblage nécessaire
+            logger.info("🎯 Étape 4: Finalisation - Veo 3.1 Fast génère déjà audio, pas d'assemblage nécessaire")
+
+            # Retourner directement la première vidéo ou la liste complète selon les besoins
+            final_video_url = video_urls[0] if video_urls else None
+
+            if not final_video_url:
+                raise Exception("Aucune vidéo générée")
 
             logger.info("✅ Animation ZSEEDANCE terminée avec succès!")
+            logger.info(f"🎬 Vidéo finale: {final_video_url}")
 
             return {
                 "status": "completed",
                 "final_video_url": final_video_url,
+                "video_urls": video_urls,  # Liste complète des clips pour référence
                 "title": f"🎬 {idea_data['Idea']}",
                 "duration": duration,
                 "theme": theme,
