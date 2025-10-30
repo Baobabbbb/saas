@@ -37,7 +37,7 @@ SORA2_PLATFORMS = {
         "enabled": bool(os.getenv("RUNWAY_API_KEY")),
         "api_key": os.getenv("RUNWAY_API_KEY"),
         "base_url": "https://api.dev.runwayml.com",
-        "model": "veo3.1_fast",  # Veo 3.1 Fast - text-to-video sur /v1/text_to_video
+        "model": "gen-3-alpha-turbo",  # Modèle Runway ML actuel pour text-to-video
         "priority": 1  # Priorité la plus haute
     },
     "pika": {

@@ -1058,7 +1058,7 @@ async def generate_animation(
     custom_prompt: str = None
 ):
     """
-    Génère une VRAIE animation avec Runway ML Veo 3.1 Fast (workflow zseedance)
+    Génère une VRAIE animation avec Runway ML Gen-3-Alpha-Turbo (workflow zseedance)
     Supporte les requêtes GET avec query parameters - PLUS DE MODE, toujours vrai pipeline
     """
     return await _generate_animation_logic(theme, duration, style, custom_prompt)
