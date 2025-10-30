@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 
 class Sora2ZseedanceGenerator:
     """
-    Générateur d'animations utilisant Runway ML Gen-3-Alpha-Turbo en suivant exactement le workflow zseedance.json
-    Workflow optimisé : Ideas → Prompts → Clips Gen-3-Alpha-Turbo (avec audio intégré) → Sequence
-    Note: Gen-3-Alpha-Turbo génère automatiquement l'audio, pas besoin d'ajout séparé
+    Générateur d'animations utilisant Runway ML Veo 3.1 Fast en suivant exactement le workflow zseedance.json
+    Workflow optimisé : Ideas → Prompts → Clips Veo 3.1 Fast (avec audio intégré) → Sequence
+    Note: Veo 3.1 Fast génère automatiquement l'audio, pas besoin d'ajout séparé
     """
 
     def __init__(self):
@@ -33,21 +33,21 @@ class Sora2ZseedanceGenerator:
         if not runway_key:
             raise Exception("RUNWAY_API_KEY non configurée")
 
-        # Configuration Runway ML Gen-3-Alpha-Turbo - text-to-video via /v1/text_to_video
+        # Configuration Runway ML Veo 3.1 Fast - text-to-video via /v1/text_to_video
         self.sora_platforms = {
             "openai": {
                 "name": "OpenAI (Non disponible)",
                 "base_url": "https://api.openai.com/v1",
                 "api_key": self.openai_api_key,
-                "model": "veo3.1_fast",  # Modèle Veo 3.1 Fast
+                "model": "dall-e-3",  # Modèle DALL-E 3 pour référence
                 "available": False,  # Désactivé car pas disponible publiquement
                 "priority": 99  # Priorité très basse
             },
             "runway": {
-                "name": "Runway ML (Gen-3-Alpha-Turbo)",
+                "name": "Runway ML (Veo 3.1 Fast)",
                 "base_url": "https://api.dev.runwayml.com",
                 "api_key": runway_key,
-                "model": "gen-3-alpha-turbo",  # Gen-3-Alpha-Turbo - text-to-video natif
+                "model": "veo3.1_fast",  # Veo 3.1 Fast - text-to-video natif
                 "available": bool(runway_key and runway_key.startswith('key_')),
                 "priority": 1  # Priorité la plus haute maintenant
             },
@@ -64,7 +64,7 @@ class Sora2ZseedanceGenerator:
         # Sélectionner la plateforme disponible avec la priorité la plus haute
         self.selected_platform = self._select_best_platform()
 
-        # Configuration Gen-3-Alpha-Turbo optimisée pour enfants (identique à zseedance)
+        # Configuration Veo 3.1 Fast optimisée pour enfants (identique à zseedance)
         self.sora2_config = {
             "aspect_ratio": "9:16",  # Format vertical comme zseedance
             "duration_per_clip": 10,  # 10 secondes par clip comme zseedance
@@ -76,21 +76,21 @@ class Sora2ZseedanceGenerator:
         # Initialisation terminée silencieusement
 
     def _select_best_platform(self) -> str:
-        """Sélectionne la plateforme Gen-3-Alpha-Turbo disponible avec la priorité la plus haute"""
+        """Sélectionne la plateforme Veo 3.1 Fast disponible avec la priorité la plus haute"""
         available_platforms = [
             (name, config) for name, config in self.sora_platforms.items()
             if config["available"]
         ]
 
         if not available_platforms:
-            logger.error("❌ Aucune plateforme Gen-3-Alpha-Turbo disponible - vérifiez les clés API")
-            raise Exception("Aucune plateforme Gen-3-Alpha-Turbo disponible - configurez RUNWAY_API_KEY")
+            logger.error("❌ Aucune plateforme Veo 3.1 Fast disponible - vérifiez les clés API")
+            raise Exception("Aucune plateforme Veo 3.1 Fast disponible - configurez RUNWAY_API_KEY")
 
         # Trier par priorité
         available_platforms.sort(key=lambda x: x[1]["priority"])
         best_platform = available_platforms[0][0]
 
-        logger.info(f"✅ Plateforme Gen-3-Alpha-Turbo sélectionnée: {best_platform}")
+        logger.info(f"✅ Plateforme Veo 3.1 Fast sélectionnée: {best_platform}")
         return best_platform
 
     async def generate_ideas_agent_adapted(self, theme: str = "space") -> Dict[str, Any]:
@@ -280,12 +280,12 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
             raise Exception(f"Échec génération {num_scenes} scènes: {e}")
 
 
-    # NOTE: add_audio_to_clip et _wait_fal_audio supprimées car Gen-3-Alpha-Turbo génère déjà l'audio automatiquement
-    # Les clips générés par Gen-3-Alpha-Turbo incluent déjà l'audio, pas besoin d'ajout séparé
+    # NOTE: add_audio_to_clip et _wait_fal_audio supprimées car Veo 3.1 Fast génère déjà l'audio automatiquement
+    # Les clips générés par Veo 3.1 Fast incluent déjà l'audio, pas besoin d'ajout séparé
 
     async def create_sora2_clip(self, scene_prompt: str, idea: str, environment: str) -> str:
         """
-        Create Clips - Génère un clip vidéo avec Runway ML Gen-3-Alpha-Turbo
+        Create Clips - Génère un clip vidéo avec Runway ML Veo 3.1 Fast
         """
         logger.info(f"🎬 Début create_sora2_clip - plateforme sélectionnée: {self.selected_platform}")
         try:
@@ -322,13 +322,13 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
 
             logger.info(f"✅ Clé API Runway valide: {api_key[:20]}...")
 
-            # Préparation de la requête pour Runway ML gen-3-alpha-turbo (text-to-video)
+            # Préparation de la requête pour Runway ML veo3.1_fast (text-to-video)
             # Utilisation de l'endpoint /v1/text_to_video (text-to-video pur)
             runway_payload = {
-                "model": "gen-3-alpha-turbo",  # Modèle Runway ML actuel pour text-to-video
+                "model": "veo3.1_fast",  # Modèle Veo 3.1 Fast pour text-to-video
                 "promptText": runway_prompt,  # Prompt texte pour génération directe
-                "duration": 5,  # 5 secondes pour gen-3-alpha-turbo
-                "ratio": "16:9",  # Format 16:9 (standard pour ce modèle)
+                "duration": 8,  # 8 secondes (valeurs acceptées: 4, 6, 8)
+                "ratio": "1920:1080",  # Format 16:9 (valeurs acceptées: 1280:720, 720:1280, 1080:1920, 1920:1080)
                 "watermark": False
             }
 
@@ -336,7 +336,7 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
             headers = {
                 "Authorization": f"Bearer {platform_config['api_key']}",
                 "Content-Type": "application/json",
-                "X-Runway-Version": "2024-09-13"  # Version requise par l'API
+                "X-Runway-Version": "2024-11-06"  # Version requise par l'API (mise à jour)
             }
 
             # URL de l'API Runway ML - endpoint text_to_video pour veo3.1_fast
@@ -603,11 +603,11 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
         try:
             logger.info(f"🚀 Démarrage génération ZSEEDANCE: {theme} ({duration}s, style: {style})")
 
-            # Calculer le nombre de scènes selon la durée (5s par scène avec gen-3-alpha-turbo)
+            # Calculer le nombre de scènes selon la durée (8s par scène avec veo3.1_fast)
             # Arrondir pour être plus proche de la durée demandée
-            num_scenes = max(3, round(duration / 5))  # Minimum 3 scènes, ~5s par scène
-            total_duration = num_scenes * 5
-            logger.info(f"📊 Génération de {num_scenes} scènes de 5 secondes chacune (durée totale: {total_duration}s pour {duration}s demandés)")
+            num_scenes = max(1, round(duration / 8))  # Minimum 1 scène, ~8s par scène
+            total_duration = num_scenes * 8
+            logger.info(f"📊 Génération de {num_scenes} scènes de 8 secondes chacune (durée totale: {total_duration}s pour {duration}s demandés)")
 
             # Étape 1: Ideas AI Agent avec adaptation au thème choisi
             logger.info("📝 Étape 1: Ideas AI Agent (adapté au thème)...")
@@ -619,8 +619,8 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
             prompts_data = await self.generate_prompts_agent_adapted(idea_data, num_scenes)
             logger.info(f"✅ Étape 2 terminée: {num_scenes} scènes générées")
 
-            # Étape 3: Create Clips avec Gen-3-Alpha-Turbo
-            logger.info("🎬 Étape 3: Create Clips avec Gen-3-Alpha-Turbo...")
+            # Étape 3: Create Clips avec Veo 3.1 Fast
+            logger.info("🎬 Étape 3: Create Clips avec Veo 3.1 Fast...")
             video_urls = []
 
             # Générer les clips selon le nombre calculé
@@ -642,8 +642,8 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
                     )
                     video_urls.append(video_url)
 
-            # Étape 4: Finalisation - Gen-3-Alpha-Turbo génère déjà l'audio, pas d'assemblage nécessaire
-            logger.info("🎯 Étape 4: Finalisation - Gen-3-Alpha-Turbo génère déjà audio, pas d'assemblage nécessaire")
+            # Étape 4: Finalisation - Veo 3.1 Fast génère déjà l'audio, pas d'assemblage nécessaire
+            logger.info("🎯 Étape 4: Finalisation - Veo 3.1 Fast génère déjà audio, pas d'assemblage nécessaire")
 
             # Retourner directement la première vidéo ou la liste complète selon les besoins
             final_video_url = video_urls[0] if video_urls else None
@@ -681,23 +681,23 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
             }
 
         except Exception as e:
-            logger.error(f"❌ Erreur génération Gen-3-Alpha-Turbo zseedance: {e}")
+            logger.error(f"❌ Erreur génération Veo 3.1 Fast zseedance: {e}")
             return {
                 "status": "failed",
                 "error": str(e),
                 "theme": theme,
-                "type": "gen3_alpha_turbo_zseedance",
+                "type": "veo31_fast_zseedance",
                 "platform": self.selected_platform
             }
 
     def is_available(self) -> bool:
-        """Vérifie si au moins une plateforme Gen-3-Alpha-Turbo est disponible"""
+        """Vérifie si au moins une plateforme Veo 3.1 Fast est disponible"""
         return any(config["available"] for config in self.sora_platforms.values())
 
     def get_available_platforms(self) -> List[str]:
-        """Retourne la liste des plateformes Gen-3-Alpha-Turbo disponibles"""
+        """Retourne la liste des plateformes Veo 3.1 Fast disponibles"""
         return [name for name, config in self.sora_platforms.items() if config["available"]]
 
 
-# Instance globale du générateur Gen-3-Alpha-Turbo zseedance
+# Instance globale du générateur Veo 3.1 Fast zseedance
 sora2_zseedance_generator = Sora2ZseedanceGenerator()
