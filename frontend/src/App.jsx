@@ -403,21 +403,40 @@ function App() {
       return;
     }
 
-    // Si utilisateur normal, vérifier les permissions
-    const permissionCheck = await checkPaymentPermission(
-      contentType, 
-      user.id, 
-      user.email
-    );
-    
-    if (!permissionCheck.hasPermission) {
-      // Ouvrir directement la modal de paiement
-      setPaymentContentType(contentType);
-      setShowPaymentModal(true);
+    // Si utilisateur normal, vérifier les permissions via Edge Function
+    console.log('🔍 Vérification des permissions pour utilisateur normal');
+    try {
+      const { data: permissionData, error: permissionError } = await supabase.functions.invoke('check-permission', {
+        body: {
+          contentType,
+          userId: user.id,
+          userEmail: user.email
+        }
+      });
+
+      if (permissionError) {
+        console.error('Erreur vérification permission:', permissionError);
+        alert('Erreur lors de la vérification des permissions. Veuillez réessayer.');
+        return;
+      }
+
+      console.log('📋 Résultat vérification permission:', permissionData);
+
+      if (!permissionData.hasPermission) {
+        // Ouvrir directement la modal de paiement
+        console.log('💳 Ouverture modal de paiement');
+        setPaymentContentType(contentType);
+        setShowPaymentModal(true);
+        return;
+      } else {
+        // Permission accordée, génération directe
+        console.log('✅ Permission validée - génération autorisée');
+        startGeneration();
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'appel à check-permission:', error);
+      alert('Erreur de vérification des permissions. Veuillez réessayer.');
       return;
-    } else {
-      // Permission accordée, génération directe
-      startGeneration();
     }
   };
 

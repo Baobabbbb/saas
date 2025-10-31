@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
-import { getContentPrice } from '../services/payment'
+import { getContentPrice, grantPermission } from '../services/payment'
+import { supabase } from '../supabaseClient'
 import './PaymentModal.css'
 
-// TODO: Remplacer par votre vraie clé publique Stripe (obtenez-la sur dashboard.stripe.com)
-const stripePromise = loadStripe('pk_test_51234567890abcdef...')
+// Utiliser la vraie clé publique Stripe depuis les variables d'environnement
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
 
 const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, priceInfo }) => {
   const stripe = useStripe()
@@ -22,42 +23,45 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
         console.log('🔄 Création Payment Intent pour:', {
           contentType,
           amount: priceInfo.amount,
-          userId
+          userId,
+          userEmail
         })
 
-        // TODO: Remplacer par un appel réel à votre backend pour créer un Payment Intent
-        // Exemple d'appel :
-        /*
-        const response = await fetch('/api/create-payment-intent', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            amount: priceInfo.amount,
-            currency: 'eur',
+        // Appeler l'Edge Function Supabase pour créer le Payment Intent
+        const { data, error } = await supabase.functions.invoke('create-payment', {
+          body: {
             contentType,
-            userId
-          })
+            userId,
+            userEmail
+          }
         })
-        const { client_secret } = await response.json()
-        setClientSecret(client_secret)
-        */
 
-        // Pour le moment, simulation d'un client secret
-        const mockClientSecret = `pi_test_${Date.now()}_secret_${Math.random().toString(36).substring(7)}`
-        setClientSecret(mockClientSecret)
-        
+        if (error) {
+          console.error('Erreur Edge Function:', error)
+          throw new Error('Erreur lors de la création du paiement')
+        }
+
+        if (!data.client_secret) {
+          throw new Error('Client secret manquant dans la réponse')
+        }
+
+        console.log('✅ Payment Intent créé avec succès')
+        setClientSecret(data.client_secret)
+
       } catch (error) {
         console.error('❌ Erreur création Payment Intent:', error)
-        setError('Erreur lors de l\'initialisation du paiement')
+        setError(error.message || 'Erreur lors de l\'initialisation du paiement')
       }
     }
 
-    createPaymentIntent()
-  }, [contentType, priceInfo.amount, userId])
+    if (stripe) {
+      createPaymentIntent()
+    }
+  }, [contentType, priceInfo.amount, userId, userEmail, stripe])
   
   const handlePayment = async (event) => {
     event.preventDefault()
-    
+
     if (!stripe || !elements) {
       setError('Stripe n\'est pas encore chargé. Veuillez patienter.')
       return
@@ -71,7 +75,7 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
 
     setLoading(true)
     setError(null)
-    
+
     try {
       console.log('🔄 Traitement paiement Stripe pour:', {
         contentType,
@@ -80,71 +84,47 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
         amount: priceInfo.amount
       })
 
-      // TODO: Remplacer par la vraie confirmation de paiement Stripe
-      /*
+      // Confirmer le paiement avec Stripe
       const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
           card: cardElement,
           billing_details: {
             email: userEmail,
           },
-        }
+        },
+        return_url: window.location.origin,
       })
 
       if (error) {
-        throw new Error(error.message)
+        console.error('Erreur Stripe:', error)
+        throw new Error(error.message || 'Erreur lors du paiement')
       }
 
       if (paymentIntent.status === 'succeeded') {
-        onSuccess({
-          success: true,
-          paymentIntentId: paymentIntent.id,
-          amount: paymentIntent.amount / 100,
-          contentType
-        })
-      }
-      */
+        console.log('✅ Paiement Stripe réussi:', paymentIntent)
 
-      // Pour le moment, simulation d'un paiement Stripe avec vérification de carte
-      console.log('💳 Validation des informations de carte...')
-      
-      // Vérifier que la carte est valide (simulation)
-      const { error: cardError } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: cardElement,
-      })
-
-      if (cardError) {
-        throw new Error(cardError.message)
-      }
-
-      // Simulation d'un délai de traitement Stripe réaliste
-      await new Promise(resolve => setTimeout(resolve, 3000))
-
-      // Simulation d'un paiement réussi (95% de réussite avec des cartes valides)
-      const paymentSuccess = Math.random() > 0.05
-      
-      if (paymentSuccess) {
-        const mockPaymentIntent = {
-          id: `pi_${Date.now()}_${Math.random().toString(36).substring(7)}`,
-          status: 'succeeded',
-          amount: priceInfo.amount,
-          currency: 'eur'
+        // Appeler la fonction pour enregistrer la permission après paiement réussi
+        try {
+          await grantPermission(userId, contentType, paymentIntent.id, priceInfo.amount / 100)
+        } catch (grantError) {
+          console.error('Erreur lors de l\'enregistrement de la permission:', grantError)
+          // Ne pas bloquer le succès du paiement si l'enregistrement échoue
         }
-        
-        console.log('✅ Paiement Stripe réussi:', mockPaymentIntent)
-        
+
         onSuccess({
           success: true,
           contentType,
           amount: priceInfo.amount / 100, // Convertir centimes en euros
-          paymentIntentId: mockPaymentIntent.id,
+          paymentIntentId: paymentIntent.id,
           stripePayment: true
         })
+      } else if (paymentIntent.status === 'requires_action') {
+        // Authentification 3D Secure requise
+        throw new Error('Authentification supplémentaire requise. Veuillez réessayer.')
       } else {
-        throw new Error('Votre paiement a été refusé. Veuillez vérifier vos informations de carte.')
+        throw new Error('Paiement non finalisé. Veuillez vérifier votre carte.')
       }
-      
+
     } catch (error) {
       console.error('❌ Erreur paiement Stripe:', error)
       setError(error.message || 'Erreur lors du paiement. Veuillez réessayer.')
