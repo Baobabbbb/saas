@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 // import Confetti from 'react-confetti';
 import './App.css';
+import { supabase } from './supabaseClient';
 import { jsPDF } from 'jspdf';
 import Header from './components/Header';
 import ContentTypeSelector from './components/ContentTypeSelector';
