@@ -6,10 +6,8 @@ import { getContentPrice, grantPermission } from '../services/payment'
 import { supabase } from '../supabaseClient'
 import './PaymentModal.css'
 
-// Utiliser la vraie clé publique Stripe depuis les variables d'environnement
-const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
-  : null
+// Initialiser Stripe avec la clé publique depuis les variables d'environnement
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
 
 const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, priceInfo }) => {
   const stripe = useStripe()
@@ -228,48 +226,6 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
 
 const StripePaymentModal = ({ contentType, userId, userEmail, onSuccess, onCancel }) => {
   const priceInfo = getContentPrice(contentType)
-
-  // Vérifier si Stripe est configuré
-  if (!stripePromise) {
-    return (
-      <div className="payment-modal-overlay">
-        <motion.div
-          className="payment-modal stripe-payment-modal"
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="payment-header">
-            <h2>⚠️ Configuration Stripe requise</h2>
-            <button
-              className="close-button"
-              onClick={onCancel}
-              aria-label="Fermer"
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className="payment-error" style={{ margin: '20px', textAlign: 'center' }}>
-            <span className="error-icon">⚠️</span>
-            <p>Stripe n'est pas encore configuré pour cet environnement.</p>
-            <p>Veuillez contacter l'administrateur pour configurer les clés Stripe.</p>
-          </div>
-
-          <div className="payment-actions">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="cancel-button"
-            >
-              Fermer
-            </button>
-          </div>
-        </motion.div>
-      </div>
-    )
-  }
 
   return (
     <div className="payment-modal-overlay">
