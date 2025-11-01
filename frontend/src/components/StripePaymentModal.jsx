@@ -282,8 +282,15 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
 const StripePaymentModal = ({ contentType, userId, userEmail, onSuccess, onCancel }) => {
   const priceInfo = getContentPrice(contentType)
 
+  const handleOverlayClick = (e) => {
+    // Fermer seulement si on clique sur l'overlay, pas sur la modal elle-même
+    if (e.target === e.currentTarget) {
+      onCancel()
+    }
+  }
+
   return (
-    <div className="payment-modal-overlay">
+    <div className="payment-modal-overlay" onClick={handleOverlayClick}>
       <motion.div
         className="payment-modal stripe-payment-modal"
         initial={{ scale: 0.9, opacity: 0 }}

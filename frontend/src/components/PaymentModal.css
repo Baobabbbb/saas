@@ -269,6 +269,7 @@
 .stripe-payment-modal {
   max-width: 600px;
   width: 95%;
+  border-radius: 20px !important; /* S'assurer que tous les coins sont arrondis */
 }
 
 .payment-form {
