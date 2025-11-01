@@ -19,11 +19,10 @@
   max-width: 500px;
   width: 90%;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow-y: hidden;
   box-shadow: 0 20px 40px rgba(107, 78, 255, 0.2);
   position: relative;
   border: 2px solid #6B4EFF;
-  padding-right: 1rem; /* Espace supplémentaire pour la barre de défilement */
 }
 
 .payment-header {
@@ -270,8 +269,6 @@
   max-width: 600px;
   width: 95%;
   border-radius: 20px !important; /* S'assurer que tous les coins sont arrondis */
-  padding-right: 8px; /* Espace pour la barre de défilement */
-  margin-right: 4px; /* Petit décalage supplémentaire */
 }
 
 .payment-form {
@@ -494,7 +491,7 @@
   .stripe-payment-modal {
     margin: 1rem;
     max-height: 90vh;
-    overflow-y: auto;
+    overflow-y: hidden;
   }
 
   .stripe-payment-modal .payment-actions {
