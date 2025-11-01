@@ -269,11 +269,6 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
           <span className="security-icon">🔒</span>
           <small>Paiement sécurisé par Stripe</small>
         </div>
-        <div className="accepted-cards">
-          <span>💳 Visa</span>
-          <span>💳 Mastercard</span>
-          <span>💳 American Express</span>
-        </div>
       </div>
     </form>
   )
