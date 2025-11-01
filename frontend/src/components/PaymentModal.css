@@ -210,7 +210,8 @@
 }
 
 .cancel-button:hover:not(:disabled) {
-  /* Pas de changement de couleur au survol */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(107, 78, 255, 0.4);
 }
 
 .cancel-button:disabled {
