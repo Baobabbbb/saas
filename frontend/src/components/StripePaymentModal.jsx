@@ -6,19 +6,10 @@ import { getContentPrice, grantPermission } from '../services/payment'
 import { supabase } from '../supabaseClient'
 import './PaymentModal.css'
 
-// Debug : Vérifier les variables d'environnement disponibles
-console.log('🔍 Debug variables Stripe :', {
-  VITE_STRIPE_PUBLISHABLE_KEY: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY,
-  availableEnvVars: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')),
-  allEnvVars: Object.keys(import.meta.env)
-});
-
 // Utiliser la vraie clé publique Stripe depuis les variables d'environnement
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
   : null
-
-console.log('💳 Stripe Promise créé :', stripePromise ? '✅ Oui' : '❌ Non');
 
 const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, priceInfo }) => {
   const stripe = useStripe()
