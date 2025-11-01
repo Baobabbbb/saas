@@ -23,14 +23,34 @@
   box-shadow: 0 20px 40px rgba(107, 78, 255, 0.2);
   position: relative;
   border: 2px solid #6B4EFF;
-  /* Masquer la barre de défilement tout en gardant le défilement */
+  /* Masquer la barre de défilement par défaut */
   scrollbar-width: none; /* Firefox */
+  scrollbar-color: transparent transparent; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
 }
 
-/* Masquer la barre de défilement pour Webkit (Chrome, Safari, Edge) */
+/* Masquer la barre de défilement pour Webkit par défaut */
 .payment-modal::-webkit-scrollbar {
-  display: none;
+  width: 8px;
+  background: transparent;
+}
+
+.payment-modal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.payment-modal::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+}
+
+/* Afficher la barre de défilement au survol */
+.payment-modal:hover::-webkit-scrollbar-thumb {
+  background: rgba(107, 78, 255, 0.3);
+}
+
+.payment-modal:hover {
+  scrollbar-color: rgba(107, 78, 255, 0.3) transparent; /* Firefox */
 }
 
 .payment-header {
@@ -500,14 +520,34 @@
     margin: 1rem;
     max-height: 90vh;
     overflow-y: auto;
-    /* Masquer la barre de défilement tout en gardant le défilement */
+    /* Masquer la barre de défilement par défaut */
     scrollbar-width: none; /* Firefox */
+    scrollbar-color: transparent transparent; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge */
   }
 
-  /* Masquer la barre de défilement pour Webkit (Chrome, Safari, Edge) */
+  /* Masquer la barre de défilement pour Webkit par défaut */
   .stripe-payment-modal::-webkit-scrollbar {
-    display: none;
+    width: 8px;
+    background: transparent;
+  }
+
+  .stripe-payment-modal::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .stripe-payment-modal::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 4px;
+  }
+
+  /* Afficher la barre de défilement au survol */
+  .stripe-payment-modal:hover::-webkit-scrollbar-thumb {
+    background: rgba(107, 78, 255, 0.3);
+  }
+
+  .stripe-payment-modal:hover {
+    scrollbar-color: rgba(107, 78, 255, 0.3) transparent; /* Firefox */
   }
 
   .stripe-payment-modal .payment-actions {
