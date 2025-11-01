@@ -403,6 +403,7 @@
   background: linear-gradient(45deg, #6B4EFF, #8B5CF6);
   color: white;
   border-radius: 8px;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
