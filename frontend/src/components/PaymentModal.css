@@ -20,8 +20,9 @@
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 40px rgba(107, 78, 255, 0.2);
   position: relative;
+  border: 2px solid #6B4EFF;
 }
 
 .payment-header {
@@ -30,9 +31,10 @@
 }
 
 .payment-header h2 {
-  color: #f5f0ff;
+  color: #6B4EFF;
   margin-bottom: 0.5rem;
   font-size: 1.5rem;
+  font-weight: 700;
 }
 
 .payment-header p {
@@ -63,16 +65,17 @@
 
 .price-display {
   text-align: center;
-  background: linear-gradient(135deg, #f5f0ff, #e8f5ff);
+  background: linear-gradient(135deg, #f0e6ff, #e6d4ff);
   padding: 2rem;
   border-radius: 15px;
   margin-bottom: 2rem;
+  border: 2px solid #6B4EFF;
 }
 
 .price-amount {
   font-size: 3rem;
   font-weight: bold;
-  color: #f5f0ff;
+  color: #6B4EFF;
   margin-bottom: 0.5rem;
 }
 
@@ -148,7 +151,7 @@
 }
 
 .payment-button {
-  background: linear-gradient(135deg, #f5f0ff, #8B5CF6);
+  background: linear-gradient(135deg, #6B4EFF, #8B5CF6);
   color: white;
   border: none;
   padding: 1rem 2rem;
@@ -167,7 +170,7 @@
 
 .payment-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(107, 78, 255, 0.3);
+  box-shadow: 0 10px 20px rgba(107, 78, 255, 0.4);
 }
 
 .payment-button:disabled {
@@ -300,7 +303,7 @@
 
 .item-price {
   font-weight: 600;
-  color: #f5f0ff;
+  color: #6B4EFF;
   font-size: 1.1rem;
 }
 
@@ -310,7 +313,7 @@
   align-items: center;
   padding: 1rem 0 0 0;
   margin-top: 0.5rem;
-  border-top: 2px solid #f5f0ff;
+  border-top: 2px solid #6B4EFF;
   font-weight: 700;
 }
 
@@ -321,7 +324,7 @@
 
 .total-amount {
   font-size: 1.3rem;
-  color: #f5f0ff;
+  color: #6B4EFF;
 }
 
 .payment-method {
@@ -343,19 +346,57 @@
 }
 
 .card-element-container:focus-within {
-  border-color: #f5f0ff;
-  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+  border-color: #6B4EFF;
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.2);
+}
+
+.card-element-container.small {
+  padding: 0.875rem;
 }
 
 .card-element {
   background: transparent;
 }
 
+/* Champs de carte individuels */
+.card-field {
+  margin-bottom: 1.5rem;
+}
+
+.card-field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.card-input {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.card-input:focus {
+  outline: none;
+  border-color: #6B4EFF;
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+}
+
+.card-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
 .pay-button {
   flex: 2;
   padding: 0.875rem 1.5rem;
   border: none;
-  background: linear-gradient(45deg, #f5f0ff, #9277FF);
+  background: linear-gradient(45deg, #6B4EFF, #8B5CF6);
   color: white;
   border-radius: 8px;
   font-weight: 600;
@@ -451,13 +492,22 @@
     max-height: 90vh;
     overflow-y: auto;
   }
-  
+
   .stripe-payment-modal .payment-actions {
     flex-direction: column;
   }
-  
+
   .accepted-cards {
     flex-direction: column;
     gap: 0.5rem;
+  }
+
+  .card-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .card-element-container.small {
+    padding: 1rem;
   }
 }

@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { loadStripe } from '@stripe/stripe-js'
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
+import {
+  Elements,
+  CardNumberElement,
+  CardExpiryElement,
+  CardCvcElement,
+  useStripe,
+  useElements
+} from '@stripe/react-stripe-js'
 import { getContentPrice, grantPermission } from '../services/payment'
 import { supabase } from '../supabaseClient'
 import './PaymentModal.css'
@@ -15,6 +22,7 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [clientSecret, setClientSecret] = useState('')
+  const [cardholderName, setCardholderName] = useState('')
 
   // Créer un Payment Intent dès que le composant se charge
   useEffect(() => {
@@ -67,9 +75,9 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
       return
     }
 
-    const cardElement = elements.getElement(CardElement)
-    if (!cardElement) {
-      setError('Élément de carte non trouvé')
+    const cardNumberElement = elements.getElement(CardNumberElement)
+    if (!cardNumberElement) {
+      setError('Élément numéro de carte non trouvé')
       return
     }
 
@@ -84,11 +92,17 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
         amount: priceInfo.amount
       })
 
-      // Confirmer le paiement avec Stripe
+      // Validation du nom du titulaire
+      if (!cardholderName.trim()) {
+        throw new Error('Veuillez saisir le nom du titulaire de la carte')
+      }
+
+      // Confirmer le paiement avec Stripe en utilisant les éléments séparés
       const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
-          card: cardElement,
+          card: cardNumberElement,
           billing_details: {
+            name: cardholderName.trim(),
             email: userEmail,
           },
         },
@@ -166,11 +180,52 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
 
       <div className="payment-method">
         <h3>Informations de paiement</h3>
-        <div className="card-element-container">
-          <CardElement 
-            options={cardElementOptions}
-            className="card-element"
+
+        {/* Nom du titulaire */}
+        <div className="card-field">
+          <label htmlFor="cardholder-name">Nom du titulaire</label>
+          <input
+            id="cardholder-name"
+            type="text"
+            placeholder="Jean Dupont"
+            className="card-input"
+            value={cardholderName}
+            onChange={(e) => setCardholderName(e.target.value)}
+            required
           />
+        </div>
+
+        {/* Numéro de carte */}
+        <div className="card-field">
+          <label>Numéro de carte</label>
+          <div className="card-element-container">
+            <CardNumberElement
+              options={cardElementOptions}
+              className="card-element"
+            />
+          </div>
+        </div>
+
+        {/* Date d'expiration et CVC */}
+        <div className="card-row">
+          <div className="card-field">
+            <label>Date d'expiration</label>
+            <div className="card-element-container small">
+              <CardExpiryElement
+                options={cardElementOptions}
+                className="card-element"
+              />
+            </div>
+          </div>
+          <div className="card-field">
+            <label>Code de sécurité (CVC)</label>
+            <div className="card-element-container small">
+              <CardCvcElement
+                options={cardElementOptions}
+                className="card-element"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
