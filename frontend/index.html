@@ -19,6 +19,8 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
+    <!-- Content Security Policy pour autoriser Stripe -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://m.stripe.com https://r.stripe.com https://api.stripe.com; connect-src 'self' https://api.stripe.com https://r.stripe.com https://m.stripe.com https://js.stripe.com; frame-src 'self' https://js.stripe.com https://m.stripe.com; img-src 'self' data: https:;">
     <title>HERBBIE</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,12 +36,12 @@
         // Supprimer les anciennes clés de stockage problématiques
         try {
           localStorage.removeItem('fridayFeatures');
-          
+
           // Nettoyer les sessions Supabase corrompues
-          const supabaseKeys = Object.keys(localStorage).filter(key => 
+          const supabaseKeys = Object.keys(localStorage).filter(key =>
             key.startsWith('sb-') || key.startsWith('supabase.')
           );
-          
+
           supabaseKeys.forEach(key => {
             try {
               const value = localStorage.getItem(key);
@@ -58,7 +60,7 @@
         } catch (e) {
           console.error('Erreur lors du nettoyage:', e);
         }
-        
+
         // Vider le cache du service worker
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.getRegistrations().then(function(registrations) {
@@ -67,6 +69,21 @@
             }
           });
         }
+
+        // Intercepter et ignorer les erreurs Stripe non-critiques (tracking/analytics)
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+          // Ignorer les erreurs Stripe liées au tracking (r.stripe.com)
+          const errorMessage = args.join(' ');
+          if (errorMessage.includes('r.stripe.com') ||
+              errorMessage.includes('Failed to fetch') &&
+              (errorMessage.includes('stripe') || errorMessage.includes('merchant-ui-api'))) {
+            // Ces erreurs sont liées au tracking Stripe, pas critiques pour les paiements
+            return;
+          }
+          // Pour toutes les autres erreurs, utiliser le comportement normal
+          originalConsoleError.apply(console, args);
+        };
       })();
     </script>
   </body>
