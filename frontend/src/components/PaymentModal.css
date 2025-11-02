@@ -44,27 +44,16 @@
   border-radius: 4px;
 }
 
-/* TEST TEMPORAIRE - scrollbar toujours visible */
-.payment-modal::-webkit-scrollbar-thumb,
-.stripe-payment-modal::-webkit-scrollbar-thumb {
-  background: rgba(107, 78, 255, 0.8) !important; /* Visible tout le temps pour test */
-}
-
-.payment-modal,
-.stripe-payment-modal {
-  scrollbar-color: rgba(107, 78, 255, 0.8) transparent !important; /* Firefox visible */
-}
-
-/* Afficher la barre de défilement au survol - COMMENTÉ TEMPORAIREMENT */
-/*
-.payment-modal:hover::-webkit-scrollbar-thumb {
+/* Afficher la barre de défilement au survol */
+.payment-modal:hover::-webkit-scrollbar-thumb,
+.stripe-payment-modal:hover::-webkit-scrollbar-thumb {
   background: rgba(107, 78, 255, 0.3);
 }
 
-.payment-modal:hover {
-  scrollbar-color: rgba(107, 78, 255, 0.3) transparent;
+.payment-modal:hover,
+.stripe-payment-modal:hover {
+  scrollbar-color: rgba(107, 78, 255, 0.3) transparent; /* Firefox */
 }
-*/
 
 .payment-header {
   text-align: center;
@@ -310,8 +299,6 @@
   max-width: 600px;
   width: 95%;
   border-radius: 20px !important; /* S'assurer que tous les coins sont arrondis */
-  /* Test temporaire - scrollbar toujours visible */
-  overflow-y: scroll !important;
 }
 
 .payment-form {
