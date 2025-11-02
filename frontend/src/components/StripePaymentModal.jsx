@@ -264,6 +264,24 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
         </button>
       </div>
 
+      {/* CONTENU TEMPORAIRE POUR FORCER LE SCROLL */}
+      <div style={{padding: '2rem', background: '#f0f0f0', margin: '2rem 0', borderRadius: '10px'}}>
+        <h4>Contenu de test pour scrollbar</h4>
+        <p>Cette section a été ajoutée temporairement pour tester la scrollbar.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+        <p>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+        <p>Nisi ut aliquip ex ea commodo consequat.</p>
+        <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.</p>
+        <p>Eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.</p>
+        <p>Sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <p>Plus de contenu pour s'assurer que la modal dépasse la hauteur maximale.</p>
+        <p>Encore plus de lignes pour forcer le défilement.</p>
+        <p>Continuons avec du texte factice.</p>
+        <p>Cette modal devrait maintenant nécessiter un scroll vertical.</p>
+        <p>Test de la scrollbar avec du contenu additionnel.</p>
+      </div>
+
       <div className="payment-security">
         <div className="security-info">
           <span className="security-icon">🔒</span>
