@@ -19,7 +19,7 @@
   max-width: 500px;
   width: 90%;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow-y: scroll; /* Force l'affichage permanent de la scrollbar */
   box-shadow: 0 20px 40px rgba(107, 78, 255, 0.2);
   position: relative;
   border: 2px solid #6B4EFF;
@@ -519,7 +519,7 @@
   .stripe-payment-modal {
     margin: 1rem;
     max-height: 90vh;
-    overflow-y: auto;
+    overflow-y: scroll; /* Force l'affichage permanent de la scrollbar sur mobile */
     /* Masquer la barre de défilement par défaut */
     scrollbar-width: none; /* Firefox */
     scrollbar-color: transparent transparent; /* Firefox */
