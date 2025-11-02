@@ -18,7 +18,7 @@
   padding: 2rem;
   max-width: 500px;
   width: 90%;
-  max-height: 70vh; /* Réduit pour forcer le défilement */
+  max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 40px rgba(107, 78, 255, 0.2);
   position: relative;
@@ -46,20 +46,11 @@
 
 /* Afficher la barre de défilement au survol */
 .payment-modal:hover::-webkit-scrollbar-thumb {
-  background: rgba(107, 78, 255, 0.5) !important; /* Plus visible pour le test */
+  background: rgba(107, 78, 255, 0.3);
 }
 
 .payment-modal:hover {
-  scrollbar-color: rgba(107, 78, 255, 0.5) transparent !important; /* Firefox - plus visible */
-}
-
-/* Test temporaire - scrollbar toujours visible */
-.payment-modal::-webkit-scrollbar-thumb {
-  background: rgba(107, 78, 255, 0.8) !important; /* Test - scrollbar toujours visible */
-}
-
-.payment-modal {
-  scrollbar-color: rgba(107, 78, 255, 0.8) transparent !important; /* Test Firefox */
+  scrollbar-color: rgba(107, 78, 255, 0.3) transparent; /* Firefox */
 }
 
 .payment-header {
@@ -527,7 +518,7 @@
 @media (max-width: 768px) {
   .stripe-payment-modal {
     margin: 1rem;
-    max-height: 80vh; /* Réduit pour forcer le défilement sur mobile */
+    max-height: 90vh;
     overflow-y: auto;
     /* Masquer la barre de défilement par défaut */
     scrollbar-width: none; /* Firefox */
