@@ -44,14 +44,27 @@
   border-radius: 4px;
 }
 
-/* Afficher la barre de défilement au survol */
+/* TEST TEMPORAIRE - scrollbar toujours visible */
+.payment-modal::-webkit-scrollbar-thumb,
+.stripe-payment-modal::-webkit-scrollbar-thumb {
+  background: rgba(107, 78, 255, 0.8) !important; /* Visible tout le temps pour test */
+}
+
+.payment-modal,
+.stripe-payment-modal {
+  scrollbar-color: rgba(107, 78, 255, 0.8) transparent !important; /* Firefox visible */
+}
+
+/* Afficher la barre de défilement au survol - COMMENTÉ TEMPORAIREMENT */
+/*
 .payment-modal:hover::-webkit-scrollbar-thumb {
   background: rgba(107, 78, 255, 0.3);
 }
 
 .payment-modal:hover {
-  scrollbar-color: rgba(107, 78, 255, 0.3) transparent; /* Firefox */
+  scrollbar-color: rgba(107, 78, 255, 0.3) transparent;
 }
+*/
 
 .payment-header {
   text-align: center;
@@ -297,6 +310,8 @@
   max-width: 600px;
   width: 95%;
   border-radius: 20px !important; /* S'assurer que tous les coins sont arrondis */
+  /* Test temporaire - scrollbar toujours visible */
+  overflow-y: scroll !important;
 }
 
 .payment-form {
@@ -519,35 +534,6 @@
   .stripe-payment-modal {
     margin: 1rem;
     max-height: 90vh;
-    overflow-y: scroll; /* Force l'affichage permanent de la scrollbar sur mobile */
-    /* Masquer la barre de défilement par défaut */
-    scrollbar-width: none; /* Firefox */
-    scrollbar-color: transparent transparent; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
-  }
-
-  /* Masquer la barre de défilement pour Webkit par défaut */
-  .stripe-payment-modal::-webkit-scrollbar {
-    width: 8px;
-    background: transparent;
-  }
-
-  .stripe-payment-modal::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .stripe-payment-modal::-webkit-scrollbar-thumb {
-    background: transparent;
-    border-radius: 4px;
-  }
-
-  /* Afficher la barre de défilement au survol */
-  .stripe-payment-modal:hover::-webkit-scrollbar-thumb {
-    background: rgba(107, 78, 255, 0.3);
-  }
-
-  .stripe-payment-modal:hover {
-    scrollbar-color: rgba(107, 78, 255, 0.3) transparent; /* Firefox */
   }
 
   .stripe-payment-modal .payment-actions {
