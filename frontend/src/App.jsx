@@ -405,7 +405,6 @@ function App() {
     }
 
     // Si utilisateur normal, vérifier les permissions via Edge Function
-    console.log('🔍 Vérification des permissions pour utilisateur normal');
     try {
       const { data: permissionData, error: permissionError } = await supabase.functions.invoke('check-permission', {
         body: {
@@ -421,17 +420,13 @@ function App() {
         return;
       }
 
-      console.log('📋 Résultat vérification permission:', permissionData);
-
       if (!permissionData.hasPermission) {
         // Ouvrir directement la modal de paiement
-        console.log('💳 Ouverture modal de paiement');
         setPaymentContentType(contentType);
         setShowPaymentModal(true);
         return;
       } else {
         // Permission accordée, génération directe
-        console.log('✅ Permission validée - génération autorisée');
         startGeneration();
       }
     } catch (error) {

@@ -28,13 +28,6 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
   useEffect(() => {
     const createPaymentIntent = async () => {
       try {
-        console.log('🔄 Création Payment Intent pour:', {
-          contentType,
-          amount: priceInfo.amount,
-          userId,
-          userEmail
-        })
-
         // Appeler l'Edge Function Supabase pour créer le Payment Intent
         const { data, error } = await supabase.functions.invoke('create-payment', {
           body: {
@@ -53,7 +46,6 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
           throw new Error('Client secret manquant dans la réponse')
         }
 
-        console.log('✅ Payment Intent créé avec succès')
         setClientSecret(data.client_secret)
 
       } catch (error) {
