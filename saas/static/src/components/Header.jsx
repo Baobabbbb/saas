@@ -64,6 +64,7 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, user
           onLogout={onLogout}
           onRegister={onRegister}
           onOpenHistory={onOpenHistory}
+          onOpenSubscription={onOpenSubscription}
         />
       </div>
     </header>
