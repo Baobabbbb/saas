@@ -1852,6 +1852,9 @@ const downloadPDF = async (title, content) => {
         userEmail={user?.email}
       />
     )}
+
+    {/* Debug: Afficher l'état de showSubscriptionModal */}
+    {console.log('showSubscriptionModal:', showSubscriptionModal, 'user:', user?.id)}
     {/* Footer avec mentions légales et contact */}
     <Footer onLegalClick={(section) => {
       setShowLegalPages(true);

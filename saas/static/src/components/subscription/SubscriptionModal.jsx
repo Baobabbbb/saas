@@ -22,6 +22,7 @@ const stripePromise = (import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY &&
   : Promise.resolve(null);
 
 const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
+  console.log('SubscriptionPlans rendu avec currentSubscription:', currentSubscription);
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -464,6 +465,8 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
 };
 
 const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
+  console.log('SubscriptionModal rendu avec isOpen:', isOpen, 'userId:', userId, 'userEmail:', userEmail);
+
   const [currentStep, setCurrentStep] = useState('plans'); // 'plans', 'payment', 'management'
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [currentSubscription, setCurrentSubscription] = useState(null);
