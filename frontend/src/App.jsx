@@ -29,6 +29,8 @@ import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
 import { checkPaymentPermission, hasFreeAccess, getContentPrice } from './services/payment';
 import StripePaymentModal from './components/StripePaymentModal';
+import SubscriptionModal from './components/subscription/SubscriptionModal';
+import TokenDisplay from './components/subscription/TokenDisplay';
 import Footer from './components/Footer';
 import LegalPages from './components/LegalPages';
 import ShootingStars from './components/ShootingStars';
@@ -172,6 +174,9 @@ function App() {
   const [userRole, setUserRole] = useState('user');
   const [isAdmin, setIsAdmin] = useState(false);
   const [buttonText, setButtonText] = useState('Générer');
+
+  // États pour les abonnements
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   // États pour les pages légales
   const [showLegalPages, setShowLegalPages] = useState(false);
@@ -822,7 +827,47 @@ function App() {
       }
 
     // setTimeout(() => setShowConfetti(false), 3000);
-    
+
+    // 🔄 DÉDUCTION DES TOKENS APRÈS GÉNÉRATION RÉUSSIE
+    // (Seulement si l'utilisateur n'a pas d'accès gratuit)
+    if (!userHasFreeAccess && generatedContent) {
+      try {
+        const { calculateTokenCost, deductTokens } = await import('./services/payment');
+
+        // Calculer les options pour le coût en tokens
+        let tokenOptions = {};
+        if (contentType === 'animation') {
+          tokenOptions.duration = selectedDuration;
+        } else if (contentType === 'comic' || contentType === 'bd') {
+          tokenOptions.pages = numPages || 1;
+        }
+        if (contentType === 'audio' || (contentType === 'histoire' && selectedVoice)) {
+          tokenOptions.voice = selectedVoice;
+        }
+
+        // Obtenir le coût en tokens
+        const tokensRequired = calculateTokenCost(contentType, tokenOptions);
+
+        // Déduire les tokens
+        const deductionResult = await deductTokens(
+          user.id,
+          contentType,
+          tokensRequired,
+          {
+            ...tokenOptions,
+            transactionId: `gen_${Date.now()}_${contentType}`
+          }
+        );
+
+        console.log('✅ Tokens déduits avec succès:', deductionResult);
+
+      } catch (tokenError) {
+        console.error('❌ Erreur lors de la déduction des tokens:', tokenError);
+        // Ne pas bloquer la génération si la déduction échoue
+        // (pour éviter de casser l'expérience utilisateur)
+      }
+    }
+
     // Arrêter l'animation de chargement pour les autres types de contenu
     // (pour les comptines, c'est géré par pollTaskStatus)
     setIsGenerating(false);
@@ -1113,6 +1158,8 @@ const downloadPDF = async (title, content) => {
     <Header
       isLoggedIn={!!user}
       onOpenHistory={() => setShowHistory(true)}
+      userId={user?.id}
+      onOpenSubscription={() => setShowSubscriptionModal(true)}
     />
 
     {/* 🌟 Étoiles filantes pour dynamiser le fond */}
@@ -1788,6 +1835,15 @@ const downloadPDF = async (title, content) => {
         onCancel={() => {
           setShowPaymentModal(false);
         }}
+      />
+    )}
+
+    {showSubscriptionModal && (
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        userId={user?.id}
+        userEmail={user?.email}
       />
     )}
     {/* Footer avec mentions légales et contact */}

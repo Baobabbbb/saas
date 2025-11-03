@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { contentType, userId, userEmail } = await req.json();
+    const { contentType, userId, userEmail, selectedDuration, numPages, selectedVoice } = await req.json();
 
     if (!userId || !contentType) {
       return new Response(JSON.stringify({
@@ -75,7 +75,105 @@ serve(async (req) => {
       });
     }
 
-    // Vérifier les permissions payées actives
+    // Vérifier si l'utilisateur a un abonnement actif
+    const { data: subscription, error: subError } = await supabase
+      .from('subscriptions')
+      .select(`
+        *,
+        subscription_plans!inner(*),
+        token_costs!inner(content_type, tokens_required)
+      `)
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .eq('token_costs.content_type', contentType)
+      .lte('current_period_start', new Date().toISOString())
+      .gte('current_period_end', new Date().toISOString())
+      .single();
+
+    if (subscription && !subError) {
+      // Calculer le coût en tokens selon le contenu
+      let tokensRequired = subscription.token_costs[0]?.tokens_required || 1;
+
+      // Ajustements pour les animations selon la durée
+      if (contentType === 'animation') {
+        const duration = selectedDuration || 30; // durée en secondes
+        if (duration === 60) tokensRequired = Math.ceil(tokensRequired * 1.5);
+        else if (duration === 120) tokensRequired = Math.ceil(tokensRequired * 2.5);
+        else if (duration === 180) tokensRequired = Math.ceil(tokensRequired * 4);
+        else if (duration === 240) tokensRequired = Math.ceil(tokensRequired * 5);
+        else if (duration === 300) tokensRequired = Math.ceil(tokensRequired * 6);
+      }
+
+      // Ajustements pour les BD selon le nombre de pages
+      if ((contentType === 'bd' || contentType === 'comic') && numPages) {
+        tokensRequired = tokensRequired * numPages;
+      }
+
+      // Vérifier si l'utilisateur a assez de tokens
+      if (subscription.tokens_remaining >= tokensRequired) {
+        return new Response(JSON.stringify({
+          hasPermission: true,
+          reason: 'subscription_active',
+          userRole: 'subscriber',
+          subscription: subscription,
+          tokensRequired,
+          tokensRemaining: subscription.tokens_remaining,
+          contentType,
+          userId
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } else {
+        return new Response(JSON.stringify({
+          hasPermission: false,
+          reason: 'insufficient_tokens',
+          userRole: 'subscriber',
+          subscription: subscription,
+          tokensRequired,
+          tokensRemaining: subscription.tokens_remaining,
+          contentType,
+          userId
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Vérifier si l'utilisateur a des tokens payés non expirés
+    const { data: userTokens, error: tokensError } = await supabase
+      .from('user_tokens')
+      .select('*')
+      .eq('user_id', userId)
+      .is('used_at', null)
+      .or('expires_at.is.null,expires_at.gte.' + new Date().toISOString())
+      .order('created_at', { ascending: false });
+
+    if (userTokens && userTokens.length > 0) {
+      // Calculer le total des tokens disponibles
+      const totalTokens = userTokens.reduce((sum, token) => sum + token.tokens_amount, 0);
+
+      // Coût estimé pour pay-per-use (approximation)
+      let estimatedTokensCost = 1; // Par défaut
+      if (contentType === 'animation') estimatedTokensCost = 10;
+      else if (contentType === 'comptine') estimatedTokensCost = 5;
+      else if (contentType === 'bd' || contentType === 'comic') estimatedTokensCost = 4;
+
+      if (totalTokens >= estimatedTokensCost) {
+        return new Response(JSON.stringify({
+          hasPermission: true,
+          reason: 'tokens_available',
+          userRole: 'user',
+          totalTokens,
+          estimatedTokensCost,
+          contentType,
+          userId
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Vérifier les permissions payées actives (système legacy)
     const { data: permission, error: permError } = await supabase
       .from('generation_permissions')
       .select('*')
