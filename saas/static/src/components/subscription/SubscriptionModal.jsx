@@ -15,7 +15,11 @@ import {
   getUserTokens
 } from '../../services/payment';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const stripePromise = (import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY &&
+  typeof import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY === 'string' &&
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY.length > 0)
+  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+  : Promise.resolve(null);
 
 const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
   const [plans, setPlans] = useState([]);
@@ -172,6 +176,26 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
   const [loading, setLoading] = useState(false);
   const [cardholderName, setCardholderName] = useState('');
   const [error, setError] = useState(null);
+
+  // Vérifier si Stripe est disponible
+  if (!stripe) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-red-600 font-medium mb-4">
+          Configuration Stripe manquante
+        </div>
+        <div className="text-gray-600 text-sm">
+          Le système de paiement n'est pas encore configuré. Veuillez réessayer plus tard.
+        </div>
+        <button
+          onClick={onCancel}
+          className="mt-4 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors duration-200"
+        >
+          Fermer
+        </button>
+      </div>
+    );
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault();
