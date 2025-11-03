@@ -33,7 +33,11 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
           body: {
             contentType,
             userId,
-            userEmail
+            userEmail,
+            amount: priceInfo.amount,
+            selectedDuration,
+            numPages,
+            selectedVoice
           }
         })
 
@@ -266,8 +270,26 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
   )
 }
 
-const StripePaymentModal = ({ contentType, userId, userEmail, onSuccess, onCancel }) => {
-  const priceInfo = getContentPrice(contentType)
+const StripePaymentModal = ({
+  contentType,
+  selectedDuration,
+  numPages,
+  selectedVoice,
+  userId,
+  userEmail,
+  onSuccess,
+  onCancel
+}) => {
+  // Préparer les options selon le type de contenu
+  let options = {};
+
+  if (contentType === 'animation') {
+    options.duration = selectedDuration;
+  } else if (contentType === 'comic' || contentType === 'bd') {
+    options.pages = numPages || 1; // Par défaut 1 page si non défini
+  }
+
+  const priceInfo = getContentPrice(contentType, options)
 
   const handleOverlayClick = (e) => {
     // Fermer seulement si on clique sur l'overlay, pas sur la modal elle-même

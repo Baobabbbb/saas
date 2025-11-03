@@ -385,7 +385,16 @@ function App() {
     if (adminStatus) {
       setButtonText('Générer Gratuitement');
     } else {
-      const priceInfo = getContentPrice(contentType);
+      // Préparer les options selon le type de contenu
+      let options = {};
+
+      if (contentType === 'animation') {
+        options.duration = selectedDuration;
+      } else if (contentType === 'comic' || contentType === 'bd') {
+        options.pages = numPages || 1; // Par défaut 1 page si non défini
+      }
+
+      const priceInfo = getContentPrice(contentType, options);
       setButtonText(`Acheter pour ${priceInfo.display}`);
     }
   };
@@ -1764,6 +1773,9 @@ const downloadPDF = async (title, content) => {
     {showPaymentModal && (
       <StripePaymentModal
         contentType={paymentContentType}
+        selectedDuration={selectedDuration}
+        numPages={numPages}
+        selectedVoice={selectedVoice}
         userId={user?.id}
         userEmail={user?.email}
         onSuccess={(result) => {

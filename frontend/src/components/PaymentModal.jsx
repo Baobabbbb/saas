@@ -3,11 +3,29 @@ import { motion } from 'framer-motion'
 import { createPaymentSession, getContentPrice } from '../services/payment'
 import './PaymentModal.css'
 
-const PaymentModal = ({ contentType, userId, userEmail, onSuccess, onCancel }) => {
+const PaymentModal = ({
+  contentType,
+  selectedDuration,
+  numPages,
+  selectedVoice,
+  userId,
+  userEmail,
+  onSuccess,
+  onCancel
+}) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  
-  const priceInfo = getContentPrice(contentType)
+
+  // Préparer les options selon le type de contenu
+  let options = {};
+
+  if (contentType === 'animation') {
+    options.duration = selectedDuration;
+  } else if (contentType === 'comic' || contentType === 'bd') {
+    options.pages = numPages || 1; // Par défaut 1 page si non défini
+  }
+
+  const priceInfo = getContentPrice(contentType, options)
   
   const handlePayment = async () => {
     setLoading(true)

@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { contentType, userId, userEmail } = await req.json();
+    const { contentType, userId, userEmail, amount, selectedDuration, numPages, selectedVoice } = await req.json();
 
     // Validation des paramètres
     if (!contentType || !userId) {
@@ -31,20 +31,12 @@ serve(async (req) => {
       httpClient: Stripe.createFetchHttpClient(),
     });
 
-    // Prix par contenu (en centimes)
-    const prices = {
-      animation: 499,    // 4.99€
-      coloring: 199,    // 1.99€
-      comic: 299,       // 2.99€
-      story: 399,       // 3.99€
-      rhyme: 249        // 2.49€
-    };
-
-    const amount = prices[contentType] || 299;
+    // Utiliser le montant calculé côté frontend (plus flexible pour gérer durées/pages)
+    const finalAmount = amount || 49; // 0.49€ par défaut si pas spécifié
 
     // Créer un Payment Intent avec Stripe
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount,
+      amount: finalAmount,
       currency: 'eur',
       automatic_payment_methods: {
         enabled: true,
@@ -57,12 +49,12 @@ serve(async (req) => {
       receipt_email: userEmail,
     });
 
-    console.log(`Payment Intent créé pour ${userEmail}: ${paymentIntent.id}, montant: ${amount} centimes`);
+    console.log(`Payment Intent créé pour ${userEmail}: ${paymentIntent.id}, montant: ${finalAmount} centimes`);
 
     return new Response(JSON.stringify({
       client_secret: paymentIntent.client_secret,
       payment_intent_id: paymentIntent.id,
-      amount: amount,
+      amount: finalAmount,
       currency: 'eur',
       contentType,
       userId,
