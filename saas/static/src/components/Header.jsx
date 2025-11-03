@@ -47,11 +47,6 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, user
       </div>
       
       <div className="user-account-container">
-        {isLoggedIn && userId && (
-          <div className="flex items-center mr-4">
-            <TokenDisplay userId={userId} compact={true} />
-          </div>
-        )}
         <UserAccount
           isLoggedIn={isLoggedIn}
           onLogin={onLogin}
