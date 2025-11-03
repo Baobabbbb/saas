@@ -514,6 +514,8 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
 
   if (!isOpen) return null;
 
+  console.log('SubscriptionModal RENDU FINAL - currentStep:', currentStep, 'loading:', loading);
+
   return (
     <AnimatePresence>
       <motion.div
@@ -521,13 +523,19 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }} // Forcer la visibilité temporairement
       >
         <motion.div
           className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(107, 78, 255, 0.3) transparent' }}
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(107, 78, 255, 0.3) transparent',
+            backgroundColor: 'white', // Forcer le fond blanc
+            border: '2px solid red' // Bordure rouge pour voir le modal
+          }}
         >
           <div className="p-6 md:p-8">
             <div className="flex justify-between items-center mb-6">
