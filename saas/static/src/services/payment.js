@@ -3,28 +3,14 @@ import { supabase } from '../supabaseClient'
 // Vérifier si l'utilisateur a la permission (admin, abonnement ou payé)
 export const checkPaymentPermission = async (contentType, userId, userEmail, options = {}) => {
   try {
-    // Simulation temporaire basée sur l'email
-    if (userEmail === 'fredagathe77@gmail.com') {
-      return {
-        hasPermission: true,
-        reason: 'admin_access',
-        userRole: 'admin',
-        isAdmin: true
-      }
-    }
-
-    // Pour les autres utilisateurs, vérifier dans la vraie table profiles
+    // Vérifier d'abord le rôle admin
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', userId)
       .single()
 
-    if (profileError) {
-      // Erreur silencieuse - pas critique pour la vérification
-    }
-
-    if (profile?.role === 'admin' || profile?.role === 'free') {
+    if (!profileError && (profile?.role === 'admin' || profile?.role === 'free')) {
       return {
         hasPermission: true,
         reason: profile?.role === 'admin' ? 'admin_access' : 'free_access',
@@ -33,7 +19,7 @@ export const checkPaymentPermission = async (contentType, userId, userEmail, opt
       }
     }
 
-    // Utiliser la nouvelle fonction Edge pour vérifier les permissions avec tokens
+    // Utiliser la fonction Edge check-permission pour vérifier les permissions avec tokens/abonnements
     const { data: permissionData, error: permError } = await supabase.functions.invoke('check-permission', {
       body: {
         contentType,
@@ -47,12 +33,8 @@ export const checkPaymentPermission = async (contentType, userId, userEmail, opt
 
     if (permError) {
       console.error('Erreur check-permission:', permError);
-      return {
-        hasPermission: false,
-        reason: 'error',
-        error: permError,
-        isAdmin: false
-      };
+      // Fallback vers l'ancien système si la fonction Edge ne fonctionne pas
+      return await checkLegacyPermissions(contentType, userId);
     }
 
     return {
@@ -60,6 +42,34 @@ export const checkPaymentPermission = async (contentType, userId, userEmail, opt
       isAdmin: false
     };
 
+  } catch (error) {
+    console.error('Erreur checkPaymentPermission:', error);
+    return { hasPermission: false, reason: 'error', error, isAdmin: false }
+  }
+}
+
+// Fonction de fallback vers l'ancien système de permissions
+const checkLegacyPermissions = async (contentType, userId) => {
+  try {
+    // Vérifier les permissions payées actives (système legacy)
+    const { data: permission, error: permError } = await supabase
+      .from('generation_permissions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('content_type', contentType)
+      .eq('status', 'completed')
+      .eq('is_active', true)
+      .single();
+
+    const hasPermission = !!permission && !permError;
+
+    return {
+      hasPermission,
+      reason: hasPermission ? 'payment_verified' : 'payment_required',
+      userRole: 'user',
+      permission: permission || null,
+      isAdmin: false
+    };
   } catch (error) {
     return { hasPermission: false, reason: 'error', error, isAdmin: false }
   }
@@ -218,7 +228,15 @@ export const grantPermission = async (userId, contentType, paymentIntentId, amou
 // Obtenir tous les plans d'abonnement disponibles
 export const getSubscriptionPlans = async () => {
   try {
-    // Pour l'instant, retourner les plans en dur jusqu'à ce que la fonction soit déployée
+    const { data, error } = await supabase.functions.invoke('manage-subscription', {
+      body: { action: 'get_plans' }
+    });
+
+    if (error) throw error;
+    return data.plans || [];
+  } catch (error) {
+    console.error('Erreur récupération plans:', error);
+    // Fallback avec les plans par défaut en cas d'erreur
     return [
       {
         id: 1,
@@ -249,36 +267,34 @@ export const getSubscriptionPlans = async () => {
         tokens_allocated: 1200
       }
     ];
-
-    // TODO: Activer quand la fonction Edge sera déployée
-    // const { data, error } = await supabase.functions.invoke('manage-subscription', {
-    //   body: { action: 'get_plans' }
-    // });
-    // if (error) throw error;
-    // return data.plans || [];
-  } catch (error) {
-    console.error('Erreur récupération plans:', error);
-    return [];
   }
 };
 
 // Obtenir l'abonnement actif de l'utilisateur
 export const getUserSubscription = async (userId) => {
   try {
-    // SIMULATION COMPLÈTE - Retourner toujours null pour éviter les erreurs
-    // TODO: Activer quand les fonctions Edge seront déployées
-    console.log('Mode simulation: pas d\'abonnement réel pour user', userId);
-    return null;
+    const { data, error } = await supabase.functions.invoke('manage-subscription', {
+      body: { action: 'get_subscription', userId }
+    });
 
-    // CODE RÉEL (à activer plus tard) :
-    // const { data, error } = await supabase
-    //   .from('subscriptions')
-    //   .select(`*, subscription_plans(*)`)
-    //   .eq('user_id', userId)
-    //   .eq('status', 'active')
-    //   .single();
-    // if (error && error.code !== 'PGRST116') return null;
-    // return data || null;
+    if (error) {
+      console.error('Erreur fonction manage-subscription:', error);
+      // Fallback : vérifier directement dans la base
+      const { data: directData, error: directError } = await supabase
+        .from('subscriptions')
+        .select('*, subscription_plans(*)')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .single();
+
+      if (directError && directError.code !== 'PGRST116') {
+        console.error('Erreur récupération abonnement direct:', directError);
+        return null;
+      }
+      return directData || null;
+    }
+
+    return data.subscription;
   } catch (error) {
     console.error('Erreur récupération abonnement:', error);
     return null;
@@ -288,39 +304,18 @@ export const getUserSubscription = async (userId) => {
 // Créer un nouvel abonnement
 export const createSubscription = async (planId, userId, paymentMethodId, userEmail) => {
   try {
-    // Pour l'instant, simuler la création d'abonnement
-    // TODO: Remplacer par l'appel réel quand la fonction Edge sera déployée
-    console.log('Simulation création abonnement:', { planId, userId, paymentMethodId, userEmail });
+    const { data, error } = await supabase.functions.invoke('manage-subscription', {
+      body: {
+        action: 'create_subscription',
+        planId,
+        userId,
+        paymentMethodId,
+        userEmail
+      }
+    });
 
-    // Simuler une réponse réussie pour éviter de casser l'interface
-    return {
-      success: true,
-      subscription: {
-        id: 'simulated_' + Date.now(),
-        user_id: userId,
-        plan_id: planId,
-        status: 'active',
-        tokens_remaining: 50, // valeur par défaut
-        subscription_plans: {
-          name: 'Plan simulé',
-          price_monthly: 499
-        }
-      },
-      clientSecret: 'simulated_client_secret'
-    };
-
-    // TODO: Activer quand la fonction Edge sera déployée
-    // const { data, error } = await supabase.functions.invoke('manage-subscription', {
-    //   body: {
-    //     action: 'create_subscription',
-    //     planId,
-    //     userId,
-    //     paymentMethodId,
-    //     userEmail
-    //   }
-    // });
-    // if (error) throw error;
-    // return data;
+    if (error) throw error;
+    return data;
   } catch (error) {
     console.error('Erreur création abonnement:', error);
     throw error;
@@ -330,20 +325,12 @@ export const createSubscription = async (planId, userId, paymentMethodId, userEm
 // Annuler un abonnement
 export const cancelSubscription = async (userId) => {
   try {
-    // Pour l'instant, simuler l'annulation
-    console.log('Simulation annulation abonnement pour user:', userId);
+    const { data, error } = await supabase.functions.invoke('manage-subscription', {
+      body: { action: 'cancel_subscription', userId }
+    });
 
-    return {
-      success: true,
-      message: 'Abonnement annulé (simulation)'
-    };
-
-    // TODO: Activer quand la fonction Edge sera déployée
-    // const { data, error } = await supabase.functions.invoke('manage-subscription', {
-    //   body: { action: 'cancel_subscription', userId }
-    // });
-    // if (error) throw error;
-    // return data;
+    if (error) throw error;
+    return data;
   } catch (error) {
     console.error('Erreur annulation abonnement:', error);
     throw error;
@@ -353,38 +340,20 @@ export const cancelSubscription = async (userId) => {
 // Déduire des tokens après utilisation
 export const deductTokens = async (userId, contentType, tokensUsed, options = {}) => {
   try {
-    // Pour l'instant, simuler la déduction de tokens
-    // TODO: Remplacer par l'appel réel quand la fonction Edge sera déployée
-    console.log('Simulation déduction tokens:', {
-      userId,
-      contentType,
-      tokensUsed,
-      options
+    const { data, error } = await supabase.functions.invoke('deduct-tokens', {
+      body: {
+        userId,
+        contentType,
+        tokensUsed,
+        selectedDuration: options.duration,
+        numPages: options.pages,
+        selectedVoice: options.voice,
+        transactionId: options.transactionId || `txn_${Date.now()}`
+      }
     });
 
-    // Simuler une réponse réussie
-    return {
-      success: true,
-      type: 'simulation',
-      tokensDeducted: tokensUsed,
-      tokensRemaining: 50, // valeur simulée
-      message: 'Tokens déduits (simulation)'
-    };
-
-    // TODO: Activer quand la fonction Edge sera déployée
-    // const { data, error } = await supabase.functions.invoke('deduct-tokens', {
-    //   body: {
-    //     userId,
-    //     contentType,
-    //     tokensUsed,
-    //     selectedDuration: options.duration,
-    //     numPages: options.pages,
-    //     selectedVoice: options.voice,
-    //     transactionId: options.transactionId || `txn_${Date.now()}`
-    //   }
-    // });
-    // if (error) throw error;
-    // return data;
+    if (error) throw error;
+    return data;
   } catch (error) {
     console.error('Erreur déduction tokens:', error);
     throw error;
@@ -394,27 +363,25 @@ export const deductTokens = async (userId, contentType, tokensUsed, options = {}
 // Obtenir les tokens disponibles de l'utilisateur
 export const getUserTokens = async (userId) => {
   try {
-    // SIMULATION COMPLÈTE - Retourner des valeurs par défaut
-    // TODO: Activer quand la table user_tokens sera créée
-    console.log('Mode simulation: tokens simulés pour user', userId);
-    return { totalTokens: 0, tokens: [] };
+    const { data: tokens, error } = await supabase
+      .from('user_tokens')
+      .select('*')
+      .eq('user_id', userId)
+      .is('used_at', null)
+      .or('expires_at.is.null,expires_at.gte.' + new Date().toISOString())
+      .order('created_at', { ascending: false });
 
-    // CODE RÉEL (à activer plus tard) :
-    // const { data: tokens, error } = await supabase
-    //   .from('user_tokens')
-    //   .select('*')
-    //   .eq('user_id', userId)
-    //   .is('used_at', null)
-    //   .or('expires_at.is.null,expires_at.gte.' + new Date().toISOString())
-    //   .order('created_at', { ascending: false });
-    //
-    // if (error) {
-    //   if (error.code === '42P01') return { totalTokens: 0, tokens: [] };
-    //   throw error;
-    // }
-    //
-    // const totalTokens = tokens?.reduce((sum, token) => sum + (token.tokens_amount || 0), 0) || 0;
-    // return { totalTokens, tokens: tokens || [] };
+    if (error) {
+      // Si la table n'existe pas encore, retourner des valeurs par défaut
+      if (error.code === '42P01') {
+        console.log('Table user_tokens pas encore créée, utilisation des valeurs par défaut');
+        return { totalTokens: 0, tokens: [] };
+      }
+      throw error;
+    }
+
+    const totalTokens = tokens?.reduce((sum, token) => sum + (token.tokens_amount || 0), 0) || 0;
+    return { totalTokens, tokens: tokens || [] };
   } catch (error) {
     console.error('Erreur récupération tokens:', error);
     return { totalTokens: 0, tokens: [] };
