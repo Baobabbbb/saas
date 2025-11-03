@@ -1,0 +1,401 @@
+/* Variables pour cohérence avec les autres composants */
+:root {
+  --primary: #f5f0ff;
+  --text: #333;
+}
+
+.coloring-selector {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.coloring-selector h3 {
+  font-size: 1.2rem;
+  color: var(--primary);
+  margin: 0;
+  margin-bottom: 1rem;
+}
+
+.coloring-selector h4 {
+  color: #4a3b8c;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Section 3 : Choix du modèle coloré */
+.model-choice-section {
+  width: 100%;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.model-choice-section h3 {
+  font-size: 1.2rem;
+  color: var(--primary);
+  margin: 0;
+  margin-bottom: 1rem;
+}
+
+.model-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.model-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: #f5f0ff;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  font-family: inherit;
+}
+
+.model-btn:hover {
+  background-color: #ede5ff;
+}
+
+.model-btn.active {
+  border-color: var(--primary);
+  background-color: #ede5ff;
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
+}
+
+.model-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.model-label {
+  font-weight: 600;
+  color: var(--primary);
+  margin: 0;
+  margin-bottom: 0.25rem;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.model-desc {
+  font-size: 0.8rem;
+  margin: 0;
+  color: var(--text);
+  opacity: 0.8;
+  text-align: center;
+}
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: #f5f0ff;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  height: 220px; /* Test à 220px pour présence maximale */
+}
+
+.theme-option:hover {
+  background-color: #ede5ff;
+}
+
+.theme-option.selected {
+  border-color: var(--primary);
+  background-color: #ede5ff;
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
+}
+
+.theme-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.theme-info h4 {
+  font-weight: 600;
+  color: var(--primary);
+  margin: 0;
+  margin-bottom: 0.25rem;
+  text-align: center;
+}
+
+.theme-info p {
+  font-size: 0.8rem;
+  margin: 0;
+  color: var(--text);
+  opacity: 0.8;
+  text-align: center;
+}
+
+.personalization-options {
+  background: #f8f9fa;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.input-group {
+  margin-bottom: 1rem;
+}
+
+.input-group:last-child {
+  margin-bottom: 0;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #4a3b8c;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.personalization-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+  background: white;
+}
+
+.personalization-input:focus {
+  outline: none;
+  border-color: #f5f0ff;
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+}
+
+.personalization-input::placeholder {
+  color: #999;
+  opacity: 1;
+}
+
+/* Style pour l'option personnalisée avec contour en pointillés */
+.custom-coloring {
+  border: 2px dashed #c4b5ff;
+}
+
+/* Custom theme input */
+.custom-theme-input {
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.custom-input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border: 2px solid #e1e5f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: 'Nunito', sans-serif;
+  transition: border-color 0.3s ease;
+  background: white;
+}
+
+.custom-input:focus {
+  outline: none;
+  border-color: #6b4eff;
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+}
+
+.custom-input::placeholder {
+  color: #999;
+}
+
+/* Styles pour l'upload de photos - MÊME STYLE que les autres thèmes + contour pointillé */
+.photo-upload-option {
+  border: 2px dashed #c4b5ff;
+}
+
+/* Règle pour garantir que le contour reste violet même sur les éléments spéciaux */
+.theme-option.selected,
+.photo-upload-option.selected,
+.custom-coloring.selected {
+  border-color: var(--primary) !important;
+}
+
+.photo-upload-container {
+  background: #f8f9fa;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.upload-section {
+  text-align: center;
+}
+
+.upload-section h4 {
+  margin: 0 0 0.5rem 0;
+  color: #4a3b8c;
+  font-size: 1.1rem;
+}
+
+.upload-hint {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0 0 1.5rem 0;
+}
+
+.upload-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  background: linear-gradient(135deg, #6B4EFF 0%, #8B5CF6 100%);
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  font-size: 0.75rem;
+  border: none;
+  width: 100%;
+  justify-content: center;
+  max-width: 160px;
+  margin: 0 auto;
+}
+
+.upload-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(107, 78, 255, 0.4);
+}
+
+.upload-icon {
+  font-size: 2rem;
+  margin-bottom: 6px;
+  opacity: 1;
+  filter: drop-shadow(0 2px 4px rgba(107, 78, 255, .2));
+}
+
+.photo-preview-container {
+  position: relative;
+  display: inline-block;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.photo-preview {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  display: block;
+}
+
+.remove-photo-section {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.remove-photo-button {
+  background: linear-gradient(135deg, #ff4757, #ff3742);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.remove-photo-button:hover {
+  background: linear-gradient(135deg, #ff3742, #ff2834);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4);
+}
+
+.remove-photo-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
+}
+
+.style-selector {
+  margin-top: 1.5rem;
+}
+
+.conversion-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  border: 2px solid #667eea40;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.info-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.conversion-info p {
+  margin: 0;
+  color: #4a3b8c;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* Styles pour les slots de thème avec input intégré */
+.theme-slot {
+  position: relative;
+  width: 100%;
+}
+
+.inline-upload {
+  margin-top: 0.75rem !important;
+  padding: 1rem !important;
+  background: #f8f9ff !important;
+  border: 2px solid #e1e5ff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(107, 78, 255, 0.08) !important;
+  width: 100% !important;
+  position: relative;
+}
+
+.inline-input {
+  margin-top: 0.75rem !important;
+  padding: 0 !important;
+  width: 100% !important;
+  position: relative;
+}
+
+.inline-upload .upload-section {
+  padding: 0 !important;
+}
+
+.inline-upload .upload-hint {
+  margin-bottom: 1rem !important;
+  font-size: 0.85rem !important;
+  color: var(--primary, #f5f0ff) !important;
+  font-weight: 500 !important;
+}
+
+.inline-upload .conversion-info {
+  margin-top: 1rem !important;
+  padding: 1rem !important;
+}
