@@ -13,6 +13,8 @@
         button { padding: 10px 20px; background: #6B4EFF; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 10px 5px; }
         button:hover { background: #5a3fd1; }
     </style>
+  <script type="module" crossorigin src="/assets/test-ae311cc1.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/preload-helper-8235fac6.js">
 </head>
 <body>
     <h1>🧪 Test de Connexion Supabase - FRIDAY</h1>
@@ -23,159 +25,7 @@
 
     <div id="results"></div>
 
-    <script type="module">
-        const results = document.getElementById('results');
-
-        function log(message, type = 'info') {
-            const div = document.createElement('div');
-            div.className = `test-result ${type}`;
-            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> ${message}`;
-            results.appendChild(div);
-            console.log(`[${type.toUpperCase()}] ${message}`);
-        }
-
-        function clearResults() {
-            results.innerHTML = '';
-        }
-
-        async function runTests() {
-            clearResults();
-            log('🔍 DÉBUT DES TESTS SUPABASE', 'info');
-
-            try {
-                // Test 1: Variables d'environnement
-                log('🔍 Test 1: Vérification des variables d\'environnement...', 'info');
-                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-                const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-                if (supabaseUrl) {
-                    log(`✅ VITE_SUPABASE_URL: ${supabaseUrl}`, 'success');
-                } else {
-                    log('❌ VITE_SUPABASE_URL non définie', 'error');
-                }
-
-                if (supabaseKey) {
-                    log(`✅ VITE_SUPABASE_ANON_KEY présente (${supabaseKey.substring(0, 20)}...)`, 'success');
-                } else {
-                    log('❌ VITE_SUPABASE_ANON_KEY non définie', 'error');
-                }
-
-                // Test 2: Import du client Supabase
-                log('🔍 Test 2: Import du client Supabase...', 'info');
-                let supabase;
-                try {
-                    const module = await import('./src/supabaseClient.js');
-                    supabase = module.supabase;
-                    log('✅ Client Supabase importé avec succès', 'success');
-                } catch (error) {
-                    log(`❌ Erreur d'import: ${error.message}`, 'error');
-                    return;
-                }
-
-                // Test 3: Connexion de base
-                log('🔍 Test 3: Test de connexion à Supabase...', 'info');
-                try {
-                    const { data, error } = await supabase
-                        .from('profiles')
-                        .select('count', { count: 'exact', head: true });
-
-                    if (error) {
-                        log(`❌ Erreur de connexion: ${error.message}`, 'error');
-
-                        if (error.message.includes('CORS')) {
-                            log('💡 SOLUTION: Ajoutez votre domaine Railway dans les origines autorisées de Supabase', 'warning');
-                        } else if (error.message.includes('JWT') || error.message.includes('invalid')) {
-                            log('💡 SOLUTION: Vérifiez que VITE_SUPABASE_ANON_KEY est correcte', 'warning');
-                        } else if (error.message.includes('relation') || error.message.includes('does not exist')) {
-                            log('💡 SOLUTION: Créez la table profiles dans Supabase ou vérifiez les permissions', 'warning');
-                        }
-                    } else {
-                        log('✅ Connexion Supabase réussie !', 'success');
-                    }
-                } catch (error) {
-                    log(`❌ Erreur réseau: ${error.message}`, 'error');
-                }
-
-                // Test 4: Authentification
-                log('🔍 Test 4: Test d\'authentification...', 'info');
-                try {
-                    const { data: { user }, error } = await supabase.auth.getUser();
-
-                    if (error) {
-                        log(`⚠️ Erreur auth: ${error.message}`, 'warning');
-                        log('ℹ️ Aucun utilisateur connecté (normal si pas d\'authentification)', 'info');
-                    } else if (user) {
-                        log(`✅ Utilisateur connecté: ${user.email}`, 'success');
-                    } else {
-                        log('ℹ️ Aucun utilisateur connecté', 'info');
-                    }
-                } catch (error) {
-                    log(`❌ Erreur auth: ${error.message}`, 'error');
-                }
-
-                // Test 5: Test des tables
-                log('🔍 Test 5: Test des tables...', 'info');
-                const tables = ['profiles', 'creations'];
-
-                for (const table of tables) {
-                    try {
-                        const { error } = await supabase
-                            .from(table)
-                            .select('*', { count: 'exact', head: true });
-
-                        if (error) {
-                            if (error.code === 'PGRST116') {
-                                log(`⚠️ Table ${table}: RLS actif (normal)`, 'warning');
-                            } else {
-                                log(`❌ Table ${table}: ${error.message}`, 'error');
-                            }
-                        } else {
-                            log(`✅ Table ${table}: Accessible`, 'success');
-                        }
-                    } catch (error) {
-                        log(`❌ Erreur table ${table}: ${error.message}`, 'error');
-                    }
-                }
-
-                // Test 6: Test de création fictive
-                log('🔍 Test 6: Test de création (mode test)...', 'info');
-                try {
-                    const testData = {
-                        type: 'test',
-                        title: 'Test de connexion',
-                        data: { test: true, timestamp: new Date().toISOString() }
-                    };
-
-                    // Utiliser le service creations
-                    const creationsModule = await import('./src/services/creations.js');
-                    const result = await creationsModule.addCreation(testData);
-
-                    if (result.error) {
-                        log(`⚠️ Création test: ${result.error} (probablement mode localStorage)`, 'warning');
-                        log('ℹ️ C\'est normal si Supabase n\'est pas configuré - l\'app utilise localStorage', 'info');
-                    } else {
-                        log('✅ Création test réussie !', 'success');
-                        log('🎉 Supabase fonctionne parfaitement !', 'success');
-                    }
-                } catch (error) {
-                    log(`❌ Erreur test création: ${error.message}`, 'error');
-                }
-
-            } catch (error) {
-                log(`💥 Erreur générale: ${error.message}`, 'error');
-            }
-
-            log('🏁 TESTS TERMINÉS', 'info');
-            log('📋 Consultez la console pour plus de détails', 'info');
-        }
-
-        // Exposer les fonctions globalement
-        window.runTests = runTests;
-        window.clearResults = clearResults;
-
-        // Auto-run au chargement
-        log('🔄 Page chargée - Cliquez sur "Lancer les tests" pour commencer', 'info');
-    </script>
+    
 </body>
 </html>
 
