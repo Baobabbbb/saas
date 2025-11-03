@@ -1159,7 +1159,10 @@ const downloadPDF = async (title, content) => {
       isLoggedIn={!!user}
       onOpenHistory={() => setShowHistory(true)}
       userId={user?.id}
-      onOpenSubscription={() => setShowSubscriptionModal(true)}
+      onOpenSubscription={() => {
+        console.log('setShowSubscriptionModal appelé');
+        setShowSubscriptionModal(true);
+      }}
     />
 
     {/* 🌟 Étoiles filantes pour dynamiser le fond */}
@@ -1841,7 +1844,10 @@ const downloadPDF = async (title, content) => {
     {showSubscriptionModal && (
       <SubscriptionModal
         isOpen={showSubscriptionModal}
-        onClose={() => setShowSubscriptionModal(false)}
+        onClose={() => {
+          console.log('Fermeture SubscriptionModal');
+          setShowSubscriptionModal(false);
+        }}
         userId={user?.id}
         userEmail={user?.email}
       />

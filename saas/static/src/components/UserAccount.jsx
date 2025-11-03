@@ -640,8 +640,14 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory,
                   </button>
 
                   <button onClick={() => {
+                    console.log('Bouton Mon abonnement cliqué');
                     setShowDropdown(false);
-                    if (onOpenSubscription) onOpenSubscription();
+                    if (onOpenSubscription) {
+                      console.log('onOpenSubscription existe, appel...');
+                      onOpenSubscription();
+                    } else {
+                      console.error('onOpenSubscription n\'est pas défini');
+                    }
                   }}>
                     Mon abonnement
                   </button>
