@@ -14,7 +14,11 @@ import { supabase } from '../supabaseClient'
 import './PaymentModal.css'
 
 // Initialiser Stripe avec la clé publique depuis les variables d'environnement
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+const stripePromise = (import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY &&
+  typeof import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY === 'string' &&
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY.length > 0)
+  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+  : Promise.resolve(null)
 
 const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, priceInfo }) => {
   const stripe = useStripe()

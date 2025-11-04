@@ -344,6 +344,21 @@ OUTPUT: Return ONLY valid JSON with this exact structure:
 
             logger.info(f"📡 Appel API Runway ML: {api_url}")
 
+            # DIAGNOSTIC: Vérifier l'organisation et les crédits disponibles
+            org_url = f"{platform_config['base_url']}/v1/organization"
+            logger.info(f"🔍 DIAGNOSTIC: Vérification organisation Runway ML: {org_url}")
+            
+            async with aiohttp.ClientSession() as session:
+                # 1. Vérifier l'organisation et les crédits
+                async with session.get(org_url, headers=headers) as org_response:
+                    if org_response.status == 200:
+                        org_data = await org_response.json()
+                        logger.info(f"✅ Organisation Runway ML: {org_data}")
+                        logger.info(f"💰 Crédits disponibles: {org_data.get('creditBalance', 'N/A')}")
+                    else:
+                        org_error = await org_response.text()
+                        logger.error(f"❌ Erreur vérification organisation: {org_error}")
+            
             # Faire la requête à l'API Runway ML
             logger.info(f"🌐 Requête Runway ML: POST {api_url}")
             logger.info(f"📋 Headers: Authorization=Bearer {api_key[:20]}..., X-Runway-Version={headers.get('X-Runway-Version')}")
