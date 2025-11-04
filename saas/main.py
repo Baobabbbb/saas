@@ -1418,6 +1418,32 @@ except RuntimeError:
 
 # === SERVIR LE FRONTEND (SPA) ===
 
+@app.get("/sitemap.xml", include_in_schema=False)
+async def serve_sitemap():
+    """Servez le sitemap.xml pour Google Search Console."""
+    sitemap_path = static_dir / "sitemap.xml"
+    if sitemap_path.exists():
+        return FileResponse(
+            sitemap_path,
+            media_type="application/xml",
+            headers={"Content-Type": "application/xml; charset=utf-8"}
+        )
+    raise HTTPException(status_code=404, detail="Sitemap not found")
+
+
+@app.get("/robots.txt", include_in_schema=False)
+async def serve_robots():
+    """Servez le robots.txt pour les moteurs de recherche."""
+    robots_path = static_dir / "robots.txt"
+    if robots_path.exists():
+        return FileResponse(
+            robots_path,
+            media_type="text/plain",
+            headers={"Content-Type": "text/plain; charset=utf-8"}
+        )
+    raise HTTPException(status_code=404, detail="Robots.txt not found")
+
+
 @app.get("/", include_in_schema=False)
 async def serve_root():
     """Servez le build React à la racine."""
@@ -1430,6 +1456,23 @@ async def serve_root():
 @app.get("/{full_path:path}", include_in_schema=False)
 async def spa_fallback(full_path: str):
     """Fallback pour le routage côté client (évite 404 sur refresh)."""
+    # Servir sitemap.xml et robots.txt s'ils sont demandés (au cas où)
+    if full_path == "sitemap.xml":
+        sitemap_path = static_dir / "sitemap.xml"
+        if sitemap_path.exists():
+            return FileResponse(
+                sitemap_path,
+                media_type="application/xml",
+                headers={"Content-Type": "application/xml; charset=utf-8"}
+            )
+    if full_path == "robots.txt":
+        robots_path = static_dir / "robots.txt"
+        if robots_path.exists():
+            return FileResponse(
+                robots_path,
+                media_type="text/plain",
+                headers={"Content-Type": "text/plain; charset=utf-8"}
+            )
     # Laisse les routes d'API et les assets gérer leur 404 normalement
     if full_path.startswith(("api", "static", "assets", "docs", "openapi.json", "redoc")):
         raise HTTPException(status_code=404, detail="Not Found")
