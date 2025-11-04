@@ -46,48 +46,56 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
   const getPlanFeatures = (planName) => {
     const features = {
       'Découverte': {
-        tokens: '50 tokens/mois',
+        tokens: '40 tokens/mois',
         features: [
-          'Histoires & Audio: 3 tokens',
-          'Coloriages: 2 tokens',
-          'BD: 4 tokens/page',
-          'Comptines: 5 tokens',
-          'Animations: 10 tokens'
+          'Histoires & Audio: 4 tokens',
+          'Coloriages: 3 tokens',
+          'BD: 5 tokens/page',
+          'Comptines: 6 tokens',
+          'Animations 30s: 12 tokens',
+          'Animations 1min: 18 tokens'
         ],
-        ideal: 'Parfait pour découvrir Herbbie'
+        ideal: 'Parfait pour découvrir Herbbie',
+        economy: 'Économisez jusqu\'à 85%'
       },
       'Famille': {
-        tokens: '150 tokens/mois',
+        tokens: '120 tokens/mois',
+        features: [
+          'Histoires & Audio: 4 tokens',
+          'Coloriages: 3 tokens',
+          'BD: 4 tokens/page',
+          'Comptines: 5 tokens',
+          'Animations 30s: 10 tokens',
+          'Animations 1min: 15 tokens'
+        ],
+        ideal: 'Pour les familles actives',
+        economy: 'Économisez jusqu\'à 87%'
+      },
+      'Créatif': {
+        tokens: '300 tokens/mois',
         features: [
           'Histoires & Audio: 3 tokens',
           'Coloriages: 2 tokens',
           'BD: 3 tokens/page',
           'Comptines: 4 tokens',
-          'Animations: 8 tokens'
+          'Animations 30s: 8 tokens',
+          'Animations 1min: 12 tokens'
         ],
-        ideal: 'Pour les familles actives'
+        ideal: 'Pour les créateurs intensifs',
+        economy: 'Économisez jusqu\'à 90%'
       },
-      'Créatif': {
-        tokens: '400 tokens/mois',
+      'Institut': {
+        tokens: '900 tokens/mois',
         features: [
           'Histoires & Audio: 2 tokens',
           'Coloriages: 1 token',
           'BD: 2 tokens/page',
           'Comptines: 3 tokens',
-          'Animations: 5 tokens'
+          'Animations 30s: 6 tokens',
+          'Animations 1min: 9 tokens'
         ],
-        ideal: 'Pour les créateurs intensifs'
-      },
-      'Institut': {
-        tokens: '1,200 tokens/mois',
-        features: [
-          'Histoires & Audio: 1 token',
-          'Coloriages: 1 token',
-          'BD: 1 token/page',
-          'Comptines: 2 tokens',
-          'Animations: 3 tokens'
-        ],
-        ideal: 'Pour les écoles et institutions'
+        ideal: 'Pour les écoles et institutions',
+        economy: 'Économisez jusqu\'à 95%'
       }
     };
     return features[planName] || {};
