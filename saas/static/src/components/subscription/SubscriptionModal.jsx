@@ -495,7 +495,8 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+        style={{ zIndex: 99999 }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -505,7 +506,12 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(107, 78, 255, 0.3) transparent' }}
+          style={{ 
+            scrollbarWidth: 'thin', 
+            scrollbarColor: 'rgba(107, 78, 255, 0.3) transparent',
+            position: 'relative',
+            zIndex: 100000
+          }}
         >
           <div className="p-6 md:p-8">
             <div className="flex justify-between items-center mb-6">
