@@ -1146,11 +1146,18 @@ async def generate_zseedance_animation_task(task_id: str, theme: str, duration: 
     Tâche en arrière-plan pour la génération selon le workflow zseedance.json
     Pipeline complet : Ideas → Prompts → Create Clips (Veo 3.1) → Create Sounds → Sequence Video
     """
+    print(f"\n{'='*80}")
+    print(f"🚀🚀🚀 DÉBUT TÂCHE GÉNÉRATION ZSEEDANCE 🚀🚀🚀")
+    print(f"Task ID: {task_id}")
+    print(f"Thème: {theme}")
+    print(f"Durée: {duration}s")
+    print(f"Style: {style}")
+    print(f"{'='*80}\n")
+    
     try:
-        print(f"🚀 Démarrage génération ZSEEDANCE pour {task_id} (thème: {theme}, durée: {duration}s, style: {style})")
-
         # Mettre à jour le statut
         task_storage[task_id]["status"] = "generating"
+        print(f"✅ Statut mis à jour: generating")
 
         # Utiliser le générateur Sora2ZseedanceGenerator (workflow fidèle à zseedance.json)
         print(f"🔧 Initialisation du générateur Sora2ZseedanceGenerator...")
@@ -1197,9 +1204,15 @@ async def generate_zseedance_animation_task(task_id: str, theme: str, duration: 
         task_storage[task_id]["result"] = animation_result
 
     except Exception as e:
-        print(f"❌ Erreur génération ZSEEDANCE {task_id}: {e}")
+        print(f"\n{'='*80}")
+        print(f"❌❌❌ ERREUR TÂCHE GÉNÉRATION ZSEEDANCE ❌❌❌")
+        print(f"Task ID: {task_id}")
+        print(f"Erreur: {e}")
+        print(f"Type: {type(e).__name__}")
+        print(f"{'='*80}")
         import traceback
         traceback.print_exc()
+        print(f"{'='*80}\n")
 
         task_storage[task_id]["status"] = "failed"
         task_storage[task_id]["error"] = str(e)
