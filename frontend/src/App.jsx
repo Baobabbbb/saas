@@ -385,13 +385,16 @@ function App() {
   // S'assurer que le thème est toujours défini
   const currentTheme = selectedAnimationTheme || 'space';
 
-  // Mettre à jour le prix quand les options changent
-  useEffect(() => {
-    updateButtonText(userHasFreeAccess);
-  }, [selectedVoice, selectedDuration, numPages, contentType, userHasFreeAccess]);
-
   // Mettre à jour le texte du bouton selon le statut admin et le type de contenu
   const updateButtonText = (adminStatus) => {
+    console.log('🔍 updateButtonText appelé:', {
+      adminStatus,
+      contentType,
+      selectedVoice,
+      selectedDuration,
+      numPages
+    });
+
     if (adminStatus) {
       setButtonText('Générer Gratuitement');
     } else {
@@ -407,10 +410,17 @@ function App() {
         options.voice = selectedVoice;
       }
 
+      console.log('💰 Options pour getContentPrice:', { contentType, options });
       const priceInfo = getContentPrice(contentType, options);
+      console.log('💵 Prix calculé:', priceInfo);
       setButtonText(`Acheter pour ${priceInfo.display}`);
     }
   };
+
+  // Mettre à jour le prix quand les options changent
+  useEffect(() => {
+    updateButtonText(userHasFreeAccess);
+  }, [selectedVoice, selectedDuration, numPages, contentType, userHasFreeAccess]);
   
   // Handle Generation
   const handleGenerate = async () => {

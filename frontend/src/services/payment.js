@@ -93,6 +93,8 @@ export const createPaymentSession = async (contentType, userId, userEmail, optio
 
 // Obtenir le prix d'un contenu
 export const getContentPrice = (contentType, options = {}) => {
+  console.log('📊 getContentPrice appelé:', { contentType, options });
+
   const prices = {
     // Prix corrigés selon les vrais coûts API (TARIFICATION_HERBBIE.md mise à jour)
     'comptine': { amount: 149, name: 'Comptine Musicale', currency: 'EUR', display: '1,49€' },
@@ -111,8 +113,10 @@ export const getContentPrice = (contentType, options = {}) => {
 
   // Gestion spéciale pour les histoires avec choix audio/texte
   if (contentType === 'histoire' || contentType === 'story') {
+    console.log('🎤 Vérification voix pour histoire:', options.voice);
     // Si l'utilisateur a choisi une voix (female ou male)
     if (options.voice && (options.voice === 'female' || options.voice === 'male')) {
+      console.log('✅ Histoire AUDIO détectée');
       return {
         amount: 79,
         name: 'Histoire Audio',
@@ -121,6 +125,7 @@ export const getContentPrice = (contentType, options = {}) => {
       }
     }
     // Sinon, histoire texte uniquement (voice est null ou undefined)
+    console.log('📖 Histoire TEXTE détectée');
     return {
       amount: 49,
       name: 'Histoire Texte',
