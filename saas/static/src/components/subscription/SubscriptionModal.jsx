@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { loadStripe } from '@stripe/stripe-js';
 import {
@@ -492,7 +493,7 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       <motion.div
         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
@@ -578,6 +579,9 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
       </motion.div>
     </AnimatePresence>
   );
+
+  // Utiliser ReactDOM.createPortal pour rendre le modal directement dans le body
+  return ReactDOM.createPortal(modalContent, document.body);
 };
 
 export default SubscriptionModal;
