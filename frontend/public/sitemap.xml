@@ -4,7 +4,7 @@
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
-  <!-- Page d'accueil -->
+  <!-- ========== PAGE D'ACCUEIL ========== -->
   <url>
     <loc>https://herbbie.com/</loc>
     <lastmod>2025-11-04</lastmod>
@@ -12,7 +12,18 @@
     <priority>1.0</priority>
   </url>
 
-  <!-- ========== FONCTIONNALITÉS PRINCIPALES ========== -->
+  <!-- ========== PAGES AVEC ROUTES RÉELLES ========== -->
+  
+  <!-- Réinitialisation du mot de passe (route React) -->
+  <url>
+    <loc>https://herbbie.com/reset-password</loc>
+    <lastmod>2025-11-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- ========== FONCTIONNALITÉS PRINCIPALES (URLs avec hash pour SPA) ========== -->
+  <!-- Note: Google peut indexer certaines URLs avec hash si le contenu est unique -->
   
   <!-- Dessin animé IA -->
   <url>
@@ -72,15 +83,7 @@
     <priority>0.75</priority>
   </url>
 
-  <!-- Réinitialisation du mot de passe -->
-  <url>
-    <loc>https://herbbie.com/reset-password</loc>
-    <lastmod>2025-11-04</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-
-  <!-- ========== ABONNEMENTS ET PAIEMENTS ========== -->
+  <!-- ========== ABONNEMENTS & PAIEMENTS ========== -->
   
   <!-- Page des abonnements / tokens -->
   <url>
@@ -98,7 +101,7 @@
     <priority>0.85</priority>
   </url>
 
-  <!-- Paiement Stripe (ancre dynamique) -->
+  <!-- Paiement Stripe -->
   <url>
     <loc>https://herbbie.com/#paiement</loc>
     <lastmod>2025-11-04</lastmod>
@@ -106,7 +109,7 @@
     <priority>0.7</priority>
   </url>
 
-  <!-- ========== PAGES LÉGALES ========== -->
+  <!-- ========== PAGES LÉGALES (OBLIGATOIRES) ========== -->
   
   <!-- Mentions légales -->
   <url>
@@ -156,17 +159,7 @@
     <priority>0.7</priority>
   </url>
 
-  <!-- ========== PAGES DE GESTION (Protégées) ========== -->
-  
-  <!-- Page admin (ne sera pas indexée car protégée par mot de passe) -->
-  <!-- <url>
-    <loc>https://herbbie.com/ilmysv6iepwepoa4tj2k</loc>
-    <lastmod>2025-11-04</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.1</priority>
-  </url> -->
-
-  <!-- ========== FONCTIONNALITÉS SPÉCIFIQUES ========== -->
+  <!-- ========== THÈMES POPULAIRES (Sélection des plus importants) ========== -->
   
   <!-- Thèmes d'animation populaires -->
   <url>
@@ -234,7 +227,7 @@
     <priority>0.6</priority>
   </url>
 
-  <!-- ========== À PROPOS ========== -->
+  <!-- ========== INFORMATIONS ========== -->
   
   <!-- À propos / Qui sommes-nous -->
   <url>
