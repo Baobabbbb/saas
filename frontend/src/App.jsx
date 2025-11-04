@@ -385,6 +385,11 @@ function App() {
   // S'assurer que le thème est toujours défini
   const currentTheme = selectedAnimationTheme || 'space';
 
+  // Mettre à jour le prix quand les options changent
+  useEffect(() => {
+    updateButtonText(userHasFreeAccess);
+  }, [selectedVoice, selectedDuration, numPages, contentType, userHasFreeAccess]);
+
   // Mettre à jour le texte du bouton selon le statut admin et le type de contenu
   const updateButtonText = (adminStatus) => {
     if (adminStatus) {
@@ -397,6 +402,9 @@ function App() {
         options.duration = selectedDuration;
       } else if (contentType === 'comic' || contentType === 'bd') {
         options.pages = numPages || 1; // Par défaut 1 page si non défini
+      } else if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio') {
+        // Pour les histoires, inclure le choix de la voix
+        options.voice = selectedVoice;
       }
 
       const priceInfo = getContentPrice(contentType, options);
