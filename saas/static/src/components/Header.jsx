@@ -2,7 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import './Header.css';
 import UserAccount from './UserAccount';
-import TokenDisplay from './subscription/TokenDisplay';
 
 const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, userId, onOpenSubscription }) => {
   return (
@@ -47,23 +46,13 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, user
       </div>
       
       <div className="user-account-container">
-        {isLoggedIn && userId && (
-          <div className="flex items-center space-x-4 mr-4">
-            <TokenDisplay userId={userId} compact={true} />
-            <button
-              onClick={onOpenSubscription}
-              className="bg-violet-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-violet-700 transition-colors duration-200 text-sm"
-            >
-              🎫 Abonnement
-            </button>
-          </div>
-        )}
         <UserAccount
           isLoggedIn={isLoggedIn}
           onLogin={onLogin}
           onLogout={onLogout}
           onRegister={onRegister}
           onOpenHistory={onOpenHistory}
+          onOpenSubscription={onOpenSubscription}
         />
       </div>
     </header>
