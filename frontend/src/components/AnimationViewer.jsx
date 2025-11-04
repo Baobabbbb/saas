@@ -12,16 +12,28 @@ const AnimationViewer = ({ animationResult, onClose }) => {
   const {
     status,
     clips = [],
+    video_urls = [],
     scenes = [],
     generation_time,
     total_duration,
     successful_clips = 0,
     fallback_clips = 0,
-    pipeline_type
+    pipeline_type,
+    scenes_count = 0,
+    video_count = 0
   } = animationResult;
 
-  const hasVideo = clips.some(clip => clip.status === 'success') || (status === 'completed' && (animationResult.final_video_url || animationResult.result?.final_video_url));
+  // Compatibilité : utiliser video_urls si clips est vide (nouveau format Veo 3.1 Fast)
+  const actualClips = clips.length > 0 ? clips : video_urls.map((url, idx) => ({
+    clip_url: url,
+    status: 'success',
+    prompt: `Scène ${idx + 1}`,
+    duration: 8
+  }));
+
+  const hasVideo = actualClips.some(clip => clip.status === 'success') || (status === 'completed' && (animationResult.final_video_url || animationResult.result?.final_video_url));
   const scenesDetails = scenes || animationResult.scenes_details || [];
+  const totalClips = actualClips.length || scenes_count || video_count;
 
   const formatTime = (seconds) => {
     if (!seconds || isNaN(seconds)) return '---';
@@ -89,11 +101,11 @@ const AnimationViewer = ({ animationResult, onClose }) => {
           </div>
           <div className="stat-item">
             <span className="stat-icon">🎞️</span>
-            <span>{clips.length} scènes</span>
+            <span>{totalClips} scènes</span>
           </div>
           <div className="stat-item">
             <span className="stat-icon">✅</span>
-            <span>{successful_clips} réussies</span>
+            <span>{successful_clips || totalClips} réussies</span>
           </div>
           {fallback_clips > 0 && (
             <div className="stat-item">
@@ -148,7 +160,7 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                         <div className="video-icon">🎬</div>
                         <h3>🎉 {animationResult.title || 'Votre dessin animé est prêt !'}</h3>
                         <p>
-                          Animation complète de {formatTime(total_duration || animationResult.duration)} avec {successful_clips || clips.length} scènes.
+                          Animation complète de {formatTime(total_duration || animationResult.duration)} avec {successful_clips || totalClips} scènes.
                         </p>
                         
                         {/* LECTEUR VIDÉO PRINCIPAL */}
@@ -213,7 +225,7 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                         <div className="scenes-gallery">
                           <h4>🎨 Votre dessin animé en images :</h4>
                         <div className="gallery-grid">
-                          {clips.map((clip, index) => {
+                          {actualClips.map((clip, index) => {
                             // Gestion des médias : vidéo réelle ou image
                             let mediaUrl = null;
                             let isVideo = false;
@@ -292,17 +304,17 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                         <div className="gallery-summary">
                           <p>
                             <strong>🎬 Votre animation complète :</strong> 
-                            {clips.length} scènes illustrées représentant votre histoire.
+                            {totalClips} scènes illustrées représentant votre histoire.
                             Chaque image correspond à un moment clé de votre récit généré par l'IA.
                           </p>
                         </div>
                       </div>
                       
                       {/* Liste des clips pour les scènes sans image */}
-                      {clips.filter(clip => clip.status === 'success').length > 0 && (
+                      {actualClips.filter(clip => clip.status === 'success').length > 0 && (
                         <div className="video-clips-list">
                           <h4>📝 Toutes les scènes générées :</h4>
-                          {clips.filter(clip => clip.status === 'success').map((clip, index) => (
+                          {actualClips.filter(clip => clip.status === 'success').map((clip, index) => (
                             <div key={index} className="clip-item">
                               <span>🎬 Scène {clip.scene_number}</span>
                               <span>{formatTime(clip.duration)}</span>
@@ -355,7 +367,7 @@ const AnimationViewer = ({ animationResult, onClose }) => {
               >
                 <div className="scenes-list">
                   {scenesDetails.map((scene, index) => {
-                    const clip = clips.find(c => c.scene_number === scene.scene_number);
+                    const clip = actualClips.find(c => c.scene_number === scene.scene_number);
                     return (
                       <motion.div
                         key={scene.scene_number}
@@ -429,7 +441,7 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                     </div>
                     <div className="detail-item">
                       <strong>Scènes totales:</strong>
-                      <span>{clips.length}</span>
+                      <span>{totalClips}</span>
                     </div>
                     <div className="detail-item">
                       <strong>Scènes réussies:</strong>

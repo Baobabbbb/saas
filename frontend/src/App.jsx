@@ -200,14 +200,15 @@ function App() {
             const data = statusPayload.data;
             
             if (data?.status === 'completed') {
-              // Vérifier qu'il y a vraiment du contenu
-              if (data?.clips && data.clips.length > 0) {
+              // Vérifier qu'il y a vraiment du contenu (final_video_url OU clips OU video_urls)
+              if (data?.final_video_url || data?.clips?.length > 0 || data?.video_urls?.length > 0) {
                 return data;
               } else {
+                console.warn('⚠️ Animation complétée mais sans contenu vidéo');
               }
             }
             if (data?.status === 'failed') {
-              throw new Error(data?.error_message || 'Génération échouée');
+              throw new Error(data?.error_message || data?.error || 'Génération échouée');
             }
           }
         }
@@ -697,7 +698,7 @@ function App() {
       // Ne pas ouvrir le viewer tout de suite; attendre la complétion réelle
       let finalData = initialData;
       const taskId = initialData?.task_id;
-      const isCompleted = initialData?.status === 'completed' && (initialData?.final_video_url || (initialData?.clips?.length || 0) > 0);
+      const isCompleted = initialData?.status === 'completed' && (initialData?.final_video_url || (initialData?.clips?.length || 0) > 0 || (initialData?.video_urls?.length || 0) > 0);
 
       if (taskId && !isCompleted) {
         // Rester en état de chargement pendant le polling
@@ -705,7 +706,8 @@ function App() {
       }
 
       // Ne définir le résultat et ouvrir le viewer qu'après complétion avec contenu
-      if (finalData?.status === 'completed' && finalData?.clips && finalData.clips.length > 0) {
+      // Accepter final_video_url, clips ou video_urls
+      if (finalData?.status === 'completed' && (finalData?.final_video_url || finalData?.clips?.length > 0 || finalData?.video_urls?.length > 0)) {
         setAnimationResult(finalData);
         setShowAnimationViewer(true);
         generatedContent = finalData; // Stocker pour l'historique
