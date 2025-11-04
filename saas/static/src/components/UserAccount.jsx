@@ -7,7 +7,7 @@ import { updateUserProfile } from '../services/profileService';
 import { resetPassword as resetPasswordService } from '../services/auth';
 import EmailInput, { saveEmailToHistory } from './EmailInput';
 
-const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory }) => {
+const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, onOpenSubscription }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
@@ -637,6 +637,13 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     if (onOpenHistory) onOpenHistory();
                   }}>
                     Mon historique
+                  </button>
+
+                  <button onClick={() => {
+                    setShowDropdown(false);
+                    if (onOpenSubscription) onOpenSubscription();
+                  }}>
+                    Mon abonnement
                   </button>
                   
                   <button onClick={handleSignOut} className="logout-button">

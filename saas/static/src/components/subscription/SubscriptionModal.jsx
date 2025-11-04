@@ -15,7 +15,12 @@ import {
   getUserTokens
 } from '../../services/payment';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+// Initialiser Stripe avec la clé publique depuis les variables d'environnement
+const stripePromise = (import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY &&
+  typeof import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY === 'string' &&
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY.length > 0)
+  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+  : Promise.resolve(null);
 
 const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
   const [plans, setPlans] = useState([]);
