@@ -15,6 +15,7 @@ import {
   cancelSubscription,
   getUserTokens
 } from '../../services/payment';
+import './SubscriptionModal.css';
 
 // Initialiser Stripe avec la clé publique depuis les variables d'environnement
 const stripePromise = (import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY &&
@@ -494,44 +495,32 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
   if (!isOpen) return null;
 
   const modalContent = (
-    <AnimatePresence>
+    <div className="subscription-modal-overlay">
       <motion.div
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
-        style={{ zIndex: 99999 }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        className="subscription-modal-content"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ duration: 0.3 }}
       >
-        <motion.div
-          className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          style={{ 
-            scrollbarWidth: 'thin', 
-            scrollbarColor: 'rgba(107, 78, 255, 0.3) transparent',
-            position: 'relative',
-            zIndex: 100000
-          }}
-        >
-          <div className="p-6 md:p-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-                {currentSubscription ? 'Mon abonnement' : 'Choisir un abonnement'}
-              </h2>
-              <button
-                onClick={handleClose}
-                className="text-gray-400 hover:text-gray-600 text-2xl"
-              >
-                ×
-              </button>
-            </div>
+        <div className="subscription-modal-header">
+          <h2>
+            {currentSubscription ? 'Mon abonnement' : 'Choisir un abonnement'}
+          </h2>
+          <button
+            onClick={handleClose}
+            className="subscription-modal-close"
+            aria-label="Fermer"
+          >
+            ×
+          </button>
+        </div>
 
-            {loading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
-              </div>
-            ) : (
+        {loading ? (
+          <div className="subscription-modal-loading">
+            <div className="subscription-modal-spinner"></div>
+          </div>
+        ) : (
               <>
                 {currentStep === 'plans' && (
                   <SubscriptionPlans
@@ -574,10 +563,8 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
                 )}
               </>
             )}
-          </div>
-        </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </div>
   );
 
   // Utiliser ReactDOM.createPortal pour rendre le modal directement dans le body
