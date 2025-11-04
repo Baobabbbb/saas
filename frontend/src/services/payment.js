@@ -111,8 +111,8 @@ export const getContentPrice = (contentType, options = {}) => {
 
   // Gestion spéciale pour les histoires avec choix audio/texte
   if (contentType === 'histoire' || contentType === 'story') {
-    // Si l'utilisateur a choisi l'audio (voice !== 'none')
-    if (options.voice && options.voice !== 'none') {
+    // Si l'utilisateur a choisi une voix (female ou male)
+    if (options.voice && (options.voice === 'female' || options.voice === 'male')) {
       return {
         amount: 79,
         name: 'Histoire Audio',
@@ -120,7 +120,7 @@ export const getContentPrice = (contentType, options = {}) => {
         display: '0,79€'
       }
     }
-    // Sinon, histoire texte uniquement
+    // Sinon, histoire texte uniquement (voice est null ou undefined)
     return {
       amount: 49,
       name: 'Histoire Texte',

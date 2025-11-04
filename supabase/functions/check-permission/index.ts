@@ -109,6 +109,23 @@ serve(async (req) => {
         tokensRequired = tokensRequired * numPages;
       }
 
+      // Ajustements pour les histoires avec audio
+      // Si l'utilisateur choisit une voix, c'est une histoire audio qui coûte plus cher
+      if ((contentType === 'histoire' || contentType === 'story') && selectedVoice && (selectedVoice === 'female' || selectedVoice === 'male')) {
+        // Histoire audio coûte légèrement plus que histoire texte
+        // On utilise le coût de 'audio' si disponible, sinon on garde le coût histoire
+        const { data: audioCost } = await supabase
+          .from('token_costs')
+          .select('tokens_required')
+          .eq('plan_id', subscription.plan_id)
+          .eq('content_type', 'audio')
+          .single();
+        
+        if (audioCost) {
+          tokensRequired = audioCost.tokens_required;
+        }
+      }
+
       // Vérifier si l'utilisateur a assez de tokens
       if (subscription.tokens_remaining >= tokensRequired) {
         return new Response(JSON.stringify({

@@ -428,11 +428,23 @@ function App() {
 
     // Si utilisateur normal, vérifier les permissions via Edge Function
     try {
+      // Préparer les options selon le type de contenu
+      const permissionOptions = {};
+      
+      if (contentType === 'animation') {
+        permissionOptions.selectedDuration = selectedDuration;
+      } else if (contentType === 'comic' || contentType === 'bd') {
+        permissionOptions.numPages = numPages || 1;
+      } else if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio') {
+        permissionOptions.selectedVoice = selectedVoice;
+      }
+
       const { data: permissionData, error: permissionError } = await supabase.functions.invoke('check-permission', {
         body: {
           contentType,
           userId: user.id,
-          userEmail: user.email
+          userEmail: user.email,
+          ...permissionOptions
         }
       });
 
