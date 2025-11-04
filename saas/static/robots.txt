@@ -1,0 +1,20 @@
+# Robots.txt pour HERBBIE
+# https://herbbie.com
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://herbbie.com/sitemap.xml
+
+# Empêcher l'indexation des fichiers de développement
+Disallow: /supabase-debug.html
+Disallow: /test-supabase-connection.html
+Disallow: /clear-cache.html
+Disallow: /fix-sync.html
+Disallow: /sync-features.html
+
+# Empêcher l'accès aux fichiers système
+Disallow: /*.json$
+Disallow: /*.js.map$
+
