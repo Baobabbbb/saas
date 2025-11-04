@@ -15,14 +15,9 @@ import {
   getUserTokens
 } from '../../services/payment';
 
-const stripePromise = (import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY &&
-  typeof import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY === 'string' &&
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY.length > 0)
-  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
-  : Promise.resolve(null);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
-  console.log('SubscriptionPlans rendu avec currentSubscription:', currentSubscription);
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -177,26 +172,6 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
   const [loading, setLoading] = useState(false);
   const [cardholderName, setCardholderName] = useState('');
   const [error, setError] = useState(null);
-
-  // Vérifier si Stripe est disponible
-  if (!stripe) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-red-600 font-medium mb-4">
-          Configuration Stripe manquante
-        </div>
-        <div className="text-gray-600 text-sm">
-          Le système de paiement n'est pas encore configuré. Veuillez réessayer plus tard.
-        </div>
-        <button
-          onClick={onCancel}
-          className="mt-4 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors duration-200"
-        >
-          Fermer
-        </button>
-      </div>
-    );
-  }
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -465,8 +440,6 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
 };
 
 const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
-  console.log('SubscriptionModal rendu avec isOpen:', isOpen, 'userId:', userId, 'userEmail:', userEmail);
-
   const [currentStep, setCurrentStep] = useState('plans'); // 'plans', 'payment', 'management'
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [currentSubscription, setCurrentSubscription] = useState(null);
@@ -514,8 +487,6 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
 
   if (!isOpen) return null;
 
-  console.log('SubscriptionModal RENDU FINAL - currentStep:', currentStep, 'loading:', loading);
-
   return (
     <AnimatePresence>
       <motion.div
@@ -523,19 +494,13 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }} // Forcer la visibilité temporairement
       >
         <motion.div
           className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          style={{
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(107, 78, 255, 0.3) transparent',
-            backgroundColor: 'white', // Forcer le fond blanc
-            border: '2px solid red' // Bordure rouge pour voir le modal
-          }}
+          style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(107, 78, 255, 0.3) transparent' }}
         >
           <div className="p-6 md:p-8">
             <div className="flex justify-between items-center mb-6">

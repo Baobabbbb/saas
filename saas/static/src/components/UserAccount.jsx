@@ -7,7 +7,7 @@ import { updateUserProfile } from '../services/profileService';
 import { resetPassword as resetPasswordService } from '../services/auth';
 import EmailInput, { saveEmailToHistory } from './EmailInput';
 
-const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, onOpenSubscription }) => {
+const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
@@ -638,20 +638,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory,
                   }}>
                     Mon historique
                   </button>
-
-                  <button onClick={() => {
-                    console.log('Bouton Mon abonnement cliqué');
-                    setShowDropdown(false);
-                    if (onOpenSubscription) {
-                      console.log('onOpenSubscription existe, appel...');
-                      onOpenSubscription();
-                    } else {
-                      console.error('onOpenSubscription n\'est pas défini');
-                    }
-                  }}>
-                    Mon abonnement
-                  </button>
-
+                  
                   <button onClick={handleSignOut} className="logout-button">
                     Se déconnecter
                   </button>

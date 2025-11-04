@@ -14,36 +14,12 @@ import { supabase } from '../supabaseClient'
 import './PaymentModal.css'
 
 // Initialiser Stripe avec la clé publique depuis les variables d'environnement
-const stripePromise = (import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY &&
-  typeof import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY === 'string' &&
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY.length > 0)
-  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
-  : Promise.resolve(null)
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
 
 const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, priceInfo }) => {
   const stripe = useStripe()
   const elements = useElements()
   const [loading, setLoading] = useState(false)
-
-  // Vérifier si Stripe est disponible
-  if (!stripe) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-red-600 font-medium mb-4">
-          Configuration Stripe manquante
-        </div>
-        <div className="text-gray-600 text-sm">
-          Le système de paiement n'est pas encore configuré. Veuillez utiliser le système pay-per-use classique.
-        </div>
-        <button
-          onClick={onCancel}
-          className="mt-4 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors duration-200"
-        >
-          Fermer
-        </button>
-      </div>
-    )
-  }
   const [error, setError] = useState(null)
   const [clientSecret, setClientSecret] = useState('')
   const [cardholderName, setCardholderName] = useState('')

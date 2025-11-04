@@ -3,14 +3,28 @@ import { supabase } from '../supabaseClient'
 // Vérifier si l'utilisateur a la permission (admin, abonnement ou payé)
 export const checkPaymentPermission = async (contentType, userId, userEmail, options = {}) => {
   try {
-    // Vérifier d'abord le rôle admin
+    // Simulation temporaire basée sur l'email
+    if (userEmail === 'fredagathe77@gmail.com') {
+      return {
+        hasPermission: true,
+        reason: 'admin_access',
+        userRole: 'admin',
+        isAdmin: true
+      }
+    }
+
+    // Pour les autres utilisateurs, vérifier dans la vraie table profiles
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', userId)
       .single()
 
-    if (!profileError && (profile?.role === 'admin' || profile?.role === 'free')) {
+    if (profileError) {
+      // Erreur silencieuse - pas critique pour la vérification
+    }
+
+    if (profile?.role === 'admin' || profile?.role === 'free') {
       return {
         hasPermission: true,
         reason: profile?.role === 'admin' ? 'admin_access' : 'free_access',
@@ -19,7 +33,7 @@ export const checkPaymentPermission = async (contentType, userId, userEmail, opt
       }
     }
 
-    // Utiliser la fonction Edge check-permission pour vérifier les permissions avec tokens/abonnements
+    // Utiliser la nouvelle fonction Edge pour vérifier les permissions avec tokens
     const { data: permissionData, error: permError } = await supabase.functions.invoke('check-permission', {
       body: {
         contentType,
@@ -33,8 +47,12 @@ export const checkPaymentPermission = async (contentType, userId, userEmail, opt
 
     if (permError) {
       console.error('Erreur check-permission:', permError);
-      // Fallback vers l'ancien système si la fonction Edge ne fonctionne pas
-      return await checkLegacyPermissions(contentType, userId);
+      return {
+        hasPermission: false,
+        reason: 'error',
+        error: permError,
+        isAdmin: false
+      };
     }
 
     return {
@@ -42,34 +60,6 @@ export const checkPaymentPermission = async (contentType, userId, userEmail, opt
       isAdmin: false
     };
 
-  } catch (error) {
-    console.error('Erreur checkPaymentPermission:', error);
-    return { hasPermission: false, reason: 'error', error, isAdmin: false }
-  }
-}
-
-// Fonction de fallback vers l'ancien système de permissions
-const checkLegacyPermissions = async (contentType, userId) => {
-  try {
-    // Vérifier les permissions payées actives (système legacy)
-    const { data: permission, error: permError } = await supabase
-      .from('generation_permissions')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('content_type', contentType)
-      .eq('status', 'completed')
-      .eq('is_active', true)
-      .single();
-
-    const hasPermission = !!permission && !permError;
-
-    return {
-      hasPermission,
-      reason: hasPermission ? 'payment_verified' : 'payment_required',
-      userRole: 'user',
-      permission: permission || null,
-      isAdmin: false
-    };
   } catch (error) {
     return { hasPermission: false, reason: 'error', error, isAdmin: false }
   }
@@ -236,37 +226,7 @@ export const getSubscriptionPlans = async () => {
     return data.plans || [];
   } catch (error) {
     console.error('Erreur récupération plans:', error);
-    // Fallback avec les plans par défaut en cas d'erreur
-    return [
-      {
-        id: 1,
-        name: 'Découverte',
-        description: 'Parfait pour découvrir Herbbie',
-        price_monthly: 499,
-        tokens_allocated: 50
-      },
-      {
-        id: 2,
-        name: 'Famille',
-        description: 'Pour les familles actives',
-        price_monthly: 999,
-        tokens_allocated: 150
-      },
-      {
-        id: 3,
-        name: 'Créatif',
-        description: 'Pour les créateurs intensifs',
-        price_monthly: 1999,
-        tokens_allocated: 400
-      },
-      {
-        id: 4,
-        name: 'Institut',
-        description: 'Pour les écoles et institutions',
-        price_monthly: 4999,
-        tokens_allocated: 1200
-      }
-    ];
+    return [];
   }
 };
 
@@ -277,23 +237,7 @@ export const getUserSubscription = async (userId) => {
       body: { action: 'get_subscription', userId }
     });
 
-    if (error) {
-      console.error('Erreur fonction manage-subscription:', error);
-      // Fallback : vérifier directement dans la base
-      const { data: directData, error: directError } = await supabase
-        .from('subscriptions')
-        .select('*, subscription_plans(*)')
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .single();
-
-      if (directError && directError.code !== 'PGRST116') {
-        console.error('Erreur récupération abonnement direct:', directError);
-        return null;
-      }
-      return directData || null;
-    }
-
+    if (error) throw error;
     return data.subscription;
   } catch (error) {
     console.error('Erreur récupération abonnement:', error);
@@ -371,17 +315,10 @@ export const getUserTokens = async (userId) => {
       .or('expires_at.is.null,expires_at.gte.' + new Date().toISOString())
       .order('created_at', { ascending: false });
 
-    if (error) {
-      // Si la table n'existe pas encore, retourner des valeurs par défaut
-      if (error.code === '42P01') {
-        console.log('Table user_tokens pas encore créée, utilisation des valeurs par défaut');
-        return { totalTokens: 0, tokens: [] };
-      }
-      throw error;
-    }
+    if (error) throw error;
 
-    const totalTokens = tokens?.reduce((sum, token) => sum + (token.tokens_amount || 0), 0) || 0;
-    return { totalTokens, tokens: tokens || [] };
+    const totalTokens = tokens.reduce((sum, token) => sum + token.tokens_amount, 0);
+    return { totalTokens, tokens };
   } catch (error) {
     console.error('Erreur récupération tokens:', error);
     return { totalTokens: 0, tokens: [] };

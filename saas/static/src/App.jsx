@@ -1159,10 +1159,7 @@ const downloadPDF = async (title, content) => {
       isLoggedIn={!!user}
       onOpenHistory={() => setShowHistory(true)}
       userId={user?.id}
-      onOpenSubscription={() => {
-        console.log('setShowSubscriptionModal appelé');
-        setShowSubscriptionModal(true);
-      }}
+      onOpenSubscription={() => setShowSubscriptionModal(true)}
     />
 
     {/* 🌟 Étoiles filantes pour dynamiser le fond */}
@@ -1844,17 +1841,11 @@ const downloadPDF = async (title, content) => {
     {showSubscriptionModal && (
       <SubscriptionModal
         isOpen={showSubscriptionModal}
-        onClose={() => {
-          console.log('Fermeture SubscriptionModal');
-          setShowSubscriptionModal(false);
-        }}
+        onClose={() => setShowSubscriptionModal(false)}
         userId={user?.id}
         userEmail={user?.email}
       />
     )}
-
-    {/* Debug: Afficher l'état de showSubscriptionModal */}
-    {console.log('showSubscriptionModal:', showSubscriptionModal, 'user:', user?.id)}
     {/* Footer avec mentions légales et contact */}
     <Footer onLegalClick={(section) => {
       setShowLegalPages(true);
