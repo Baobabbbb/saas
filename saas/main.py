@@ -1297,7 +1297,9 @@ async def get_animation_status(task_id: str):
                 "type": "result",
                 "data": animation_result
             }
+            # LOG DÉTAILLÉ pour déboguer l'affichage frontend
             print(f"✅ Animation RÉELLE {task_id} terminée et retournée!")
+            print(f"📦 Données retournées: status={animation_result.get('status')}, final_video_url={'OUI' if animation_result.get('final_video_url') else 'NON'}, video_urls={'OUI' if animation_result.get('video_urls') else 'NON'}, clips={'OUI' if animation_result.get('clips') else 'NON'}")
             
         elif status == "failed":
             # Erreur de génération
