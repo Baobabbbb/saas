@@ -291,7 +291,7 @@ function App() {
 
   // 📖 Pagination : découpe le texte en pages
   const storyPages = useMemo(() => {
-    if (contentType === 'audio' && generatedResult?.content) {
+    if ((contentType === 'histoire' || contentType === 'audio') && generatedResult?.content) {
       return splitTextIntoPages(generatedResult.content);
     }
     return [];
@@ -506,7 +506,7 @@ function App() {
 
         if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
         generatedContent = await response.json();
-      } else if (contentType === 'audio' || (contentType === 'histoire' && selectedVoice)) {
+      } else if (contentType === 'histoire' || contentType === 'audio') {
       const payload = {
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
         voice: selectedVoice,
@@ -763,7 +763,7 @@ function App() {
       } else {
         title = generateChildFriendlyTitle('comptine', selectedRhyme === 'custom' ? 'default' : selectedRhyme) + (generatedContent.has_music ? ' 🎵' : '');
       }
-    } else if (contentType === 'audio') {
+    } else if (contentType === 'histoire' || contentType === 'audio') {
       // Utiliser le titre de l'IA ou générer un titre attractif
       if (generatedContent.title && !generatedContent.title.includes('générée')) {
         title = generatedContent.title;
@@ -949,7 +949,7 @@ const handleSelectCreation = (creation) => {
     if (contentType === 'rhyme') {
       if (!selectedRhyme) return false;
       if (selectedRhyme === 'custom' && !customRhyme.trim()) return false;
-    } else if (contentType === 'audio') {
+    } else if (contentType === 'histoire' || contentType === 'audio') {
       if (!selectedAudioStory) return false;
       if (selectedAudioStory === 'custom' && !customAudioStory.trim()) return false;
       // La voix est optionnelle
@@ -1222,7 +1222,7 @@ const downloadPDF = async (title, content) => {
                   setCustomRhyme={setCustomRhyme}
                 />
               </motion.div>
-            ) : contentType === 'audio' ? (
+            ) : contentType === 'histoire' || contentType === 'audio' ? (
               <motion.div
                 key="audio-story-selector"
                 variants={contentVariants}
@@ -1358,7 +1358,7 @@ const downloadPDF = async (title, content) => {
         <div className="dot"></div>
       </div>      <p>        {        contentType === 'rhyme'
           ? 'Votre comptine est en cours de création...'
-          : contentType === 'audio'
+          : contentType === 'histoire' || contentType === 'audio'
           ? 'Création de l\'histoire en cours...'
           : contentType === 'histoire'
           ? 'Création de votre histoire en cours...'
@@ -1601,7 +1601,7 @@ const downloadPDF = async (title, content) => {
         )}
       </div>
     </motion.div>
-  ) : generatedResult && contentType === 'audio' ? (
+  ) : generatedResult && (contentType === 'histoire' || contentType === 'audio') ? (
     <motion.div
       className="generated-result"
   initial={{ opacity: 0 }}
@@ -1763,7 +1763,7 @@ const downloadPDF = async (title, content) => {
     <div className="empty-preview">    <p>
       {        contentType === 'rhyme'
         ? 'Votre comptine apparaîtra ici'
-        : contentType === 'audio'
+        : contentType === 'histoire' || contentType === 'audio'
         ? 'Votre histoire apparaîtra ici'
         : contentType === 'histoire'
         ? 'Votre histoire apparaîtra ici'
