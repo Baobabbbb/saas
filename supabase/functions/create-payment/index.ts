@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { contentType, userId, userEmail, amount, selectedDuration, numPages, selectedVoice } = await req.json();
+    const { contentType, userId, userEmail, amount, description, successUrl, cancelUrl } = await req.json();
 
     // Validation des paramètres
     if (!contentType || !userId) {
@@ -31,29 +31,41 @@ serve(async (req) => {
       httpClient: Stripe.createFetchHttpClient(),
     });
 
-    // Utiliser le montant calculé côté frontend (plus flexible pour gérer durées/pages)
+    // Utiliser le montant calculé côté frontend
     const finalAmount = amount || 49; // 0.49€ par défaut si pas spécifié
 
-    // Créer un Payment Intent avec Stripe
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: finalAmount,
-      currency: 'eur',
-      automatic_payment_methods: {
-        enabled: true,
-      },
+    // Créer une session Stripe Checkout
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: description || 'Contenu Herbbie',
+              description: `Création de contenu personnalisé - ${contentType}`,
+            },
+            unit_amount: finalAmount,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: successUrl || `${req.headers.get('origin')}?payment=success`,
+      cancel_url: cancelUrl || `${req.headers.get('origin')}?payment=cancelled`,
+      customer_email: userEmail,
       metadata: {
         contentType,
         userId,
         userEmail,
       },
-      receipt_email: userEmail,
     });
 
-    console.log(`Payment Intent créé pour ${userEmail}: ${paymentIntent.id}, montant: ${finalAmount} centimes`);
+    console.log(`Checkout Session créée pour ${userEmail}: ${session.id}, montant: ${finalAmount} centimes`);
 
     return new Response(JSON.stringify({
-      client_secret: paymentIntent.client_secret,
-      payment_intent_id: paymentIntent.id,
+      url: session.url,
+      session_id: session.id,
       amount: finalAmount,
       currency: 'eur',
       contentType,
