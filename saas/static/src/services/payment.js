@@ -94,6 +94,7 @@ export const createPaymentSession = async (contentType, userId, userEmail, optio
 // Obtenir le prix d'un contenu
 export const getContentPrice = (contentType, options = {}) => {
   console.log('📊 getContentPrice appelé:', { contentType, options });
+  console.log('📊 options.voice:', options.voice, 'Type:', typeof options.voice);
 
   const prices = {
     // Prix corrigés selon les vrais coûts API (TARIFICATION_HERBBIE.md mise à jour)
