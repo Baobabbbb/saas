@@ -110,7 +110,15 @@ const getSafeFilename = (title) => {
 };
 
 function App() {
-  const [contentType, setContentType] = useState('animation'); // 'rhyme', 'audio', 'coloring', 'animation' - Dessin animé sélectionné par défaut
+  const [contentType, setContentTypeRaw] = useState('animation'); // 'rhyme', 'audio', 'coloring', 'animation' - Dessin animé sélectionné par défaut
+  
+  // Wrapper pour normaliser 'audio' → 'histoire' automatiquement
+  const setContentType = (type) => {
+    const normalizedType = type === 'audio' ? 'histoire' : type;
+    console.log('🔄 setContentType:', type, '→', normalizedType);
+    setContentTypeRaw(normalizedType);
+  };
+  
   const [selectedRhyme, setSelectedRhyme] = useState(null);
   const [customRhyme, setCustomRhyme] = useState('');
   

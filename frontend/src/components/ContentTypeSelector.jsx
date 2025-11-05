@@ -29,7 +29,9 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
       if (!enabled[contentType] && contentType !== 'animation') {
         const firstEnabled = Object.keys(enabled).find(key => enabled[key].enabled);
         if (firstEnabled) {
-          setContentType(firstEnabled);
+          // Toujours utiliser 'histoire' au lieu de 'audio' pour la compatibilité
+          const normalizedType = firstEnabled === 'audio' ? 'histoire' : firstEnabled;
+          setContentType(normalizedType);
         }
       }
     });
@@ -41,6 +43,12 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
     try {
       setLoading(true);
       const features = await getEnabledFeatures();
+      
+      // Normaliser: si contentType est 'audio', le changer en 'histoire'
+      if (contentType === 'audio') {
+        setContentType('histoire');
+      }
+      
       setEnabledFeatures(features);
     } catch (error) {
       console.error('Erreur lors du chargement des fonctionnalités:', error);
