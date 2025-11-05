@@ -114,10 +114,14 @@ export const getContentPrice = (contentType, options = {}) => {
 
   // Gestion spéciale pour les histoires avec choix audio/texte
   if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio') {
-    console.log('🎤 Vérification voix pour histoire:', options.voice);
+    const voice = options.voice;
+    const hasVoice = voice === 'female' || voice === 'male';
+    
+    console.log('🎤 HISTOIRE - voice:', voice, 'hasVoice:', hasVoice);
+    
     // Si l'utilisateur a choisi une voix (female ou male)
-    if (options.voice && (options.voice === 'female' || options.voice === 'male')) {
-      console.log('✅ Histoire AUDIO détectée');
+    if (hasVoice) {
+      console.log('✅ Histoire AUDIO détectée - 0,79€');
       return {
         amount: 79,
         name: 'Histoire Audio',
@@ -125,8 +129,9 @@ export const getContentPrice = (contentType, options = {}) => {
         display: '0,79€'
       }
     }
+    
     // Sinon, histoire texte uniquement (voice est null ou undefined)
-    console.log('📖 Histoire TEXTE détectée');
+    console.log('📖 Histoire TEXTE détectée - 0,49€');
     return {
       amount: 49,
       name: 'Histoire Texte',
