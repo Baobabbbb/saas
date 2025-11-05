@@ -109,8 +109,8 @@ export const getContentPrice = (contentType, options = {}) => {
     'story': { amount: 49, name: 'Histoire Texte', currency: 'EUR', display: '0,49€' },
     'rhyme': { amount: 149, name: 'Comptine musicale', currency: 'EUR', display: '1,49€' },
 
-    // Animations corrigées selon les vrais coûts API
-    'animation': { amount: 1299, name: 'Animation IA 30s', currency: 'EUR', display: '12,99€' }
+    // Animations corrigées selon les vrais coûts API (NOUVEAUX PRIX RÉDUITS)
+    'animation': { amount: 799, name: 'Animation IA 30s', currency: 'EUR', display: '7,99€' }
   }
 
   // Gestion spéciale pour les histoires (prix unique : 0,79€ avec ou sans audio)
@@ -123,15 +123,15 @@ export const getContentPrice = (contentType, options = {}) => {
     }
   }
 
-  // Gestion spéciale pour les animations selon la durée
+  // Gestion spéciale pour les animations selon la durée (NOUVEAUX PRIX RÉDUITS)
   if (contentType === 'animation' && options.duration) {
     const durationPrices = {
-      30: { amount: 1299, name: 'Animation IA 30s', display: '12,99€' },
-      60: { amount: 1999, name: 'Animation IA 1min', display: '19,99€' },
-      120: { amount: 2499, name: 'Animation IA 2min', display: '24,99€' },
-      180: { amount: 2999, name: 'Animation IA 3min', display: '29,99€' },
-      240: { amount: 3499, name: 'Animation IA 4min', display: '34,99€' },
-      300: { amount: 3999, name: 'Animation IA 5min', display: '39,99€' }
+      30: { amount: 799, name: 'Animation IA 30s', display: '7,99€' },
+      60: { amount: 1199, name: 'Animation IA 1min', display: '11,99€' },
+      120: { amount: 1599, name: 'Animation IA 2min', display: '15,99€' },
+      180: { amount: 1999, name: 'Animation IA 3min', display: '19,99€' },
+      240: { amount: 2399, name: 'Animation IA 4min', display: '23,99€' },
+      300: { amount: 2799, name: 'Animation IA 5min', display: '27,99€' }
     }
 
     const durationKey = options.duration
