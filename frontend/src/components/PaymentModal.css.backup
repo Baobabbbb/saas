@@ -492,6 +492,24 @@
   font-size: 0.85rem;
 }
 
+/* Styles pour le texte de sécurité Stripe */
+.payment-security {
+  text-align: right;
+  margin-top: 1rem;
+}
+
+.security-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.security-icon {
+  font-size: 1rem;
+}
+
 .close-button {
   position: absolute;
   top: 1rem;
