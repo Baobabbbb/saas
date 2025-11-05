@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { supabase } from '../supabaseClient';
 import { getContentPrice } from '../services/payment';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+console.log('🔑 Clé Stripe chargée:', stripeKey ? 'Oui (pk_...)' : 'NON - MANQUANTE');
+const stripePromise = loadStripe(stripeKey);
 
 const CARD_ELEMENT_OPTIONS = {
   style: {
@@ -34,6 +36,11 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
 
   const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
   const priceInfo = getContentPrice(normalizedContentType, options);
+
+  useEffect(() => {
+    console.log('💳 Stripe chargé:', stripe ? 'Oui' : 'Non');
+    console.log('📋 Elements chargé:', elements ? 'Oui' : 'Non');
+  }, [stripe, elements]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -116,7 +123,8 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
         border: '2px solid #e0e0e0',
         borderRadius: '8px',
         backgroundColor: 'white',
-        marginBottom: '20px'
+        marginBottom: '20px',
+        minHeight: '45px'
       }}>
         <CardElement options={CARD_ELEMENT_OPTIONS} />
       </div>
