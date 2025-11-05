@@ -34,38 +34,26 @@ serve(async (req) => {
     // Utiliser le montant calculé côté frontend
     const finalAmount = amount || 49; // 0.49€ par défaut si pas spécifié
 
-    // Créer une session Stripe Checkout
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: {
-              name: description || 'Contenu Herbbie',
-              description: `Création de contenu personnalisé - ${contentType}`,
-            },
-            unit_amount: finalAmount,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: successUrl || `${req.headers.get('origin')}?payment=success`,
-      cancel_url: cancelUrl || `${req.headers.get('origin')}?payment=cancelled`,
-      customer_email: userEmail,
+    // Créer un PaymentIntent pour paiement dans la popup
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: finalAmount,
+      currency: 'eur',
+      automatic_payment_methods: {
+        enabled: true,
+      },
       metadata: {
         contentType,
         userId,
         userEmail,
       },
+      receipt_email: userEmail,
     });
 
-    console.log(`Checkout Session créée pour ${userEmail}: ${session.id}, montant: ${finalAmount} centimes`);
+    console.log(`PaymentIntent créé pour ${userEmail}: ${paymentIntent.id}, montant: ${finalAmount} centimes`);
 
     return new Response(JSON.stringify({
-      url: session.url,
-      session_id: session.id,
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
       amount: finalAmount,
       currency: 'eur',
       contentType,
