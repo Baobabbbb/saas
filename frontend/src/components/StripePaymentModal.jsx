@@ -1,10 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { supabase } from '../supabaseClient';
 import { getContentPrice } from '../services/payment';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
+const CARD_ELEMENT_OPTIONS = {
+  style: {
+    base: {
+      color: '#32325d',
+      fontFamily: '"Baloo 2", sans-serif',
+      fontSmoothing: 'antialiased',
+      fontSize: '16px',
+      '::placeholder': {
+        color: '#aab7c4'
+      }
+    },
+    invalid: {
+      color: '#fa755a',
+      iconColor: '#fa755a'
+    }
+  },
+  hidePostalCode: false
+};
 
 const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
   const stripe = useStripe();
@@ -19,6 +38,13 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
     event.preventDefault();
 
     if (!stripe || !elements) {
+      setErrorMessage('Stripe n\'est pas encore chargé. Veuillez réessayer.');
+      return;
+    }
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      setErrorMessage('Impossible de charger le formulaire de paiement.');
       return;
     }
 
@@ -29,7 +55,7 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        throw new Error('Utilisateur non connecté');
+        throw new Error('Vous devez être connecté pour effectuer un paiement');
       }
 
       const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-payment', {
@@ -43,13 +69,19 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
         }
       });
 
-      if (paymentError) throw paymentError;
+      if (paymentError) {
+        throw new Error(paymentError.message || 'Erreur lors de la création du paiement');
+      }
+
+      if (!paymentData || !paymentData.clientSecret) {
+        throw new Error('Impossible de créer le paiement');
+      }
 
       const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
         paymentData.clientSecret,
         {
           payment_method: {
-            card: elements.getElement(CardElement),
+            card: cardElement,
             billing_details: {
               email: user.email,
             },
@@ -58,11 +90,13 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
       );
 
       if (confirmError) {
-        throw confirmError;
+        throw new Error(confirmError.message || 'Le paiement a échoué');
       }
 
-      if (paymentIntent.status === 'succeeded') {
+      if (paymentIntent && paymentIntent.status === 'succeeded') {
         onSuccess();
+      } else {
+        throw new Error('Le paiement n\'a pas été confirmé');
       }
     } catch (error) {
       console.error('Erreur de paiement:', error);
@@ -73,60 +107,43 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '20px',
-      width: '100%'
-    }}>
+    <form onSubmit={handleSubmit}>
       <div style={{
-        padding: '15px',
+        padding: '16px',
         border: '2px solid #e0e0e0',
         borderRadius: '8px',
-        backgroundColor: '#f9f9f9'
+        backgroundColor: 'white',
+        marginBottom: '20px'
       }}>
-        <CardElement
-          options={{
-            style: {
-              base: {
-                fontSize: '16px',
-                color: '#424770',
-                '::placeholder': {
-                  color: '#aab7c4',
-                },
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              },
-              invalid: {
-                color: '#9e2146',
-              },
-            },
-          }}
-        />
+        <CardElement options={CARD_ELEMENT_OPTIONS} />
       </div>
 
       {errorMessage && (
         <div style={{
           padding: '12px',
-          backgroundColor: '#fee',
-          color: '#c33',
+          backgroundColor: '#ffebee',
+          color: '#c62828',
           borderRadius: '8px',
-          fontSize: '14px'
+          marginBottom: '20px',
+          fontSize: '14px',
+          border: '1px solid #ef5350'
         }}>
-          {errorMessage}
+          ⚠️ {errorMessage}
         </div>
       )}
 
       <div style={{
         display: 'flex',
         gap: '12px',
-        justifyContent: 'flex-end'
+        marginBottom: '16px'
       }}>
         <button
           type="button"
           onClick={onClose}
           disabled={isProcessing}
           style={{
-            padding: '12px 24px',
+            flex: 1,
+            padding: '14px',
             fontSize: '16px',
             fontWeight: '600',
             borderRadius: '8px',
@@ -134,8 +151,8 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
             backgroundColor: 'white',
             color: '#6B4EFF',
             cursor: isProcessing ? 'not-allowed' : 'pointer',
-            opacity: isProcessing ? 0.6 : 1,
-            transition: 'all 0.2s'
+            opacity: isProcessing ? 0.5 : 1,
+            fontFamily: '"Baloo 2", sans-serif'
           }}
         >
           Annuler
@@ -144,7 +161,8 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
           type="submit"
           disabled={!stripe || isProcessing}
           style={{
-            padding: '12px 24px',
+            flex: 1,
+            padding: '14px',
             fontSize: '16px',
             fontWeight: '600',
             borderRadius: '8px',
@@ -152,25 +170,21 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
             backgroundColor: '#6B4EFF',
             color: 'white',
             cursor: (!stripe || isProcessing) ? 'not-allowed' : 'pointer',
-            opacity: (!stripe || isProcessing) ? 0.6 : 1,
-            transition: 'all 0.2s'
+            opacity: (!stripe || isProcessing) ? 0.5 : 1,
+            fontFamily: '"Baloo 2", sans-serif'
           }}
         >
-          {isProcessing ? 'Traitement...' : `Payer ${priceInfo.display}`}
+          {isProcessing ? '⏳ Traitement...' : `💳 Payer ${priceInfo.display}`}
         </button>
       </div>
 
       <div style={{
         textAlign: 'right',
-        fontSize: '14px',
+        fontSize: '13px',
         color: '#666',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        gap: '8px'
+        fontFamily: '"Baloo 2", sans-serif'
       }}>
-        <span>🔒</span>
-        <span>Paiement sécurisé par Stripe</span>
+        🔒 Paiement sécurisé par Stripe
       </div>
     </form>
   );
@@ -182,35 +196,41 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
   const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
   const priceInfo = getContentPrice(normalizedContentType, options);
 
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
     <div
-      onClick={onClose}
+      onClick={handleOverlayClick}
       style={{
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backgroundColor: 'rgba(0, 0, 0, 0.75)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 99999,
-        padding: '20px'
+        zIndex: 999999,
+        padding: '20px',
+        fontFamily: '"Baloo 2", sans-serif'
       }}
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          padding: '32px',
-          maxWidth: '500px',
-          width: '100%',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-          position: 'relative'
-        }}
-      >
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        padding: '32px',
+        maxWidth: '500px',
+        width: '100%',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+        position: 'relative',
+        maxHeight: '90vh',
+        overflowY: 'auto'
+      }}>
         <button
           onClick={onClose}
           style={{
@@ -219,36 +239,39 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
             right: '16px',
             background: 'none',
             border: 'none',
-            fontSize: '24px',
+            fontSize: '28px',
             cursor: 'pointer',
-            color: '#666',
-            width: '32px',
-            height: '32px',
+            color: '#999',
+            width: '36px',
+            height: '36px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: '50%',
-            transition: 'all 0.2s'
+            lineHeight: '1'
           }}
+          aria-label="Fermer"
         >
           ×
         </button>
 
         <h2 style={{
           margin: '0 0 8px 0',
-          fontSize: '24px',
-          fontWeight: 'bold',
-          color: '#333'
+          fontSize: '26px',
+          fontWeight: '700',
+          color: '#333',
+          fontFamily: '"Baloo 2", sans-serif'
         }}>
           Paiement sécurisé
         </h2>
 
         <p style={{
-          margin: '0 0 24px 0',
+          margin: '0 0 28px 0',
           fontSize: '16px',
-          color: '#666'
+          color: '#666',
+          fontFamily: '"Baloo 2", sans-serif'
         }}>
-          {priceInfo.name} - {priceInfo.display}
+          {priceInfo.name} • <strong>{priceInfo.display}</strong>
         </p>
 
         <Elements stripe={stripePromise}>
