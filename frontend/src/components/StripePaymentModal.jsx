@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { supabase } from '../supabaseClient';
@@ -113,7 +114,10 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
         border: '2px solid #e0e0e0',
         borderRadius: '8px',
         backgroundColor: 'white',
-        marginBottom: '20px'
+        marginBottom: '20px',
+        position: 'relative',
+        zIndex: 1,
+        pointerEvents: 'auto'
       }}>
         <CardElement options={CARD_ELEMENT_OPTIONS} />
       </div>
@@ -202,7 +206,7 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
     }
   };
 
-  return (
+  const modalContent = (
     <div
       onClick={handleOverlayClick}
       style={{
@@ -215,22 +219,25 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 999999,
+        zIndex: 9999999,
         padding: '20px',
         fontFamily: '"Baloo 2", sans-serif'
       }}
     >
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '16px',
-        padding: '32px',
-        maxWidth: '500px',
-        width: '100%',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-        position: 'relative',
-        maxHeight: '90vh',
-        overflowY: 'auto'
-      }}>
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          padding: '32px',
+          maxWidth: '500px',
+          width: '100%',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          position: 'relative',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          isolation: 'isolate'
+        }}>
         <button
           onClick={onClose}
           style={{
@@ -248,7 +255,8 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: '50%',
-            lineHeight: '1'
+            lineHeight: '1',
+            zIndex: 10
           }}
           aria-label="Fermer"
         >
@@ -285,6 +293,8 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
       </div>
     </div>
   );
+
+  return ReactDOM.createPortal(modalContent, document.body);
 };
 
 export default StripePaymentModal;

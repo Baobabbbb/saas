@@ -15,6 +15,23 @@ const ResetPasswordPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 
+  // Empêcher l'indexation de cette page par Google
+  useEffect(() => {
+    // Ajouter le meta tag noindex
+    const metaRobots = document.createElement('meta');
+    metaRobots.name = 'robots';
+    metaRobots.content = 'noindex, nofollow';
+    document.head.appendChild(metaRobots);
+
+    // Nettoyer au démontage
+    return () => {
+      const existingMeta = document.querySelector('meta[name="robots"]');
+      if (existingMeta && existingMeta.content === 'noindex, nofollow') {
+        existingMeta.remove();
+      }
+    };
+  }, []);
+
   useEffect(() => {
     let timeoutId;
     let subscription;
