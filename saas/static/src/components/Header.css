@@ -1,0 +1,45 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding: 1rem 0;
+}
+
+.header-content {
+  text-align: center;
+  flex: 1;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.logo img {
+  width: 48px;
+  height: 48px;
+}
+
+.logo h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0;
+}
+
+.tagline {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--secondary);
+  margin: 0;
+}
+
+.user-account-container {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
