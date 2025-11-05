@@ -115,31 +115,13 @@ export const getContentPrice = (contentType, options = {}) => {
     'animation': { amount: 1299, name: 'Animation IA 30s', currency: 'EUR', display: '12,99€' }
   }
 
-  // Gestion spéciale pour les histoires avec choix audio/texte
+  // Gestion spéciale pour les histoires (prix unique : 0,79€ avec ou sans audio)
   if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio') {
-    const voice = options.voice;
-    const hasVoice = voice === 'female' || voice === 'male';
-    
-    console.log('🎤 HISTOIRE - voice:', voice, 'hasVoice:', hasVoice);
-    
-    // Si l'utilisateur a choisi une voix (female ou male)
-    if (hasVoice) {
-      console.log('✅ Histoire AUDIO détectée - 0,79€');
-      return {
-        amount: 79,
-        name: 'Histoire Audio',
-        currency: 'EUR',
-        display: '0,79€'
-      }
-    }
-    
-    // Sinon, histoire texte uniquement (voice est null ou undefined)
-    console.log('📖 Histoire TEXTE détectée - 0,49€');
     return {
-      amount: 49,
-      name: 'Histoire Texte',
+      amount: 79,
+      name: 'Histoire',
       currency: 'EUR',
-      display: '0,49€'
+      display: '0,79€'
     }
   }
 

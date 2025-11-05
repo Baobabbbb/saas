@@ -9,8 +9,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        debug: resolve(__dirname, 'supabase-debug.html'),
-        test: resolve(__dirname, 'test-supabase-connection.html')
+        debug: resolve(__dirname, 'supabase-debug.html')
       }
     }
   },
