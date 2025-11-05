@@ -115,17 +115,8 @@ function App() {
   // Wrapper pour normaliser 'audio' → 'histoire' automatiquement
   const setContentType = (type) => {
     const normalizedType = type === 'audio' ? 'histoire' : type;
-    console.log('🔄 setContentType:', type, '→', normalizedType);
     setContentTypeRaw(normalizedType);
   };
-  
-  // useEffect pour forcer la normalisation si contentType devient 'audio'
-  useEffect(() => {
-    if (contentType === 'audio') {
-      console.log('⚠️ contentType est "audio", normalisation forcée → "histoire"');
-      setContentTypeRaw('histoire');
-    }
-  }, [contentType]);
   
   const [selectedRhyme, setSelectedRhyme] = useState(null);
   const [customRhyme, setCustomRhyme] = useState('');
@@ -403,14 +394,6 @@ function App() {
 
   // Mettre à jour le texte du bouton selon le statut admin et le type de contenu
   const updateButtonText = (adminStatus) => {
-    console.log('🔍 updateButtonText appelé:', {
-      adminStatus,
-      contentType,
-      selectedVoice,
-      selectedDuration,
-      numPages
-    });
-
     if (adminStatus) {
       setButtonText('Générer Gratuitement');
     } else {
@@ -428,9 +411,7 @@ function App() {
 
       // NORMALISATION: Toujours utiliser 'histoire' au lieu de 'audio'
       const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
-      console.log('💰 Options pour getContentPrice:', { contentType, normalizedContentType, options });
       const priceInfo = getContentPrice(normalizedContentType, options);
-      console.log('💵 Prix calculé:', priceInfo);
       setButtonText(`Acheter pour ${priceInfo.display}`);
     }
   };
@@ -906,8 +887,6 @@ function App() {
             transactionId: `gen_${Date.now()}_${contentType}`
           }
         );
-
-        console.log('✅ Tokens déduits avec succès:', deductionResult);
 
       } catch (tokenError) {
         console.error('❌ Erreur lors de la déduction des tokens:', tokenError);

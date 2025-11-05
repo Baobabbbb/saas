@@ -36,23 +36,14 @@ const PaymentModal = ({
     try {
       // Pour le moment, on simule un paiement réussi
       // Plus tard, on intégrera Stripe Checkout réel
-      
-      console.log('🔄 Simulation du paiement pour:', {
-        contentType,
-        userId,
-        userEmail,
-        amount: priceInfo.amount
-      })
-      
+
       // Simuler un délai de paiement
       await new Promise(resolve => setTimeout(resolve, 2000))
-      
+
       // Simuler un paiement réussi (90% de réussite)
       const paymentSuccess = Math.random() > 0.1
-      
+
       if (paymentSuccess) {
-        console.log('✅ Paiement simulé réussi')
-        
         // Ici on devrait marquer la permission dans la base
         // Pour le moment, on simule juste le succès
         

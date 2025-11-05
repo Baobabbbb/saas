@@ -85,12 +85,6 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
     setError(null)
 
     try {
-      console.log('🔄 Traitement paiement Stripe pour:', {
-        contentType,
-        userId,
-        userEmail,
-        amount: priceInfo.amount
-      })
 
       // Validation du nom du titulaire
       if (!cardholderName.trim()) {
@@ -115,7 +109,6 @@ const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, pric
       }
 
       if (paymentIntent.status === 'succeeded') {
-        console.log('✅ Paiement Stripe réussi:', paymentIntent)
 
         // Appeler la fonction pour enregistrer la permission après paiement réussi
         try {
