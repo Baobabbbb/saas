@@ -293,7 +293,9 @@ const StripePaymentModal = ({
     options.pages = numPages || 1; // Par défaut 1 page si non défini
   }
 
-  const priceInfo = getContentPrice(contentType, options)
+  // NORMALISATION: Toujours utiliser 'histoire' au lieu de 'audio'
+  const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
+  const priceInfo = getContentPrice(normalizedContentType, options)
 
   const handleOverlayClick = (e) => {
     // Fermer seulement si on clique sur l'overlay, pas sur la modal elle-même

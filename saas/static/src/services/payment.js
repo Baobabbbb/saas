@@ -68,8 +68,11 @@ export const checkPaymentPermission = async (contentType, userId, userEmail, opt
 // Créer une session de paiement (seulement pour les non-admins)
 export const createPaymentSession = async (contentType, userId, userEmail, options = {}) => {
   try {
+    // NORMALISATION: Toujours utiliser 'histoire' au lieu de 'audio'
+    const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
+    
     // Calculer le prix selon les options
-    const priceInfo = getContentPrice(contentType, options)
+    const priceInfo = getContentPrice(normalizedContentType, options)
 
     const { data, error } = await supabase.functions.invoke('create-payment', {
       body: {

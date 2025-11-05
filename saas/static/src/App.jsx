@@ -426,8 +426,10 @@ function App() {
         options.voice = selectedVoice;
       }
 
-      console.log('💰 Options pour getContentPrice:', { contentType, options });
-      const priceInfo = getContentPrice(contentType, options);
+      // NORMALISATION: Toujours utiliser 'histoire' au lieu de 'audio'
+      const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
+      console.log('💰 Options pour getContentPrice:', { contentType, normalizedContentType, options });
+      const priceInfo = getContentPrice(normalizedContentType, options);
       console.log('💵 Prix calculé:', priceInfo);
       setButtonText(`Acheter pour ${priceInfo.display}`);
     }

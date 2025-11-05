@@ -25,7 +25,9 @@ const PaymentModal = ({
     options.pages = numPages || 1; // Par défaut 1 page si non défini
   }
 
-  const priceInfo = getContentPrice(contentType, options)
+  // NORMALISATION: Toujours utiliser 'histoire' au lieu de 'audio'
+  const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
+  const priceInfo = getContentPrice(normalizedContentType, options)
   
   const handlePayment = async () => {
     setLoading(true)
