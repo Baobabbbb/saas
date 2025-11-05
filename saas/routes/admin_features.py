@@ -23,6 +23,7 @@ DEFAULT_FEATURES = {
     "comic": {"enabled": True, "name": "Bande dessinée", "icon": "💬", "description": "Création de bandes dessinées avec bulles de dialogue"},
     "coloring": {"enabled": True, "name": "Coloriage", "icon": "🎨", "description": "Pages de coloriage à imprimer pour les enfants"},
     "histoire": {"enabled": True, "name": "Histoire", "icon": "📖", "description": "Histoires avec possibilité d'ajouter une narration audio"},
+    "audio": {"enabled": True, "name": "Histoire", "icon": "📖", "description": "Histoires avec possibilité d'ajouter une narration audio"},  # Rétrocompatibilité
     "rhyme": {"enabled": True, "name": "Comptine", "icon": "🎵", "description": "Comptines musicales avec paroles et mélodies"}
 }
 
