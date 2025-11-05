@@ -1848,12 +1848,13 @@ const downloadPDF = async (title, content) => {
     {/* Modal de paiement Stripe */}
     {showPaymentModal && (
       <StripePaymentModal
+        isOpen={showPaymentModal}
         contentType={paymentContentType}
-        selectedDuration={selectedDuration}
-        numPages={numPages}
-        selectedVoice={selectedVoice}
-        userId={user?.id}
-        userEmail={user?.email}
+        options={{
+          duration: selectedDuration,
+          pages: numPages,
+          voice: selectedVoice
+        }}
         onSuccess={(result) => {
           setShowPaymentModal(false);
           // Lancer la génération automatiquement après paiement réussi
@@ -1861,7 +1862,7 @@ const downloadPDF = async (title, content) => {
             startGeneration();
           }, 500);
         }}
-        onCancel={() => {
+        onClose={() => {
           setShowPaymentModal(false);
         }}
       />
