@@ -12,16 +12,6 @@
     <priority>1.0</priority>
   </url>
 
-  <!-- ========== PAGES AVEC ROUTES RÉELLES ========== -->
-  
-  <!-- Réinitialisation du mot de passe (route React) -->
-  <url>
-    <loc>https://herbbie.com/reset-password</loc>
-    <lastmod>2025-11-04</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-
   <!-- ========== FONCTIONNALITÉS PRINCIPALES (URLs avec hash pour SPA) ========== -->
   <!-- Note: Google peut indexer certaines URLs avec hash si le contenu est unique -->
   
