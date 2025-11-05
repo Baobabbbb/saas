@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 // import Confetti from 'react-confetti';
 import './App.css';
+
+// CACHE BUST: Build clean v2025-11-05-NO-LOGS
 import { supabase } from './supabaseClient';
 import { jsPDF } from 'jspdf';
 import Header from './components/Header';
