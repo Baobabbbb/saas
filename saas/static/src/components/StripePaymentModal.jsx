@@ -1,359 +1,281 @@
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { loadStripe } from '@stripe/stripe-js'
-import {
-  Elements,
-  CardNumberElement,
-  CardExpiryElement,
-  CardCvcElement,
-  useStripe,
-  useElements
-} from '@stripe/react-stripe-js'
-import { getContentPrice, grantPermission } from '../services/payment'
-import { supabase } from '../supabaseClient'
-import './PaymentModal.css'
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
+import { supabase } from '../supabaseClient';
+import { getContentPrice } from '../services/payment';
 
-// Initialiser Stripe avec la clé publique depuis les variables d'environnement
-const stripePromise = (import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY &&
-  typeof import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY === 'string' &&
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY.length > 0)
-  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
-  : Promise.resolve(null)
+const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options = {} }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-const PaymentForm = ({ contentType, userId, userEmail, onSuccess, onCancel, priceInfo }) => {
-  const stripe = useStripe()
-  const elements = useElements()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [clientSecret, setClientSecret] = useState('')
-  const [cardholderName, setCardholderName] = useState('')
+  if (!isOpen) return null;
 
-  // Créer un Payment Intent dès que le composant se charge
-  useEffect(() => {
-    const createPaymentIntent = async () => {
-      try {
-        // Appeler l'Edge Function Supabase pour créer le Payment Intent
-        const { data, error } = await supabase.functions.invoke('create-payment', {
-          body: {
-            contentType,
-            userId,
-            userEmail,
-            amount: priceInfo.amount,
-            selectedDuration,
-            numPages,
-            selectedVoice
-          }
-        })
+  const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
+  const priceInfo = getContentPrice(normalizedContentType, options);
 
-        if (error) {
-          console.error('Erreur Edge Function:', error)
-          throw new Error('Erreur lors de la création du paiement')
-        }
-
-        if (!data.client_secret) {
-          throw new Error('Client secret manquant dans la réponse')
-        }
-
-        setClientSecret(data.client_secret)
-
-      } catch (error) {
-        console.error('❌ Erreur création Payment Intent:', error)
-        setError(error.message || 'Erreur lors de l\'initialisation du paiement')
-      }
-    }
-
-    if (stripe) {
-      createPaymentIntent()
-    }
-  }, [contentType, priceInfo.amount, userId, userEmail, stripe])
-  
-  const handlePayment = async (event) => {
-    event.preventDefault()
-
-    if (!stripe || !elements) {
-      setError('Stripe n\'est pas encore chargé. Veuillez patienter.')
-      return
-    }
-
-    const cardNumberElement = elements.getElement(CardNumberElement)
-    if (!cardNumberElement) {
-      setError('Élément numéro de carte non trouvé')
-      return
-    }
-
-    setLoading(true)
-    setError(null)
+  const handlePayment = async () => {
+    setIsProcessing(true);
+    setErrorMessage('');
 
     try {
-
-      // Validation du nom du titulaire
-      if (!cardholderName.trim()) {
-        throw new Error('Veuillez saisir le nom du titulaire de la carte')
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('Vous devez être connecté pour effectuer un paiement');
       }
 
-      // Confirmer le paiement avec Stripe en utilisant les éléments séparés
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: cardNumberElement,
-          billing_details: {
-            name: cardholderName.trim(),
-            email: userEmail,
-          },
-        },
-        return_url: window.location.origin,
-      })
-
-      if (error) {
-        console.error('Erreur Stripe:', error)
-        throw new Error(error.message || 'Erreur lors du paiement')
-      }
-
-      if (paymentIntent.status === 'succeeded') {
-
-        // Appeler la fonction pour enregistrer la permission après paiement réussi
-        try {
-          await grantPermission(userId, contentType, paymentIntent.id, priceInfo.amount / 100)
-        } catch (grantError) {
-          console.error('Erreur lors de l\'enregistrement de la permission:', grantError)
-          // Ne pas bloquer le succès du paiement si l'enregistrement échoue
+      // Créer une session Stripe Checkout
+      const { data: sessionData, error: sessionError } = await supabase.functions.invoke('create-payment', {
+        body: {
+          amount: priceInfo.amount,
+          currency: priceInfo.currency,
+          contentType: normalizedContentType,
+          description: priceInfo.name,
+          userId: user.id,
+          userEmail: user.email,
+          successUrl: window.location.origin + '?payment=success',
+          cancelUrl: window.location.origin + '?payment=cancelled'
         }
+      });
 
-        onSuccess({
-          success: true,
-          contentType,
-          amount: priceInfo.amount / 100, // Convertir centimes en euros
-          paymentIntentId: paymentIntent.id,
-          stripePayment: true
-        })
-      } else if (paymentIntent.status === 'requires_action') {
-        // Authentification 3D Secure requise
-        throw new Error('Authentification supplémentaire requise. Veuillez réessayer.')
-      } else {
-        throw new Error('Paiement non finalisé. Veuillez vérifier votre carte.')
+      if (sessionError) {
+        throw new Error(sessionError.message || 'Erreur lors de la création du paiement');
       }
+
+      if (!sessionData || !sessionData.url) {
+        throw new Error('Impossible de créer la session de paiement');
+      }
+
+      // Rediriger vers Stripe Checkout
+      window.location.href = sessionData.url;
 
     } catch (error) {
-      console.error('❌ Erreur paiement Stripe:', error)
-      setError(error.message || 'Erreur lors du paiement. Veuillez réessayer.')
-    } finally {
-      setLoading(false)
+      console.error('Erreur de paiement:', error);
+      setErrorMessage(error.message || 'Une erreur est survenue lors du paiement');
+      setIsProcessing(false);
     }
-  }
-
-  const cardElementOptions = {
-    style: {
-      base: {
-        fontSize: '16px',
-        color: '#424770',
-        '::placeholder': {
-          color: '#aab7c4',
-        },
-        fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
-        fontSmoothing: 'antialiased',
-      },
-      invalid: {
-        color: '#9e2146',
-      },
-    },
-  }
-
-  return (
-    <form onSubmit={handlePayment} className="payment-form">
-      <div className="payment-summary">
-        <h3>Récapitulatif de votre commande</h3>
-        <div className="order-item">
-          <span className="item-name">{priceInfo.name}</span>
-          <span className="item-price">{priceInfo.display}</span>
-        </div>
-        <div className="order-total">
-          <span className="total-label">Total à payer :</span>
-          <span className="total-amount">{priceInfo.display}</span>
-        </div>
-      </div>
-
-      <div className="payment-method">
-        <h3>Informations de paiement</h3>
-
-        {/* Nom du titulaire */}
-        <div className="card-field">
-          <label htmlFor="cardholder-name">Nom du titulaire</label>
-          <input
-            id="cardholder-name"
-            type="text"
-            placeholder="Jean Dupont"
-            className="card-input"
-            value={cardholderName}
-            onChange={(e) => setCardholderName(e.target.value)}
-            required
-          />
-        </div>
-
-        {/* Numéro de carte */}
-        <div className="card-field">
-          <label>Numéro de carte</label>
-          <div className="card-element-container">
-            <CardNumberElement
-              options={cardElementOptions}
-              className="card-element"
-            />
-          </div>
-        </div>
-
-        {/* Date d'expiration et CVC */}
-        <div className="card-row">
-          <div className="card-field">
-            <label>Date d'expiration</label>
-            <div className="card-element-container small">
-              <CardExpiryElement
-                options={cardElementOptions}
-                className="card-element"
-              />
-            </div>
-          </div>
-          <div className="card-field">
-            <label>Code de sécurité (CVC)</label>
-            <div className="card-element-container small">
-              <CardCvcElement
-                options={cardElementOptions}
-                className="card-element"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {error && (
-        <div className="payment-error">
-          <span className="error-icon">⚠️</span>
-          {error}
-        </div>
-      )}
-
-      <div className="payment-actions">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="cancel-button"
-          disabled={loading}
-        >
-          Annuler
-        </button>
-        <button
-          type="submit"
-          className="pay-button"
-          disabled={!stripe || loading}
-        >
-          {loading ? (
-            <>
-              <div className="loading-spinner"></div>
-              Traitement en cours...
-            </>
-          ) : (
-            <>
-              <span className="lock-icon">🔒</span>
-              Payer {priceInfo.display}
-            </>
-          )}
-        </button>
-      </div>
-
-      <div className="payment-security">
-        <div className="security-info">
-          <span className="security-icon">🔒</span>
-          <small>Paiement sécurisé par Stripe</small>
-        </div>
-      </div>
-    </form>
-  )
-}
-
-const StripePaymentModal = ({
-  contentType,
-  selectedDuration,
-  numPages,
-  selectedVoice,
-  userId,
-  userEmail,
-  onSuccess,
-  onCancel
-}) => {
-  // Préparer les options selon le type de contenu
-  let options = {};
-
-  if (contentType === 'animation') {
-    options.duration = selectedDuration;
-  } else if (contentType === 'comic' || contentType === 'bd') {
-    options.pages = numPages || 1; // Par défaut 1 page si non défini
-  }
-
-  // NORMALISATION: Toujours utiliser 'histoire' au lieu de 'audio'
-  const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
-  const priceInfo = getContentPrice(normalizedContentType, options)
+  };
 
   const handleOverlayClick = (e) => {
-    // Fermer seulement si on clique sur l'overlay, pas sur la modal elle-même
-    if (e.target === e.currentTarget) {
-      onCancel()
+    if (e.target === e.currentTarget && !isProcessing) {
+      onClose();
     }
-  }
+  };
 
-  // Forcer l'affichage de la scrollbar pour le test
-  useEffect(() => {
-    const forceScrollbar = () => {
-      const modal = document.querySelector('.stripe-payment-modal')
-      if (modal) {
-        modal.style.overflowY = 'scroll'
-        modal.style.scrollbarWidth = 'auto'
-        modal.style.scrollbarColor = '#6B4EFF transparent'
-        // Forcer Webkit scrollbar
-        modal.style.setProperty('overflow-y', 'scroll', 'important')
-        modal.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important')
-      }
-    }
+  const modalContent = (
+    <div
+      onClick={handleOverlayClick}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.75)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999999,
+        padding: '20px',
+        fontFamily: '"Baloo 2", sans-serif'
+      }}
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          padding: '32px',
+          maxWidth: '500px',
+          width: '100%',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          position: 'relative',
+          maxHeight: '90vh',
+          overflowY: 'auto'
+        }}>
+        <button
+          onClick={onClose}
+          disabled={isProcessing}
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            background: 'none',
+            border: 'none',
+            fontSize: '28px',
+            cursor: isProcessing ? 'not-allowed' : 'pointer',
+            color: '#999',
+            width: '36px',
+            height: '36px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '50%',
+            lineHeight: '1',
+            opacity: isProcessing ? 0.5 : 1
+          }}
+          aria-label="Fermer"
+        >
+          ×
+        </button>
 
-    // Attendre que la modal soit rendue
-    setTimeout(forceScrollbar, 100)
-  }, [])
+        <h2 style={{
+          margin: '0 0 8px 0',
+          fontSize: '26px',
+          fontWeight: '700',
+          color: '#333',
+          fontFamily: '"Baloo 2", sans-serif'
+        }}>
+          Paiement sécurisé
+        </h2>
 
-  return (
-    <div className="payment-modal-overlay" onClick={handleOverlayClick}>
-      <motion.div
-        className="payment-modal stripe-payment-modal"
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div className="payment-header">
-          <h2>💳 Paiement sécurisé</h2>
+        <p style={{
+          margin: '0 0 28px 0',
+          fontSize: '16px',
+          color: '#666',
+          fontFamily: '"Baloo 2", sans-serif'
+        }}>
+          {priceInfo.name} • <strong>{priceInfo.display}</strong>
+        </p>
+
+        <div style={{
+          padding: '20px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '12px',
+          marginBottom: '24px',
+          border: '2px solid #e9ecef'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: '16px'
+          }}>
+            <span style={{ fontSize: '32px' }}>💳</span>
+            <div>
+              <div style={{ fontWeight: '600', fontSize: '18px', color: '#333' }}>
+                Paiement par carte bancaire
+              </div>
+              <div style={{ fontSize: '14px', color: '#666' }}>
+                Vous serez redirigé vers notre page de paiement sécurisée
+              </div>
+            </div>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            gap: '8px',
+            flexWrap: 'wrap',
+            marginTop: '12px'
+          }}>
+            <span style={{
+              padding: '4px 8px',
+              backgroundColor: 'white',
+              borderRadius: '4px',
+              fontSize: '12px',
+              color: '#666',
+              border: '1px solid #dee2e6'
+            }}>
+              💳 Visa
+            </span>
+            <span style={{
+              padding: '4px 8px',
+              backgroundColor: 'white',
+              borderRadius: '4px',
+              fontSize: '12px',
+              color: '#666',
+              border: '1px solid #dee2e6'
+            }}>
+              💳 Mastercard
+            </span>
+            <span style={{
+              padding: '4px 8px',
+              backgroundColor: 'white',
+              borderRadius: '4px',
+              fontSize: '12px',
+              color: '#666',
+              border: '1px solid #dee2e6'
+            }}>
+              💳 American Express
+            </span>
+          </div>
+        </div>
+
+        {errorMessage && (
+          <div style={{
+            padding: '12px',
+            backgroundColor: '#ffebee',
+            color: '#c62828',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            fontSize: '14px',
+            border: '1px solid #ef5350'
+          }}>
+            ⚠️ {errorMessage}
+          </div>
+        )}
+
+        <div style={{
+          display: 'flex',
+          gap: '12px',
+          marginBottom: '16px'
+        }}>
           <button
-            className="close-button"
-            onClick={onCancel}
-            aria-label="Fermer"
+            type="button"
+            onClick={onClose}
+            disabled={isProcessing}
+            style={{
+              flex: 1,
+              padding: '14px',
+              fontSize: '16px',
+              fontWeight: '600',
+              borderRadius: '8px',
+              border: '2px solid #6B4EFF',
+              backgroundColor: 'white',
+              color: '#6B4EFF',
+              cursor: isProcessing ? 'not-allowed' : 'pointer',
+              opacity: isProcessing ? 0.5 : 1,
+              fontFamily: '"Baloo 2", sans-serif',
+              transition: 'all 0.2s'
+            }}
           >
-            ✕
+            Annuler
+          </button>
+          <button
+            type="button"
+            onClick={handlePayment}
+            disabled={isProcessing}
+            style={{
+              flex: 1,
+              padding: '14px',
+              fontSize: '16px',
+              fontWeight: '600',
+              borderRadius: '8px',
+              border: 'none',
+              backgroundColor: '#6B4EFF',
+              color: 'white',
+              cursor: isProcessing ? 'not-allowed' : 'pointer',
+              opacity: isProcessing ? 0.5 : 1,
+              fontFamily: '"Baloo 2", sans-serif',
+              transition: 'all 0.2s'
+            }}
+          >
+            {isProcessing ? '⏳ Redirection...' : `💳 Payer ${priceInfo.display}`}
           </button>
         </div>
 
-        <Elements stripe={stripePromise}>
-          <PaymentForm
-            contentType={contentType}
-            userId={userId}
-            userEmail={userEmail}
-            onSuccess={onSuccess}
-            onCancel={onCancel}
-            priceInfo={priceInfo}
-          />
-        </Elements>
-      </motion.div>
+        <div style={{
+          textAlign: 'right',
+          fontSize: '13px',
+          color: '#666',
+          fontFamily: '"Baloo 2", sans-serif'
+        }}>
+          🔒 Paiement sécurisé par Stripe
+        </div>
+      </div>
     </div>
-  )
-}
+  );
 
-export default StripePaymentModal
+  return ReactDOM.createPortal(modalContent, document.body);
+};
 
-
-
-
-
-
+export default StripePaymentModal;
