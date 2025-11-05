@@ -20,11 +20,11 @@
     "description": "Pages de coloriage à imprimer pour les enfants",
     "updated_at": "2025-01-30T10:00:00.000Z"
   },
-  "audio": {
+  "histoire": {
     "enabled": true,
     "name": "Histoire",
     "icon": "📖",
-    "description": "Histoires audio avec narration automatique",
+    "description": "Histoires avec possibilité d'ajouter une narration audio",
     "updated_at": "2025-01-30T10:00:00.000Z"
   },
   "rhyme": {
