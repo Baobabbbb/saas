@@ -112,7 +112,7 @@ export const getContentPrice = (contentType, options = {}) => {
   }
 
   // Gestion spéciale pour les histoires avec choix audio/texte
-  if (contentType === 'histoire' || contentType === 'story') {
+  if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio') {
     console.log('🎤 Vérification voix pour histoire:', options.voice);
     // Si l'utilisateur a choisi une voix (female ou male)
     if (options.voice && (options.voice === 'female' || options.voice === 'male')) {
