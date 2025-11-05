@@ -119,6 +119,14 @@ function App() {
     setContentTypeRaw(normalizedType);
   };
   
+  // useEffect pour forcer la normalisation si contentType devient 'audio'
+  useEffect(() => {
+    if (contentType === 'audio') {
+      console.log('⚠️ contentType est "audio", normalisation forcée → "histoire"');
+      setContentTypeRaw('histoire');
+    }
+  }, [contentType]);
+  
   const [selectedRhyme, setSelectedRhyme] = useState(null);
   const [customRhyme, setCustomRhyme] = useState('');
   
