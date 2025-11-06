@@ -346,11 +346,12 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
           padding: '32px',
           maxWidth: '500px',
           width: '100%',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          boxShadow: '0 20px 60px rgba(107, 78, 255, 0.15)',
           position: 'relative',
           maxHeight: '90vh',
           overflowY: 'auto',
-          isolation: 'isolate'
+          isolation: 'isolate',
+          border: '3px solid #6B4EFF'
         }}>
         <button
           onClick={onClose}
@@ -378,23 +379,40 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
         </button>
 
         <h2 style={{
-          margin: '0 0 6px 0',
+          margin: '0 0 16px 0',
           fontSize: '24px',
           fontWeight: '600',
           color: '#333',
-          fontFamily: '"Baloo 2", sans-serif'
+          fontFamily: '"Baloo 2", sans-serif',
+          textAlign: 'center'
         }}>
           Paiement sécurisé
         </h2>
 
-        <p style={{
-          margin: '0 0 24px 0',
-          fontSize: '15px',
-          color: '#666',
+        <div style={{
+          margin: '0 0 28px 0',
+          padding: '16px 20px',
+          backgroundColor: '#f8f7ff',
+          borderRadius: '12px',
+          border: '2px solid #6B4EFF',
+          textAlign: 'center',
           fontFamily: '"Baloo 2", sans-serif'
         }}>
-          {priceInfo.name} • <strong>{priceInfo.display}</strong>
-        </p>
+          <div style={{
+            fontSize: '15px',
+            color: '#666',
+            marginBottom: '4px'
+          }}>
+            {priceInfo.name}
+          </div>
+          <div style={{
+            fontSize: '28px',
+            fontWeight: '700',
+            color: '#6B4EFF'
+          }}>
+            {priceInfo.display}
+          </div>
+        </div>
 
         <Elements stripe={stripePromise}>
           <CheckoutForm
@@ -425,3 +443,4 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
 };
 
 export default StripePaymentModal;
+
