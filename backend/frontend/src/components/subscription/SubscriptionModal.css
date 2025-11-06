@@ -150,18 +150,22 @@
 .subscription-plans-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
 .subscription-plan-card {
   background: white;
   border-radius: 20px;
-  padding: 0.75rem;
+  padding: 1.25rem;
   border: 3px solid rgba(107, 78, 255, 0.1);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 450px;
+  justify-content: space-between;
 }
 
 .subscription-plan-card::before {
@@ -200,27 +204,28 @@
   font-size: 1.25rem;
   font-weight: 800;
   color: #6B4EFF;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.5rem;
 }
 
 .plan-price {
   font-size: 2rem;
   font-weight: 900;
   color: #333;
-  margin-bottom: 0.05rem;
+  margin-bottom: 0.25rem;
 }
 
 .plan-price-period {
   font-size: 0.9rem;
   color: #666;
   font-weight: 500;
+  margin-bottom: 0.75rem;
 }
 
 .plan-tokens {
   background: rgba(107, 78, 255, 0.1);
-  padding: 0.4rem 0.6rem;
+  padding: 0.5rem 0.7rem;
   border-radius: 12px;
-  margin: 0.4rem 0;
+  margin: 0.6rem 0;
   font-weight: 700;
   color: #6B4EFF;
   text-align: center;
@@ -231,7 +236,8 @@
 .plan-features {
   list-style: none;
   padding: 0;
-  margin: 0.4rem 0;
+  margin: 0.75rem 0;
+  flex-grow: 1;
 }
 
 .plan-features li {
@@ -252,21 +258,21 @@
   font-size: 0.85rem;
   color: #888;
   font-style: italic;
-  margin-top: 0.15rem;
-  padding-top: 0.15rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
   border-top: 1px solid rgba(107, 78, 255, 0.1);
 }
 
 .plan-button {
   width: 100%;
-  padding: 0.65rem;
+  padding: 0.75rem;
   border-radius: 12px;
   border: none;
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 0.4rem;
+  margin-top: 0.75rem;
 }
 
 .plan-button.primary {
@@ -456,12 +462,13 @@
 
   .subscription-plans-grid {
     grid-template-columns: 1fr;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
+    gap: 1rem;
+    margin-bottom: 1rem;
   }
 
   .subscription-plan-card {
-    padding: 0.6rem;
+    padding: 1rem;
+    min-height: 400px;
   }
 
   .current-subscription-banner {
@@ -502,7 +509,8 @@
   }
 
   .subscription-plan-card {
-    padding: 0.5rem;
+    padding: 1rem;
+    min-height: 380px;
   }
 
   .plan-name {
