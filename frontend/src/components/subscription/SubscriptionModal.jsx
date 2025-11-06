@@ -44,49 +44,59 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
   };
 
   const getPlanFeatures = (planName) => {
+    // Prix PAY-PER-USE (en centimes)
+    const payPerUse = {
+      histoire: 79,      // 0,79€
+      coloring: 99,      // 0,99€
+      comic: 149,        // 1,49€ par page
+      rhyme: 149,        // 1,49€
+      animation30: 799,  // 7,99€
+      animation60: 1199  // 11,99€
+    };
+
     const plans = {
       'Découverte': {
-        totalTokens: 40,
-        costs: {
-          histoire: 4,
-          coloring: 3,
-          comic: 5,
-          rhyme: 6,
-          animation30: 12,
-          animation60: 18
+        price: 499,  // 4,99€
+        generations: {
+          histoire: 8,      // Valeur: 6,32€ (rabais 20%)
+          coloring: 6,      // Valeur: 5,94€ (rabais 16%)
+          comic: 4,         // Valeur: 5,96€ (rabais 17%)
+          rhyme: 4,         // Valeur: 5,96€ (rabais 17%)
+          animation30: 0,   // Non inclus (trop coûteux)
+          animation60: 0    // Non inclus (trop coûteux)
         }
       },
       'Famille': {
-        totalTokens: 120,
-        costs: {
-          histoire: 4,
-          coloring: 3,
-          comic: 4,
-          rhyme: 5,
-          animation30: 10,
-          animation60: 15
+        price: 999,  // 9,99€
+        generations: {
+          histoire: 20,     // Valeur: 15,80€ (rabais 37%)
+          coloring: 15,     // Valeur: 14,85€ (rabais 33%)
+          comic: 10,        // Valeur: 14,90€ (rabais 33%)
+          rhyme: 10,        // Valeur: 14,90€ (rabais 33%)
+          animation30: 1,   // Valeur: 7,99€ (rabais 20%)
+          animation60: 0    // Non inclus
         }
       },
       'Créatif': {
-        totalTokens: 300,
-        costs: {
-          histoire: 3,
-          coloring: 2,
-          comic: 3,
-          rhyme: 4,
-          animation30: 8,
-          animation60: 12
+        price: 1999,  // 19,99€
+        generations: {
+          histoire: 50,     // Valeur: 39,50€ (rabais 49%)
+          coloring: 40,     // Valeur: 39,60€ (rabais 50%)
+          comic: 25,        // Valeur: 37,25€ (rabais 46%)
+          rhyme: 25,        // Valeur: 37,25€ (rabais 46%)
+          animation30: 3,   // Valeur: 23,97€ (rabais 17%)
+          animation60: 2    // Valeur: 23,98€ (rabais 17%)
         }
       },
       'Institut': {
-        totalTokens: 900,
-        costs: {
-          histoire: 2,
-          coloring: 1,
-          comic: 2,
-          rhyme: 3,
-          animation30: 6,
-          animation60: 9
+        price: 4999,  // 49,99€
+        generations: {
+          histoire: 150,    // Valeur: 118,50€ (rabais 58%)
+          coloring: 120,    // Valeur: 118,80€ (rabais 58%)
+          comic: 80,        // Valeur: 119,20€ (rabais 58%)
+          rhyme: 80,        // Valeur: 119,20€ (rabais 58%)
+          animation30: 8,   // Valeur: 63,92€ (rabais 22%)
+          animation60: 5    // Valeur: 59,95€ (rabais 17%)
         }
       }
     };
@@ -94,71 +104,45 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
     const plan = plans[planName];
     if (!plan) return {};
 
-    const calculateGenerations = (tokens, cost) => {
-      return Math.floor(tokens / cost);
-    };
+    // Calculer la valeur totale pay-per-use
+    const totalValue = 
+      (plan.generations.histoire * payPerUse.histoire) +
+      (plan.generations.coloring * payPerUse.coloring) +
+      (plan.generations.comic * payPerUse.comic) +
+      (plan.generations.rhyme * payPerUse.rhyme) +
+      (plan.generations.animation30 * payPerUse.animation30) +
+      (plan.generations.animation60 * payPerUse.animation60);
 
-    const generations = {
-      histoire: calculateGenerations(plan.totalTokens, plan.costs.histoire),
-      coloring: calculateGenerations(plan.totalTokens, plan.costs.coloring),
-      comic: calculateGenerations(plan.totalTokens, plan.costs.comic),
-      rhyme: calculateGenerations(plan.totalTokens, plan.costs.rhyme),
-      animation30: calculateGenerations(plan.totalTokens, plan.costs.animation30),
-      animation60: calculateGenerations(plan.totalTokens, plan.costs.animation60)
-    };
+    const savings = Math.round(((totalValue - plan.price) / totalValue) * 100);
+
+    const featuresList = [];
+    if (plan.generations.histoire > 0) featuresList.push(`${plan.generations.histoire} histoires`);
+    if (plan.generations.coloring > 0) featuresList.push(`${plan.generations.coloring} coloriages`);
+    if (plan.generations.comic > 0) featuresList.push(`${plan.generations.comic} pages de BD`);
+    if (plan.generations.rhyme > 0) featuresList.push(`${plan.generations.rhyme} comptines`);
+    if (plan.generations.animation30 > 0) featuresList.push(`${plan.generations.animation30} animation${plan.generations.animation30 > 1 ? 's' : ''} 30s`);
+    if (plan.generations.animation60 > 0) featuresList.push(`${plan.generations.animation60} animation${plan.generations.animation60 > 1 ? 's' : ''} 1min`);
 
     const features = {
       'Découverte': {
-        tokens: `${plan.totalTokens} tokens/mois`,
-        features: [
-          `${generations.histoire} histoires`,
-          `${generations.coloring} coloriages`,
-          `${generations.comic} pages de BD`,
-          `${generations.rhyme} comptines`,
-          `${generations.animation30} animations 30s`,
-          `${generations.animation60} animations 1min`
-        ],
+        features: featuresList,
         ideal: 'Parfait pour découvrir Herbbie',
-        economy: 'Économisez jusqu\'à 85%'
+        economy: `Économisez ${savings}%`
       },
       'Famille': {
-        tokens: `${plan.totalTokens} tokens/mois`,
-        features: [
-          `${generations.histoire} histoires`,
-          `${generations.coloring} coloriages`,
-          `${generations.comic} pages de BD`,
-          `${generations.rhyme} comptines`,
-          `${generations.animation30} animations 30s`,
-          `${generations.animation60} animations 1min`
-        ],
+        features: featuresList,
         ideal: 'Pour les familles actives',
-        economy: 'Économisez jusqu\'à 87%'
+        economy: `Économisez ${savings}%`
       },
       'Créatif': {
-        tokens: `${plan.totalTokens} tokens/mois`,
-        features: [
-          `${generations.histoire} histoires`,
-          `${generations.coloring} coloriages`,
-          `${generations.comic} pages de BD`,
-          `${generations.rhyme} comptines`,
-          `${generations.animation30} animations 30s`,
-          `${generations.animation60} animations 1min`
-        ],
+        features: featuresList,
         ideal: 'Pour les créateurs intensifs',
-        economy: 'Économisez jusqu\'à 90%'
+        economy: `Économisez ${savings}%`
       },
       'Institut': {
-        tokens: `${plan.totalTokens} tokens/mois`,
-        features: [
-          `${generations.histoire} histoires`,
-          `${generations.coloring} coloriages`,
-          `${generations.comic} pages de BD`,
-          `${generations.rhyme} comptines`,
-          `${generations.animation30} animations 30s`,
-          `${generations.animation60} animations 1min`
-        ],
+        features: featuresList,
         ideal: 'Pour les écoles et institutions',
-        economy: 'Économisez jusqu\'à 95%'
+        economy: `Économisez ${savings}%`
       }
     };
 
