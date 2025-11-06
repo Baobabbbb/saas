@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { supabase } from '../supabaseClient';
 import { getContentPrice } from '../services/payment';
 
@@ -24,8 +24,7 @@ const CARD_ELEMENT_OPTIONS = {
       color: '#fa755a',
       iconColor: '#fa755a'
     }
-  },
-  hidePostalCode: false
+  }
 };
 
 const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
@@ -33,6 +32,7 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [cardholderName, setCardholderName] = useState('');
 
   const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
   const priceInfo = getContentPrice(normalizedContentType, options);
@@ -50,8 +50,13 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
       return;
     }
 
-    const cardElement = elements.getElement(CardElement);
-    if (!cardElement) {
+    if (!cardholderName.trim()) {
+      setErrorMessage('Veuillez entrer le nom du titulaire de la carte');
+      return;
+    }
+
+    const cardNumberElement = elements.getElement(CardNumberElement);
+    if (!cardNumberElement) {
       setErrorMessage('Impossible de charger le formulaire de paiement.');
       return;
     }
@@ -91,8 +96,9 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
         paymentData.clientSecret,
         {
           payment_method: {
-            card: cardElement,
+            card: cardNumberElement,
             billing_details: {
+              name: cardholderName,
               email: user.email,
             },
           },
@@ -118,15 +124,109 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
 
   return (
     <form onSubmit={handleSubmit}>
+      {/* Nom du titulaire */}
+      <div style={{ marginBottom: '16px' }}>
+        <label style={{
+          display: 'block',
+          marginBottom: '8px',
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#333',
+          fontFamily: '"Baloo 2", sans-serif'
+        }}>
+          Nom du titulaire de la carte
+        </label>
+        <input
+          type="text"
+          value={cardholderName}
+          onChange={(e) => setCardholderName(e.target.value)}
+          placeholder="Jean Dupont"
+          required
+          style={{
+            width: '100%',
+            padding: '14px 16px',
+            fontSize: '16px',
+            border: '2px solid #e0e0e0',
+            borderRadius: '8px',
+            fontFamily: '"Baloo 2", sans-serif',
+            boxSizing: 'border-box',
+            outline: 'none',
+            transition: 'border-color 0.2s',
+          }}
+          onFocus={(e) => e.target.style.borderColor = '#6B4EFF'}
+          onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+        />
+      </div>
+
+      {/* Numéro de carte */}
+      <div style={{ marginBottom: '16px' }}>
+        <label style={{
+          display: 'block',
+          marginBottom: '8px',
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#333',
+          fontFamily: '"Baloo 2", sans-serif'
+        }}>
+          Numéro de carte
+        </label>
+        <div style={{
+          padding: '14px 16px',
+          border: '2px solid #e0e0e0',
+          borderRadius: '8px',
+          backgroundColor: 'white',
+        }}>
+          <CardNumberElement options={CARD_ELEMENT_OPTIONS} />
+        </div>
+      </div>
+
+      {/* Date d'expiration et CVC */}
       <div style={{
-        padding: '16px',
-        border: '2px solid #e0e0e0',
-        borderRadius: '8px',
-        backgroundColor: 'white',
-        marginBottom: '20px',
-        minHeight: '45px'
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '16px',
+        marginBottom: '20px'
       }}>
-        <CardElement options={CARD_ELEMENT_OPTIONS} />
+        <div>
+          <label style={{
+            display: 'block',
+            marginBottom: '8px',
+            fontSize: '14px',
+            fontWeight: '600',
+            color: '#333',
+            fontFamily: '"Baloo 2", sans-serif'
+          }}>
+            Date d'expiration
+          </label>
+          <div style={{
+            padding: '14px 16px',
+            border: '2px solid #e0e0e0',
+            borderRadius: '8px',
+            backgroundColor: 'white',
+          }}>
+            <CardExpiryElement options={CARD_ELEMENT_OPTIONS} />
+          </div>
+        </div>
+        <div>
+          <label style={{
+            display: 'block',
+            marginBottom: '8px',
+            fontSize: '14px',
+            fontWeight: '600',
+            color: '#333',
+            fontFamily: '"Baloo 2", sans-serif'
+          }}>
+            CVC
+          </label>
+          <div style={{
+            padding: '14px 16px',
+            border: '2px solid #e0e0e0',
+            borderRadius: '8px',
+            backgroundColor: 'white',
+          }}>
+            <CardCvcElement options={CARD_ELEMENT_OPTIONS} />
+          </div>
+        </div>
       </div>
 
       {errorMessage && (
