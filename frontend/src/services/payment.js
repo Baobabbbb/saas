@@ -98,41 +98,41 @@ export const createPaymentSession = async (contentType, userId, userEmail, optio
 export const getContentPrice = (contentType, options = {}) => {
 
   const prices = {
-    // Prix corrigés selon les vrais coûts API (TARIFICATION_HERBBIE.md mise à jour)
-    'comptine': { amount: 149, name: 'Comptine Musicale', currency: 'EUR', display: '1,49€' },
-    'histoire': { amount: 49, name: 'Histoire Texte', currency: 'EUR', display: '0,49€' }, // Texte par défaut
-    'audio': { amount: 79, name: 'Histoire Audio', currency: 'EUR', display: '0,79€' }, // Audio corrigé
-    'coloriage': { amount: 99, name: 'Coloriage Personnalisé', currency: 'EUR', display: '0,99€' }, // Corrigé
+    // NOUVEAUX PRIX 2025-11-06 : Plus accessibles !
+    'comptine': { amount: 99, name: 'Comptine Musicale', currency: 'EUR', display: '0,99€' },
+    'histoire': { amount: 50, name: 'Histoire', currency: 'EUR', display: '0,50€' },
+    'audio': { amount: 50, name: 'Histoire', currency: 'EUR', display: '0,50€' },
+    'coloriage': { amount: 99, name: 'Coloriage Personnalisé', currency: 'EUR', display: '0,99€' },
     'coloring': { amount: 99, name: 'Coloriage personnalisé', currency: 'EUR', display: '0,99€' },
-    'bd': { amount: 149, name: 'Page de Bande Dessinée', currency: 'EUR', display: '1,49€' }, // Corrigé
-    'comic': { amount: 149, name: 'Page de Bande Dessinée', currency: 'EUR', display: '1,49€' }, // Corrigé
-    'story': { amount: 49, name: 'Histoire Texte', currency: 'EUR', display: '0,49€' },
-    'rhyme': { amount: 149, name: 'Comptine musicale', currency: 'EUR', display: '1,49€' },
+    'bd': { amount: 99, name: 'Page de Bande Dessinée', currency: 'EUR', display: '0,99€' },
+    'comic': { amount: 99, name: 'Page de Bande Dessinée', currency: 'EUR', display: '0,99€' },
+    'story': { amount: 50, name: 'Histoire', currency: 'EUR', display: '0,50€' },
+    'rhyme': { amount: 99, name: 'Comptine musicale', currency: 'EUR', display: '0,99€' },
 
-    // Animations corrigées selon les vrais coûts API (NOUVEAUX PRIX RÉDUITS)
-    'animation': { amount: 799, name: 'Animation IA 30s', currency: 'EUR', display: '7,99€' }
+    // Animations avec marges réduites (prix attractifs)
+    'animation': { amount: 599, name: 'Animation IA 30s', currency: 'EUR', display: '5,99€' }
   }
 
-  // Gestion spéciale pour les histoires (prix unique : 0,79€ avec ou sans audio)
+  // Gestion spéciale pour les histoires (prix unique : 0,50€)
   if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio') {
     return {
-      amount: 79,
+      amount: 50,
       name: 'Histoire',
       currency: 'EUR',
-      display: '0,79€'
+      display: '0,50€'
     }
   }
 
-  // Gestion spéciale pour les animations selon la durée (NOUVEAUX PRIX RÉDUITS)
+  // Gestion spéciale pour les animations selon la durée (PRIX RÉDUITS 2025-11-06)
   if (contentType === 'animation' && options.duration) {
-    const durationPrices = {
-      30: { amount: 799, name: 'Animation IA 30s', display: '7,99€' },
-      60: { amount: 1199, name: 'Animation IA 1min', display: '11,99€' },
-      120: { amount: 1599, name: 'Animation IA 2min', display: '15,99€' },
-      180: { amount: 1999, name: 'Animation IA 3min', display: '19,99€' },
-      240: { amount: 2399, name: 'Animation IA 4min', display: '23,99€' },
-      300: { amount: 2799, name: 'Animation IA 5min', display: '27,99€' }
-    }
+              const durationPrices = {
+                30: { amount: 599, name: 'Animation IA 30s', display: '5,99€' },
+                60: { amount: 999, name: 'Animation IA 1min', display: '9,99€' },
+                120: { amount: 1899, name: 'Animation IA 2min', display: '18,99€' },
+                180: { amount: 2799, name: 'Animation IA 3min', display: '27,99€' },
+                240: { amount: 3699, name: 'Animation IA 4min', display: '36,99€' },
+                300: { amount: 4699, name: 'Animation IA 5min', display: '46,99€' }
+              }
 
     const durationKey = options.duration
     if (durationPrices[durationKey]) {

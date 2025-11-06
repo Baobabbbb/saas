@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+// CACHE-BUST: v1762466112 - 2025-11-06 22:55:12
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -44,33 +45,40 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
   };
 
   const getPlanFeatures = (planName) => {
-    // Prix PAY-PER-USE (en centimes)
+    // Cache-bust v1762466112
+    if (false) console.log('Cache-bust: 2025-11-06-22:56:12');
+    // Prix PAY-PER-USE (en centimes) - NOUVEAUX PRIX RÉDUITS 2025-11-06
     const payPerUse = {
-      histoire: 79,       // 0,79€
+      histoire: 50,       // 0,50€
       coloring: 99,       // 0,99€
-      comic: 149,         // 1,49€ par page
-      rhyme: 149,         // 1,49€
-      animation30: 799,   // 7,99€
-      animation60: 1199,  // 11,99€
-      animation120: 1599, // 15,99€ (2min)
-      animation180: 1999, // 19,99€ (3min)
-      animation240: 2399, // 23,99€ (4min)
-      animation300: 2799  // 27,99€ (5min)
+      comic: 99,          // 0,99€ par page
+      rhyme: 99,          // 0,99€
+      animation30: 599,   // 5,99€
+      animation60: 999,   // 9,99€
+      animation120: 1899, // 18,99€ (2min)
+      animation180: 2799, // 27,99€ (3min)
+      animation240: 3699, // 36,99€ (4min)
+      animation300: 4699  // 46,99€ (5min)
     };
 
     // Coûts en TOKENS (1 token = 0,01€ de coût API)
-    // Basés sur les coûts API réels de TARIFICATION_HERBBIE.md
+    // Basés sur les VRAIS coûts API des modèles utilisés :
+    // - gpt-4o-mini (texte) : ~0,0004€
+    // - OpenAI TTS (audio) : 0,042€
+    // - gpt-image-1 (images) : 0,16€
+    // - Suno (musique) : ~0,15€
+    // - Veo 3.1 Fast (vidéo) : 0,14€/seconde
     const tokenCosts = {
-      histoire: 15,       // 0,15€ API = 15 tokens
-      coloring: 20,       // 0,20€ API = 20 tokens
-      comic: 20,          // 0,20€ API = 20 tokens
-      rhyme: 17,          // 0,17€ API = 17 tokens
-      animation30: 610,   // 6,10€ API = 610 tokens (30s)
-      animation60: 915,   // 9,15€ API = 915 tokens (1min)
-      animation120: 1220, // 12,20€ API = 1220 tokens (2min)
-      animation180: 1525, // 15,25€ API = 1525 tokens (3min)
-      animation240: 1830, // 18,30€ API = 1830 tokens (4min)
-      animation300: 2135  // 21,35€ API = 2135 tokens (5min)
+      histoire: 4,        // 0,042€ API (texte + audio TTS) = 4 tokens
+      coloring: 16,       // 0,16€ API (gpt-image-1) = 16 tokens
+      comic: 16,          // 0,16€ API (gpt-image-1) = 16 tokens
+      rhyme: 15,          // 0,15€ API (Suno) = 15 tokens
+      animation30: 420,   // 4,20€ API (30s × 0,14€) = 420 tokens
+      animation60: 840,   // 8,40€ API (60s × 0,14€) = 840 tokens
+      animation120: 1680, // 16,80€ API (120s × 0,14€) = 1680 tokens
+      animation180: 2520, // 25,20€ API (180s × 0,14€) = 2520 tokens
+      animation240: 3360, // 33,60€ API (240s × 0,14€) = 3360 tokens
+      animation300: 4200  // 42,00€ API (300s × 0,14€) = 4200 tokens
     };
 
     const plans = {
@@ -124,18 +132,36 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
 
     const savings = Math.round(((totalValue - plan.price) / totalValue) * 100);
 
-    // Construire la liste des fonctionnalités (affichage utilisateur)
-    const featuresList = [];
-    if (maxGenerations.histoire > 0) featuresList.push(`Jusqu'à ${maxGenerations.histoire} histoires`);
-    if (maxGenerations.coloring > 0) featuresList.push(`Jusqu'à ${maxGenerations.coloring} coloriages`);
-    if (maxGenerations.comic > 0) featuresList.push(`Jusqu'à ${maxGenerations.comic} pages de BD`);
-    if (maxGenerations.rhyme > 0) featuresList.push(`Jusqu'à ${maxGenerations.rhyme} comptines`);
-    if (maxGenerations.animation30 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation30} animation${maxGenerations.animation30 > 1 ? 's' : ''} 30s`);
-    if (maxGenerations.animation60 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation60} animation${maxGenerations.animation60 > 1 ? 's' : ''} 1min`);
-    if (maxGenerations.animation120 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation120} animation${maxGenerations.animation120 > 1 ? 's' : ''} 2min`);
-    if (maxGenerations.animation180 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation180} animation${maxGenerations.animation180 > 1 ? 's' : ''} 3min`);
-    if (maxGenerations.animation240 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation240} animation${maxGenerations.animation240 > 1 ? 's' : ''} 4min`);
-    if (maxGenerations.animation300 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation300} animation${maxGenerations.animation300 > 1 ? 's' : ''} 5min`);
+              // Construire la liste des fonctionnalités avec exemples de MIX (léger)
+              const featuresList = [`${plan.totalTokens} tokens par mois pour créer librement`];
+              
+              // Seulement 2-3 exemples pour alléger le visuel
+              const mixExamples = {
+                'Découverte': [
+                  '40 histoires + 5 coloriages',
+                  '30 histoires + 3 coloriages + 5 comptines'
+                ],
+                'Famille': [
+                  '80 histoires + 10 coloriages',
+                  '1 animation 30s + 20 histoires'
+                ],
+                'Créatif': [
+                  '150 histoires + 20 coloriages',
+                  '2 animations 30s + 40 histoires'
+                ],
+                'Institut': [
+                  '300 histoires + 50 coloriages',
+                  '5 animations 30s + 100 histoires',
+                  '1 animation 2min + 150 histoires'
+                ]
+              };
+              
+              // Ajouter les exemples (max 2-3 pour rester léger)
+              if (mixExamples[planName]) {
+                mixExamples[planName].forEach(example => {
+                  featuresList.push(`• ${example}`);
+                });
+              }
 
     const features = {
       'Découverte': {
