@@ -103,78 +103,57 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
+      <div className="subscription-modal-loading">
+        <div className="subscription-modal-spinner"></div>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="subscription-plans-grid">
       {plans.map((plan) => {
         const features = getPlanFeatures(plan.name);
         const isCurrentPlan = currentSubscription?.subscription_plans?.name === plan.name;
 
         return (
-          <motion.div
+          <div
             key={plan.id}
-            className={`relative bg-white rounded-xl p-6 border-2 transition-all duration-300 ${
-              isCurrentPlan
-                ? 'border-violet-500 shadow-lg shadow-violet-200'
-                : 'border-gray-200 hover:border-violet-300 hover:shadow-md'
-            }`}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className={`subscription-plan-card ${isCurrentPlan ? 'active' : ''}`}
           >
-            {isCurrentPlan && (
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-violet-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                  Plan actuel
-                </span>
-              </div>
-            )}
-
-            <div className="text-center mb-4">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-              <div className="text-3xl font-bold text-violet-600 mb-1">
-                {(plan.price_monthly / 100).toFixed(2).replace('.', ',')}€
-              </div>
-              <div className="text-sm text-gray-500">par mois</div>
-              <div className="text-lg font-semibold text-gray-700 mt-2">
-                {features.tokens}
-              </div>
+            <div className="plan-name">{plan.name}</div>
+            <div className="plan-price">
+              {(plan.price_monthly / 100).toFixed(2).replace('.', ',')}€
+            </div>
+            <div className="plan-price-period">par mois</div>
+            <div className="plan-tokens">
+              {features.tokens}
             </div>
 
-            <div className="space-y-2 mb-6">
+            <ul className="plan-features">
               {features.features?.map((feature, index) => (
-                <div key={index} className="flex items-center text-sm text-gray-600">
-                  <span className="text-green-500 mr-2">✓</span>
-                  {feature}
-                </div>
+                <li key={index}>{feature}</li>
               ))}
-            </div>
+            </ul>
 
-            <div className="text-center mb-4">
-              <div className="text-xs text-gray-500 italic">
-                {features.ideal}
-              </div>
+            <div className="plan-ideal">
+              {features.ideal}
             </div>
 
             {!isCurrentPlan && (
               <button
                 onClick={() => onSelectPlan(plan)}
-                className="w-full bg-violet-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-violet-700 transition-colors duration-200"
+                className="plan-button primary"
               >
                 Choisir ce plan
               </button>
             )}
 
             {isCurrentPlan && (
-              <div className="w-full bg-gray-100 text-gray-600 py-3 px-4 rounded-lg font-medium text-center">
+              <button className="plan-button secondary" disabled>
                 Plan actif
-              </div>
+              </button>
             )}
-          </motion.div>
+          </div>
         );
       })}
     </div>
@@ -558,15 +537,14 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
                 )}
 
                 {currentSubscription && currentStep === 'plans' && (
-                  <div className="mt-8 pt-6 border-t border-gray-200">
-                    <div className="text-center">
-                      <button
-                        onClick={() => setCurrentStep('management')}
-                        className="bg-violet-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-violet-700 transition-colors duration-200"
-                      >
-                        Gérer mon abonnement
-                      </button>
-                    </div>
+                  <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(107, 78, 255, 0.1)', textAlign: 'center' }}>
+                    <button
+                      onClick={() => setCurrentStep('management')}
+                      className="plan-button primary"
+                      style={{ maxWidth: '300px', margin: '0 auto' }}
+                    >
+                      Gérer mon abonnement
+                    </button>
                   </div>
                 )}
               </>
