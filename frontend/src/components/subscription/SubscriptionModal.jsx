@@ -481,14 +481,21 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
 
   if (!isOpen) return null;
 
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
+  };
+
   const modalContent = (
-    <div className="subscription-modal-overlay">
+    <div className="subscription-modal-overlay" onClick={handleOverlayClick}>
       <motion.div
         className="subscription-modal-content"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ duration: 0.3 }}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="subscription-modal-header">
           <h2>
