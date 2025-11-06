@@ -336,7 +336,7 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
           borderRadius: '16px',
           maxWidth: '500px',
           width: '100%',
-          boxShadow: '0 20px 60px rgba(107, 78, 255, 0.15)',
+          boxShadow: '0 25px 50px rgba(107, 78, 255, 0.25), 0 10px 20px rgba(0, 0, 0, 0.1)',
           position: 'relative',
           maxHeight: '90vh',
           overflowY: 'auto',

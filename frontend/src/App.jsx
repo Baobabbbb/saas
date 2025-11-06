@@ -180,6 +180,7 @@ function App() {
   // États pour le système de paiement
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentContentType, setPaymentContentType] = useState(null);
+  const [contentPaidDirectly, setContentPaidDirectly] = useState(false); // Flag pour indiquer si le contenu a été payé directement
   const [userRole, setUserRole] = useState('user');
   const [isAdmin, setIsAdmin] = useState(false);
   const [buttonText, setButtonText] = useState('Générer');
@@ -860,8 +861,8 @@ function App() {
     // setTimeout(() => setShowConfetti(false), 3000);
 
     // 🔄 DÉDUCTION DES TOKENS APRÈS GÉNÉRATION RÉUSSIE
-    // (Seulement si l'utilisateur n'a pas d'accès gratuit)
-    if (!userHasFreeAccess && generatedContent) {
+    // (Seulement si l'utilisateur n'a pas d'accès gratuit ET n'a pas payé directement)
+    if (!userHasFreeAccess && !contentPaidDirectly && generatedContent) {
       try {
         const { calculateTokenCost, deductTokens } = await import('./services/payment');
 
@@ -895,6 +896,11 @@ function App() {
         // Ne pas bloquer la génération si la déduction échoue
         // (pour éviter de casser l'expérience utilisateur)
       }
+    }
+    
+    // Réinitialiser le flag après la génération
+    if (contentPaidDirectly) {
+      setContentPaidDirectly(false);
     }
 
     // Arrêter l'animation de chargement pour les autres types de contenu
@@ -1857,6 +1863,7 @@ const downloadPDF = async (title, content) => {
         }}
         onSuccess={(result) => {
           setShowPaymentModal(false);
+          setContentPaidDirectly(true); // Marquer que le contenu a été payé directement
           // Lancer la génération automatiquement après paiement réussi
           setTimeout(() => {
             startGeneration();
