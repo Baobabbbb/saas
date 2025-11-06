@@ -989,26 +989,20 @@ const handleSelectCreation = (creation) => {
   // Animation variants for content sections
   const contentVariants = {
     hidden: { 
-      opacity: 0, 
-      y: 20,
-      scale: 0.95
+      opacity: 0
     },
     visible: { 
-      opacity: 1, 
-      y: 0,
-      scale: 1,
+      opacity: 1,
       transition: {
-        duration: 0.4,
-        ease: [0.4, 0, 0.2, 1] // Cubic bezier pour une transition fluide
+        duration: 0.25,
+        ease: "easeInOut"
       }
     },
     exit: { 
-      opacity: 0, 
-      y: -20,
-      scale: 0.95,
+      opacity: 0,
       transition: {
-        duration: 0.3,
-        ease: [0.4, 0, 1, 1]
+        duration: 0.2,
+        ease: "easeInOut"
       }
     }
   };
@@ -1230,7 +1224,7 @@ const downloadPDF = async (title, content) => {
         >          <ContentTypeSelector
             contentType={contentType}
             setContentType={setContentType}
-          />          <AnimatePresence mode="sync">
+          />          <AnimatePresence mode="wait">
             {contentType === 'rhyme' ? (
               <motion.div
                 key="rhyme-selector"

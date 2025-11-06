@@ -89,8 +89,9 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
             <motion.div
               className={`content-type-option animation-full-width ${contentType === 'animation' ? 'selected' : ''}`}
               onClick={() => handleContentTypeSelect('animation')}
-              whileHover={{ y: -5 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
             >
               <div className="content-type-icon">🎬</div>
               <div className="content-type-details">
@@ -104,8 +105,9 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
             <motion.div
               className={`content-type-option ${contentType === 'comic' ? 'selected' : ''}`}
               onClick={() => handleContentTypeSelect('comic')}
-              whileHover={{ y: -5 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
             >
               <div className="content-type-icon">💬</div>
               <div className="content-type-details">
@@ -119,8 +121,9 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
             <motion.div
               className={`content-type-option ${contentType === 'coloring' ? 'selected' : ''}`}
               onClick={() => handleContentTypeSelect('coloring')}
-              whileHover={{ y: -5 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
             >
               <div className="content-type-icon">🎨</div>
               <div className="content-type-details">
@@ -134,8 +137,9 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
             <motion.div
               className={`content-type-option ${contentType === 'histoire' ? 'selected' : ''}`}
               onClick={() => handleContentTypeSelect('histoire')}
-              whileHover={{ y: -5 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
             >
               <div className="content-type-icon">📖</div>
               <div className="content-type-details">
@@ -149,8 +153,9 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
             <motion.div
               className={`content-type-option ${contentType === 'rhyme' ? 'selected' : ''}`}
               onClick={() => handleContentTypeSelect('rhyme')}
-              whileHover={{ y: -5 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
             >
               <div className="content-type-icon">🎵</div>
               <div className="content-type-details">
