@@ -988,9 +988,29 @@ const handleSelectCreation = (creation) => {
   };
   // Animation variants for content sections
   const contentVariants = {
-    hidden: { opacity: 0, height: 0, marginBottom: 0 },
-    visible: { opacity: 1, height: 'auto', marginBottom: '1rem' },
-    exit: { opacity: 0, height: 0, marginBottom: 0 }
+    hidden: { 
+      opacity: 0, 
+      y: 20,
+      scale: 0.95
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.4,
+        ease: [0.4, 0, 0.2, 1] // Cubic bezier pour une transition fluide
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      y: -20,
+      scale: 0.95,
+      transition: {
+        duration: 0.3,
+        ease: [0.4, 0, 1, 1]
+      }
+    }
   };
 
 const downloadPDF = async (title, content) => {
@@ -1210,14 +1230,14 @@ const downloadPDF = async (title, content) => {
         >          <ContentTypeSelector
             contentType={contentType}
             setContentType={setContentType}
-          />          <AnimatePresence mode="wait">
+          />          <AnimatePresence mode="sync">
             {contentType === 'rhyme' ? (
               <motion.div
                 key="rhyme-selector"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
+                variants={contentVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
                 style={{ width: '100%' }}
               >
                 <MusicalRhymeSelector
@@ -1234,7 +1254,6 @@ const downloadPDF = async (title, content) => {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                transition={{ duration: 0.3 }}
               >
                 <AudioStorySelector
                   selectedAudioStory={selectedAudioStory}
@@ -1252,7 +1271,6 @@ const downloadPDF = async (title, content) => {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                transition={{ duration: 0.3 }}
               >                <ColoringSelector
                   selectedTheme={selectedTheme}
                   setSelectedTheme={setSelectedTheme}
@@ -1271,7 +1289,6 @@ const downloadPDF = async (title, content) => {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                transition={{ duration: 0.3 }}
               >
                 <ComicsSelector
                   selectedTheme={selectedComicsTheme}
@@ -1294,7 +1311,6 @@ const downloadPDF = async (title, content) => {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                transition={{ duration: 0.3 }}
               >
                 <AnimationSelector
                   selectedTheme={selectedAnimationTheme}
@@ -1316,7 +1332,6 @@ const downloadPDF = async (title, content) => {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                transition={{ duration: 0.3 }}
               >
                 <StorySelector
                   selectedStory={selectedStory}
