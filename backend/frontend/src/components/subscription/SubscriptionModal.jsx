@@ -46,23 +46,31 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
   const getPlanFeatures = (planName) => {
     // Prix PAY-PER-USE (en centimes)
     const payPerUse = {
-      histoire: 79,      // 0,79€
-      coloring: 99,      // 0,99€
-      comic: 149,        // 1,49€ par page
-      rhyme: 149,        // 1,49€
-      animation30: 799,  // 7,99€
-      animation60: 1199  // 11,99€
+      histoire: 79,       // 0,79€
+      coloring: 99,       // 0,99€
+      comic: 149,         // 1,49€ par page
+      rhyme: 149,         // 1,49€
+      animation30: 799,   // 7,99€
+      animation60: 1199,  // 11,99€
+      animation120: 1599, // 15,99€ (2min)
+      animation180: 1999, // 19,99€ (3min)
+      animation240: 2399, // 23,99€ (4min)
+      animation300: 2799  // 27,99€ (5min)
     };
 
     // Coûts en TOKENS (1 token = 0,01€ de coût API)
-    // Basés sur les coûts API réels
+    // Basés sur les coûts API réels de TARIFICATION_HERBBIE.md
     const tokenCosts = {
-      histoire: 15,      // 0,15€ API = 15 tokens
-      coloring: 20,      // 0,20€ API = 20 tokens
-      comic: 20,         // 0,20€ API = 20 tokens
-      rhyme: 17,         // 0,17€ API = 17 tokens
-      animation30: 610,  // 6,10€ API = 610 tokens
-      animation60: 915   // 9,15€ API = 915 tokens
+      histoire: 15,       // 0,15€ API = 15 tokens
+      coloring: 20,       // 0,20€ API = 20 tokens
+      comic: 20,          // 0,20€ API = 20 tokens
+      rhyme: 17,          // 0,17€ API = 17 tokens
+      animation30: 610,   // 6,10€ API = 610 tokens (30s)
+      animation60: 915,   // 9,15€ API = 915 tokens (1min)
+      animation120: 1220, // 12,20€ API = 1220 tokens (2min)
+      animation180: 1525, // 15,25€ API = 1525 tokens (3min)
+      animation240: 1830, // 18,30€ API = 1830 tokens (4min)
+      animation300: 2135  // 21,35€ API = 2135 tokens (5min)
     };
 
     const plans = {
@@ -94,7 +102,11 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
       comic: Math.floor(plan.totalTokens / tokenCosts.comic),
       rhyme: Math.floor(plan.totalTokens / tokenCosts.rhyme),
       animation30: Math.floor(plan.totalTokens / tokenCosts.animation30),
-      animation60: Math.floor(plan.totalTokens / tokenCosts.animation60)
+      animation60: Math.floor(plan.totalTokens / tokenCosts.animation60),
+      animation120: Math.floor(plan.totalTokens / tokenCosts.animation120),
+      animation180: Math.floor(plan.totalTokens / tokenCosts.animation180),
+      animation240: Math.floor(plan.totalTokens / tokenCosts.animation240),
+      animation300: Math.floor(plan.totalTokens / tokenCosts.animation300)
     };
 
     // Calculer la valeur totale si on utilise tous les tokens pour chaque type
@@ -104,7 +116,11 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
       (maxGenerations.comic * payPerUse.comic) +
       (maxGenerations.rhyme * payPerUse.rhyme) +
       (maxGenerations.animation30 * payPerUse.animation30) +
-      (maxGenerations.animation60 * payPerUse.animation60);
+      (maxGenerations.animation60 * payPerUse.animation60) +
+      (maxGenerations.animation120 * payPerUse.animation120) +
+      (maxGenerations.animation180 * payPerUse.animation180) +
+      (maxGenerations.animation240 * payPerUse.animation240) +
+      (maxGenerations.animation300 * payPerUse.animation300);
 
     const savings = Math.round(((totalValue - plan.price) / totalValue) * 100);
 
@@ -116,6 +132,10 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
     if (maxGenerations.rhyme > 0) featuresList.push(`Jusqu'à ${maxGenerations.rhyme} comptines`);
     if (maxGenerations.animation30 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation30} animation${maxGenerations.animation30 > 1 ? 's' : ''} 30s`);
     if (maxGenerations.animation60 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation60} animation${maxGenerations.animation60 > 1 ? 's' : ''} 1min`);
+    if (maxGenerations.animation120 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation120} animation${maxGenerations.animation120 > 1 ? 's' : ''} 2min`);
+    if (maxGenerations.animation180 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation180} animation${maxGenerations.animation180 > 1 ? 's' : ''} 3min`);
+    if (maxGenerations.animation240 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation240} animation${maxGenerations.animation240 > 1 ? 's' : ''} 4min`);
+    if (maxGenerations.animation300 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation300} animation${maxGenerations.animation300 > 1 ? 's' : ''} 5min`);
 
     const features = {
       'Découverte': {

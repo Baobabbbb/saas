@@ -42,6 +42,10 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 | Comptine | 0,17€ | 17 tokens |
 | Animation 30s | 6,10€ | 610 tokens |
 | Animation 1min | 9,15€ | 915 tokens |
+| Animation 2min | 12,20€ | 1220 tokens |
+| Animation 3min | 15,25€ | 1525 tokens |
+| Animation 4min | 18,30€ | 1830 tokens |
+| Animation 5min | 21,35€ | 2135 tokens |
 
 ---
 
@@ -53,7 +57,7 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 - 12 coloriages OU
 - 12 pages de BD OU
 - 14 comptines OU
-- 0 animations 30s (610 tokens requis)
+- 0 animation (pas assez de tokens)
 
 **Idéal pour :** Utilisateurs occasionnels, découverte de la plateforme
 
@@ -67,7 +71,7 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 - 25 coloriages OU
 - 25 pages de BD OU
 - 29 comptines OU
-- 0 animations 30s (610 tokens requis)
+- 0 animation (pas assez de tokens)
 
 **Idéal pour :** Familles actives, usage régulier
 
@@ -82,7 +86,8 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 - 50 pages de BD OU
 - 58 comptines OU
 - 1 animation 30s OU
-- 1 animation 1min
+- 1 animation 1min OU
+- 0 animation 2min (besoin de 1220 tokens)
 
 **Idéal pour :** Créateurs intensifs, éducateurs, animateurs
 
@@ -97,7 +102,11 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 - 125 pages de BD OU
 - 147 comptines OU
 - 4 animations 30s OU
-- 2 animations 1min
+- 2 animations 1min OU
+- 2 animations 2min OU
+- 1 animation 3min OU
+- 1 animation 4min OU
+- 1 animation 5min
 
 **Idéal pour :** Écoles, crèches, centres de loisirs, institutions
 
