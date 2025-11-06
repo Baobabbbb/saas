@@ -129,37 +129,32 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
 
     const savings = Math.round(((totalValue - plan.price) / totalValue) * 100);
 
-              // Construire la liste des fonctionnalités avec exemples de MIX
+              // Construire la liste des fonctionnalités avec exemples de MIX (léger)
               const featuresList = [`${plan.totalTokens} tokens/mois pour créer librement`];
               
-              // Exemples de mix selon le plan
+              // Seulement 2-3 exemples pour alléger le visuel
               const mixExamples = {
                 'Découverte': [
-                  '40 histoires + 5 coloriages', // 40×4 + 5×16 = 240 tokens
-                  '30 histoires + 3 coloriages + 5 comptines', // 30×4 + 3×16 + 5×15 = 243 tokens
-                  '10 coloriages + 5 comptines' // 10×16 + 5×15 = 235 tokens
+                  '40 histoires + 5 coloriages',
+                  '30 histoires + 3 coloriages + 5 comptines'
                 ],
                 'Famille': [
                   '80 histoires + 10 coloriages',
-                  '60 histoires + 5 coloriages + 8 comptines',
                   '1 animation 30s + 20 histoires'
                 ],
                 'Créatif': [
                   '150 histoires + 20 coloriages',
-                  '100 histoires + 10 coloriages + 15 comptines',
                   '2 animations 30s + 40 histoires'
                 ],
                 'Institut': [
                   '300 histoires + 50 coloriages',
-                  '200 histoires + 30 coloriages + 30 comptines',
                   '5 animations 30s + 100 histoires',
                   '1 animation 2min + 150 histoires'
                 ]
               };
               
-              // Ajouter "Exemples de mix :" puis les exemples
+              // Ajouter les exemples (max 2-3 pour rester léger)
               if (mixExamples[planName]) {
-                featuresList.push('Exemples de mix possibles :');
                 mixExamples[planName].forEach(example => {
                   featuresList.push(`• ${example}`);
                 });
