@@ -54,88 +54,68 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
       animation60: 1199  // 11,99€
     };
 
-    // Coûts API réels (en centimes)
-    const apiCosts = {
-      histoire: 15,      // 0,15€
-      coloring: 20,      // 0,20€
-      comic: 20,         // 0,20€
-      rhyme: 17,         // 0,17€
-      animation30: 610,  // 6,10€
-      animation60: 915   // 9,15€
+    // Coûts en TOKENS (1 token = 0,01€ de coût API)
+    // Basés sur les coûts API réels
+    const tokenCosts = {
+      histoire: 15,      // 0,15€ API = 15 tokens
+      coloring: 20,      // 0,20€ API = 20 tokens
+      comic: 20,         // 0,20€ API = 20 tokens
+      rhyme: 17,         // 0,17€ API = 17 tokens
+      animation30: 610,  // 6,10€ API = 610 tokens
+      animation60: 915   // 9,15€ API = 915 tokens
     };
 
     const plans = {
       'Découverte': {
-        price: 499,  // 4,99€ | Budget API max: 2,50€ (50% de marge)
-        generations: {
-          histoire: 10,     // Coût API: 1,50€ | Valeur vente: 7,90€
-          coloring: 5,      // Coût API: 1,00€ | Valeur vente: 4,95€
-          comic: 0,         // Non inclus
-          rhyme: 0,         // Non inclus
-          animation30: 0,   // Non inclus
-          animation60: 0    // Non inclus
-        }
-        // Total coûts API: 2,50€ | Marge: 2,49€ (50%)
+        price: 499,        // 4,99€
+        totalTokens: 250   // Budget API: 2,50€ (50% de marge)
       },
       'Famille': {
-        price: 999,  // 9,99€ | Budget API max: 5,00€ (50% de marge)
-        generations: {
-          histoire: 20,     // Coût API: 3,00€ | Valeur vente: 15,80€
-          coloring: 10,     // Coût API: 2,00€ | Valeur vente: 9,90€
-          comic: 0,         // Non inclus
-          rhyme: 0,         // Non inclus
-          animation30: 0,   // Non inclus (6,10€ trop cher)
-          animation60: 0    // Non inclus
-        }
-        // Total coûts API: 5,00€ | Marge: 4,99€ (50%)
+        price: 999,        // 9,99€
+        totalTokens: 500   // Budget API: 5,00€ (50% de marge)
       },
       'Créatif': {
-        price: 1999,  // 19,99€ | Budget API max: 10,00€ (50% de marge)
-        generations: {
-          histoire: 40,     // Coût API: 6,00€ | Valeur vente: 31,60€
-          coloring: 20,     // Coût API: 4,00€ | Valeur vente: 19,80€
-          comic: 0,         // Non inclus
-          rhyme: 0,         // Non inclus
-          animation30: 0,   // Non inclus (trop cher)
-          animation60: 0    // Non inclus
-        }
-        // Total coûts API: 10,00€ | Marge: 9,99€ (50%)
+        price: 1999,       // 19,99€
+        totalTokens: 1000  // Budget API: 10,00€ (50% de marge)
       },
       'Institut': {
-        price: 4999,  // 49,99€ | Budget API max: 25,00€ (50% de marge)
-        generations: {
-          histoire: 100,    // Coût API: 15,00€ | Valeur vente: 79,00€
-          coloring: 50,     // Coût API: 10,00€ | Valeur vente: 49,50€
-          comic: 0,         // Non inclus
-          rhyme: 0,         // Non inclus
-          animation30: 0,   // Non inclus
-          animation60: 0    // Non inclus
-        }
-        // Total coûts API: 25,00€ | Marge: 24,99€ (50%)
+        price: 4999,       // 49,99€
+        totalTokens: 2500  // Budget API: 25,00€ (50% de marge)
       }
     };
 
     const plan = plans[planName];
     if (!plan) return {};
 
-    // Calculer la valeur totale pay-per-use
+    // Calculer combien de chaque contenu peut être généré avec les tokens
+    const maxGenerations = {
+      histoire: Math.floor(plan.totalTokens / tokenCosts.histoire),
+      coloring: Math.floor(plan.totalTokens / tokenCosts.coloring),
+      comic: Math.floor(plan.totalTokens / tokenCosts.comic),
+      rhyme: Math.floor(plan.totalTokens / tokenCosts.rhyme),
+      animation30: Math.floor(plan.totalTokens / tokenCosts.animation30),
+      animation60: Math.floor(plan.totalTokens / tokenCosts.animation60)
+    };
+
+    // Calculer la valeur totale si on utilise tous les tokens pour chaque type
     const totalValue = 
-      (plan.generations.histoire * payPerUse.histoire) +
-      (plan.generations.coloring * payPerUse.coloring) +
-      (plan.generations.comic * payPerUse.comic) +
-      (plan.generations.rhyme * payPerUse.rhyme) +
-      (plan.generations.animation30 * payPerUse.animation30) +
-      (plan.generations.animation60 * payPerUse.animation60);
+      (maxGenerations.histoire * payPerUse.histoire) +
+      (maxGenerations.coloring * payPerUse.coloring) +
+      (maxGenerations.comic * payPerUse.comic) +
+      (maxGenerations.rhyme * payPerUse.rhyme) +
+      (maxGenerations.animation30 * payPerUse.animation30) +
+      (maxGenerations.animation60 * payPerUse.animation60);
 
     const savings = Math.round(((totalValue - plan.price) / totalValue) * 100);
 
+    // Construire la liste des fonctionnalités (affichage utilisateur)
     const featuresList = [];
-    if (plan.generations.histoire > 0) featuresList.push(`${plan.generations.histoire} histoires`);
-    if (plan.generations.coloring > 0) featuresList.push(`${plan.generations.coloring} coloriages`);
-    if (plan.generations.comic > 0) featuresList.push(`${plan.generations.comic} pages de BD`);
-    if (plan.generations.rhyme > 0) featuresList.push(`${plan.generations.rhyme} comptines`);
-    if (plan.generations.animation30 > 0) featuresList.push(`${plan.generations.animation30} animation${plan.generations.animation30 > 1 ? 's' : ''} 30s`);
-    if (plan.generations.animation60 > 0) featuresList.push(`${plan.generations.animation60} animation${plan.generations.animation60 > 1 ? 's' : ''} 1min`);
+    if (maxGenerations.histoire > 0) featuresList.push(`Jusqu'à ${maxGenerations.histoire} histoires`);
+    if (maxGenerations.coloring > 0) featuresList.push(`Jusqu'à ${maxGenerations.coloring} coloriages`);
+    if (maxGenerations.comic > 0) featuresList.push(`Jusqu'à ${maxGenerations.comic} pages de BD`);
+    if (maxGenerations.rhyme > 0) featuresList.push(`Jusqu'à ${maxGenerations.rhyme} comptines`);
+    if (maxGenerations.animation30 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation30} animation${maxGenerations.animation30 > 1 ? 's' : ''} 30s`);
+    if (maxGenerations.animation60 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation60} animation${maxGenerations.animation60 > 1 ? 's' : ''} 1min`);
 
     const features = {
       'Découverte': {
