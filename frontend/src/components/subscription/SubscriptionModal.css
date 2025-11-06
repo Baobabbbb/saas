@@ -158,7 +158,7 @@
 .subscription-plan-card {
   background: white;
   border-radius: 20px;
-  padding: 1.5rem;
+  padding: 1rem;
   border: 3px solid rgba(107, 78, 255, 0.1);
   transition: all 0.3s ease;
   position: relative;
@@ -201,14 +201,14 @@
   font-size: 1.5rem;
   font-weight: 800;
   color: #6B4EFF;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .plan-price {
   font-size: 2.5rem;
   font-weight: 900;
   color: #333;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.1rem;
 }
 
 .plan-price-period {
@@ -219,9 +219,9 @@
 
 .plan-tokens {
   background: rgba(107, 78, 255, 0.1);
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 12px;
-  margin: 0.75rem 0;
+  margin: 0.5rem 0;
   font-weight: 700;
   color: #6B4EFF;
   text-align: center;
@@ -231,11 +231,11 @@
 .plan-features {
   list-style: none;
   padding: 0;
-  margin: 1rem 0;
+  margin: 0.5rem 0;
 }
 
 .plan-features li {
-  padding: 0.75rem 0;
+  padding: 0.5rem 0;
   color: #555;
   font-size: 0.95rem;
   display: flex;
@@ -252,21 +252,21 @@
   font-size: 0.9rem;
   color: #888;
   font-style: italic;
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+  padding-top: 0.25rem;
   border-top: 1px solid rgba(107, 78, 255, 0.1);
 }
 
 .plan-button {
   width: 100%;
-  padding: 1rem;
+  padding: 0.75rem;
   border-radius: 12px;
   border: none;
   font-weight: 700;
   font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .plan-button.primary {
@@ -461,7 +461,7 @@
   }
 
   .subscription-plan-card {
-    padding: 1rem;
+    padding: 0.75rem;
   }
 
   .current-subscription-banner {
@@ -502,7 +502,7 @@
   }
 
   .subscription-plan-card {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
 
   .plan-name {
