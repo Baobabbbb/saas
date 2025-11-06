@@ -122,40 +122,40 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
 
   const inputStyle = {
     width: '100%',
-    padding: '14px 16px',
-    fontSize: '16px',
-    border: '2px solid #e8e8f5',
-    borderRadius: '12px',
+    padding: '12px 14px',
+    fontSize: '15px',
+    border: '1px solid #e0e0e0',
+    borderRadius: '8px',
     fontFamily: '"Baloo 2", sans-serif',
     boxSizing: 'border-box',
     outline: 'none',
-    transition: 'all 0.3s ease',
-    backgroundColor: '#fafafe',
+    transition: 'border-color 0.2s ease',
+    backgroundColor: 'white',
   };
 
   const labelStyle = {
     display: 'block',
-    marginBottom: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#6B4EFF',
+    marginBottom: '6px',
+    fontSize: '13px',
+    fontWeight: '500',
+    color: '#666',
     fontFamily: '"Baloo 2", sans-serif'
   };
 
   const stripeContainerStyle = {
-    padding: '14px 16px',
-    border: '2px solid #e8e8f5',
-    borderRadius: '12px',
-    backgroundColor: '#fafafe',
-    transition: 'all 0.3s ease',
+    padding: '12px 14px',
+    border: '1px solid #e0e0e0',
+    borderRadius: '8px',
+    backgroundColor: 'white',
+    transition: 'border-color 0.2s ease',
   };
 
   return (
     <form onSubmit={handleSubmit}>
       {/* Nom du titulaire */}
-      <div style={{ marginBottom: '18px' }}>
+      <div style={{ marginBottom: '16px' }}>
         <label style={labelStyle}>
-          👤 Nom du titulaire de la carte
+          Nom du titulaire
         </label>
         <input
           type="text"
@@ -166,21 +166,17 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
           style={inputStyle}
           onFocus={(e) => {
             e.target.style.borderColor = '#6B4EFF';
-            e.target.style.backgroundColor = 'white';
-            e.target.style.boxShadow = '0 0 0 3px rgba(107, 78, 255, 0.1)';
           }}
           onBlur={(e) => {
-            e.target.style.borderColor = '#e8e8f5';
-            e.target.style.backgroundColor = '#fafafe';
-            e.target.style.boxShadow = 'none';
+            e.target.style.borderColor = '#e0e0e0';
           }}
         />
       </div>
 
       {/* Numéro de carte */}
-      <div style={{ marginBottom: '18px' }}>
+      <div style={{ marginBottom: '16px' }}>
         <label style={labelStyle}>
-          💳 Numéro de carte
+          Numéro de carte
         </label>
         <div 
           style={stripeContainerStyle}
@@ -194,12 +190,12 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
-        gap: '16px',
-        marginBottom: '24px'
+        gap: '12px',
+        marginBottom: '20px'
       }}>
         <div>
           <label style={labelStyle}>
-            📅 Date d'expiration
+            Date d'expiration
           </label>
           <div 
             style={stripeContainerStyle}
@@ -210,7 +206,7 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
         </div>
         <div>
           <label style={labelStyle}>
-            🔒 CVC
+            CVC
           </label>
           <div 
             style={stripeContainerStyle}
@@ -223,24 +219,23 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
 
       {errorMessage && (
         <div style={{
-          padding: '16px',
-          backgroundColor: '#fff0f5',
-          color: '#d32f2f',
-          borderRadius: '12px',
-          marginBottom: '24px',
+          padding: '12px',
+          backgroundColor: '#fff5f5',
+          color: '#e53e3e',
+          borderRadius: '6px',
+          marginBottom: '16px',
           fontSize: '14px',
-          border: '2px solid #ffc4d0',
-          fontFamily: '"Baloo 2", sans-serif',
-          fontWeight: '500'
+          border: '1px solid #feb2b2',
+          fontFamily: '"Baloo 2", sans-serif'
         }}>
-          ⚠️ {errorMessage}
+          {errorMessage}
         </div>
       )}
 
       <div style={{
         display: 'flex',
-        gap: '12px',
-        marginBottom: '20px'
+        gap: '10px',
+        marginBottom: '16px'
       }}>
         <button
           type="button"
@@ -248,30 +243,25 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
           disabled={isProcessing}
           style={{
             flex: 1,
-            padding: '16px 24px',
-            fontSize: '16px',
-            fontWeight: '600',
-            borderRadius: '12px',
-            border: '2px solid #6B4EFF',
+            padding: '12px 20px',
+            fontSize: '15px',
+            fontWeight: '500',
+            borderRadius: '8px',
+            border: '1px solid #d0d0d0',
             backgroundColor: 'white',
-            color: '#6B4EFF',
+            color: '#666',
             cursor: isProcessing ? 'not-allowed' : 'pointer',
             opacity: isProcessing ? 0.5 : 1,
             fontFamily: '"Baloo 2", sans-serif',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 2px 8px rgba(107, 78, 255, 0.1)'
+            transition: 'background-color 0.2s ease'
           }}
           onMouseEnter={(e) => {
             if (!isProcessing) {
-              e.target.style.backgroundColor = '#f8f7ff';
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 4px 12px rgba(107, 78, 255, 0.2)';
+              e.target.style.backgroundColor = '#f9f9f9';
             }
           }}
           onMouseLeave={(e) => {
             e.target.style.backgroundColor = 'white';
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 2px 8px rgba(107, 78, 255, 0.1)';
           }}
         >
           Annuler
@@ -281,45 +271,38 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
           disabled={!stripe || isProcessing}
           style={{
             flex: 1,
-            padding: '16px 24px',
-            fontSize: '16px',
-            fontWeight: '600',
-            borderRadius: '12px',
+            padding: '12px 20px',
+            fontSize: '15px',
+            fontWeight: '500',
+            borderRadius: '8px',
             border: 'none',
-            background: 'linear-gradient(135deg, #6B4EFF 0%, #8B6FFF 100%)',
+            backgroundColor: '#6B4EFF',
             color: 'white',
             cursor: (!stripe || isProcessing) ? 'not-allowed' : 'pointer',
             opacity: (!stripe || isProcessing) ? 0.6 : 1,
             fontFamily: '"Baloo 2", sans-serif',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 4px 16px rgba(107, 78, 255, 0.3)'
+            transition: 'background-color 0.2s ease'
           }}
           onMouseEnter={(e) => {
             if (stripe && !isProcessing) {
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 6px 20px rgba(107, 78, 255, 0.4)';
+              e.target.style.backgroundColor = '#5a3eef';
             }
           }}
           onMouseLeave={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 4px 16px rgba(107, 78, 255, 0.3)';
+            e.target.style.backgroundColor = '#6B4EFF';
           }}
         >
-          {isProcessing ? '⏳ Traitement...' : `💳 Payer ${priceInfo.display}`}
+          {isProcessing ? 'Traitement...' : `Payer ${priceInfo.display}`}
         </button>
       </div>
 
       <div style={{
         textAlign: 'center',
-        fontSize: '13px',
-        color: '#9b8fd9',
-        fontFamily: '"Baloo 2", sans-serif',
-        fontWeight: '500',
-        padding: '12px',
-        backgroundColor: '#f8f7ff',
-        borderRadius: '8px'
+        fontSize: '12px',
+        color: '#999',
+        fontFamily: '"Baloo 2", sans-serif'
       }}>
-        🔒 Paiement 100% sécurisé par Stripe
+        🔒 Paiement sécurisé par Stripe
       </div>
     </form>
   );
@@ -395,29 +378,22 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
         </button>
 
         <h2 style={{
-          margin: '0 0 8px 0',
-          fontSize: '28px',
-          fontWeight: '700',
-          background: 'linear-gradient(135deg, #6B4EFF 0%, #8B6FFF 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
+          margin: '0 0 6px 0',
+          fontSize: '24px',
+          fontWeight: '600',
+          color: '#333',
           fontFamily: '"Baloo 2", sans-serif'
         }}>
-          💳 Paiement sécurisé
+          Paiement sécurisé
         </h2>
 
         <p style={{
-          margin: '0 0 32px 0',
-          fontSize: '16px',
+          margin: '0 0 24px 0',
+          fontSize: '15px',
           color: '#666',
-          fontFamily: '"Baloo 2", sans-serif',
-          padding: '12px 16px',
-          backgroundColor: '#f8f7ff',
-          borderRadius: '8px',
-          border: '1px solid #e8e8f5'
+          fontFamily: '"Baloo 2", sans-serif'
         }}>
-          {priceInfo.name} • <strong style={{ color: '#6B4EFF' }}>{priceInfo.display}</strong>
+          {priceInfo.name} • <strong>{priceInfo.display}</strong>
         </p>
 
         <Elements stripe={stripePromise}>
@@ -430,15 +406,15 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
         </Elements>
 
         <div style={{
-          marginTop: '20px',
+          marginTop: '16px',
           textAlign: 'center',
-          fontSize: '12px',
-          color: '#999',
+          fontSize: '11px',
+          color: '#aaa',
           fontFamily: '"Baloo 2", sans-serif'
         }}>
-          En cliquant sur "Payer", vous acceptez nos{' '}
+          En payant, vous acceptez nos{' '}
           <a href="/legal" style={{ color: '#6B4EFF', textDecoration: 'none' }}>
-            conditions générales de vente
+            CGV
           </a>
         </div>
       </div>
