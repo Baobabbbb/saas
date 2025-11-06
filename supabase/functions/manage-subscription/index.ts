@@ -103,10 +103,20 @@ serve(async (req) => {
           });
         }
 
-        // Créer l'abonnement Stripe
-        const subscription = await stripe.subscriptions.create({
+        // Créer l'abonnement Stripe avec le stripe_price_id si disponible
+        const subscriptionData: any = {
           customer: customer.id,
-          items: [{
+          payment_behavior: 'default_incomplete',
+          expand: ['latest_invoice.payment_intent'],
+        };
+
+        // Utiliser stripe_price_id si disponible, sinon créer avec price_data
+        if (plan.stripe_price_id) {
+          subscriptionData.items = [{
+            price: plan.stripe_price_id,
+          }];
+        } else {
+          subscriptionData.items = [{
             price_data: {
               currency: 'eur',
               product_data: {
@@ -118,10 +128,10 @@ serve(async (req) => {
                 interval: 'month',
               },
             },
-          }],
-          payment_behavior: 'default_incomplete',
-          expand: ['latest_invoice.payment_intent'],
-        });
+          }];
+        }
+
+        const subscription = await stripe.subscriptions.create(subscriptionData);
 
         // Créer l'abonnement dans notre base
         const { data: newSubscription, error: subError } = await supabase
