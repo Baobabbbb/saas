@@ -158,7 +158,7 @@
 .subscription-plan-card {
   background: white;
   border-radius: 20px;
-  padding: 1rem;
+  padding: 0.75rem;
   border: 3px solid rgba(107, 78, 255, 0.1);
   transition: all 0.3s ease;
   position: relative;
@@ -198,46 +198,47 @@
 }
 
 .plan-name {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: #6B4EFF;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
 }
 
 .plan-price {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 900;
   color: #333;
-  margin-bottom: 0.1rem;
+  margin-bottom: 0.05rem;
 }
 
 .plan-price-period {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #666;
   font-weight: 500;
 }
 
 .plan-tokens {
   background: rgba(107, 78, 255, 0.1);
-  padding: 0.5rem 0.75rem;
+  padding: 0.4rem 0.6rem;
   border-radius: 12px;
-  margin: 0.5rem 0;
+  margin: 0.4rem 0;
   font-weight: 700;
   color: #6B4EFF;
   text-align: center;
   border: 2px solid rgba(107, 78, 255, 0.2);
+  font-size: 0.9rem;
 }
 
 .plan-features {
   list-style: none;
   padding: 0;
-  margin: 0.5rem 0;
+  margin: 0.4rem 0;
 }
 
 .plan-features li {
-  padding: 0.5rem 0;
+  padding: 0.4rem 0;
   color: #555;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -245,28 +246,28 @@
 
 .plan-features li::before {
   content: '✨';
-  font-size: 1.2rem;
+  font-size: 1rem;
 }
 
 .plan-ideal {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #888;
   font-style: italic;
-  margin-top: 0.25rem;
-  padding-top: 0.25rem;
+  margin-top: 0.15rem;
+  padding-top: 0.15rem;
   border-top: 1px solid rgba(107, 78, 255, 0.1);
 }
 
 .plan-button {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.65rem;
   border-radius: 12px;
   border: none;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
 }
 
 .plan-button.primary {
@@ -461,7 +462,7 @@
   }
 
   .subscription-plan-card {
-    padding: 0.75rem;
+    padding: 0.6rem;
   }
 
   .current-subscription-banner {
@@ -473,7 +474,7 @@
   }
 
   .plan-price {
-    font-size: 2rem;
+    font-size: 1.75rem;
   }
 }
 
@@ -506,11 +507,11 @@
   }
 
   .plan-name {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
   }
 
   .plan-price {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
   .payment-actions {
