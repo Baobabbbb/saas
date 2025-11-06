@@ -125,14 +125,14 @@ export const getContentPrice = (contentType, options = {}) => {
 
   // Gestion spéciale pour les animations selon la durée (NOUVEAUX PRIX RÉDUITS)
   if (contentType === 'animation' && options.duration) {
-    const durationPrices = {
-      30: { amount: 799, name: 'Animation IA 30s', display: '7,99€' },
-      60: { amount: 1199, name: 'Animation IA 1min', display: '11,99€' },
-      120: { amount: 1599, name: 'Animation IA 2min', display: '15,99€' },
-      180: { amount: 1999, name: 'Animation IA 3min', display: '19,99€' },
-      240: { amount: 2399, name: 'Animation IA 4min', display: '23,99€' },
-      300: { amount: 2799, name: 'Animation IA 5min', display: '27,99€' }
-    }
+              const durationPrices = {
+                30: { amount: 799, name: 'Animation IA 30s', display: '7,99€' },
+                60: { amount: 1199, name: 'Animation IA 1min', display: '11,99€' },
+                120: { amount: 1899, name: 'Animation IA 2min', display: '18,99€' },
+                180: { amount: 2799, name: 'Animation IA 3min', display: '27,99€' },
+                240: { amount: 3699, name: 'Animation IA 4min', display: '36,99€' },
+                300: { amount: 4699, name: 'Animation IA 5min', display: '46,99€' }
+              }
 
     const durationKey = options.duration
     if (durationPrices[durationKey]) {

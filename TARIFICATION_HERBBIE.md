@@ -10,18 +10,25 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 
 ## PAY-PER-USE (Prix à l'unité)
 
+**Modèles utilisés :**
+- Texte : gpt-4o-mini (~0,0004€)
+- Audio : OpenAI TTS (0,042€)
+- Images : gpt-image-1 (0,16€)
+- Musique : Suno (~0,15€)
+- Vidéo : Veo 3.1 Fast (0,14€/seconde)
+
 | Fonctionnalité | Prix | Coût API Réel | Marge | Marge % |
 |---|---|---|---|---|
-| Histoire (Texte ou Audio) | 0,79€ | 0,15€ | 0,64€ | 81% |
-| Coloriage | 0,99€ | 0,20€ | 0,79€ | 80% |
-| BD par page | 1,49€ | 0,20€ | 1,29€ | 87% |
-| Comptine | 1,49€ | 0,17€ | 1,32€ | 89% |
-| Animation 30s | 7,99€ | 6,10€ | 1,89€ | 24% |
-| Animation 1min | 11,99€ | 9,15€ | 2,84€ | 24% |
-| Animation 2min | 15,99€ | 12,20€ | 3,79€ | 24% |
-| Animation 3min | 19,99€ | 15,25€ | 4,74€ | 24% |
-| Animation 4min | 23,99€ | 18,30€ | 5,69€ | 24% |
-| Animation 5min | 27,99€ | 21,35€ | 6,64€ | 24% |
+| Histoire (Texte + Audio) | 0,79€ | 0,042€ | 0,75€ | 95% |
+| Coloriage | 0,99€ | 0,16€ | 0,83€ | 84% |
+| BD par page | 1,49€ | 0,16€ | 1,33€ | 89% |
+| Comptine | 1,49€ | 0,15€ | 1,34€ | 90% |
+| Animation 30s | 7,99€ | 4,20€ | 3,79€ | 47% |
+| Animation 1min | 11,99€ | 8,40€ | 3,59€ | 30% |
+| Animation 2min | 18,99€ | 16,80€ | 2,19€ | 13% |
+| Animation 3min | 27,99€ | 25,20€ | 2,79€ | 11% |
+| Animation 4min | 36,99€ | 33,60€ | 3,39€ | 10% |
+| Animation 5min | 46,99€ | 42,00€ | 4,99€ | 12% |
 
 ---
 
@@ -36,16 +43,16 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 
 | Contenu | Coût API | Tokens requis |
 |---------|----------|---------------|
-| Histoire | 0,15€ | 15 tokens |
-| Coloriage | 0,20€ | 20 tokens |
-| BD (par page) | 0,20€ | 20 tokens |
-| Comptine | 0,17€ | 17 tokens |
-| Animation 30s | 6,10€ | 610 tokens |
-| Animation 1min | 9,15€ | 915 tokens |
-| Animation 2min | 12,20€ | 1220 tokens |
-| Animation 3min | 15,25€ | 1525 tokens |
-| Animation 4min | 18,30€ | 1830 tokens |
-| Animation 5min | 21,35€ | 2135 tokens |
+| Histoire | 0,042€ | 4 tokens |
+| Coloriage | 0,16€ | 16 tokens |
+| BD (par page) | 0,16€ | 16 tokens |
+| Comptine | 0,15€ | 15 tokens |
+| Animation 30s | 4,20€ | 420 tokens |
+| Animation 1min | 8,40€ | 840 tokens |
+| Animation 2min | 16,80€ | 1680 tokens |
+| Animation 3min | 25,20€ | 2520 tokens |
+| Animation 4min | 33,60€ | 3360 tokens |
+| Animation 5min | 42,00€ | 4200 tokens |
 
 ---
 
@@ -53,10 +60,10 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 **250 tokens/mois** (Budget API : 2,50€, Marge : 50%)
 
 **Vous pouvez générer jusqu'à :**
-- 16 histoires OU
-- 12 coloriages OU
-- 12 pages de BD OU
-- 14 comptines OU
+- 62 histoires OU
+- 15 coloriages OU
+- 15 pages de BD OU
+- 16 comptines OU
 - 0 animation (pas assez de tokens)
 
 **Idéal pour :** Utilisateurs occasionnels, découverte de la plateforme
@@ -67,11 +74,12 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 **500 tokens/mois** (Budget API : 5,00€, Marge : 50%)
 
 **Vous pouvez générer jusqu'à :**
-- 33 histoires OU
-- 25 coloriages OU
-- 25 pages de BD OU
-- 29 comptines OU
-- 0 animation (pas assez de tokens)
+- 125 histoires OU
+- 31 coloriages OU
+- 31 pages de BD OU
+- 33 comptines OU
+- 1 animation 30s OU
+- 0 animation 1min (besoin de 840 tokens)
 
 **Idéal pour :** Familles actives, usage régulier
 
@@ -81,13 +89,13 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 **1000 tokens/mois** (Budget API : 10,00€, Marge : 50%)
 
 **Vous pouvez générer jusqu'à :**
-- 66 histoires OU
-- 50 coloriages OU
-- 50 pages de BD OU
-- 58 comptines OU
-- 1 animation 30s OU
+- 250 histoires OU
+- 62 coloriages OU
+- 62 pages de BD OU
+- 66 comptines OU
+- 2 animations 30s OU
 - 1 animation 1min OU
-- 0 animation 2min (besoin de 1220 tokens)
+- 0 animation 2min (besoin de 1680 tokens)
 
 **Idéal pour :** Créateurs intensifs, éducateurs, animateurs
 
@@ -97,16 +105,18 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 **2500 tokens/mois** (Budget API : 25,00€, Marge : 50%)
 
 **Vous pouvez générer jusqu'à :**
-- 166 histoires OU
-- 125 coloriages OU
-- 125 pages de BD OU
-- 147 comptines OU
-- 4 animations 30s OU
+- 625 histoires OU
+- 156 coloriages OU
+- 156 pages de BD OU
+- 166 comptines OU
+- 5 animations 30s OU
 - 2 animations 1min OU
-- 2 animations 2min OU
-- 1 animation 3min OU
-- 1 animation 4min OU
-- 1 animation 5min
+- 1 animation 2min OU
+- 0 animation 3min (besoin de 2520 tokens) OU
+- 0 animation 4min (besoin de 3360 tokens) OU
+- 0 animation 5min (besoin de 4200 tokens)
+
+**💡 Note :** Les animations 3-5min sont uniquement disponibles en PAY-PER-USE.
 
 **Idéal pour :** Écoles, crèches, centres de loisirs, institutions
 

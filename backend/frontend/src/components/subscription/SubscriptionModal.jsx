@@ -59,18 +59,23 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
     };
 
     // Coûts en TOKENS (1 token = 0,01€ de coût API)
-    // Basés sur les coûts API réels de TARIFICATION_HERBBIE.md
+    // Basés sur les VRAIS coûts API des modèles utilisés :
+    // - gpt-4o-mini (texte) : ~0,0004€
+    // - OpenAI TTS (audio) : 0,042€
+    // - gpt-image-1 (images) : 0,16€
+    // - Suno (musique) : ~0,15€
+    // - Veo 3.1 Fast (vidéo) : 0,14€/seconde
     const tokenCosts = {
-      histoire: 15,       // 0,15€ API = 15 tokens
-      coloring: 20,       // 0,20€ API = 20 tokens
-      comic: 20,          // 0,20€ API = 20 tokens
-      rhyme: 17,          // 0,17€ API = 17 tokens
-      animation30: 610,   // 6,10€ API = 610 tokens (30s)
-      animation60: 915,   // 9,15€ API = 915 tokens (1min)
-      animation120: 1220, // 12,20€ API = 1220 tokens (2min)
-      animation180: 1525, // 15,25€ API = 1525 tokens (3min)
-      animation240: 1830, // 18,30€ API = 1830 tokens (4min)
-      animation300: 2135  // 21,35€ API = 2135 tokens (5min)
+      histoire: 4,        // 0,042€ API (texte + audio TTS) = 4 tokens
+      coloring: 16,       // 0,16€ API (gpt-image-1) = 16 tokens
+      comic: 16,          // 0,16€ API (gpt-image-1) = 16 tokens
+      rhyme: 15,          // 0,15€ API (Suno) = 15 tokens
+      animation30: 420,   // 4,20€ API (30s × 0,14€) = 420 tokens
+      animation60: 840,   // 8,40€ API (60s × 0,14€) = 840 tokens
+      animation120: 1680, // 16,80€ API (120s × 0,14€) = 1680 tokens
+      animation180: 2520, // 25,20€ API (180s × 0,14€) = 2520 tokens
+      animation240: 3360, // 33,60€ API (240s × 0,14€) = 3360 tokens
+      animation300: 4200  // 42,00€ API (300s × 0,14€) = 4200 tokens
     };
 
     const plans = {
