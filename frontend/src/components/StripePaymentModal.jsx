@@ -343,7 +343,6 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
         style={{
           backgroundColor: 'white',
           borderRadius: '16px',
-          padding: '32px',
           maxWidth: '500px',
           width: '100%',
           boxShadow: '0 20px 60px rgba(107, 78, 255, 0.15)',
@@ -353,6 +352,7 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
           isolation: 'isolate',
           border: '3px solid #6B4EFF'
         }}>
+        <div style={{ padding: '32px' }}>
         <button
           onClick={onClose}
           style={{
@@ -434,6 +434,7 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
           <a href="/legal" style={{ color: '#6B4EFF', textDecoration: 'none' }}>
             CGV
           </a>
+        </div>
         </div>
       </div>
     </div>
