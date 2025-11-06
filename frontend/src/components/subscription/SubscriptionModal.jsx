@@ -44,60 +44,124 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
   };
 
   const getPlanFeatures = (planName) => {
+    const plans = {
+      'Découverte': {
+        totalTokens: 40,
+        costs: {
+          histoire: 4,
+          coloring: 3,
+          comic: 5,
+          rhyme: 6,
+          animation30: 12,
+          animation60: 18
+        }
+      },
+      'Famille': {
+        totalTokens: 120,
+        costs: {
+          histoire: 4,
+          coloring: 3,
+          comic: 4,
+          rhyme: 5,
+          animation30: 10,
+          animation60: 15
+        }
+      },
+      'Créatif': {
+        totalTokens: 300,
+        costs: {
+          histoire: 3,
+          coloring: 2,
+          comic: 3,
+          rhyme: 4,
+          animation30: 8,
+          animation60: 12
+        }
+      },
+      'Institut': {
+        totalTokens: 900,
+        costs: {
+          histoire: 2,
+          coloring: 1,
+          comic: 2,
+          rhyme: 3,
+          animation30: 6,
+          animation60: 9
+        }
+      }
+    };
+
+    const plan = plans[planName];
+    if (!plan) return {};
+
+    const calculateGenerations = (tokens, cost) => {
+      return Math.floor(tokens / cost);
+    };
+
+    const generations = {
+      histoire: calculateGenerations(plan.totalTokens, plan.costs.histoire),
+      coloring: calculateGenerations(plan.totalTokens, plan.costs.coloring),
+      comic: calculateGenerations(plan.totalTokens, plan.costs.comic),
+      rhyme: calculateGenerations(plan.totalTokens, plan.costs.rhyme),
+      animation30: calculateGenerations(plan.totalTokens, plan.costs.animation30),
+      animation60: calculateGenerations(plan.totalTokens, plan.costs.animation60)
+    };
+
     const features = {
       'Découverte': {
-        tokens: '40 tokens/mois',
+        tokens: `${plan.totalTokens} tokens/mois`,
         features: [
-          'Histoires & Audio: 4 tokens',
-          'Coloriages: 3 tokens',
-          'BD: 5 tokens/page',
-          'Comptines: 6 tokens',
-          'Animations 30s: 12 tokens',
-          'Animations 1min: 18 tokens'
+          `${generations.histoire} histoires`,
+          `${generations.coloring} coloriages`,
+          `${generations.comic} pages de BD`,
+          `${generations.rhyme} comptines`,
+          `${generations.animation30} animations 30s`,
+          `${generations.animation60} animations 1min`
         ],
         ideal: 'Parfait pour découvrir Herbbie',
         economy: 'Économisez jusqu\'à 85%'
       },
       'Famille': {
-        tokens: '120 tokens/mois',
+        tokens: `${plan.totalTokens} tokens/mois`,
         features: [
-          'Histoires & Audio: 4 tokens',
-          'Coloriages: 3 tokens',
-          'BD: 4 tokens/page',
-          'Comptines: 5 tokens',
-          'Animations 30s: 10 tokens',
-          'Animations 1min: 15 tokens'
+          `${generations.histoire} histoires`,
+          `${generations.coloring} coloriages`,
+          `${generations.comic} pages de BD`,
+          `${generations.rhyme} comptines`,
+          `${generations.animation30} animations 30s`,
+          `${generations.animation60} animations 1min`
         ],
         ideal: 'Pour les familles actives',
         economy: 'Économisez jusqu\'à 87%'
       },
       'Créatif': {
-        tokens: '300 tokens/mois',
+        tokens: `${plan.totalTokens} tokens/mois`,
         features: [
-          'Histoires & Audio: 3 tokens',
-          'Coloriages: 2 tokens',
-          'BD: 3 tokens/page',
-          'Comptines: 4 tokens',
-          'Animations 30s: 8 tokens',
-          'Animations 1min: 12 tokens'
+          `${generations.histoire} histoires`,
+          `${generations.coloring} coloriages`,
+          `${generations.comic} pages de BD`,
+          `${generations.rhyme} comptines`,
+          `${generations.animation30} animations 30s`,
+          `${generations.animation60} animations 1min`
         ],
         ideal: 'Pour les créateurs intensifs',
         economy: 'Économisez jusqu\'à 90%'
       },
       'Institut': {
-        tokens: '900 tokens/mois',
+        tokens: `${plan.totalTokens} tokens/mois`,
         features: [
-          'Histoires & Audio: 2 tokens',
-          'Coloriages: 1 token',
-          'BD: 2 tokens/page',
-          'Comptines: 3 tokens',
-          'Animations 30s: 6 tokens',
-          'Animations 1min: 9 tokens'
+          `${generations.histoire} histoires`,
+          `${generations.coloring} coloriages`,
+          `${generations.comic} pages de BD`,
+          `${generations.rhyme} comptines`,
+          `${generations.animation30} animations 30s`,
+          `${generations.animation60} animations 1min`
         ],
         ideal: 'Pour les écoles et institutions',
         economy: 'Économisez jusqu\'à 95%'
       }
     };
+
     return features[planName] || {};
   };
 
@@ -125,9 +189,6 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
               {(plan.price_monthly / 100).toFixed(2).replace('.', ',')}€
             </div>
             <div className="plan-price-period">par mois</div>
-            <div className="plan-tokens">
-              {features.tokens}
-            </div>
 
             <ul className="plan-features">
               {features.features?.map((feature, index) => (
