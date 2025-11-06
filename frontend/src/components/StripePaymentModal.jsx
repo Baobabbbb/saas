@@ -6,23 +6,26 @@ import { supabase } from '../supabaseClient';
 import { getContentPrice } from '../services/payment';
 
 const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-console.log('🔑 Clé Stripe chargée:', stripeKey ? 'Oui (pk_...)' : 'NON - MANQUANTE');
 const stripePromise = loadStripe(stripeKey);
 
 const CARD_ELEMENT_OPTIONS = {
   style: {
     base: {
-      color: '#32325d',
+      color: '#333',
       fontFamily: '"Baloo 2", sans-serif',
       fontSmoothing: 'antialiased',
       fontSize: '16px',
       '::placeholder': {
-        color: '#aab7c4'
+        color: '#b8b5d1'
       }
     },
     invalid: {
-      color: '#fa755a',
-      iconColor: '#fa755a'
+      color: '#d32f2f',
+      iconColor: '#d32f2f'
+    },
+    complete: {
+      color: '#6B4EFF',
+      iconColor: '#6B4EFF'
     }
   }
 };
@@ -36,11 +39,6 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
 
   const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
   const priceInfo = getContentPrice(normalizedContentType, options);
-
-  useEffect(() => {
-    console.log('💳 Stripe chargé:', stripe ? 'Oui' : 'Non');
-    console.log('📋 Elements chargé:', elements ? 'Oui' : 'Non');
-  }, [stripe, elements]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -122,19 +120,42 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
     }
   };
 
+  const inputStyle = {
+    width: '100%',
+    padding: '14px 16px',
+    fontSize: '16px',
+    border: '2px solid #e8e8f5',
+    borderRadius: '12px',
+    fontFamily: '"Baloo 2", sans-serif',
+    boxSizing: 'border-box',
+    outline: 'none',
+    transition: 'all 0.3s ease',
+    backgroundColor: '#fafafe',
+  };
+
+  const labelStyle = {
+    display: 'block',
+    marginBottom: '8px',
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#6B4EFF',
+    fontFamily: '"Baloo 2", sans-serif'
+  };
+
+  const stripeContainerStyle = {
+    padding: '14px 16px',
+    border: '2px solid #e8e8f5',
+    borderRadius: '12px',
+    backgroundColor: '#fafafe',
+    transition: 'all 0.3s ease',
+  };
+
   return (
     <form onSubmit={handleSubmit}>
       {/* Nom du titulaire */}
-      <div style={{ marginBottom: '16px' }}>
-        <label style={{
-          display: 'block',
-          marginBottom: '8px',
-          fontSize: '14px',
-          fontWeight: '600',
-          color: '#333',
-          fontFamily: '"Baloo 2", sans-serif'
-        }}>
-          Nom du titulaire de la carte
+      <div style={{ marginBottom: '18px' }}>
+        <label style={labelStyle}>
+          👤 Nom du titulaire de la carte
         </label>
         <input
           type="text"
@@ -142,40 +163,29 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
           onChange={(e) => setCardholderName(e.target.value)}
           placeholder="Jean Dupont"
           required
-          style={{
-            width: '100%',
-            padding: '14px 16px',
-            fontSize: '16px',
-            border: '2px solid #e0e0e0',
-            borderRadius: '8px',
-            fontFamily: '"Baloo 2", sans-serif',
-            boxSizing: 'border-box',
-            outline: 'none',
-            transition: 'border-color 0.2s',
+          style={inputStyle}
+          onFocus={(e) => {
+            e.target.style.borderColor = '#6B4EFF';
+            e.target.style.backgroundColor = 'white';
+            e.target.style.boxShadow = '0 0 0 3px rgba(107, 78, 255, 0.1)';
           }}
-          onFocus={(e) => e.target.style.borderColor = '#6B4EFF'}
-          onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+          onBlur={(e) => {
+            e.target.style.borderColor = '#e8e8f5';
+            e.target.style.backgroundColor = '#fafafe';
+            e.target.style.boxShadow = 'none';
+          }}
         />
       </div>
 
       {/* Numéro de carte */}
-      <div style={{ marginBottom: '16px' }}>
-        <label style={{
-          display: 'block',
-          marginBottom: '8px',
-          fontSize: '14px',
-          fontWeight: '600',
-          color: '#333',
-          fontFamily: '"Baloo 2", sans-serif'
-        }}>
-          Numéro de carte
+      <div style={{ marginBottom: '18px' }}>
+        <label style={labelStyle}>
+          💳 Numéro de carte
         </label>
-        <div style={{
-          padding: '14px 16px',
-          border: '2px solid #e0e0e0',
-          borderRadius: '8px',
-          backgroundColor: 'white',
-        }}>
+        <div 
+          style={stripeContainerStyle}
+          className="stripe-card-element"
+        >
           <CardNumberElement options={CARD_ELEMENT_OPTIONS} />
         </div>
       </div>
@@ -185,45 +195,27 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gap: '16px',
-        marginBottom: '20px'
+        marginBottom: '24px'
       }}>
         <div>
-          <label style={{
-            display: 'block',
-            marginBottom: '8px',
-            fontSize: '14px',
-            fontWeight: '600',
-            color: '#333',
-            fontFamily: '"Baloo 2", sans-serif'
-          }}>
-            Date d'expiration
+          <label style={labelStyle}>
+            📅 Date d'expiration
           </label>
-          <div style={{
-            padding: '14px 16px',
-            border: '2px solid #e0e0e0',
-            borderRadius: '8px',
-            backgroundColor: 'white',
-          }}>
+          <div 
+            style={stripeContainerStyle}
+            className="stripe-card-element"
+          >
             <CardExpiryElement options={CARD_ELEMENT_OPTIONS} />
           </div>
         </div>
         <div>
-          <label style={{
-            display: 'block',
-            marginBottom: '8px',
-            fontSize: '14px',
-            fontWeight: '600',
-            color: '#333',
-            fontFamily: '"Baloo 2", sans-serif'
-          }}>
-            CVC
+          <label style={labelStyle}>
+            🔒 CVC
           </label>
-          <div style={{
-            padding: '14px 16px',
-            border: '2px solid #e0e0e0',
-            borderRadius: '8px',
-            backgroundColor: 'white',
-          }}>
+          <div 
+            style={stripeContainerStyle}
+            className="stripe-card-element"
+          >
             <CardCvcElement options={CARD_ELEMENT_OPTIONS} />
           </div>
         </div>
@@ -231,13 +223,15 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
 
       {errorMessage && (
         <div style={{
-          padding: '12px',
-          backgroundColor: '#ffebee',
-          color: '#c62828',
-          borderRadius: '8px',
-          marginBottom: '20px',
+          padding: '16px',
+          backgroundColor: '#fff0f5',
+          color: '#d32f2f',
+          borderRadius: '12px',
+          marginBottom: '24px',
           fontSize: '14px',
-          border: '1px solid #ef5350'
+          border: '2px solid #ffc4d0',
+          fontFamily: '"Baloo 2", sans-serif',
+          fontWeight: '500'
         }}>
           ⚠️ {errorMessage}
         </div>
@@ -246,7 +240,7 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
       <div style={{
         display: 'flex',
         gap: '12px',
-        marginBottom: '16px'
+        marginBottom: '20px'
       }}>
         <button
           type="button"
@@ -254,16 +248,30 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
           disabled={isProcessing}
           style={{
             flex: 1,
-            padding: '14px',
+            padding: '16px 24px',
             fontSize: '16px',
             fontWeight: '600',
-            borderRadius: '8px',
+            borderRadius: '12px',
             border: '2px solid #6B4EFF',
             backgroundColor: 'white',
             color: '#6B4EFF',
             cursor: isProcessing ? 'not-allowed' : 'pointer',
             opacity: isProcessing ? 0.5 : 1,
-            fontFamily: '"Baloo 2", sans-serif'
+            fontFamily: '"Baloo 2", sans-serif',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 2px 8px rgba(107, 78, 255, 0.1)'
+          }}
+          onMouseEnter={(e) => {
+            if (!isProcessing) {
+              e.target.style.backgroundColor = '#f8f7ff';
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 4px 12px rgba(107, 78, 255, 0.2)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'white';
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 2px 8px rgba(107, 78, 255, 0.1)';
           }}
         >
           Annuler
@@ -273,16 +281,28 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
           disabled={!stripe || isProcessing}
           style={{
             flex: 1,
-            padding: '14px',
+            padding: '16px 24px',
             fontSize: '16px',
             fontWeight: '600',
-            borderRadius: '8px',
+            borderRadius: '12px',
             border: 'none',
-            backgroundColor: '#6B4EFF',
+            background: 'linear-gradient(135deg, #6B4EFF 0%, #8B6FFF 100%)',
             color: 'white',
             cursor: (!stripe || isProcessing) ? 'not-allowed' : 'pointer',
-            opacity: (!stripe || isProcessing) ? 0.5 : 1,
-            fontFamily: '"Baloo 2", sans-serif'
+            opacity: (!stripe || isProcessing) ? 0.6 : 1,
+            fontFamily: '"Baloo 2", sans-serif',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 16px rgba(107, 78, 255, 0.3)'
+          }}
+          onMouseEnter={(e) => {
+            if (stripe && !isProcessing) {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 6px 20px rgba(107, 78, 255, 0.4)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 4px 16px rgba(107, 78, 255, 0.3)';
           }}
         >
           {isProcessing ? '⏳ Traitement...' : `💳 Payer ${priceInfo.display}`}
@@ -290,12 +310,16 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
       </div>
 
       <div style={{
-        textAlign: 'right',
+        textAlign: 'center',
         fontSize: '13px',
-        color: '#666',
-        fontFamily: '"Baloo 2", sans-serif'
+        color: '#9b8fd9',
+        fontFamily: '"Baloo 2", sans-serif',
+        fontWeight: '500',
+        padding: '12px',
+        backgroundColor: '#f8f7ff',
+        borderRadius: '8px'
       }}>
-        🔒 Paiement sécurisé par Stripe
+        🔒 Paiement 100% sécurisé par Stripe
       </div>
     </form>
   );
@@ -372,21 +396,28 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
 
         <h2 style={{
           margin: '0 0 8px 0',
-          fontSize: '26px',
+          fontSize: '28px',
           fontWeight: '700',
-          color: '#333',
+          background: 'linear-gradient(135deg, #6B4EFF 0%, #8B6FFF 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
           fontFamily: '"Baloo 2", sans-serif'
         }}>
-          Paiement sécurisé
+          💳 Paiement sécurisé
         </h2>
 
         <p style={{
-          margin: '0 0 28px 0',
+          margin: '0 0 32px 0',
           fontSize: '16px',
           color: '#666',
-          fontFamily: '"Baloo 2", sans-serif'
+          fontFamily: '"Baloo 2", sans-serif',
+          padding: '12px 16px',
+          backgroundColor: '#f8f7ff',
+          borderRadius: '8px',
+          border: '1px solid #e8e8f5'
         }}>
-          {priceInfo.name} • <strong>{priceInfo.display}</strong>
+          {priceInfo.name} • <strong style={{ color: '#6B4EFF' }}>{priceInfo.display}</strong>
         </p>
 
         <Elements stripe={stripePromise}>
@@ -397,6 +428,19 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
             options={options}
           />
         </Elements>
+
+        <div style={{
+          marginTop: '20px',
+          textAlign: 'center',
+          fontSize: '12px',
+          color: '#999',
+          fontFamily: '"Baloo 2", sans-serif'
+        }}>
+          En cliquant sur "Payer", vous acceptez nos{' '}
+          <a href="/legal" style={{ color: '#6B4EFF', textDecoration: 'none' }}>
+            conditions générales de vente
+          </a>
+        </div>
       </div>
     </div>
   );
