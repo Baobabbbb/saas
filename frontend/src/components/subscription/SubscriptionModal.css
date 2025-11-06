@@ -105,7 +105,6 @@
 .subscription-modal-close:hover {
   background: #6B4EFF;
   color: white;
-  transform: rotate(90deg) scale(1.1);
   box-shadow: 0 5px 15px rgba(107, 78, 255, 0.3);
 }
 
