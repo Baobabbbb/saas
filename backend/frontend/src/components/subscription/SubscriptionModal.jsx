@@ -44,121 +44,99 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
   };
 
   const getPlanFeatures = (planName) => {
+    // Prix PAY-PER-USE (en centimes)
+    const payPerUse = {
+      histoire: 79,      // 0,79€
+      coloring: 99,      // 0,99€
+      comic: 149,        // 1,49€ par page
+      rhyme: 149,        // 1,49€
+      animation30: 799,  // 7,99€
+      animation60: 1199  // 11,99€
+    };
+
+    // Coûts en TOKENS (1 token = 0,01€ de coût API)
+    // Basés sur les coûts API réels
+    const tokenCosts = {
+      histoire: 15,      // 0,15€ API = 15 tokens
+      coloring: 20,      // 0,20€ API = 20 tokens
+      comic: 20,         // 0,20€ API = 20 tokens
+      rhyme: 17,         // 0,17€ API = 17 tokens
+      animation30: 610,  // 6,10€ API = 610 tokens
+      animation60: 915   // 9,15€ API = 915 tokens
+    };
+
     const plans = {
       'Découverte': {
-        totalTokens: 40,
-        costs: {
-          histoire: 4,
-          coloring: 3,
-          comic: 5,
-          rhyme: 6,
-          animation30: 12,
-          animation60: 18
-        }
+        price: 499,        // 4,99€
+        totalTokens: 250   // Budget API: 2,50€ (50% de marge)
       },
       'Famille': {
-        totalTokens: 120,
-        costs: {
-          histoire: 4,
-          coloring: 3,
-          comic: 4,
-          rhyme: 5,
-          animation30: 10,
-          animation60: 15
-        }
+        price: 999,        // 9,99€
+        totalTokens: 500   // Budget API: 5,00€ (50% de marge)
       },
       'Créatif': {
-        totalTokens: 300,
-        costs: {
-          histoire: 3,
-          coloring: 2,
-          comic: 3,
-          rhyme: 4,
-          animation30: 8,
-          animation60: 12
-        }
+        price: 1999,       // 19,99€
+        totalTokens: 1000  // Budget API: 10,00€ (50% de marge)
       },
       'Institut': {
-        totalTokens: 900,
-        costs: {
-          histoire: 2,
-          coloring: 1,
-          comic: 2,
-          rhyme: 3,
-          animation30: 6,
-          animation60: 9
-        }
+        price: 4999,       // 49,99€
+        totalTokens: 2500  // Budget API: 25,00€ (50% de marge)
       }
     };
 
     const plan = plans[planName];
     if (!plan) return {};
 
-    const calculateGenerations = (tokens, cost) => {
-      return Math.floor(tokens / cost);
+    // Calculer combien de chaque contenu peut être généré avec les tokens
+    const maxGenerations = {
+      histoire: Math.floor(plan.totalTokens / tokenCosts.histoire),
+      coloring: Math.floor(plan.totalTokens / tokenCosts.coloring),
+      comic: Math.floor(plan.totalTokens / tokenCosts.comic),
+      rhyme: Math.floor(plan.totalTokens / tokenCosts.rhyme),
+      animation30: Math.floor(plan.totalTokens / tokenCosts.animation30),
+      animation60: Math.floor(plan.totalTokens / tokenCosts.animation60)
     };
 
-    const generations = {
-      histoire: calculateGenerations(plan.totalTokens, plan.costs.histoire),
-      coloring: calculateGenerations(plan.totalTokens, plan.costs.coloring),
-      comic: calculateGenerations(plan.totalTokens, plan.costs.comic),
-      rhyme: calculateGenerations(plan.totalTokens, plan.costs.rhyme),
-      animation30: calculateGenerations(plan.totalTokens, plan.costs.animation30),
-      animation60: calculateGenerations(plan.totalTokens, plan.costs.animation60)
-    };
+    // Calculer la valeur totale si on utilise tous les tokens pour chaque type
+    const totalValue = 
+      (maxGenerations.histoire * payPerUse.histoire) +
+      (maxGenerations.coloring * payPerUse.coloring) +
+      (maxGenerations.comic * payPerUse.comic) +
+      (maxGenerations.rhyme * payPerUse.rhyme) +
+      (maxGenerations.animation30 * payPerUse.animation30) +
+      (maxGenerations.animation60 * payPerUse.animation60);
+
+    const savings = Math.round(((totalValue - plan.price) / totalValue) * 100);
+
+    // Construire la liste des fonctionnalités (affichage utilisateur)
+    const featuresList = [];
+    if (maxGenerations.histoire > 0) featuresList.push(`Jusqu'à ${maxGenerations.histoire} histoires`);
+    if (maxGenerations.coloring > 0) featuresList.push(`Jusqu'à ${maxGenerations.coloring} coloriages`);
+    if (maxGenerations.comic > 0) featuresList.push(`Jusqu'à ${maxGenerations.comic} pages de BD`);
+    if (maxGenerations.rhyme > 0) featuresList.push(`Jusqu'à ${maxGenerations.rhyme} comptines`);
+    if (maxGenerations.animation30 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation30} animation${maxGenerations.animation30 > 1 ? 's' : ''} 30s`);
+    if (maxGenerations.animation60 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation60} animation${maxGenerations.animation60 > 1 ? 's' : ''} 1min`);
 
     const features = {
       'Découverte': {
-        tokens: `${plan.totalTokens} tokens/mois`,
-        features: [
-          `${generations.histoire} histoires`,
-          `${generations.coloring} coloriages`,
-          `${generations.comic} pages de BD`,
-          `${generations.rhyme} comptines`,
-          `${generations.animation30} animations 30s`,
-          `${generations.animation60} animations 1min`
-        ],
+        features: featuresList,
         ideal: 'Parfait pour découvrir Herbbie',
-        economy: 'Économisez jusqu\'à 85%'
+        economy: `Économisez ${savings}%`
       },
       'Famille': {
-        tokens: `${plan.totalTokens} tokens/mois`,
-        features: [
-          `${generations.histoire} histoires`,
-          `${generations.coloring} coloriages`,
-          `${generations.comic} pages de BD`,
-          `${generations.rhyme} comptines`,
-          `${generations.animation30} animations 30s`,
-          `${generations.animation60} animations 1min`
-        ],
+        features: featuresList,
         ideal: 'Pour les familles actives',
-        economy: 'Économisez jusqu\'à 87%'
+        economy: `Économisez ${savings}%`
       },
       'Créatif': {
-        tokens: `${plan.totalTokens} tokens/mois`,
-        features: [
-          `${generations.histoire} histoires`,
-          `${generations.coloring} coloriages`,
-          `${generations.comic} pages de BD`,
-          `${generations.rhyme} comptines`,
-          `${generations.animation30} animations 30s`,
-          `${generations.animation60} animations 1min`
-        ],
+        features: featuresList,
         ideal: 'Pour les créateurs intensifs',
-        economy: 'Économisez jusqu\'à 90%'
+        economy: `Économisez ${savings}%`
       },
       'Institut': {
-        tokens: `${plan.totalTokens} tokens/mois`,
-        features: [
-          `${generations.histoire} histoires`,
-          `${generations.coloring} coloriages`,
-          `${generations.comic} pages de BD`,
-          `${generations.rhyme} comptines`,
-          `${generations.animation30} animations 30s`,
-          `${generations.animation60} animations 1min`
-        ],
+        features: featuresList,
         ideal: 'Pour les écoles et institutions',
-        economy: 'Économisez jusqu\'à 95%'
+        economy: `Économisez ${savings}%`
       }
     };
 

@@ -25,56 +25,80 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 
 ---
 
-## SYSTÈME D'ABONNEMENTS
+## SYSTÈME D'ABONNEMENTS (TOKENS)
+
+### ℹ️ Fonctionnement des tokens
+- **1 token = 0,01€ de coût API**
+- Les tokens peuvent être utilisés pour **n'importe quel type de contenu**
+- L'utilisateur choisit comment dépenser ses tokens
+
+### Coûts en tokens par contenu
+
+| Contenu | Coût API | Tokens requis |
+|---------|----------|---------------|
+| Histoire | 0,15€ | 15 tokens |
+| Coloriage | 0,20€ | 20 tokens |
+| BD (par page) | 0,20€ | 20 tokens |
+| Comptine | 0,17€ | 17 tokens |
+| Animation 30s | 6,10€ | 610 tokens |
+| Animation 1min | 9,15€ | 915 tokens |
+
+---
 
 ### Abonnement Découverte - 4,99€/mois
-**Contenu inclus par mois :**
-- 10 histoires (valeur: 7,90€)
-- 5 coloriages (valeur: 4,95€)
+**250 tokens/mois** (Budget API : 2,50€, Marge : 50%)
 
-**Total valeur pay-per-use : 12,85€**
-**Coûts API réels : 2,50€**
-**Marge brute : 2,49€ (50%)**
-**Économie client : 61% de réduction**
+**Vous pouvez générer jusqu'à :**
+- 16 histoires OU
+- 12 coloriages OU
+- 12 pages de BD OU
+- 14 comptines OU
+- 0 animations 30s (610 tokens requis)
+
 **Idéal pour :** Utilisateurs occasionnels, découverte de la plateforme
 
 ---
 
 ### Abonnement Famille - 9,99€/mois
-**Contenu inclus par mois :**
-- 20 histoires (valeur: 15,80€)
-- 10 coloriages (valeur: 9,90€)
+**500 tokens/mois** (Budget API : 5,00€, Marge : 50%)
 
-**Total valeur pay-per-use : 25,70€**
-**Coûts API réels : 5,00€**
-**Marge brute : 4,99€ (50%)**
-**Économie client : 61% de réduction**
+**Vous pouvez générer jusqu'à :**
+- 33 histoires OU
+- 25 coloriages OU
+- 25 pages de BD OU
+- 29 comptines OU
+- 0 animations 30s (610 tokens requis)
+
 **Idéal pour :** Familles actives, usage régulier
 
 ---
 
 ### Abonnement Créatif - 19,99€/mois
-**Contenu inclus par mois :**
-- 40 histoires (valeur: 31,60€)
-- 20 coloriages (valeur: 19,80€)
+**1000 tokens/mois** (Budget API : 10,00€, Marge : 50%)
 
-**Total valeur pay-per-use : 51,40€**
-**Coûts API réels : 10,00€**
-**Marge brute : 9,99€ (50%)**
-**Économie client : 61% de réduction**
+**Vous pouvez générer jusqu'à :**
+- 66 histoires OU
+- 50 coloriages OU
+- 50 pages de BD OU
+- 58 comptines OU
+- 1 animation 30s OU
+- 1 animation 1min
+
 **Idéal pour :** Créateurs intensifs, éducateurs, animateurs
 
 ---
 
 ### Abonnement Institut - 49,99€/mois
-**Contenu inclus par mois :**
-- 100 histoires (valeur: 79,00€)
-- 50 coloriages (valeur: 49,50€)
+**2500 tokens/mois** (Budget API : 25,00€, Marge : 50%)
 
-**Total valeur pay-per-use : 128,50€**
-**Coûts API réels : 25,00€**
-**Marge brute : 24,99€ (50%)**
-**Économie client : 61% de réduction**
+**Vous pouvez générer jusqu'à :**
+- 166 histoires OU
+- 125 coloriages OU
+- 125 pages de BD OU
+- 147 comptines OU
+- 4 animations 30s OU
+- 2 animations 1min
+
 **Idéal pour :** Écoles, crèches, centres de loisirs, institutions
 
 ---
