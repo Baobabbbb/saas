@@ -1,6 +1,6 @@
 /* Variables pour cohérence avec les autres composants */
 :root {
-  --primary: #6B4EFF;
+  --primary: #f5f0ff;
   --text: #333;
 }
 
@@ -19,12 +19,14 @@
 
 .story-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   margin-bottom: 1rem;
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
+  grid-auto-rows: min-content;
+  width: 100%;
+  max-height: none !important;
+  overflow: visible !important;
+  height: auto !important;
 }
 
 .story-grid::-webkit-scrollbar {
@@ -51,6 +53,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  height: 220px; /* Même hauteur que dans Coloriage et Comptine pour uniformité */
 }
 
 .story-card:hover {
@@ -143,7 +146,7 @@
   }
   
   .story-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.8rem;
   }
   

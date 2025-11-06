@@ -1,6 +1,6 @@
 .app-footer {
   margin-top: 4rem;
-  padding: 1.5rem 0 0 0;
+  padding: 1.1rem 0 0 0;
   border-top: 1px solid rgba(224, 224, 224, 0.4);
   background: transparent;
 }
@@ -9,6 +9,17 @@
   max-width: 1200px;
   margin: 0 auto;
   text-align: center;
+}
+
+.ai-notice {
+  margin: 0.1rem 0 0.5rem 0;
+}
+
+.ai-notice p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #bbb;
+  font-style: italic;
 }
 
 .footer-links {
@@ -54,23 +65,31 @@
 @media (max-width: 768px) {
   .app-footer {
     margin-top: 2rem;
-    padding: 1rem 0 0 0;
+    padding: 0.7rem 0 0 0;
   }
-  
+
+  .ai-notice {
+    margin: 0.05rem 0 0.3rem 0;
+  }
+
+  .ai-notice p {
+    font-size: 0.7rem;
+  }
+
   .footer-links {
     gap: 0.2rem;
     margin-bottom: 0.5rem;
   }
-  
+
   .footer-link {
     font-size: 0.7rem;
     padding: 0.15rem 0.3rem;
   }
-  
+
   .footer-info p {
     font-size: 0.65rem;
   }
-  
+
   .separator {
     display: none;
   }

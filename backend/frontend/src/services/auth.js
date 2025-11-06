@@ -4,8 +4,8 @@ import { supabase } from '../supabaseClient'
 // Connexion avec meilleure gestion d'erreurs
 export async function signIn({ email, password }) {
   try {
+    const supabase = await getSupabaseClient();
 
-    
     // Authentification réelle avec Supabase Auth
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
@@ -21,10 +21,10 @@ export async function signIn({ email, password }) {
     }
 
     if (data.user) {
-      
+
       // Mettre à jour localStorage avec les données
       localStorage.setItem('userEmail', data.user.email);
-      
+
       // Pour fredagathe77@gmail.com, utiliser les vraies données
       if (data.user.email === 'fredagathe77@gmail.com') {
         localStorage.setItem('userName', 'Admin Principal');
@@ -33,7 +33,7 @@ export async function signIn({ email, password }) {
       } else {
         // Pour les autres utilisateurs, essayer de récupérer le profil
         const { data: profile, error: profileError } = await supabase
-          .from('public.profiles')
+          .from('profiles')
           .select('*')
           .eq('id', data.user.id)
           .single();
@@ -76,7 +76,8 @@ export async function signIn({ email, password }) {
 // Inscription avec création de profil
 export async function signUpWithProfile({ email, password, firstName, lastName }) {
   try {
-    
+    const supabase = await getSupabaseClient();
+
     // Inscription réelle avec Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email: email,
@@ -143,16 +144,18 @@ export async function signOut() {
 // Mise à jour du profil utilisateur
 export async function updateUserProfile({ firstName, lastName }) {
   try {
+    const supabase = await getSupabaseClient();
+
     // Récupérer l'utilisateur connecté depuis Supabase Auth
     const { data: userData, error: userError } = await supabase.auth.getUser();
-    
+
     if (userError || !userData?.user) {
       return { error: { message: 'Utilisateur non connecté' } };
     }
 
     // Mettre à jour le profil dans Supabase
     const { error: updateError } = await supabase
-      .from('public.profiles')
+      .from('profiles')
       .update({
         prenom: firstName,
         nom: lastName
@@ -255,17 +258,47 @@ export async function deleteUserAccount() {
   }
 }
 
-// Réinitialisation du mot de passe
+// Fonction pour traduire les messages d'erreur de Supabase en français
+function translateSupabaseError(errorMessage) {
+  // Messages d'erreur de réinitialisation de mot de passe
+  if (errorMessage.includes('security purposes') && errorMessage.includes('request this')) {
+    return 'Pour des raisons de sécurité, vous ne pouvez faire cette demande que toutes les 60 secondes.';
+  }
+
+  if (errorMessage.includes('only request this after')) {
+    return 'Pour des raisons de sécurité, vous ne pouvez faire cette demande que toutes les 60 secondes.';
+  }
+
+  // Autres erreurs communes
+  if (errorMessage.includes('Invalid email')) {
+    return 'Adresse email invalide.';
+  }
+
+  if (errorMessage.includes('User not found')) {
+    return 'Aucun compte trouvé avec cette adresse email.';
+  }
+
+  if (errorMessage.includes('Too many requests')) {
+    return 'Trop de tentatives. Veuillez réessayer dans quelques minutes.';
+  }
+
+  // Retourner le message original si pas de traduction trouvée
+  return errorMessage;
+}
+
+// Réinitialisation du mot de passe avec Supabase Auth
 export async function resetPassword({ email }) {
   try {
-    // Simulation d'envoi d'email
-    
-    return { 
-      data: { 
-        message: 'Email de réinitialisation envoyé (simulation)'
-      } 
-    };
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      return { error: { message: translateSupabaseError(error.message) } };
+    }
+
+    return { data: { message: 'Email de réinitialisation envoyé avec succès' } };
   } catch (err) {
-    return { error: { message: 'Erreur lors de l\'envoi de l\'email de réinitialisation: ' + err.message } };
+    return { error: { message: 'Erreur lors de l\'envoi de l\'email de réinitialisation: ' + translateSupabaseError(err.message) } };
   }
 }

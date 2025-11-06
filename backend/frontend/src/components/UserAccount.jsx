@@ -3,8 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './UserAccount.css';
 import { supabase } from '../supabaseClient';
 import useSupabaseUser from '../hooks/useSupabaseUser';
+import { updateUserProfile } from '../services/profileService';
+import { resetPassword as resetPasswordService } from '../services/auth';
+import EmailInput, { saveEmailToHistory } from './EmailInput';
 
-const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory }) => {
+const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, onOpenSubscription }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
@@ -39,7 +42,12 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   const [resetEmail, setResetEmail] = useState('');
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
-  
+
+  // États pour la visibilité des mots de passe
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+
+
   // Vérifier si l'utilisateur connecté est administrateur (en vérifiant le rôle dans la base)
   useEffect(() => {
     const checkAdminRole = async () => {
@@ -57,7 +65,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
           .single();
 
         if (error) {
-          console.error('Erreur vérification rôle admin:', error);
           setIsAdminUser(false);
           return;
         }
@@ -65,7 +72,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
         const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
         setIsAdminUser(isAdmin);
       } catch (error) {
-        console.error('Erreur lors de la vérification du rôle:', error);
         setIsAdminUser(false);
       }
     };
@@ -91,7 +97,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       });
 
       if (error) {
-        console.error('❌ HERBBIE: Erreur connexion Supabase:', error.message);
         setError(error.message === 'Invalid login credentials' 
           ? 'Email ou mot de passe incorrect' 
           : error.message);
@@ -99,21 +104,23 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       }
 
       if (data?.user) {
-        
+
+        // Sauvegarder l'email dans l'historique
+        saveEmailToHistory(email.trim());
+
         // Fermer les formulaires
         setShowLoginForm(false);
         setShowDropdown(false);
-        
+
         // Réinitialiser les champs
         setEmail('');
         setPassword('');
-        
+
         // Informer le parent si nécessaire
         if (onLogin) onLogin(data.user);
         
       }
     } catch (error) {
-      console.error('❌ HERBBIE: Erreur critique connexion:', error);
       setError('Erreur de connexion. Vérifiez vos identifiants.');
     } finally {
       setIsAuthenticating(false);
@@ -140,15 +147,17 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       });
 
       if (error) {
-        console.error('❌ HERBBIE: Erreur inscription Supabase:', error.message);
-        setError(error.message === 'User already registered' 
-          ? 'Un compte existe déjà avec cet email' 
+        setError(error.message === 'User already registered'
+          ? 'Un compte existe déjà avec cet email'
           : error.message);
         return;
       }
 
       if (data?.user) {
-        
+
+        // Sauvegarder l'email dans l'historique
+        saveEmailToHistory(email.trim());
+
         // Vérifier si l'email nécessite une confirmation
         if (!data.session) {
           setError('Un email de confirmation a été envoyé. Vérifiez votre boîte mail.');
@@ -156,19 +165,18 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
           // Connexion immédiate réussie
           setShowRegisterForm(false);
           setShowDropdown(false);
-          
+
           // Réinitialiser les champs
           setEmail('');
           setPassword('');
           setFirstName('');
           setLastName('');
-          
+
           // Informer le parent si nécessaire
           if (onRegister) onRegister(data.user);
         }
       }
     } catch (error) {
-      console.error('❌ HERBBIE: Erreur critique inscription:', error);
       setError('Erreur d\'inscription. Réessayez plus tard.');
     } finally {
       setIsAuthenticating(false);
@@ -180,7 +188,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        console.error('❌ HERBBIE: Erreur déconnexion:', error.message);
         setError('Erreur lors de la déconnexion');
         return;
       }
@@ -203,7 +210,6 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
       window.location.reload();
       
     } catch (error) {
-      console.error('❌ HERBBIE: Erreur critique déconnexion:', error);
       setError('Erreur lors de la déconnexion');
     }
   };
@@ -211,23 +217,50 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setError('');
-    
+
+    // Afficher immédiatement la popup de succès
+    setResetEmailSent(true);
+    setError('');
+
+    // Sauvegarder l'email dans l'historique immédiatement
+    saveEmailToHistory(resetEmail.trim());
+
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
-        redirectTo: window.location.origin
-      });
+      const { data, error } = await resetPasswordService({ email: resetEmail.trim() });
 
       if (error) {
-        setError(error.message);
+        setResetEmailSent(false);
+        setError(error.message || 'Erreur lors de l\'envoi de l\'email');
         return;
       }
 
-      setResetEmailSent(true);
-      setError('');
-      
     } catch (error) {
+      setResetEmailSent(false);
       setError('Erreur lors de l\'envoi de l\'email de réinitialisation');
     }
+  };
+
+  // Fonction pour recharger les données utilisateur depuis la base
+  const reloadUserData = async () => {
+    if (!user || !user.id) return;
+
+    try {
+      // Récupérer le profil mis à jour depuis la base
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (!error && profile) {
+        // Mettre à jour les champs du formulaire avec les données fraîchement récupérées
+        setProfileEmail(profile.email || user.email || '');
+        setProfileFirstName(profile.prenom || '');
+        setProfileLastName(profile.nom || '');
+      }
+      } catch (error) {
+        // Erreur silencieuse - pas critique
+      }
   };
 
   // Charger les données du profil depuis Supabase
@@ -329,22 +362,45 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                 >
                 <h3>Connexion</h3>
                 <form onSubmit={handleSignIn}>
-                  <input
-                    type="email"
-                    placeholder="Email"
+                  <EmailInput
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email"
                     required
                     disabled={isAuthenticating}
+                    user={null}
+                    onEmailSubmit={() => {}}
                   />
-                  <input
-                    type="password"
-                    placeholder="Mot de passe"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={isAuthenticating}
-                  />
+                  <div className="password-input-container">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Mot de passe"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      disabled={isAuthenticating}
+                      className="password-input"
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={isAuthenticating}
+                      aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    >
+                      {showPassword ? (
+                        <svg className="password-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                          <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                      ) : (
+                        <svg className="password-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                   {error && <div className="error-message">{error}</div>}
                   <div className="form-buttons">
                     <button
@@ -414,23 +470,46 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     required
                     disabled={isAuthenticating}
                   />
-                  <input
-                    type="email"
-                    placeholder="Email"
+                  <EmailInput
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email"
                     required
                     disabled={isAuthenticating}
+                    user={null}
+                    onEmailSubmit={() => {}}
                   />
-                  <input
-                    type="password"
-                    placeholder="Mot de passe (min 6 caractères)"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                    disabled={isAuthenticating}
-                  />
+                  <div className="password-input-container">
+                    <input
+                      type={showSignupPassword ? "text" : "password"}
+                      placeholder="Mot de passe (min 6 caractères)"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      disabled={isAuthenticating}
+                      className="password-input"
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      disabled={isAuthenticating}
+                      aria-label={showSignupPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    >
+                      {showSignupPassword ? (
+                        <svg className="password-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                          <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                      ) : (
+                        <svg className="password-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                   {error && <div className="error-message">{error}</div>}
                   <div className="form-buttons">
                     <button
@@ -473,16 +552,16 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                 <h3>Réinitialiser le mot de passe</h3>
                 {!resetEmailSent ? (
                   <form onSubmit={handleResetPassword}>
-                    <input
-                      type="email"
-                      placeholder="Votre email"
+                    <EmailInput
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
+                      placeholder="Votre email"
                       required
+                      user={null}
+                      onEmailSubmit={() => {}}
                     />
                     {error && <div className="error-message">{error}</div>}
                     <div className="form-buttons">
-                      <button type="submit">Envoyer le lien</button>
                       <button
                         type="button"
                         onClick={() => {
@@ -493,6 +572,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                       >
                         Retour à la connexion
                       </button>
+                      <button type="submit">Envoyer le lien</button>
                     </div>
                   </form>
                 ) : (
@@ -539,7 +619,7 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                   {isAdmin() && (
                     <button onClick={() => {
                       // Accès direct au panneau d'administration intégré avec auto-auth dans un nouvel onglet
-                      window.open('/admin?auth=auto', '_blank');
+                      window.open('/ilmysv6iepwepoa4tj2k?auth=auto', '_blank');
                     }}>
                       ⚙️ Administration
                     </button>
@@ -557,6 +637,13 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                     if (onOpenHistory) onOpenHistory();
                   }}>
                     Mon historique
+                  </button>
+
+                  <button onClick={() => {
+                    setShowDropdown(false);
+                    if (onOpenSubscription) onOpenSubscription();
+                  }}>
+                    Mon abonnement
                   </button>
                   
                   <button onClick={handleSignOut} className="logout-button">
@@ -589,14 +676,32 @@ const UserAccount = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory 
                   <h3>Mon profil</h3>
                   <form onSubmit={async (e) => {
                     e.preventDefault();
-                    // Logique de mise à jour du profil ici
-                    console.log('Mise à jour profil:', { profileFirstName, profileLastName });
+                    setError('');
+
+                    try {
+                      await updateUserProfile(user.id, {
+                        firstName: profileFirstName.trim(),
+                        lastName: profileLastName.trim()
+                      });
+
+                      // Recharger immédiatement les données pour refléter les changements dans le formulaire
+                      await reloadUserData();
+
+                      setProfileUpdateSuccess(true);
+                      setTimeout(() => setProfileUpdateSuccess(false), 3000);
+
+                    } catch (error) {
+                      console.error('Erreur mise à jour profil:', error);
+                      setError('Erreur lors de la mise à jour du profil');
+                    }
                   }}>
-                    <input
-                      type="email"
+                    <EmailInput
                       value={profileEmail}
-                      disabled
+                      onChange={(e) => setProfileEmail(e.target.value)}
                       placeholder="Email"
+                      disabled
+                      user={user}
+                      onEmailSubmit={() => {}}
                     />
                     <input
                       type="text"

@@ -6,19 +6,20 @@ Basé sur la documentation: https://wavespeed.ai/docs/docs-api/alibaba/alibaba-w
 
 import asyncio
 import aiohttp
+import os
 import time
 from typing import List, Dict, Any, Optional
-from config import config
+from ...config import WAN25_MODEL, WAN25_BASE_URL, WAN25_DEFAULT_RESOLUTION
 from models.schemas import Scene, VideoClip
 
 class Wan25Generator:
     """Service de génération vidéo EXCLUSIF Wan 2.5 avec audio intégré"""
     
     def __init__(self):
-        self.base_url = config.WAN25_BASE_URL
-        self.api_key = config.WAVESPEED_API_KEY
-        self.model = config.WAN25_MODEL
-        self.default_resolution = config.WAN25_DEFAULT_RESOLUTION
+        self.base_url = WAN25_BASE_URL
+        self.api_key = os.getenv("WAVESPEED_API_KEY")
+        self.model = WAN25_MODEL
+        self.default_resolution = WAN25_DEFAULT_RESOLUTION
         
     async def generate_video_clip(self, scene: Scene) -> VideoClip:
         """

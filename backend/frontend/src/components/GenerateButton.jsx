@@ -5,9 +5,7 @@ import './GenerateButton.css';
 const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType, buttonText }) => {
   const getButtonText = () => {
     if (isGenerating) {
-      return contentType === 'story' 
-        ? 'Création de la BD en cours...' 
-        : contentType === 'rhyme'
+      return contentType === 'rhyme'
         ? 'Création de la comptine en cours...'
         : contentType === 'coloring'
         ? 'Création du coloriage en cours...'
@@ -24,9 +22,7 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType, but
     }
     
     // Sinon, utiliser les textes par défaut
-    return contentType === 'story' 
-      ? 'Créer ma bande dessinée' 
-      : contentType === 'rhyme'
+    return contentType === 'rhyme'
       ? 'Créer ma comptine'
       : contentType === 'coloring'
       ? 'Créer mon coloriage'
@@ -75,7 +71,7 @@ const GenerateButton = ({ onGenerate, isGenerating, isDisabled, contentType, but
             : contentType === 'coloring'
             ? 'Veuillez sélectionner un thème de coloriage pour continuer'
             : contentType === 'comic'
-            ? 'Veuillez sélectionner un thème, style et longueur pour votre BD'
+            ? 'Veuillez sélectionner un thème, un style et un nombre de pages pour votre BD'
             : contentType === 'animation'
             ? 'Veuillez sélectionner un thème et configurer votre animation'
             : 'Veuillez sélectionner un type d\'histoire (et une voix) pour continuer'}

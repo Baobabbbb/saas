@@ -11,7 +11,7 @@ from pathlib import Path
 # Ajouter le répertoire parent au path pour importer les services
 sys.path.append(str(Path(__file__).parent))
 
-from config import Config
+import os
 
 app = FastAPI(title="Animation Studio - Production API")
 
@@ -43,9 +43,9 @@ generation_tasks = {}
 async def health():
     # Vérifier les clés API
     api_status = {
-        "openai": bool(Config.OPENAI_API_KEY),
-        "wavespeed": bool(Config.WAVESPEED_API_KEY),
-        "fal": bool(Config.FAL_API_KEY)
+        "openai": bool(os.getenv("OPENAI_API_KEY")),
+        "wavespeed": bool(os.getenv("WAVESPEED_API_KEY")),
+        "fal": bool(os.getenv("FAL_API_KEY"))
     }
     return {
         "status": "healthy", 
@@ -103,11 +103,11 @@ async def generate_animation(request: AnimationRequest):
     """Générer une animation avec les vraies APIs d'IA"""
     
     # Vérifier les clés API
-    if not Config.OPENAI_API_KEY:
+    if not os.getenv("OPENAI_API_KEY"):
         raise HTTPException(status_code=500, detail="Clé API OpenAI manquante")
-    if not Config.WAVESPEED_API_KEY:
+    if not os.getenv("WAVESPEED_API_KEY"):
         raise HTTPException(status_code=500, detail="Clé API Wavespeed manquante")
-    if not Config.FAL_API_KEY:
+    if not os.getenv("FAL_API_KEY"):
         raise HTTPException(status_code=500, detail="Clé API FAL manquante")
     
     animation_id = str(uuid.uuid4())
@@ -215,10 +215,10 @@ async def run_real_animation_generation(animation_id: str, theme: str, duration:
             "theme": theme,
             "duration": duration,
             "ai_models_used": [
-                f"OpenAI {Config.TEXT_MODEL}",
-                f"Wavespeed {Config.WAVESPEED_MODEL}",
-                f"FAL {Config.FAL_AUDIO_MODEL}",
-                f"FAL {Config.FAL_FFMPEG_MODEL}"
+                f"OpenAI {os.getenv('TEXT_MODEL', 'gpt-4o-mini')}",
+                f"Wavespeed {os.getenv('WAVESPEED_MODEL', 'bytedance/seedance-v1-pro-t2v-480p')}",
+                f"FAL {os.getenv('FAL_AUDIO_MODEL', 'fal-ai/mmaudio-v2')}",
+                f"FAL {os.getenv('FAL_FFMPEG_MODEL', 'fal-ai/ffmpeg-api/compose')}"
             ]
         }
         
@@ -234,8 +234,8 @@ async def run_real_animation_generation(animation_id: str, theme: str, duration:
 
 if __name__ == "__main__":
     print("🚀 Animation Studio - PRODUCTION avec vraies APIs d'IA")
-    print(f"🤖 OpenAI: {'✅' if Config.OPENAI_API_KEY else '❌'}")
-    print(f"🎥 Wavespeed: {'✅' if Config.WAVESPEED_API_KEY else '❌'}")
-    print(f"🎵 FAL AI: {'✅' if Config.FAL_API_KEY else '❌'}")
+    print(f"🤖 OpenAI: {'✅' if os.getenv('OPENAI_API_KEY') else '❌'}")
+    print(f"🎥 Wavespeed: {'✅' if os.getenv('WAVESPEED_API_KEY') else '❌'}")
+    print(f"🎵 FAL AI: {'✅' if os.getenv('FAL_API_KEY') else '❌'}")
     print("🎬 Prêt à générer des vraies animations sur le port 8010...")
     uvicorn.run(app, host="0.0.0.0", port=8010) 

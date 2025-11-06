@@ -50,8 +50,8 @@ animation_studio/
 - **Backend** : FastAPI, Python 3.11
 - **Frontend** : React 18, Vite, Framer Motion
 - **IA Génération d'idées** : OpenAI GPT-4
-- **IA Génération vidéo** : Wavespeed AI (SeedANce v1 Pro)
-- **IA Génération audio** : FAL AI (mmaudio-v2)
+- **IA Génération vidéo** : Runway ML (Veo 3.1 Fast)
+- **IA Génération audio** : Intégré dans Veo 3.1 Fast
 - **Assemblage vidéo** : FAL AI (FFmpeg API)
 
 ## 🚀 Installation et configuration
@@ -152,12 +152,13 @@ Les clés API sont pré-configurées mais vous pouvez les personnaliser :
 ```python
 # APIs principales (déjà configurées)
 OPENAI_API_KEY = "sk-proj-..."
-WAVESPEED_API_KEY = "1611882205be3979..."  
+RUNWAY_API_KEY = "your-runway-api-key"
 FAL_API_KEY = "b6aa8a34-dc84-4bd5..."
 
 # Modèles et paramètres
 TEXT_MODEL = "gpt-4o-mini"
-CARTOON_STYLE = "2D cartoon animation, Disney style"
+VEO31_MODEL = "veo3.1_fast"
+CARTOON_STYLE = "2D cartoon animation, Disney Pixar style"
 DEFAULT_DURATION = 30
 VIDEO_ASPECT_RATIO = "9:16"
 ```

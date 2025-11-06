@@ -5,6 +5,9 @@ const Footer = ({ onLegalClick }) => {
   return (
     <footer className="app-footer">
       <div className="footer-content">
+        <div className="ai-notice">
+          <p>Les créations sont générées par IA et peuvent contenir des erreurs.</p>
+        </div>
         <div className="footer-links">
           <button 
             className="footer-link"

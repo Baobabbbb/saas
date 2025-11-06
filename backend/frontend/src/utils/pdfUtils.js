@@ -1,6 +1,7 @@
 // Utilitaires pour générer des PDFs de bandes dessinées
 
 import { jsPDF } from 'jspdf';
+import { getSafeFilename } from './coloringPdfUtils';
 
 /**
  * Télécharge une bande dessinée au format PDF
@@ -61,7 +62,7 @@ export const downloadComicAsPDF = async (imageUrls, filename = 'comic') => {
     }
     
     // Télécharger le PDF
-    const safeFilename = filename.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const safeFilename = getSafeFilename(filename, 'comic');
     pdf.save(`${safeFilename}.pdf`);
     
   } catch (error) {

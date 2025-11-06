@@ -1,6 +1,6 @@
 /* Variables pour cohérence avec les autres composants */
 :root {
-  --primary: #6B4EFF;
+  --primary: #f5f0ff;
   --text: #333;
 }
 
@@ -108,6 +108,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: 2px solid transparent;
+  height: 220px; /* Test à 220px pour présence maximale */
 }
 
 .theme-option:hover {
@@ -176,7 +177,7 @@
 
 .personalization-input:focus {
   outline: none;
-  border-color: #6B4EFF;
+  border-color: #f5f0ff;
   box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
 }
 
@@ -256,25 +257,32 @@
 .upload-button {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  background: linear-gradient(135deg, #6B4EFF 0%, #8B5CF6 100%);
   color: white;
-  border-radius: 12px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 500;
+  font-size: 0.75rem;
   border: none;
+  width: 100%;
+  justify-content: center;
+  max-width: 160px;
+  margin: 0 auto;
 }
 
 .upload-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 20px rgba(107, 78, 255, 0.4);
 }
 
 .upload-icon {
-  font-size: 1.5rem;
+  font-size: 2rem;
+  margin-bottom: 6px;
+  opacity: 1;
+  filter: drop-shadow(0 2px 4px rgba(107, 78, 255, .2));
 }
 
 .photo-preview-container {
@@ -288,7 +296,6 @@
   width: 100%;
   height: auto;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: block;
 }
 
@@ -384,7 +391,7 @@
 .inline-upload .upload-hint {
   margin-bottom: 1rem !important;
   font-size: 0.85rem !important;
-  color: var(--primary, #6B4EFF) !important;
+  color: var(--primary, #f5f0ff) !important;
   font-weight: 500 !important;
 }
 

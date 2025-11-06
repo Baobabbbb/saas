@@ -24,10 +24,12 @@ const ColoringPopup = ({ coloringResult, onClose, selectedTheme }) => {
     }
   };
   const handleDownloadPDF = () => {
-    if (coloringResult?.images) {
+    if (coloringResult?.images && coloringResult.images.length > 0) {
       // Utiliser le même titre que la page principale
       const title = coloringResult.title || (selectedTheme ? `coloriages_${selectedTheme}` : 'coloriages');
       downloadColoringAsPDF(coloringResult.images, title);
+    } else {
+      console.warn('Aucune image disponible pour le téléchargement PDF');
     }
   };
 
@@ -63,7 +65,7 @@ const ColoringPopup = ({ coloringResult, onClose, selectedTheme }) => {
 
             <div className="coloring-container">
               <h2 className="coloring-title">🎨 Votre coloriage</h2>
-              
+
               <div className="coloring-image-wrapper">
                 <img
                   src={imageUrl}

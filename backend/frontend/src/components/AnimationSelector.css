@@ -1,6 +1,6 @@
 /* Variables pour cohérence avec les autres composants */
 :root {
-  --primary: #6B4EFF;
+  --primary: #f5f0ff;
   --text: #333;
 }
 
@@ -32,27 +32,15 @@
 /* Grille des thèmes - style harmonisé avec BD */
 .themes-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   margin-bottom: 1rem;
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
+  width: 100%;
+  max-height: none !important;
+  overflow: visible !important;
+  height: auto !important;
 }
 
-.themes-grid::-webkit-scrollbar {
-  width: 6px;
-}
-
-.themes-grid::-webkit-scrollbar-track {
-  background: #f5f0ff;
-  border-radius: 10px;
-}
-
-.themes-grid::-webkit-scrollbar-thumb {
-  background: #c4b5ff;
-  border-radius: 10px;
-}
 
 .theme-card {
   background-color: #f5f0ff;
@@ -64,6 +52,10 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  height: 220px; /* Même hauteur que ColoringSelector pour cohérence */
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .theme-card:hover {
@@ -99,8 +91,39 @@
 
 /* Style pour l'option personnalisée avec contour en pointillés */
 .custom-animation {
-  border: 2px dashed #c4b5ff;
+  border: 2px dashed #c4b5ff !important;
 }
+
+.theme-card.custom-animation.selected {
+  border: 2px dashed var(--primary) !important;
+}
+
+/* Encart personnalisé juste en dessous du bouton */
+.custom-theme-input {
+  margin-top: 0.5rem;
+  overflow: hidden;
+  width: 100%;
+}
+
+.custom-story-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e1e5f0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-family: 'Nunito', sans-serif;
+  transition: border-color 0.3s ease;
+  background: white;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.custom-story-textarea:focus {
+  outline: none;
+  border-color: #6B4EFF;
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+}
+
 
 /* Histoire personnalisée */
 .custom-story-section {
@@ -267,7 +290,7 @@
   }
   
   .themes-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.8rem;
   }
   
@@ -296,5 +319,136 @@
   .custom-story-textarea {
     font-size: 0.9rem;
     padding: 0.8rem 1rem;
+  }
+}
+
+/* Section upload personnage */
+.section-description {
+  color: #666;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  margin-top: -0.5rem;
+}
+
+.character-upload-container {
+  width: 100%;
+}
+
+.character-upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  border: 3px dashed rgba(107, 78, 255, 0.4);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(245, 240, 255, 0.4) 0%, rgba(245, 240, 255, 0.6) 100%);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 200px;
+  box-shadow: 0 4px 16px rgba(107, 78, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.character-upload-zone::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.character-upload-zone:hover {
+  border-color: rgba(107, 78, 255, 0.6);
+  box-shadow: 0 6px 24px rgba(107, 78, 255, 0.15);
+}
+
+.character-upload-zone:hover::before {
+  left: 100%;
+}
+
+.upload-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.upload-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.upload-text strong {
+  font-size: 0.9rem;
+  color: #6B4EFF;
+  font-weight: 600;
+}
+
+.upload-text span {
+  font-size: 0.9rem;
+  color: #6B4EFF;
+  font-weight: 600;
+}
+
+.character-preview {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: white;
+  border: 2px solid #e1e5f0;
+  border-radius: 12px;
+}
+
+.character-image {
+  max-width: 300px;
+  max-height: 300px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.remove-character-btn {
+  padding: 0.6rem 1.5rem;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Nunito', sans-serif;
+}
+
+.remove-character-btn:hover {
+  background: #cc0000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+}
+
+@media (max-width: 768px) {
+  .character-upload-zone {
+    padding: 28px 20px;
+    min-height: 150px;
+  }
+
+  .upload-icon {
+    font-size: 2rem;
+  }
+
+  .character-image {
+    max-width: 100%;
+    max-height: 250px;
   }
 }

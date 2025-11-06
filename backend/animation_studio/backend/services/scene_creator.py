@@ -2,21 +2,27 @@ import json
 import math
 from typing import List
 from openai import AsyncOpenAI
-from config import config
+import os
 from models.schemas import StoryIdea, Scene
 
 class SceneCreator:
     """Service de création de scènes détaillées pour l'animation"""
     
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=config.OPENAI_API_KEY)
+        self.client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     
     def calculate_scene_distribution(self, total_duration: int) -> List[int]:
         """
         Calcule la distribution optimale des scènes pour Wan 2.5
         Wan 2.5 limite: clips de 5s ou 10s uniquement
         """
-        return config.get_clip_durations(total_duration)
+        # Calculer les durées de clips (5s ou 10s uniquement pour Wan 2.5)
+        if total_duration <= 30:
+            return [10, 10, 10]  # 3 clips de 10s
+        elif total_duration <= 60:
+            return [10, 10, 10, 10, 10, 10]  # 6 clips de 10s
+        else:
+            return [10] * (total_duration // 10)  # Clips de 10s
 
     def create_scene_system_prompt(self) -> str:
         """Prompt système optimisé pour Wan 2.5 avec cohérence narrative"""
@@ -31,7 +37,7 @@ Rôle: Tu es un scénariste expert en animations pour enfants qui crée des scè
 - L'histoire doit avoir un début, un milieu et une fin clairs
 
 🎨 STYLE WAN 2.5 OPTIMISÉ:
-- Style: {config.WAN25_PROMPT_STYLE}
+- Style: 2D cartoon animation, Disney Pixar style, child-friendly, vibrant colors, smooth fluid animation, expressive characters
 - Format: clips de 10 secondes maximum
 - Audio: intégré automatiquement (lip-sync et effets sonores)
 - Résolution: HD 720p/1080p
@@ -115,7 +121,7 @@ Respecte exactement le format JSON demandé avec Scene 1, Scene 2, etc."""
 
         try:
             response = await self.client.chat.completions.create(
-                model=config.TEXT_MODEL,
+                model=os.getenv("TEXT_MODEL", "gpt-4o-mini"),
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
@@ -201,7 +207,7 @@ Respecte exactement le format JSON demandé avec Scene 1, Scene 2, etc."""
         """
         
         # Style Wan 2.5 optimisé
-        style_prefix = f"STYLE: {config.WAN25_PROMPT_STYLE}"
+        style_prefix = "STYLE: 2D cartoon animation, Disney Pixar style, child-friendly, vibrant colors, smooth fluid animation, expressive characters"
         
         # Thème général pour cohérence
         theme = f"STORY THEME: {story_idea.idea}"

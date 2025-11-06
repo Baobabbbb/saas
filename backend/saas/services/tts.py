@@ -1,55 +1,55 @@
 import os
-import openai
-from config import OPENAI_API_KEY, TTS_MODEL
 from datetime import datetime
-from unidecode import unidecode  # ✅ Ajout pour nettoyer les accents
+from unidecode import unidecode
+import openai
 
+# Mapping des voix OpenAI TTS-1 pour différenciation homme/femme
+# Versions premium : alloy (féminin claire/professionnelle) + onyx (masculin profonde)
 VOICE_MAP = {
-    "female": "shimmer",  # Voix féminine douce et chaleureuse (excellente pour enfants)
-    "male": "echo",       # Voix masculine expressive et claire (parfaite pour narrateur)
-    # Anciens mappings pour compatibilité
-    "grand-pere": "fable",    # Voix britannique calme
-    "grand-mere": "shimmer", 
-    "pere": "echo",
-    "mere": "shimmer",
-    "petit-garcon": "echo",
-    "petite-fille": "nova"    # Voix jeune et énergique
+    "female": "alloy",    # Voix féminine claire et professionnelle (meilleure qualité)
+    "male": "onyx",       # Voix masculine profonde et autoritaire
 }
 
+# Utilisation OpenAI TTS-1
+
 def generate_speech(text, voice=None, filename=None):
-    print(f"🎵 TTS: Génération audio - voice={voice}, filename={filename}")
-    input_text = text[:4096]  # Limite imposée par OpenAI TTS
-    voice_id = VOICE_MAP.get(voice, "nova")
-    print(f"🎵 TTS: Voice mappée: {voice} -> {voice_id}")
+    """Génération audio avec OpenAI TTS-1"""
+    try:
+        # Configuration OpenAI
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        if not openai.api_key:
+            raise ValueError("OPENAI_API_KEY not configured")
 
-    # Si aucun nom de fichier fourni, générer un nom avec timestamp
-    if not filename:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"audio_{timestamp}.mp3"
+        # Utilisation du mapping des voix
+        voice_id = VOICE_MAP.get(voice, "alloy")
 
-    # Sinon, nettoyer le nom
-    else:
-        filename = unidecode(filename)  # ✅ Supprime les accents
-        filename = (
-            filename.lower()
-            .replace(" ", "_")
-            .replace("'", "")
-            .replace("’", "")
-            .replace(",", "")
+        # OpenAI TTS-1 permet jusqu'à 4096 caractères
+        input_text = text[:4096]
+
+        # Nettoyer le nom de fichier
+        if not filename:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"audio_{timestamp}.mp3"
+        else:
+            filename = unidecode(filename).lower().replace(" ", "_").replace("'", "").replace("’", "").replace(",", "")
+            if not filename.endswith(".mp3"):
+                filename += ".mp3"
+
+        path = f"static/{filename}"
+
+        # Génération audio avec OpenAI TTS-1 (modèle standard, voix plus douces)
+        response = openai.audio.speech.create(
+            model="tts-1",  # Modèle standard (plus rapide et moins cher que HD)
+            voice=voice_id,
+            input=input_text,
+            response_format="mp3"
         )
-        if not filename.endswith(".mp3"):
-            filename += ".mp3"
 
-    path = f"static/{filename}"
+        # Sauvegarde du fichier audio
+        with open(path, "wb") as f:
+            f.write(response.content)
 
-    response = openai.audio.speech.create(
-        model="tts-1",
-        voice=voice_id,
-        input=input_text
-    )
+        return path
 
-    with open(path, "wb") as f:
-        f.write(response.content)
-
-    print(f"🎵 TTS: Fichier audio créé: {path}")
-    return path
+    except Exception as e:
+        raise

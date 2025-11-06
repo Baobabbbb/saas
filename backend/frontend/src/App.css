@@ -117,7 +117,6 @@ body {
 }
 
 .preview.empty {
-  display: flex;
   align-items: center;
   justify-content: center;
   aspect-ratio: 1; /* Ratio carré comme le coloriage */
@@ -518,7 +517,7 @@ body {
 .rhyme-button:hover {
   background-color: #5a3de8;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(245, 240, 255, 0.3);
 }
 
 .rhyme-button.secondary {
@@ -529,4 +528,6 @@ body {
 .rhyme-button.secondary:hover {
   background-color: #8dd3d1;
 }
+
+
 

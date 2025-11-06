@@ -19,7 +19,7 @@ const ColoringSelector = ({
   const themes = [
     // Options spéciales
     { value: 'upload_photo', label: 'Ma Photo', icon: '📸', description: 'Transformez votre photo en coloriage !', special: true },
-    { value: 'custom', label: 'Coloriage personnalisé', icon: '✏️', description: 'Créez votre propre thème de coloriage' },
+    { value: 'custom', label: 'Personnalisé', icon: '✏️', description: 'Créez votre propre thème de coloriage' },
     
     // Animaux & Créatures populaires
     { value: 'animals', label: 'Animaux', icon: '🐾', description: 'Chats, chiens, lions, éléphants...' },
@@ -48,7 +48,9 @@ const ColoringSelector = ({
     
     // Vie quotidienne
     { value: 'sports', label: 'Sports', icon: '⚽', description: 'Football, basketball, natation...' },
-    { value: 'fruits', label: 'Fruits & Légumes', icon: '🍎', description: 'Fruits rigolos, légumes souriants...' }
+    { value: 'fruits', label: 'Fruits & Légumes', icon: '🍎', description: 'Fruits rigolos, légumes souriants...' },
+    { value: 'professions', label: 'Métiers', icon: '👩‍⚕️', description: 'Médecins, pompiers, cuisiniers...' },
+    { value: 'emotions', label: 'Émotions', icon: '😄', description: 'Visages joyeux, tristes, surpris...' }
   ];
 
   const handleThemeSelect = (themeValue) => {
@@ -93,7 +95,7 @@ const ColoringSelector = ({
   };
 
   const handleModelSelect = (modelValue) => {
-    // Toggle: désélectionne si déjà sélectionné, sinon sélectionne
+    // Toggle: désélectionne si déjà sélectionné, sinon sélectionne (comme les autres boutons)
     if (withColoredModel === modelValue) {
       setWithColoredModel(null);
     } else {

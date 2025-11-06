@@ -123,7 +123,7 @@ const History = ({ onClose, onSelect }) => {
     const generatePDF = async () => {
       try {
         // 🎨 Charger l'image de fond
-        const bgImageUrl = '/assets/fond_etoiles.png';
+        const bgImageUrl = '/assets/fond.png?v=1';
         let bgImage = null;
         try {
           bgImage = await loadImage(bgImageUrl);
@@ -192,7 +192,23 @@ const History = ({ onClose, onSelect }) => {
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
 
-      doc.save(`${safeTitle}.pdf`);
+      // Générer le PDF comme blob et déclencher le téléchargement direct
+      const pdfBlob = doc.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = `${safeTitle}.pdf`;
+      link.style.display = 'none';
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Nettoyer l'URL du blob après utilisation
+      setTimeout(() => {
+        URL.revokeObjectURL(pdfUrl);
+      }, 100);
     });
   };
 
@@ -314,7 +330,7 @@ const History = ({ onClose, onSelect }) => {
                         >
                           📄 Télécharger le PDF
                         </button>
-                        
+
                         {(creation.audio_path || creation.data?.audio_path) && (creation.audio_generated || creation.data?.audio_generated) && (
                           <button
                             className="btn-audio"

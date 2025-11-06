@@ -22,10 +22,10 @@ export default defineConfig({
       port: 5173,
     },
     proxy: {
-      '/admin': {
+      '/ilmysv6iepwepoa4tj2k': {
         target: 'https://panneau-production.up.railway.app',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/admin/, '')
+        rewrite: (path) => path.replace(/^\/ilmysv6iepwepoa4tj2k/, '')
       }
     }
   }

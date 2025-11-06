@@ -194,7 +194,7 @@
 }
 
 .download-pdf-button-b {
-  background: var(--primary, #6B4EFF);
+  background: var(--primary, #f5f0ff);
   border: none;
   color: white;
   padding: 1rem 2rem;

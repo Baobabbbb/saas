@@ -294,10 +294,7 @@ no text, no logos, no watermarks, no realistic textures, no gradients, no shadow
                 "output_format": "png"
             }
             
-            # Appeler l'API Stability AI
-            print(f"📡 Appel API Stability AI...")
-            print(f"   - URL: {self.sd3_api_url}")
-            print(f"   - API Key présente: {'Oui' if self.stability_key else 'Non'}")
+            # Appeler l'API Stability AI silencieusement
             
             response = requests.post(
                 self.sd3_api_url,

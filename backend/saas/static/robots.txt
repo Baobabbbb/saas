@@ -1,0 +1,89 @@
+# Robots.txt pour HERBBIE
+# https://herbbie.com
+# Générateur de contenus créatifs pour enfants par IA
+
+# ========== CONFIGURATION GLOBALE ==========
+User-agent: *
+Allow: /
+
+# Sitemap principal
+Sitemap: https://herbbie.com/sitemap.xml
+
+# ========== PAGES À NE PAS INDEXER ==========
+
+# Fichiers de développement et debug
+Disallow: /supabase-debug.html
+Disallow: /test-supabase-connection.html
+Disallow: /clear-cache.html
+Disallow: /fix-sync.html
+Disallow: /sync-features.html
+
+# Page d'administration protégée
+Disallow: /ilmysv6iepwepoa4tj2k
+
+# Fichiers système et assets
+Disallow: /*.json$
+Disallow: /*.js.map$
+Disallow: /assets/*.js
+Disallow: /assets/*.css
+
+# API endpoints (si exposés)
+Disallow: /api/
+Disallow: /auth/
+
+# ========== CONFIGURATION SPÉCIFIQUE PAR BOT ==========
+
+# Googlebot (Google Search)
+User-agent: Googlebot
+Allow: /
+Disallow: /ilmysv6iepwepoa4tj2k
+Crawl-delay: 1
+
+# Bingbot (Microsoft Bing)
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 2
+
+# Yandex (Russie)
+User-agent: Yandex
+Allow: /
+Crawl-delay: 2
+
+# Baiduspider (Chine)
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 3
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+# ========== BOTS INDÉSIRABLES ==========
+
+# Bloquer les scrapers agressifs
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+# ========== INFORMATIONS SUPPLÉMENTAIRES ==========
+
+# Délai de crawl recommandé (en secondes)
+# Crawl-delay: 1
+
+# Politique de confidentialité
+# Privacy-Policy: https://herbbie.com/#politique-confidentialite
+
+# Contact
+# Contact: contact@herbbie.com

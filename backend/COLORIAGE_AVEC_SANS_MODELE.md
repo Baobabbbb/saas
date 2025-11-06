@@ -135,7 +135,7 @@ async def _generate_coloring_with_gpt_image_1(
     )
     final_prompt = prompt_template.format(subject=subject)
     
-    # Appel gpt-image-1...
+    # Appel gpt-image-1-mini...
 ```
 
 ### Endpoints (`main.py`)
@@ -148,7 +148,7 @@ async def generate_coloring(request: dict, content_type_id: int = None):
     theme = request.get("theme", "animaux")
     with_colored_model = request.get("with_colored_model", True)  # ✅ Récupération
     
-    print(f"[COLORING] Generation coloriage gpt-image-1: {theme} "
+    print(f"[COLORING] Generation coloriage gpt-image-1-mini: {theme} "
           f"({'avec' if with_colored_model else 'sans'} modèle coloré)")
     
     # Générer avec le paramètre
@@ -166,7 +166,7 @@ async def convert_photo_to_coloring(request: dict):
     photo_path = request.get("photo_path")
     with_colored_model = request.get("with_colored_model", True)  # ✅ Récupération
     
-    print(f"[COLORING] Conversion photo en coloriage avec gpt-image-1 "
+    print(f"[COLORING] Conversion photo en coloriage avec gpt-image-1-mini "
           f"({'avec' if with_colored_model else 'sans'} modèle coloré)")
     
     # Convertir avec le paramètre
@@ -221,7 +221,7 @@ async def convert_photo_to_coloring(request: dict):
                │
                ↓
 ┌─────────────────────────────────┐
-│       OpenAI gpt-image-1        │
+│       OpenAI gpt-image-1-mini        │
 │                                 │
 │  Génère l'image selon prompt    │
 │  - Avec modèle coloré en coin   │
@@ -266,7 +266,7 @@ async def convert_photo_to_coloring(request: dict):
 
 ### Commit Git
 ```
-✨ Ajout choix avec/sans modèle coloré pour coloriages gpt-image-1
+✨ Ajout choix avec/sans modèle coloré pour coloriages gpt-image-1-mini
 Commit: edf24e9
 Push: origin/main
 ```
@@ -347,25 +347,25 @@ Push: origin/main
 
 ### Génération Avec Modèle
 ```
-[COLORING] Generation coloriage gpt-image-1: espace (avec modèle coloré)
+[COLORING] Generation coloriage gpt-image-1-mini: espace (avec modèle coloré)
 [DESCRIPTION] An astronaut floating in space near colorful planets and stars
-[API] Appel gpt-image-1 (avec modèle coloré)...
-[PROMPT] gpt-image-1: A black and white line drawing coloring illustration... 
+[API] Appel gpt-image-1-mini (avec modèle coloré)...
+[PROMPT] gpt-image-1-mini: A black and white line drawing coloring illustration... 
 [At the same time, for the convenience of users who are not good at coloring, 
 please generate a complete colored version in the lower right corner as a 
 small image for reference]...
-[OK] Image gpt-image-1 recue (base64: 2057720 bytes)
+[OK] Image gpt-image-1-mini recue (base64: 2057720 bytes)
 [OK] Coloriage genere avec succes
 ```
 
 ### Génération Sans Modèle
 ```
-[COLORING] Generation coloriage gpt-image-1: espace (sans modèle coloré)
+[COLORING] Generation coloriage gpt-image-1-mini: espace (sans modèle coloré)
 [DESCRIPTION] An astronaut floating in space near colorful planets and stars
-[API] Appel gpt-image-1 (sans modèle coloré)...
-[PROMPT] gpt-image-1: A black and white line drawing coloring illustration...
+[API] Appel gpt-image-1-mini (sans modèle coloré)...
+[PROMPT] gpt-image-1-mini: A black and white line drawing coloring illustration...
 NO colored reference image...
-[OK] Image gpt-image-1 recue (base64: 2024336 bytes)
+[OK] Image gpt-image-1-mini recue (base64: 2024336 bytes)
 [OK] Coloriage genere avec succes
 ```
 
@@ -377,7 +377,7 @@ NO colored reference image...
 |--------|---------|
 | **Fonctionnalité** | Choix avec/sans modèle coloré |
 | **Frontend** | 2 boutons stylés (🎨 / ✏️) |
-| **Backend** | 2 prompts distincts pour gpt-image-1 |
+| **Backend** | 2 prompts distincts pour gpt-image-1-mini |
 | **Par défaut** | Avec modèle coloré (🎨) |
 | **Compatible** | Thèmes ET photos personnalisées |
 | **Déploiement** | ✅ COMPLET sur Herbbie.com |

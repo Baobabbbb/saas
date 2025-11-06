@@ -72,6 +72,13 @@ const rhymeTypes = [
     description: 'Comprendre et exprimer sentiments',
     emoji: '😊',
     musicStyle: 'expressive and gentle'
+  },
+  {
+    id: 'shapes',
+    title: 'Comptine des formes',
+    description: 'Apprendre les formes géométriques',
+    emoji: '🔺',
+    musicStyle: 'playful educational'
   }
 ];
 
@@ -104,7 +111,7 @@ const MusicalRhymeSelector = ({
             whileTap={{ scale: 0.98 }}
           >
             <div className="rhyme-emoji">✏️</div>
-            <h4>Comptine personnalisée</h4>
+            <h4>Personnalisé</h4>
             <p>Comptine avec prénom ou thème perso</p>
           </motion.div>
 

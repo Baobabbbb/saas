@@ -3,11 +3,31 @@ import { motion } from 'framer-motion'
 import { createPaymentSession, getContentPrice } from '../services/payment'
 import './PaymentModal.css'
 
-const PaymentModal = ({ contentType, userId, userEmail, onSuccess, onCancel }) => {
+const PaymentModal = ({
+  contentType,
+  selectedDuration,
+  numPages,
+  selectedVoice,
+  userId,
+  userEmail,
+  onSuccess,
+  onCancel
+}) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  
-  const priceInfo = getContentPrice(contentType)
+
+  // Préparer les options selon le type de contenu
+  let options = {};
+
+  if (contentType === 'animation') {
+    options.duration = selectedDuration;
+  } else if (contentType === 'comic' || contentType === 'bd') {
+    options.pages = numPages || 1; // Par défaut 1 page si non défini
+  }
+
+  // NORMALISATION: Toujours utiliser 'histoire' au lieu de 'audio'
+  const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
+  const priceInfo = getContentPrice(normalizedContentType, options)
   
   const handlePayment = async () => {
     setLoading(true)
@@ -16,23 +36,14 @@ const PaymentModal = ({ contentType, userId, userEmail, onSuccess, onCancel }) =
     try {
       // Pour le moment, on simule un paiement réussi
       // Plus tard, on intégrera Stripe Checkout réel
-      
-      console.log('🔄 Simulation du paiement pour:', {
-        contentType,
-        userId,
-        userEmail,
-        amount: priceInfo.amount
-      })
-      
+
       // Simuler un délai de paiement
       await new Promise(resolve => setTimeout(resolve, 2000))
-      
+
       // Simuler un paiement réussi (90% de réussite)
       const paymentSuccess = Math.random() > 0.1
-      
+
       if (paymentSuccess) {
-        console.log('✅ Paiement simulé réussi')
-        
         // Ici on devrait marquer la permission dans la base
         // Pour le moment, on simule juste le succès
         

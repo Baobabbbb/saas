@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './LegalPages.css';
+import EmailInput from './EmailInput';
 
 const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
   const [activeSection, setActiveSection] = useState(initialSection);
@@ -199,14 +200,23 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <div className="legal-section">
         <h3>7. Cookies et technologies similaires</h3>
         <div className="info-block">
-          <p>HERBBIE utilise des cookies et technologies similaires pour :</p>
+          <p>HERBBIE utilise uniquement des cookies strictement essentiels au fonctionnement du service :</p>
           <ul>
-            <li>Assurer le fonctionnement technique du site</li>
-            <li>Mémoriser vos préférences</li>
-            <li>Réaliser des statistiques d'utilisation</li>
-            <li>Améliorer la sécurité</li>
+            <li><strong>Cookies de session :</strong> Maintien de votre connexion et sécurité</li>
+            <li><strong>Cookies d'authentification :</strong> Mémorisation de votre identité</li>
+            <li><strong>Cookies de sécurité :</strong> Protection contre les menaces</li>
           </ul>
-          <p>Vous pouvez gérer vos préférences cookies via les paramètres de votre navigateur.</p>
+
+          <h4>Stockage et sécurité des cookies :</h4>
+          <ul>
+            <li><strong>Emplacement :</strong> Stockés localement dans le navigateur (localStorage)</li>
+            <li><strong>Durée de vie :</strong> Sessions temporaires (supprimés à la déconnexion)</li>
+            <li><strong>Sécurité :</strong> Chiffrés et protégés contre les attaques CSRF</li>
+            <li><strong>Serveur :</strong> Gestion automatique par Supabase avec sécurité renforcée</li>
+          </ul>
+
+          <p><strong>Note :</strong> Aucun cookie de fonctionnalité, analytique, de personnalisation ou publicitaire n'est utilisé.</p>
+          <p>Les cookies essentiels sont automatiquement gérés et exemptés de consentement selon le RGPD.</p>
         </div>
       </div>
     </div>
@@ -226,36 +236,28 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <div className="legal-section">
         <h3>2. Cookies utilisés par HERBBIE</h3>
         <div className="info-block">
+          <p><strong>Conformément à la réglementation RGPD, HERBBIE utilise uniquement des cookies strictement essentiels nécessaires au fonctionnement du service.</strong></p>
+
           <h4>Cookies essentiels (obligatoires) :</h4>
           <ul>
-            <li><strong>Session :</strong> Maintien de votre connexion et sécurité</li>
-            <li><strong>Authentification :</strong> Mémorisation de votre identité</li>
-            <li><strong>Sécurité :</strong> Protection contre les attaques CSRF</li>
-            <li><strong>Préférences :</strong> Mémorisation de vos choix (langue, paramètres)</li>
+            <li><strong>Cookies de session :</strong> Maintien de votre connexion et sécurité pendant votre visite</li>
+            <li><strong>Cookies d'authentification :</strong> Mémorisation de votre identité pour éviter de vous reconnecter</li>
+            <li><strong>Cookies de sécurité :</strong> Protection contre les attaques CSRF et autres menaces</li>
           </ul>
 
-          <h4>Cookies de fonctionnalité :</h4>
-          <ul>
-            <li><strong>Historique :</strong> Sauvegarde de vos créations récentes</li>
-            <li><strong>Paramètres :</strong> Conservation de vos préférences utilisateur</li>
-            <li><strong>Interface :</strong> Adaptation de l'affichage selon vos préférences</li>
-          </ul>
-
-          <h4>Cookies analytiques :</h4>
-          <ul>
-            <li><strong>Statistiques :</strong> Mesure de l'audience et analyse des usages</li>
-            <li><strong>Performance :</strong> Analyse des temps de chargement</li>
-            <li><strong>Amélioration :</strong> Collecte d'informations pour optimiser le service</li>
-          </ul>
+          <div className="alert alert-info">
+            <strong>Note :</strong> Aucun cookie de fonctionnalité, analytique, de personnalisation ou publicitaire n'est utilisé sur ce site.
+          </div>
         </div>
       </div>
 
       <div className="legal-section">
         <h3>3. Gestion des cookies</h3>
         <div className="info-block">
-          <p>Vous avez plusieurs options pour gérer les cookies :</p>
+          <p>Les cookies essentiels utilisés par HERBBIE sont automatiquement gérés et ne nécessitent pas d'action de votre part.</p>
 
           <h4>Via votre navigateur :</h4>
+          <p>Si vous souhaitez supprimer les cookies essentiels (ce qui peut affecter le fonctionnement du site) :</p>
           <ul>
             <li><strong>Chrome :</strong> Paramètres → Confidentialité et sécurité → Cookies</li>
             <li><strong>Firefox :</strong> Préférences → Vie privée et sécurité → Cookies</li>
@@ -263,13 +265,10 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
             <li><strong>Edge :</strong> Paramètres → Cookies et autorisations de site</li>
           </ul>
 
-          <h4>Via notre site :</h4>
-          <p>Vous pouvez refuser ou accepter les cookies non essentiels en modifiant vos préférences dans les paramètres de votre compte HERBBIE.</p>
-
           <h4>Durée de conservation :</h4>
           <ul>
-            <li><strong>Cookies de session :</strong> Supprimés à la fermeture du navigateur</li>
-            <li><strong>Cookies persistants :</strong> Jusqu'à 13 mois maximum</li>
+            <li><strong>Cookies de session :</strong> Supprimés automatiquement à la fermeture du navigateur</li>
+            <li><strong>Cookies d'authentification :</strong> Conservés pendant votre session active (maximum 24h)</li>
           </ul>
         </div>
       </div>
@@ -277,51 +276,34 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <div className="legal-section">
         <h3>4. Finalités des cookies</h3>
         <div className="info-block">
-          <h4>Fonctionnement du service :</h4>
+          <p>HERBBIE utilise uniquement des cookies essentiels pour :</p>
           <ul>
-            <li>Maintien de la session utilisateur</li>
-            <li>Sécurisation des transactions</li>
-            <li>Mémorisation des préférences</li>
-            <li>Optimisation des performances</li>
+            <li><strong>Fonctionnement du service :</strong> Maintien de la session utilisateur</li>
+            <li><strong>Sécurité :</strong> Sécurisation des transactions et protection contre les menaces</li>
+            <li><strong>Préférences essentielles :</strong> Mémorisation des paramètres de base (langue)</li>
+            <li><strong>Performance :</strong> Optimisation du fonctionnement du site</li>
           </ul>
 
-          <h4>Amélioration de l'expérience :</h4>
-          <ul>
-            <li>Personnalisation du contenu</li>
-            <li>Sauvegarde des créations en cours</li>
-            <li>Adaptation de l'interface utilisateur</li>
-          </ul>
-
-          <h4>Analyse et statistiques :</h4>
-          <ul>
-            <li>Mesure de l'audience</li>
-            <li>Analyse des parcours utilisateur</li>
-            <li>Détection des problèmes techniques</li>
-            <li>Amélioration continue du service</li>
-          </ul>
+          <div className="alert alert-info">
+            <strong>Note :</strong> Aucun cookie n'est utilisé pour l'analyse d'audience, le suivi utilisateur ou la personnalisation avancée.
+          </div>
         </div>
       </div>
 
       <div className="legal-section">
         <h3>5. Cookies tiers</h3>
         <div className="info-block">
-          <p>HERBBIE peut faire appel à des services tiers qui déposent leurs propres cookies :</p>
-          <ul>
-            <li><strong>Services d'analyse :</strong> Google Analytics, Matomo (statistiques)</li>
-            <li><strong>Réseaux sociaux :</strong> Boutons de partage (si implémentés)</li>
-            <li><strong>Services de paiement :</strong> Stripe, PayPal (si applicable)</li>
-            <li><strong>Services d'IA :</strong> OpenAI, Stability AI (pour la génération de contenu)</li>
-          </ul>
-          <p>Ces tiers sont responsables de leurs propres cookies et de leur politique de confidentialité.</p>
+          <p>HERBBIE n'utilise pas de cookies tiers pour l'analyse, le suivi ou la publicité.</p>
+          <p>Les services externes utilisés (comme les APIs d'IA) ne déposent pas de cookies sur votre navigateur.</p>
         </div>
       </div>
 
       <div className="legal-section">
         <h3>6. Consentement</h3>
         <div className="info-block">
-          <p>En continuant à utiliser le site HERBBIE, vous consentez à l'utilisation des cookies conformément à la présente politique.</p>
-          <p>Vous pouvez retirer votre consentement à tout moment en modifiant vos paramètres de cookies ou en nous contactant.</p>
-          <p>Note : La désactivation de certains cookies peut affecter le bon fonctionnement du service.</p>
+          <p><strong>Conformément à la réglementation RGPD, les cookies essentiels utilisés par HERBBIE ne nécessitent pas de consentement explicite car ils sont strictement nécessaires au fonctionnement du service.</strong></p>
+          <p>Ces cookies sont automatiquement activés pour garantir la sécurité et le bon fonctionnement du site.</p>
+          <p>Note : La désactivation de ces cookies essentiels peut gravement affecter le fonctionnement du service.</p>
         </div>
       </div>
 
@@ -570,7 +552,6 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       });
 
     } catch (error) {
-      console.error('Erreur lors de l\'envoi du message:', error);
       setSubmitMessage(`❌ Erreur lors de l'envoi : ${error.message}`);
     } finally {
       setIsSubmitting(false);
@@ -613,13 +594,13 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
 
             <div className="form-group">
               <label htmlFor="contact-email">Email *</label>
-              <input
-                type="email"
-                id="contact-email"
+              <EmailInput
                 value={contactForm.email}
                 onChange={(e) => handleContactFormChange('email', e.target.value)}
-                required
                 placeholder="votre.email@exemple.com"
+                required
+                user={null}
+                onEmailSubmit={() => {}}
               />
             </div>
 

@@ -13,53 +13,53 @@ class Config:
     WAVESPEED_API_KEY = os.getenv("WAVESPEED_API_KEY", "1611882205be3979e2cc2c83a5265c1882838dd59ce222f77b3cd4cfc2ac6dea")
     
     # ==========================================
-    # WAN 2.5 CONFIGURATION (Alibaba)
+    # VEO 3.1 FAST CONFIGURATION (Runway ML)
     # ==========================================
-    WAN25_MODEL = "alibaba/wan-2.5/text-to-video-fast"
-    WAN25_BASE_URL = "https://api.wavespeed.ai/api/v3"
-    WAN25_MAX_DURATION = 10  # Durée maximale par clip (5s ou 10s)
-    WAN25_MIN_DURATION = 5   # Durée minimale par clip
-    
-    # Résolutions supportées par Wan 2.5
-    WAN25_RESOLUTIONS = {
+    VEO31_MODEL = "veo3.1_fast"
+    VEO31_BASE_URL = "https://api.runwayml.com/v1"
+    VEO31_MAX_DURATION = 60  # Durée maximale par clip (jusqu'à 60s)
+    VEO31_MIN_DURATION = 5   # Durée minimale par clip
+
+    # Résolutions supportées par Veo 3.1 Fast
+    VEO31_RESOLUTIONS = {
         "720p": "1280*720",
         "1080p": "1920*1080",
         "720p_vertical": "720*1280",
         "1080p_vertical": "1080*1920"
     }
-    WAN25_DEFAULT_RESOLUTION = "720p"
-    
-    # Audio intégré dans Wan 2.5
-    WAN25_AUDIO_INTEGRATED = True
-    WAN25_AUDIO_MAX_LENGTH = 30  # secondes
-    
+    VEO31_DEFAULT_RESOLUTION = "720p"
+
+    # Audio intégré dans Veo 3.1 Fast
+    VEO31_AUDIO_INTEGRATED = True
+    VEO31_AUDIO_MAX_LENGTH = 60  # secondes
+
+    # Style optimisé pour Veo 3.1 Fast
+    VEO31_PROMPT_STYLE = os.getenv("VEO31_PROMPT_STYLE",
+        "2D cartoon animation, Disney Pixar style, child-friendly, vibrant colors, smooth fluid animation, expressive characters")
+
+    VEO31_NEGATIVE_PROMPT = os.getenv("VEO31_NEGATIVE_PROMPT",
+        "blurry, low quality, distorted, violent, scary, static, motionless, dark, horror")
+
+    # Style pour les enfants
+    CARTOON_STYLE = "2D cartoon animation, Disney style, vibrant colors, smooth animation, child-friendly"
+    DEFAULT_DURATION = int(os.getenv("DEFAULT_DURATION", "30"))
+
     # ==========================================
     # GENERATION SETTINGS
     # ==========================================
     TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
     
-    # Style optimisé pour Wan 2.5
-    WAN25_PROMPT_STYLE = os.getenv("WAN25_PROMPT_STYLE", 
-        "2D cartoon animation, Disney Pixar style, child-friendly, vibrant colors, smooth fluid animation, expressive characters")
-    
-    WAN25_NEGATIVE_PROMPT = os.getenv("WAN25_NEGATIVE_PROMPT",
-        "blurry, low quality, distorted, violent, scary, static, motionless, dark, horror")
-    
-    # Style pour les enfants
-    CARTOON_STYLE = "2D cartoon animation, Disney style, vibrant colors, smooth animation, child-friendly"
-    DEFAULT_DURATION = int(os.getenv("DEFAULT_DURATION", "30"))
-    
     # ==========================================
-    # SCENE DISTRIBUTION (Wan 2.5 optimisé)
+    # SCENE DISTRIBUTION (Veo 3.1 Fast optimisé)
     # ==========================================
     # Mapping durée totale → liste de durées de clips
     DURATION_CLIP_MAPPING = {
         30: [10, 10, 10],                    # 3 clips de 10s
-        60: [10, 10, 10, 10, 10, 10],        # 6 clips de 10s
-        120: [10] * 12,                       # 12 clips de 10s
-        180: [10] * 18,                       # 18 clips de 10s
-        240: [10] * 24,                       # 24 clips de 10s
-        300: [10] * 30                        # 30 clips de 10s
+        60: [15, 15, 15, 15],               # 4 clips de 15s (Veo 3.1 Fast optimisé)
+        120: [20, 20, 20, 20, 20, 20],      # 6 clips de 20s
+        180: [30, 30, 30, 30, 30, 30],      # 6 clips de 30s
+        240: [40, 40, 40, 40, 40, 40],      # 6 clips de 40s
+        300: [50, 50, 50, 50, 50, 50]       # 6 clips de 50s
     }
     
     # ==========================================
@@ -83,15 +83,18 @@ class Config:
     def validate_api_keys(cls):
         """Valide que les clés API essentielles sont configurées"""
         missing_keys = []
-        
+
         if not cls.OPENAI_API_KEY:
             missing_keys.append("OPENAI_API_KEY")
-        if not cls.WAVESPEED_API_KEY:
-            missing_keys.append("WAVESPEED_API_KEY")
-            
+
+        # Vérifier si au moins une plateforme de génération vidéo est disponible
+        runway_key = os.getenv("RUNWAY_API_KEY")
+        if not runway_key:
+            missing_keys.append("RUNWAY_API_KEY")
+
         if missing_keys:
             raise ValueError(f"Clés API manquantes: {', '.join(missing_keys)}")
-        
+
         return True
     
     @classmethod

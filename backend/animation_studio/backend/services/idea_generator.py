@@ -2,14 +2,14 @@ import json
 import asyncio
 from typing import Dict, Any
 from openai import AsyncOpenAI
-from config import config
+import os
 from models.schemas import StoryIdea, AnimationTheme
 
 class IdeaGenerator:
     """Service de génération d'idées d'histoires pour enfants"""
     
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=config.OPENAI_API_KEY)
+        self.client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     
     def get_theme_prompts(self) -> Dict[str, Dict[str, str]]:
         """Prompts spécialisés par thème inspirés de zseedance.json"""
@@ -64,7 +64,7 @@ Rôle: Tu es un système créatif d'élite qui génère des concepts hyper-réal
 - Une histoire claire avec début, milieu et fin adaptée aux enfants
 - Des personnages attachants et mémorables 
 - Des messages éducatifs subtils (amitié, partage, découverte, courage)
-- Un univers visuel riche et coloré de style {config.CARTOON_STYLE}
+- Un univers visuel riche et coloré de style 2D cartoon animation, Disney style
 - Du mouvement et de l'action adaptés à l'animation
 
 THÈME SPÉCIFIQUE: {theme_data['base_concept']}
@@ -82,7 +82,7 @@ RÈGLES:
 EXIGENCES TECHNIQUES:
 - L'audio doit décrire des sons doux et mélodieux adaptés aux enfants
 - Le statut doit être "for production"
-- Style visuel cohérent: {config.CARTOON_STYLE}
+- Style visuel cohérent: 2D cartoon animation, Disney style
 
 FORMAT DE SORTIE:
 json
@@ -114,7 +114,7 @@ Respecte exactement le format JSON demandé."""
 
         try:
             response = await self.client.chat.completions.create(
-                model=config.TEXT_MODEL,
+                model=os.getenv("TEXT_MODEL", "gpt-4o-mini"),
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}

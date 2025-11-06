@@ -1,6 +1,6 @@
 /* Variables pour cohérence avec les autres composants */
 :root {
-  --primary: #6B4EFF;
+  --primary: #f5f0ff;
   --text: #333;
 }
 
@@ -20,11 +20,13 @@
 
 .audio-story-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
+  grid-auto-rows: min-content;
+  width: 100%;
+  max-height: none !important;
+  overflow: visible !important;
+  height: auto !important;
 }
 
 .audio-story-grid::-webkit-scrollbar {
@@ -50,7 +52,11 @@
   border: 2px solid transparent;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 0.3rem;
+  height: 220px; /* Même hauteur que dans les autres sections pour uniformité */
 }
 
 .audio-story-card:hover {
@@ -184,7 +190,8 @@
 
 @media (max-width: 768px) {
   .audio-story-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
   }
   
   .voice-options {
@@ -199,4 +206,17 @@
   .voice-details {
     text-align: left;
   }
+}
+
+/* Styles pour les slots et encarts inline */
+.audio-story-slot {
+  position: relative;
+  width: 100%;
+}
+
+.inline-input {
+  margin-top: 0.75rem !important;
+  padding: 0 !important;
+  width: 100% !important;
+  position: relative;
 }

@@ -1,11 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
 import './ColoringCanvas.css';
 
-const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
+const ColoringCanvas = ({ imageUrl, theme, onClose, onSave }) => {
   const canvasRef = useRef(null);
   const [ctx, setCtx] = useState(null);
   const [selectedColor, setSelectedColor] = useState('#FF6B6B');
   const [tool, setTool] = useState('bucket'); // 'bucket' ou 'eraser'
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [originalImageData, setOriginalImageData] = useState(null);
   const [coloringData, setColoringData] = useState(null);
@@ -241,11 +243,26 @@ const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
     canvas.toBlob((blob) => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = url;
-      link.download = `coloriage_colorie_${Date.now()}.png`;
+
+      link.href = url; // Ajout de href manquant
+
+      // Générer un nom de fichier cohérent basé sur le thème
+      const themeName = theme || 'coloriage';
+      const safeTheme = themeName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      link.download = `coloriages_${safeTheme}_colorie.png`;
+
+      document.body.appendChild(link); // Ajout pour compatibilité
       link.click();
+      document.body.removeChild(link); // Nettoyage
       URL.revokeObjectURL(url);
     });
+  };
+
+  // Gestion du clic sur l'overlay pour fermer
+  const handleOverlayClick = (e) => {
+    if (e.target.classList.contains('coloring-canvas-overlay')) {
+      onClose();
+    }
   };
 
   // Réinitialiser le coloriage
@@ -254,12 +271,55 @@ const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
     ctx.putImageData(originalImageData, 0, 0);
   };
 
+  // Gestion du zoom
+  const toggleZoom = () => {
+    setIsZoomed(!isZoomed);
+  };
+
+  const zoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.5, 3));
+    setIsZoomed(true);
+  };
+
+  const zoomOut = () => {
+    if (zoomLevel > 1) {
+      setZoomLevel(prev => Math.max(prev - 0.5, 1));
+      if (zoomLevel - 0.5 <= 1) {
+        setIsZoomed(false);
+      }
+    }
+  };
+
   return (
-    <div className="coloring-canvas-overlay">
+    <div className="coloring-canvas-overlay" onClick={handleOverlayClick}>
       <div className="coloring-canvas-container">
         {/* Barre d'outils supérieure */}
         <div className="coloring-toolbar-top">
           <h2 className="coloring-canvas-title">🎨 Coloriez votre dessin</h2>
+
+          {/* Contrôles de zoom */}
+          <div className="coloring-zoom-controls">
+            <button
+              className="coloring-zoom-btn"
+              onClick={zoomOut}
+              disabled={zoomLevel <= 1}
+              title="Zoom arrière"
+            >
+              −
+            </button>
+            <span style={{ color: 'white', fontWeight: 'bold', minWidth: '60px', textAlign: 'center' }}>
+              {Math.round(zoomLevel * 100)}%
+            </span>
+            <button
+              className="coloring-zoom-btn"
+              onClick={zoomIn}
+              disabled={zoomLevel >= 3}
+              title="Zoom avant"
+            >
+              +
+            </button>
+          </div>
+
           <div className="coloring-toolbar-actions">
             <button className="coloring-btn coloring-reset-btn" onClick={handleReset} title="Réinitialiser">
               🔄 Réinitialiser
@@ -278,7 +338,8 @@ const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
           <canvas
             ref={canvasRef}
             onClick={handleCanvasClick}
-            className="coloring-canvas"
+            className={`coloring-canvas ${isZoomed ? 'zoomed' : ''}`}
+            style={{ transform: `scale(${zoomLevel})` }}
           />
           {!imageLoaded && (
             <div className="coloring-loading">
@@ -304,7 +365,7 @@ const ColoringCanvas = ({ imageUrl, onClose, onSave }) => {
               onClick={() => setTool('eraser')}
               title="Gomme"
             >
-              🧹
+              🧽
             </button>
           </div>
 

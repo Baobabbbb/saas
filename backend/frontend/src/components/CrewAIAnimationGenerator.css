@@ -1,6 +1,6 @@
 /* Variables pour cohérence avec le site */
 :root {
-  --primary: #6B4EFF;
+  --primary: #f5f0ff;
   --primary-light: #E9E5FF;
   --text: #333333;
   --text-light: #666666;
@@ -113,10 +113,6 @@
   box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
 }
 
-.style-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
 
 .style-info h4 {
   font-weight: 600;

@@ -53,7 +53,7 @@
 .story-background {
   position: absolute;
   inset: 0;
-  background-image: url('/assets/fond_etoiles.png');
+  background-image: url('/assets/fond.png?v=1');
   background-size: cover;
   background-position: center;
   background-repeat: repeat;

@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, ValidationError
@@ -22,14 +23,16 @@ import openai
 from openai import AsyncOpenAI
 
 from datetime import datetime
-# from services.tts import generate_speech
-# from services.stt import transcribe_audio
+from services.tts import generate_speech
+from services.stt import transcribe_audio
 
 # Authentification gérée par Supabase - modules supprimés car inutiles avec Vercel
 from services.coloring_generator_gpt4o import ColoringGeneratorGPT4o
-from services.comic_generator import ComicGenerator
+from services.comics_generator_gpt4o import ComicsGeneratorGPT4o
 from services.real_animation_generator import RealAnimationGenerator
 from services.local_animation_generator import LocalAnimationGenerator
+from services.sora2_zseedance_generator import Sora2ZseedanceGenerator
+from services.sora2_generator import Sora2Generator
 from utils.translate import translate_text
 from routes.admin_features import router as admin_features_router, load_features_config, CONFIG_FILE
 # from models.animation import AnimationRequest
@@ -41,16 +44,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
 BASE_URL = os.getenv("BASE_URL", "https://herbbie.com")
 
-# Logging des variables d'environnement au démarrage
-print("=" * 60)
-print("🚀 DÉMARRAGE API FRIDAY - Contenu Créatif IA")
-print("=" * 60)
-print(f"📝 TEXT_MODEL: {TEXT_MODEL}")
-print(f"🌐 BASE_URL: {BASE_URL}")
-print(f"✅ OPENAI_API_KEY: {'Configurée' if os.getenv('OPENAI_API_KEY') else '❌ NON CONFIGURÉE'}")
-print(f"🎵 SUNO_API_KEY: {'Configurée' if os.getenv('SUNO_API_KEY') else '❌ NON CONFIGURÉE'}")
-print(f"🎨 STABILITY_API_KEY: {'Configurée' if os.getenv('STABILITY_API_KEY') else '❌ NON CONFIGURÉE'}")
-print("=" * 60)
+# Démarrage silencieux - pas de logs sensibles
 
 app = FastAPI(title="API FRIDAY - Contenu Créatif IA", version="2.0", description="API pour générer du contenu créatif pour enfants : BD, coloriages, histoires, comptines")
 
@@ -59,7 +53,12 @@ class AnimationRequest(BaseModel):
     theme: str
     duration: Optional[int] = 30
     style: Optional[str] = "cartoon"
-    mode: Optional[str] = "demo"
+    custom_prompt: Optional[str] = None
+
+class GenerateQuickRequest(BaseModel):
+    theme: str = "space"
+    duration: int = 30
+    style: str = "cartoon"
     custom_prompt: Optional[str] = None
 
 # Modèle pour le formulaire de contact
@@ -140,6 +139,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Sécurité des cookies et protection contre les attaques Host Header
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=[
+        "herbbie.com",
+        "www.herbbie.com",
+        "*.railway.app",  # Pour Railway
+        "localhost",
+        "127.0.0.1"
+    ]
+)
+
 # Inclusion des routes d'administration
 app.include_router(admin_features_router)
 
@@ -152,6 +163,29 @@ async def health_check():
         "service": "herbbie-backend",
         "base_url": BASE_URL,
         "timestamp": datetime.now().isoformat()
+    }
+
+# Route pour servir le favicon.ico
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Serve favicon.ico"""
+    favicon_path = static_dir / "favicon.ico"
+    if favicon_path.exists():
+        return FileResponse(favicon_path)
+    # Fallback vers le logo si favicon n'existe pas
+    logo_path = static_dir / "logo_v.png"
+    if logo_path.exists():
+        return FileResponse(logo_path, media_type="image/png")
+    raise HTTPException(status_code=404, detail="Favicon not found")
+
+# Endpoint pour fournir les variables d'environnement au frontend
+@app.get("/api/config")
+async def get_config():
+    """Fournit les variables de configuration nécessaires au frontend"""
+    return {
+        "supabase_url": os.getenv("SUPABASE_URL", "https://xfbmdeuzuyixpmouhqcv.supabase.co"),
+        "supabase_anon_key": os.getenv("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmYm1kZXV6dXlpeHBtb3VocWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMzE3ODQsImV4cCI6MjA2NDkwNzc4NH0.XzFIT3BwW9dKRrmFFbSAufCpC1SZuUI-VU2Uer5VoTw"),
+        "base_url": BASE_URL
     }
 
 # Validation des requêtes supprimée car gérée automatiquement par Vercel
@@ -359,23 +393,79 @@ async def test_suno():
             "timestamp": datetime.now().isoformat()
         }
 
+# --- Test Runway API ---
+# --- Audio Streaming ---
+@app.get("/audio/{filename}")
+async def stream_audio(filename: str, download: bool = False):
+    """
+    Endpoint pour servir les fichiers audio avec FileResponse optimisé
+    """
+    import os
+    file_path = f"static/{filename}"
+
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Audio file not found")
+
+    if download:
+        # Pour le téléchargement : forcer le téléchargement avec Content-Disposition
+        headers = {
+            "Content-Type": "audio/mpeg",
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-cache",
+        }
+
+        return FileResponse(
+            file_path,
+            media_type="audio/mpeg",
+            headers=headers
+        )
+    else:
+        # Pour la lecture : servir normalement avec headers optimisés
+        headers = {
+            "Content-Type": "audio/mpeg",
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "public, max-age=3600",  # Cache 1 heure pour la lecture
+        }
+
+        return FileResponse(
+            file_path,
+            media_type="audio/mpeg",
+            headers=headers
+        )
+
+# Endpoint Runway supprimé - retour à OpenAI TTS
+
 # --- Histoire Audio ---
 # Ancien modèle remplacé par ValidatedAudioStoryRequest dans validators.py
 
 @app.post("/generate_audio_story/")
 async def generate_audio_story(request: dict):
     try:
-        # Validation des données d'entrée
-        # Vérifier la clé API
-        openai_key = os.getenv("OPENAI_API_KEY")
-        if not openai_key or openai_key.startswith("sk-votre"):
+        # Validation précoce des données d'entrée pour éviter l'erreur 520
+        if not request or not isinstance(request, dict):
             raise HTTPException(
-                status_code=400, 
-                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
+                status_code=400,
+                detail="❌ Données d'entrée invalides"
             )
-        
+
+        # Validation des données d'entrée
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key or openai_key.startswith("sk-votre") or openai_key.startswith("your-"):
+            raise HTTPException(
+                status_code=400,
+                detail="❌ Clé API OpenAI non configurée ou invalide"
+            )
+
         story_type = request.get("story_type", "aventure")
         custom_request = request.get("custom_request", "")
+
+        # Validation du type d'histoire
+        if not isinstance(story_type, str) or len(story_type) > 50:
+            story_type = "aventure"
+
+        # Validation de la demande personnalisée
+        if not isinstance(custom_request, str) or len(custom_request) > 200:
+            custom_request = ""
         
         prompt = f"Écris une histoire courte et captivante pour enfants sur le thème : {story_type}.\n"
         if custom_request:
@@ -391,7 +481,7 @@ HISTOIRE: [texte de l'histoire]
 N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie TITRE."""
 
         client = AsyncOpenAI(api_key=openai_key)
-        
+
         response = await client.chat.completions.create(
             model=TEXT_MODEL,
             messages=[
@@ -399,7 +489,8 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
                 {"role": "user", "content": prompt}
             ],
             max_tokens=1000,
-            temperature=0.7
+            temperature=0.7,
+            timeout=30  # Timeout de 30 secondes pour éviter les erreurs 520
         )
         
         content = response.choices[0].message.content
@@ -431,28 +522,51 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         # Génération de l'audio si une voix est spécifiée
         audio_path = None
         voice = request.get("voice")
-        if voice:
+
+        # Validation de la voix
+        if voice and isinstance(voice, str) and voice in ["male", "female"]:
             try:
-                # Utiliser le contenu de l'histoire pour l'audio, pas le titre
-                # Utiliser le titre comme nom de fichier pour l'audio
-                audio_path = generate_speech(story_content, voice=voice, filename=title)
-                print(f"✅ Audio généré avec la voix: {voice}")
-            except Exception as audio_error:
-                print(f"⚠️ Erreur génération audio: {audio_error}")
+                # Timeout pour éviter les erreurs 520 lors de la génération audio
+                import asyncio
+                audio_path = await asyncio.wait_for(
+                    asyncio.get_event_loop().run_in_executor(None, generate_speech, story_content, voice, title),
+                    timeout=60  # 60 secondes maximum pour la génération audio
+                )
+            except asyncio.TimeoutError:
+                # Timeout dépassé, continuer sans audio
                 audio_path = None
+            except Exception as audio_error:
+                # Erreur lors de la génération audio, continuer sans audio
+                audio_path = None
+        elif voice and voice not in ["male", "female"]:
+            # Voix invalide, ignorer l'audio
+            voice = None
         
-        return {
+        result = {
             "title": title,
             "content": story_content,
             "audio_path": audio_path,
             "audio_generated": audio_path is not None,
             "type": "audio"
         }
+        return result
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Erreur génération histoire: {e}")
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
+        # Log détaillé pour debug mais pas d'exposition en production
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Erreur génération audio story: {str(e)}")
+        print(f"Details: {error_details}")
+        # Retourner une réponse valide même en cas d'erreur pour éviter l'erreur 520
+        return {
+            "title": f"Histoire {request.get('story_type', 'aventure')}",
+            "content": "Une erreur est survenue lors de la génération. Veuillez réessayer.",
+            "audio_path": None,
+            "audio_generated": False,
+            "type": "audio",
+            "error": True
+        }
 
 # --- Coloriage ---
 # Ancien modèle remplacé par ValidatedColoringRequest dans validators.py
@@ -463,18 +577,32 @@ coloring_generator_instance = None
 
 def get_coloring_generator():
     """Obtient l'instance du générateur de coloriage (lazy initialization)"""
-    global coloring_generator_instance
-    if coloring_generator_instance is None:
-        coloring_generator_instance = ColoringGeneratorGPT4o()
-    return coloring_generator_instance
+    from services.coloring_generator_gpt4o import coloring_generator
+
+    if coloring_generator is None:
+        try:
+            from services.coloring_generator_gpt4o import ColoringGeneratorGPT4o
+            # Assigner à la variable globale du module
+            import services.coloring_generator_gpt4o
+            services.coloring_generator_gpt4o.coloring_generator = ColoringGeneratorGPT4o()
+            return services.coloring_generator_gpt4o.coloring_generator
+        except ValueError as e:
+            # Clé API manquante ou invalide
+            print(f"[ERROR] Impossible d'initialiser ColoringGeneratorGPT4o: {e}")
+            return None
+        except Exception as e:
+            # Autres erreurs d'initialisation
+            print(f"[ERROR] Erreur inattendue lors de l'initialisation ColoringGeneratorGPT4o: {e}")
+            return None
+    return coloring_generator
 
 @app.post("/generate_coloring/")
 @app.post("/generate_coloring/{content_type_id}")
 async def generate_coloring(request: dict, content_type_id: int = None):
     """
-    Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1
+    Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1-mini
     Supporte deux formats d'URL pour compatibilité frontend
-    Organisation OpenAI vérifiée requise pour gpt-image-1
+    Organisation OpenAI vérifiée requise pour gpt-image-1-mini
     """
     try:
         # Validation des données d'entrée
@@ -483,9 +611,9 @@ async def generate_coloring(request: dict, content_type_id: int = None):
         with_colored_model = request.get("with_colored_model", True)  # Par défaut avec modèle
         
         if custom_prompt:
-            print(f"[COLORING] Generation coloriage personnalisé gpt-image-1: '{custom_prompt}' ({'avec' if with_colored_model else 'sans'} modèle coloré)")
+            print(f"[COLORING] Generation coloriage personnalisé gpt-image-1-mini: '{custom_prompt}' ({'avec' if with_colored_model else 'sans'} modèle coloré)")
         else:
-            print(f"[COLORING] Generation coloriage gpt-image-1: {theme} ({'avec' if with_colored_model else 'sans'} modèle coloré) (content_type_id={content_type_id})")
+            print(f"[COLORING] Generation coloriage gpt-image-1-mini: {theme} ({'avec' if with_colored_model else 'sans'} modèle coloré) (content_type_id={content_type_id})")
         
         # Vérifier la clé API OpenAI
         openai_key = os.getenv("OPENAI_API_KEY")
@@ -497,23 +625,24 @@ async def generate_coloring(request: dict, content_type_id: int = None):
         
         # Obtenir l'instance du générateur
         generator = get_coloring_generator()
-        
-        # Debug: afficher les paramètres
-        print(f"[DEBUG] Parametres: theme={theme}, with_colored_model={with_colored_model}, custom_prompt={custom_prompt}")
-        
-        # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1 (génération)
+
+        if generator is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Service de génération de coloriage non disponible. Clé API OpenAI manquante ou invalide."
+            )
+
+        # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1-mini (génération)
         result = await generator.generate_coloring_from_theme(theme, with_colored_model, custom_prompt)
-        
-        print(f"[DEBUG] Resultat recu: {result.get('success', False)}")
         
         if result.get("success") == True:
             return {
                 "status": "success",
                 "theme": theme,
                 "images": result.get("images", []),
-                "message": "Coloriage généré avec succès avec gpt-image-1 !",
+                "message": "Coloriage généré avec succès avec gpt-image-1-mini !",
                 "type": "coloring",
-                "model": "gpt-image-1"
+                "model": "gpt-image-1-mini"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la génération du coloriage")
@@ -584,7 +713,7 @@ async def upload_photo_for_coloring(file: UploadFile = File(...)):
 @app.post("/convert_photo_to_coloring/")
 async def convert_photo_to_coloring(request: dict):
     """
-    Convertit une photo uploadée en coloriage avec GPT-4o-mini + gpt-image-1
+    Convertit une photo uploadée en coloriage avec GPT-4o-mini + gpt-image-1-mini
     """
     try:
         # Récupérer les paramètres
@@ -606,7 +735,7 @@ async def convert_photo_to_coloring(request: dict):
         
         # Récupérer le choix de modèle coloré
         with_colored_model = request.get("with_colored_model", True)  # Par défaut avec modèle
-        print(f"[COLORING] Conversion photo en coloriage avec gpt-image-1 ({'avec' if with_colored_model else 'sans'} modèle coloré): {photo_path}")
+        print(f"[COLORING] Conversion photo en coloriage avec gpt-image-1-mini ({'avec' if with_colored_model else 'sans'} modèle coloré): {photo_path}")
         
         # Vérifier que le fichier existe
         if not photo_path_obj.exists():
@@ -618,7 +747,7 @@ async def convert_photo_to_coloring(request: dict):
         # Obtenir l'instance du générateur
         generator = get_coloring_generator()
         
-        # Convertir avec GPT-4o-mini (analyse) + gpt-image-1 (génération)
+        # Convertir avec GPT-4o-mini (analyse) + gpt-image-1-mini (génération)
         result = await generator.generate_coloring_from_photo(
             photo_path=photo_path,
             custom_prompt=custom_prompt,
@@ -633,7 +762,7 @@ async def convert_photo_to_coloring(request: dict):
                 "message": "Photo convertie en coloriage avec succès !",
                 "type": "coloring",
                 "source": "photo",
-                "model": "gpt-image-1"
+                "model": "gpt-image-1-mini"
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la conversion")
@@ -678,54 +807,202 @@ class ComicResponse(BaseModel):
     comic_metadata: Optional[dict] = None
     error: Optional[str] = None
 
-# Instance globale du générateur de BD
-comic_generator_instance = ComicGenerator()
+# Instance globale du générateur de BD (lazy initialization)
+comics_generator_instance = None
 
-@app.post("/generate_comic/", response_model=ComicResponse)
+def get_comics_generator():
+    """Obtient l'instance du générateur de BD (lazy initialization)"""
+    global comics_generator_instance
+    if comics_generator_instance is None:
+        comics_generator_instance = ComicsGeneratorGPT4o()
+    return comics_generator_instance
+
+@app.post("/generate_comic/")
 async def generate_comic(request: dict):
     """
-    Génère une bande dessinée complète avec IA
+    Lance la génération d'une bande dessinée en arrière-plan
+    Retourne immédiatement un task_id pour éviter les timeouts
     """
     try:
-        # Validation des données d'entrée
-        theme = request.get("theme", "aventure")
+        # Récupérer les paramètres
+        theme = request.get("theme", "espace")
         art_style = request.get("art_style", "cartoon")
-        story_length = request.get("story_length", "court")
-        print(f"📚 Génération BD: {theme} / {art_style} / {story_length}")
+        num_pages = request.get("num_pages", 1)
+        custom_prompt = request.get("custom_prompt")
+        character_photo_path = request.get("character_photo_path")
+        
+        print(f"📚 Lancement génération BD: thème={theme}, style={art_style}, pages={num_pages}")
         
         # Vérifier la clé API
         openai_key = os.getenv("OPENAI_API_KEY")
         if not openai_key or openai_key.startswith("sk-votre"):
             raise HTTPException(
-                status_code=400, 
-                detail="❌ Clé API OpenAI non configurée. Veuillez configurer OPENAI_API_KEY dans le fichier .env"
+                status_code=400,
+                detail="❌ Clé API OpenAI non configurée"
             )
         
-        # Convertir la requête en dictionnaire
-        request_data = {
+        # Créer un task_id unique
+        task_id = str(uuid.uuid4())
+        print(f"📋 Task BD créé: {task_id}")
+        
+        # Stocker les informations de la tâche
+        comic_task_storage[task_id] = {
+            "start_time": time.time(),
             "theme": theme,
-            "story_length": story_length,
             "art_style": art_style,
-            "custom_request": request.get("custom_request", ""),
-            "characters": request.get("characters", []),
-            "setting": request.get("setting", "")
+            "num_pages": num_pages,
+            "custom_prompt": custom_prompt,
+            "character_photo_path": character_photo_path,
+            "status": "processing"
         }
         
-        # Générer la BD complète
-        result = await comic_generator_instance.create_complete_comic(request_data)
+        # Lancer la génération en arrière-plan
+        import asyncio
+        asyncio.create_task(generate_comic_task(task_id, theme, art_style, num_pages, custom_prompt, character_photo_path))
         
-        if result["status"] == "success":
-            return ComicResponse(**result)
-        else:
-            raise HTTPException(status_code=500, detail=result.get("error", "Erreur inconnue"))
+        # Retourner immédiatement le task_id
+        estimated_time = f"{num_pages * 1.2:.0f}-{num_pages * 1.5:.0f} minutes"
+        result = {
+            "task_id": task_id,
+            "status": "processing",
+            "message": f"Bande dessinée en cours de création...",
+            "estimated_time": estimated_time,
+            "theme": theme,
+            "art_style": art_style,
+            "num_pages": num_pages
+        }
+        
+        print(f"✅ Task BD lancée: {result}")
+        return result
             
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Erreur génération BD: {e}")
+        print(f"❌ Erreur lancement BD: {e}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération de la BD : {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors du lancement: {str(e)}")
+
+
+@app.post("/upload_character_photo/")
+async def upload_character_photo(file: UploadFile = File(...)):
+    """
+    Upload une photo de personnage pour l'intégrer dans une BD
+    """
+    try:
+        print(f"📸 Upload photo personnage: {file.filename}")
+        
+        # Vérifier le type de fichier
+        allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+        file_ext = Path(file.filename).suffix.lower()
+        
+        if file_ext not in allowed_extensions:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Format non supporté. Formats acceptés: {', '.join(allowed_extensions)}"
+            )
+        
+        # Créer un nom unique
+        unique_filename = f"character_{uuid.uuid4().hex[:8]}{file_ext}"
+        upload_path = Path("static/uploads/comics") / unique_filename
+        upload_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Sauvegarder
+        with open(upload_path, "wb") as buffer:
+            while chunk := await file.read(1024 * 1024):
+                buffer.write(chunk)
+        
+        print(f"✅ Photo personnage sauvegardée: {unique_filename}")
+        
+        return {
+            "status": "success",
+            "message": "Photo uploadée avec succès",
+            "file_path": str(upload_path),
+            "filename": unique_filename,
+            "url": f"{BASE_URL}/static/uploads/comics/{unique_filename}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur upload photo: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur upload: {str(e)}")
+
+@app.get("/status_comic/{task_id}")
+async def get_comic_status(task_id: str):
+    """
+    Récupère le statut d'une tâche de génération de BD
+    """
+    try:
+        # Vérifier si la tâche existe
+        if task_id not in comic_task_storage:
+            print(f"❌ Task BD {task_id} non trouvé")
+            raise HTTPException(status_code=404, detail="Tâche non trouvée")
+        
+        task_info = comic_task_storage[task_id]
+        status = task_info.get("status", "processing")
+        
+        print(f"📊 Statut BD demandé pour {task_id}: {status}")
+        
+        if status == "processing" or status == "generating":
+            # Encore en traitement
+            current_time = time.time()
+            elapsed_seconds = current_time - task_info["start_time"]
+            
+            # Estimation temps selon le nombre de pages (70s par page)
+            num_pages = task_info.get("num_pages", 1)
+            estimated_duration = num_pages * 70
+            progress = min(int((elapsed_seconds / estimated_duration) * 100), 95)
+            
+            result = {
+                "type": "result", 
+                "data": {
+                    "task_id": task_id,
+                    "status": "processing",
+                    "progress": progress,
+                    "message": f"Génération de la BD en cours... {progress}%",
+                    "estimated_remaining": max(int(estimated_duration - elapsed_seconds), 10)
+                }
+            }
+            print(f"⏳ Task BD {task_id} en cours: {progress}%")
+            
+        elif status == "completed":
+            # BD terminée !
+            comic_result = task_info.get("result", {})
+            result = {
+                "type": "result",
+                "data": comic_result
+            }
+            print(f"✅ BD {task_id} terminée et retournée!")
+            
+        elif status == "failed":
+            # Erreur de génération
+            error_msg = task_info.get("error", "Erreur inconnue")
+            result = {
+                "type": "result",
+                "data": {
+                    "status": "failed",
+                    "error": error_msg
+                }
+            }
+            print(f"❌ Task BD {task_id} échouée: {error_msg}")
+        else:
+            result = {
+                "type": "result",
+                "data": {
+                    "status": status,
+                    "message": "Statut inconnu"
+                }
+            }
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur récupération statut BD: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur statut: {str(e)}")
+
 
 # --- Themes pour l'animation ---
 @app.get("/themes")
@@ -746,19 +1023,82 @@ async def get_themes():
 
 # --- Animation ---
 @app.post("/generate_animation/")
-@app.post("/generate-quick")  # Route alternative pour compatibilité frontend
-async def generate_animation(request: AnimationRequest):
+async def generate_animation_post(
+    request: AnimationRequest
+):
     """
-    Génère une VRAIE animation avec les APIs Wavespeed et Fal AI
+    Génère une animation via POST avec body JSON
+    """
+    return await _generate_animation_logic(
+        theme=request.theme,
+        duration=request.duration or 30,
+        style=request.style or "cartoon",
+        custom_prompt=request.custom_prompt
+    )
+
+@app.post("/generate-quick-json")
+async def generate_quick_json(
+    request: GenerateQuickRequest
+):
+    """
+    Génère une animation via POST avec body JSON uniquement (nouvelle route)
+    """
+    return await _generate_animation_logic(
+        theme=request.theme,
+        duration=request.duration,
+        style=request.style,
+        custom_prompt=request.custom_prompt
+    )
+
+@app.get("/generate-quick")   # Ajouter support GET pour compatibilité
+async def generate_animation(
+    theme: str = "space",
+    duration: int = 30,
+    style: str = "cartoon",
+    custom_prompt: str = None
+):
+    """
+    Génère une VRAIE animation avec Runway ML Veo 3.1 Fast (workflow zseedance)
+    Supporte les requêtes GET avec query parameters - PLUS DE MODE, toujours vrai pipeline
+    """
+    return await _generate_animation_logic(theme, duration, style, custom_prompt)
+
+async def _generate_animation_logic(
+    theme: str,
+    duration: int,
+    style: str,
+    custom_prompt: str = None
+):
+    """
+    Logique commune de génération d'animation
     """
     try:
-        # Extraire les paramètres depuis le modèle Pydantic
-        style = request.style
-        theme = request.theme
-        duration = request.duration
-        mode = request.mode
+        # Nettoyer et valider le thème (gérer le cas "null")
+        if isinstance(theme, str):
+            theme = theme.strip().lower()
+            if theme == "null" or theme == "" or not theme:
+                theme = "space"
 
-        print(f"🎬 VRAIE Génération animation: {theme} / {style} / {duration}s / mode: {mode}")
+        # Valider et corriger les autres paramètres
+        valid_themes = ["space", "ocean", "forest", "city", "adventure", "fantasy", "cartoon"]
+        if theme not in valid_themes:
+            print(f"⚠️ Thème invalide '{theme}', utilisation de 'space' par défaut")
+            theme = "space"
+
+        # Valider la durée
+        try:
+            duration = int(duration)
+            if duration < 30 or duration > 300:
+                duration = 30
+        except:
+            duration = 30
+
+        # Valider le style
+        valid_styles = ["cartoon", "3d", "manga", "comics", "realistic", "watercolor"]
+        if style not in valid_styles:
+            style = "cartoon"
+
+        print(f"🎬 VRAIE Génération animation: {theme} / {style} / {duration}s / workflow: ZSEEDANCE")
 
         task_id = str(uuid.uuid4())
         print(f"📋 Task ID créé: {task_id}")
@@ -769,13 +1109,13 @@ async def generate_animation(request: AnimationRequest):
             "theme": theme,
             "duration": duration,
             "style": style,
-            "mode": mode,
+            "workflow": "zseedance",
             "status": "processing"
         }
 
-        # Lancer la génération en arrière-plan
+        # Génération selon le workflow zseedance.json (toujours le même pipeline)
         import asyncio
-        asyncio.create_task(generate_real_animation_task(task_id, theme, duration))
+        asyncio.create_task(generate_zseedance_animation_task(task_id, theme, duration, style))
 
         # Retourner immédiatement le task_id
         result = {
@@ -793,46 +1133,139 @@ async def generate_animation(request: AnimationRequest):
 
     except Exception as e:
         print(f"❌ Erreur génération animation: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erreur lors de la génération de l'animation : {str(e)}")
 
 # Stockage temporaire des tâches en cours (en production, utiliser Redis/DB)
 task_storage = {}
+comic_task_storage = {}
 
-async def generate_real_animation_task(task_id: str, theme: str, duration: int):
+async def generate_zseedance_animation_task(task_id: str, theme: str, duration: int, style: str = "cartoon"):
     """
-    Tâche en arrière-plan pour la génération réelle d'animation
+    Tâche en arrière-plan pour la génération selon le workflow zseedance.json
+    Pipeline complet : Ideas → Prompts → Create Clips (Veo 3.1) → Create Sounds → Sequence Video
     """
+    print(f"\n{'='*80}")
+    print(f"🚀🚀🚀 DÉBUT TÂCHE GÉNÉRATION ZSEEDANCE 🚀🚀🚀")
+    print(f"Task ID: {task_id}")
+    print(f"Thème: {theme}")
+    print(f"Durée: {duration}s")
+    print(f"Style: {style}")
+    print(f"{'='*80}\n")
+    
     try:
-        print(f"🚀 Démarrage génération réelle pour {task_id}")
-        
         # Mettre à jour le statut
         task_storage[task_id]["status"] = "generating"
-        
-        # Vérifier si on a les API keys pour le vrai système
-        has_real_apis = bool(os.getenv("WAVESPEED_API_KEY") and os.getenv("FAL_API_KEY"))
-        
-        if has_real_apis:
-            # Utiliser le générateur seedance réel
-            generator = RealAnimationGenerator()
-            print(f"🎬 Utilisation du VRAI système seedance")
+        print(f"✅ Statut mis à jour: generating")
+
+        # Utiliser le générateur Sora2ZseedanceGenerator (workflow fidèle à zseedance.json)
+        print(f"🔧 Initialisation du générateur Sora2ZseedanceGenerator...")
+        try:
+            generator = Sora2ZseedanceGenerator()
+            print(f"✅ Générateur initialisé avec succès")
+        except Exception as init_error:
+            print(f"❌ ERREUR lors de l'initialisation du générateur: {init_error}")
+            import traceback
+            traceback.print_exc()
+            raise init_error
+        print(f"🎬 Utilisation du workflow ZSEEDANCE (n8n identique)")
+
+        # Calculer le nombre de scènes selon la durée (8s par scène avec veo3.1_fast)
+        # Arrondir pour être plus proche de la durée demandée
+        num_scenes = max(3, round(duration / 8))  # Minimum 3 scènes, ~8s par scène
+        total_duration = num_scenes * 8
+        print(f"📊 Génération de {num_scenes} scènes de 8 secondes chacune (durée totale: {total_duration}s pour {duration}s demandés)")
+
+        # Générer l'animation complète selon le workflow zseedance
+        print(f"🚀 Appel generate_complete_animation_zseedance avec thème: {theme}")
+        try:
+            animation_result = await generator.generate_complete_animation_zseedance(theme)
+            print(f"✅ generate_complete_animation_zseedance terminé avec résultat: {animation_result.get('status', 'unknown')}")
+        except Exception as gen_error:
+            print(f"❌ ERREUR lors de l'appel generate_complete_animation_zseedance: {gen_error}")
+            import traceback
+            traceback.print_exc()
+            raise gen_error
+
+        # Vérifier le statut réel de l'animation
+        result_status = animation_result.get("status", "failed")
+        final_video_url = animation_result.get("final_video_url")
+
+        if result_status == "completed" and final_video_url:
+            print(f"✅ Animation ZSEEDANCE {task_id} générée avec succès!")
+            print(f"🎬 Vidéo finale: {final_video_url[:50]}...")
+            task_storage[task_id]["status"] = "completed"
         else:
-            # Utiliser le générateur local complet
-            generator = LocalAnimationGenerator()
-            print(f"🎬 Utilisation du générateur LOCAL complet")
+            print(f"❌ Animation ZSEEDANCE {task_id} échouée: {animation_result.get('error', 'Erreur inconnue')}")
+            task_storage[task_id]["status"] = "failed"
+
+        # Stocker le résultat dans tous les cas
+        task_storage[task_id]["result"] = animation_result
+
+    except Exception as e:
+        print(f"\n{'='*80}")
+        print(f"❌❌❌ ERREUR TÂCHE GÉNÉRATION ZSEEDANCE ❌❌❌")
+        print(f"Task ID: {task_id}")
+        print(f"Erreur: {e}")
+        print(f"Type: {type(e).__name__}")
+        print(f"{'='*80}")
+        import traceback
+        traceback.print_exc()
+        print(f"{'='*80}\n")
+
+        task_storage[task_id]["status"] = "failed"
+        task_storage[task_id]["error"] = str(e)
+
+async def generate_comic_task(task_id: str, theme: str, art_style: str, num_pages: int, custom_prompt: str, character_photo_path: str):
+    """
+    Tâche en arrière-plan pour la génération de BD
+    """
+    try:
+        print(f"🚀 Démarrage génération BD pour {task_id}")
         
-        # Générer l'animation complète
-        animation_result = await generator.generate_complete_animation(theme, duration)
+        # Mettre à jour le statut
+        comic_task_storage[task_id]["status"] = "generating"
+        
+        # Obtenir le générateur
+        generator = get_comics_generator()
+        
+        # Générer la BD complète
+        result = await generator.create_complete_comic(
+            theme=theme,
+            num_pages=num_pages,
+            art_style=art_style,
+            custom_prompt=custom_prompt,
+            character_photo_path=character_photo_path
+        )
         
         # Stocker le résultat
-        task_storage[task_id]["result"] = animation_result
-        task_storage[task_id]["status"] = "completed"
-        
-        print(f"✅ Animation {task_id} générée avec succès!")
+        if result.get("success"):
+            comic_task_storage[task_id]["result"] = {
+                "status": "success",
+                "comic_id": result["comic_id"],
+                "title": result["title"],
+                "synopsis": result["synopsis"],
+                "pages": result["pages"],
+                "total_pages": result["total_pages"],
+                "theme": result["theme"],
+                "art_style": result["art_style"],
+                "generation_time": result["generation_time"]
+            }
+            comic_task_storage[task_id]["status"] = "completed"
+            print(f"✅ BD {task_id} générée avec succès!")
+        else:
+            error_msg = result.get("error", "Erreur inconnue")
+            comic_task_storage[task_id]["status"] = "failed"
+            comic_task_storage[task_id]["error"] = error_msg
+            print(f"❌ Échec BD {task_id}: {error_msg}")
         
     except Exception as e:
-        print(f"❌ Erreur génération {task_id}: {e}")
-        task_storage[task_id]["status"] = "failed" 
-        task_storage[task_id]["error"] = str(e)
+        print(f"❌ Erreur génération BD {task_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        comic_task_storage[task_id]["status"] = "failed" 
+        comic_task_storage[task_id]["error"] = str(e)
 
 @app.get("/status/{task_id}")
 async def get_animation_status(task_id: str):
@@ -877,7 +1310,9 @@ async def get_animation_status(task_id: str):
                 "type": "result",
                 "data": animation_result
             }
+            # LOG DÉTAILLÉ pour déboguer l'affichage frontend
             print(f"✅ Animation RÉELLE {task_id} terminée et retournée!")
+            print(f"📦 Données retournées: status={animation_result.get('status')}, final_video_url={'OUI' if animation_result.get('final_video_url') else 'NON'}, video_urls={'OUI' if animation_result.get('video_urls') else 'NON'}, clips={'OUI' if animation_result.get('clips') else 'NON'}")
             
         elif status == "failed":
             # Erreur de génération
@@ -904,13 +1339,42 @@ async def get_animation_status(task_id: str):
                 }
             }
             
-        return result
-        
+            return result
+
     except HTTPException:
         raise
     except Exception as e:
         print(f"❌ Erreur récupération statut: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération du statut : {str(e)}")
+
+
+async def generate_sora2_animation_task(task_id: str, theme: str, duration: int):
+    """
+    Tâche en arrière-plan pour la génération Sora 2 d'animation
+    """
+    try:
+        print(f"🚀 Démarrage génération Sora 2 pour {task_id}")
+
+        # Mettre à jour le statut
+        task_storage[task_id]["status"] = "generating"
+
+        # Utiliser le générateur Sora 2
+        generator = Sora2Generator()
+        print(f"🎬 Utilisation de SORA 2 (plateforme: {generator.selected_platform})")
+
+        # Générer l'animation Sora 2
+        animation_result = await generator.generate_complete_animation(theme, duration)
+
+        # Stocker le résultat
+        task_storage[task_id]["result"] = animation_result
+        task_storage[task_id]["status"] = "completed"
+
+        print(f"✅ Animation Sora 2 {task_id} générée avec succès!")
+
+    except Exception as e:
+        print(f"❌ Erreur génération Sora 2 {task_id}: {e}")
+        task_storage[task_id]["status"] = "failed"
+        task_storage[task_id]["error"] = str(e)
 
 # === ROUTES D'AUTHENTIFICATION JWT ===
 
@@ -954,6 +1418,32 @@ except RuntimeError:
 
 # === SERVIR LE FRONTEND (SPA) ===
 
+@app.get("/sitemap.xml", include_in_schema=False)
+async def serve_sitemap():
+    """Servez le sitemap.xml pour Google Search Console."""
+    sitemap_path = static_dir / "sitemap.xml"
+    if sitemap_path.exists():
+        return FileResponse(
+            sitemap_path,
+            media_type="application/xml",
+            headers={"Content-Type": "application/xml; charset=utf-8"}
+        )
+    raise HTTPException(status_code=404, detail="Sitemap not found")
+
+
+@app.get("/robots.txt", include_in_schema=False)
+async def serve_robots():
+    """Servez le robots.txt pour les moteurs de recherche."""
+    robots_path = static_dir / "robots.txt"
+    if robots_path.exists():
+        return FileResponse(
+            robots_path,
+            media_type="text/plain",
+            headers={"Content-Type": "text/plain; charset=utf-8"}
+        )
+    raise HTTPException(status_code=404, detail="Robots.txt not found")
+
+
 @app.get("/", include_in_schema=False)
 async def serve_root():
     """Servez le build React à la racine."""
@@ -966,6 +1456,23 @@ async def serve_root():
 @app.get("/{full_path:path}", include_in_schema=False)
 async def spa_fallback(full_path: str):
     """Fallback pour le routage côté client (évite 404 sur refresh)."""
+    # Servir sitemap.xml et robots.txt s'ils sont demandés (au cas où)
+    if full_path == "sitemap.xml":
+        sitemap_path = static_dir / "sitemap.xml"
+        if sitemap_path.exists():
+            return FileResponse(
+                sitemap_path,
+                media_type="application/xml",
+                headers={"Content-Type": "application/xml; charset=utf-8"}
+            )
+    if full_path == "robots.txt":
+        robots_path = static_dir / "robots.txt"
+        if robots_path.exists():
+            return FileResponse(
+                robots_path,
+                media_type="text/plain",
+                headers={"Content-Type": "text/plain; charset=utf-8"}
+            )
     # Laisse les routes d'API et les assets gérer leur 404 normalement
     if full_path.startswith(("api", "static", "assets", "docs", "openapi.json", "redoc")):
         raise HTTPException(status_code=404, detail="Not Found")
@@ -1027,70 +1534,134 @@ if __name__ == "__main__":
 
     uvicorn.run(**config)
 
-# Endpoint pour envoyer un email de contact
+# Fonction asynchrone pour envoyer l'email en arrière-plan
+async def send_email_background(contact_form: ContactForm):
+    """Envoie un email en arrière-plan (non bloquant)"""
+    try:
+        # Configuration Resend
+        resend_api_key = os.getenv("RESEND_API_KEY")
+        receiver_email = os.getenv("CONTACT_EMAIL", "contact@herbbie.com")
+
+        if not resend_api_key:
+            print("❌ RESEND_API_KEY non configuré")
+            return
+
+        if not receiver_email:
+            print("❌ CONTACT_EMAIL non configuré")
+            return
+
+        # Création du contenu HTML de l'email
+        html_content = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">HERBBIE</h1>
+                <p style="color: #e8e8e8; margin: 10px 0 0 0; font-size: 14px;">Nouveau message de contact</p>
+            </div>
+
+            <div style="padding: 40px 30px;">
+                <div style="background: #f8f9fa; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
+                    <h2 style="color: #333; margin-top: 0; font-size: 20px;">📬 Nouveau message reçu</h2>
+
+                    <div style="margin: 25px 0;">
+                        <div style="display: flex; margin-bottom: 15px;">
+                            <strong style="width: 100px; color: #666;">Prénom:</strong>
+                            <span style="color: #333;">{contact_form.firstName}</span>
+                        </div>
+                        <div style="display: flex; margin-bottom: 15px;">
+                            <strong style="width: 100px; color: #666;">Nom:</strong>
+                            <span style="color: #333;">{contact_form.lastName}</span>
+                        </div>
+                        <div style="display: flex; margin-bottom: 15px;">
+                            <strong style="width: 100px; color: #666;">Email:</strong>
+                            <span style="color: #333;">{contact_form.email}</span>
+                        </div>
+                        <div style="display: flex; margin-bottom: 25px;">
+                            <strong style="width: 100px; color: #666;">Sujet:</strong>
+                            <span style="color: #333;">{contact_form.subject}</span>
+                        </div>
+                    </div>
+
+                    <div style="border-top: 1px solid #dee2e6; padding-top: 25px;">
+                        <h3 style="color: #333; margin-top: 0; font-size: 16px;">💬 Message:</h3>
+                        <div style="background: white; border: 1px solid #e9ecef; border-radius: 6px; padding: 20px; margin-top: 10px;">
+                            <p style="margin: 0; line-height: 1.6; color: #333; white-space: pre-line;">{contact_form.message}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; color: #666; font-size: 12px; border-top: 1px solid #dee2e6; padding-top: 20px;">
+                    <p>Cet email a été envoyé automatiquement depuis le formulaire de contact Herbbie.</p>
+                    <p>© 2024 Herbbie - Tous droits réservés</p>
+                </div>
+            </div>
+        </div>
+        """
+
+        # Contenu texte brut (fallback)
+        text_content = f"""HERBBIE - Nouveau message de contact
+
+Prénom: {contact_form.firstName}
+Nom: {contact_form.lastName}
+Email: {contact_form.email}
+Sujet: {contact_form.subject}
+
+Message:
+{contact_form.message}
+
+---
+Cet email a été envoyé automatiquement depuis le formulaire de contact Herbbie.
+"""
+
+        # Envoi via Resend API
+        import httpx
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {resend_api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": "Herbbie <contact@herbbie.com>",
+                    "to": [receiver_email],
+                    "subject": f"HERBBIE - {contact_form.subject}",
+                    "html": html_content,
+                    "text": text_content,
+                }
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                print(f"✅ Email envoyé avec succès via Resend - ID: {result.get('id', 'N/A')}")
+                print(f"📧 De: {contact_form.email} → À: {receiver_email}")
+            else:
+                error_msg = response.text
+                print(f"❌ Erreur Resend API ({response.status_code}): {error_msg}")
+                raise Exception(f"Resend API error: {error_msg}")
+
+    except Exception as e:
+        print(f"❌ Erreur envoi email via Resend: {e}")
+        import traceback
+        print(f"🔍 Traceback: {traceback.format_exc()}")
+
+
+# Endpoint pour envoyer un email de contact (réponse immédiate)
 @app.post("/api/contact")
 async def send_contact_email(contact_form: ContactForm):
-    """Envoie un email depuis le formulaire de contact"""
-
+    """Envoie un email depuis le formulaire de contact (réponse immédiate)"""
     try:
-        # Configuration email
-        sender_email = os.getenv("CONTACT_EMAIL", "noreply@herbbie.com")
-        receiver_email = "contact@herbbie.com"
-        password = os.getenv("EMAIL_PASSWORD")
+        # Vérifier la configuration
+        if not os.getenv("RESEND_API_KEY"):
+            raise HTTPException(status_code=500, detail="Configuration Resend manquante")
 
-        if not password:
-            raise HTTPException(status_code=500, detail="Configuration email manquante")
+        # Lancer l'envoi en arrière-plan (non bloquant)
+        asyncio.create_task(send_email_background(contact_form))
 
-        # Création du message
-        message = MIMEMultipart("alternative")
-        message["Subject"] = Header(f"HERBBIE - {contact_form.subject}", "utf-8")
-        message["From"] = formataddr((str(Header("HERBBIE", "utf-8")), sender_email))
-        message["To"] = receiver_email
+        # Réponse immédiate au client
+        return {"message": "Email en cours d'envoi"}
 
-        # Corps du message
-        html_content = f"""
-        <html>
-        <body>
-            <h2>Nouveau message de contact - HERBBIE</h2>
-            <p><strong>Prénom:</strong> {contact_form.firstName}</p>
-            <p><strong>Nom:</strong> {contact_form.lastName}</p>
-            <p><strong>Email:</strong> {contact_form.email}</p>
-            <p><strong>Sujet:</strong> {contact_form.subject}</p>
-            <h3>Message:</h3>
-            <p>{contact_form.message.replace(chr(10), '<br>')}</p>
-        </body>
-        </html>
-        """
-
-        # Partie texte pour les clients email qui ne supportent pas HTML
-        text_content = f"""
-        Nouveau message de contact - HERBBIE
-
-        Prénom: {contact_form.firstName}
-        Nom: {contact_form.lastName}
-        Email: {contact_form.email}
-        Sujet: {contact_form.subject}
-
-        Message:
-        {contact_form.message}
-        """
-
-        # Attacher les parties
-        part1 = MIMEText(text_content, "plain")
-        part2 = MIMEText(html_content, "html")
-
-        message.attach(part1)
-        message.attach(part2)
-
-        # Connexion et envoi
-        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-        server.login(sender_email, password)
-        server.sendmail(sender_email, receiver_email, message.as_string())
-        server.quit()
-
-        return {"message": "Email envoyé avec succès"}
-
-    except smtplib.SMTPAuthenticationError:
-        raise HTTPException(status_code=500, detail="Erreur d'authentification email")
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors de l'envoi: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")

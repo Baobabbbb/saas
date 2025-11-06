@@ -12,13 +12,11 @@ export async function getUserProfile(userId) {
       .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = pas de résultat
-      console.error('Erreur récupération profil:', error);
       throw new Error(`Erreur récupération profil: ${error.message}`);
     }
 
     return data;
   } catch (error) {
-    console.error('Erreur critique récupération profil:', error);
     throw error;
   }
 }
@@ -38,7 +36,7 @@ export async function updateUserProfile(userId, profileData) {
     // Upsert: créer ou mettre à jour
     const { data, error } = await supabase
       .from('profiles')
-      .upsert(updateData, { 
+      .upsert(updateData, {
         onConflict: 'id',
         returning: 'representation'
       })
@@ -46,13 +44,51 @@ export async function updateUserProfile(userId, profileData) {
       .single();
 
     if (error) {
-      console.error('Erreur mise à jour profil:', error);
       throw new Error(`Erreur mise à jour profil: ${error.message}`);
     }
 
     return data;
   } catch (error) {
-    console.error('Erreur critique mise à jour profil:', error);
+    throw error;
+  }
+}
+
+/**
+ * Synchronise le profil avec les informations de l'utilisateur connecté
+ */
+export async function syncUserProfile(user) {
+  try {
+    // Récupérer d'abord le profil existant
+    const { data: existingProfile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('prenom, nom')
+      .eq('id', user.id)
+      .single();
+
+    const updateData = {
+      id: user.id,
+      email: user.email,  // Synchroniser l'email
+      // NE PAS ÉCRASER prenom/nom s'ils existent déjà
+      prenom: existingProfile?.prenom || user.user_metadata?.firstName || user.user_metadata?.prenom || null,
+      nom: existingProfile?.nom || user.user_metadata?.lastName || user.user_metadata?.nom || null,
+      last_login: new Date().toISOString()  // Mettre à jour la dernière connexion
+    };
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert(updateData, {
+        onConflict: 'id',
+        returning: 'representation'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Erreur sync profil: ${error.message}`);
+    }
+
+    return data;
+  } catch (error) {
     throw error;
   }
 }
@@ -61,15 +97,12 @@ export async function updateUserProfile(userId, profileData) {
  * Crée un profil pour un nouvel utilisateur
  */
 export async function createUserProfile(userId, email, profileData = {}) {
-  console.log('👤 HERBBIE: Création profil utilisateur:', userId, email);
-  
   try {
     const newProfile = {
       id: userId,
       email: email,
-      first_name: profileData.firstName || email.split('@')[0],
-      last_name: profileData.lastName || '',
-      full_name: `${profileData.firstName || email.split('@')[0]} ${profileData.lastName || ''}`.trim(),
+      prenom: profileData.firstName || profileData.prenom || email.split('@')[0],
+      nom: profileData.lastName || profileData.nom || '',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -81,14 +114,11 @@ export async function createUserProfile(userId, email, profileData = {}) {
       .single();
 
     if (error) {
-      console.error('❌ HERBBIE: Erreur création profil:', error);
       throw new Error(`Erreur création profil: ${error.message}`);
     }
 
-    console.log('✅ HERBBIE: Profil créé avec succès:', data);
     return data;
   } catch (error) {
-    console.error('❌ HERBBIE: Erreur critique création profil:', error);
     throw error;
   }
 }
@@ -104,13 +134,11 @@ export async function deleteUserProfile(userId) {
       .eq('id', userId);
 
     if (error) {
-      console.error('Erreur suppression profil:', error);
       throw new Error(`Erreur suppression profil: ${error.message}`);
     }
 
     return true;
   } catch (error) {
-    console.error('Erreur critique suppression profil:', error);
     throw error;
   }
 }

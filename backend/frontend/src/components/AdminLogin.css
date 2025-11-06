@@ -27,7 +27,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #6B4EFF, #FF85A1);
+  background: linear-gradient(90deg, #f5f0ff, #FF85A1);
 }
 
 .login-header {
@@ -42,7 +42,7 @@
 .login-logo-text h1 {
   font-size: 32px;
   font-weight: 700;
-  color: #6B4EFF;
+  color: #f5f0ff;
   margin: 0;
   letter-spacing: -0.5px;
 }
@@ -98,7 +98,7 @@
 
 .login-field input:focus {
   outline: none;
-  border-color: #6B4EFF;
+  border-color: #f5f0ff;
   background: white;
   box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
 }
@@ -121,7 +121,7 @@
 }
 
 .login-button {
-  background: linear-gradient(135deg, #6B4EFF 0%, #5a3fd1 100%);
+  background: linear-gradient(135deg, #f5f0ff 0%, #5a3fd1 100%);
   color: white;
   border: none;
   padding: 14px 24px;
@@ -153,6 +153,8 @@
   box-shadow: none;
 }
 
+
+
 .login-spinner {
   width: 16px;
   height: 16px;
@@ -160,6 +162,64 @@
   border-top: 2px solid white;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+}
+
+/* Styles pour les champs de mot de passe avec icône œil */
+.password-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.password-input {
+  width: 100%;
+  padding: 12px 45px 12px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.password-input:focus {
+  outline: none;
+  border-color: #6B4EFF;
+}
+
+.password-input:hover {
+  border-color: #6B4EFF;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 42%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+  color: #6B4EFF;
+}
+
+.password-toggle-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.password-icon {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
 }
 
 @keyframes spin {

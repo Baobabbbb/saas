@@ -1,8 +1,8 @@
 """
-Service de génération de coloriages avec gpt-image-1
+Service de génération de coloriages avec gpt-image-1-mini
 - Image-to-image direct pour les photos uploadées (meilleure ressemblance)
 - Text-to-image pour les thèmes prédéfinis
-Organisation OpenAI vérifiée requise pour gpt-image-1
+Organisation OpenAI vérifiée requise pour gpt-image-1-mini
 """
 import os
 import uuid
@@ -21,7 +21,7 @@ load_dotenv()
 
 class ColoringGeneratorGPT4o:
     """
-    Générateur de coloriages avec gpt-image-1
+    Générateur de coloriages avec gpt-image-1-mini
     - Image-to-image pour photos uploadées
     - Text-to-image pour thèmes
     """
@@ -101,15 +101,9 @@ Subject: {subject}"""
 
 Subject: {subject}"""
             
-            print(f"OK: ColoringGeneratorGPT4o initialise")
-            print(f"   - Photos: gpt-image-1 image-to-image (ressemblance maximale)")
-            print(f"   - Themes: gpt-image-1 text-to-image")
-            print(f"   - Quality: high")
-            print(f"   - API Key presente: Oui")
+            # Initialisation silencieuse
         except Exception as e:
-            print(f"ERREUR: Initialisation ColoringGeneratorGPT4o: {e}")
-            import traceback
-            traceback.print_exc()
+            # Erreur silencieuse lors de l'initialisation
             raise
     
     async def generate_coloring_from_photo(
@@ -119,7 +113,7 @@ Subject: {subject}"""
         with_colored_model: bool = True
     ) -> Dict[str, Any]:
         """
-        Convertit une photo en coloriage avec gpt-image-1 IMAGE-TO-IMAGE DIRECT
+        Convertit une photo en coloriage avec gpt-image-1-mini IMAGE-TO-IMAGE DIRECT
         Cette méthode utilise l'édition d'image directe pour maximiser la ressemblance
         
         Args:
@@ -133,8 +127,8 @@ Subject: {subject}"""
         try:
             print(f"[COLORING PHOTO] Conversion IMAGE-TO-IMAGE: {photo_path}")
             
-            # Utiliser l'édition d'image DIRECTE avec gpt-image-1 (IMAGE-TO-IMAGE)
-            print(f"[IMAGE-TO-IMAGE] Transformation directe avec gpt-image-1 edit...")
+            # Utiliser l'édition d'image DIRECTE avec gpt-image-1-mini (IMAGE-TO-IMAGE)
+            print(f"[IMAGE-TO-IMAGE] Transformation directe avec gpt-image-1-mini edit...")
             coloring_path_str = await self._edit_photo_to_coloring_direct(
                 photo_path, 
                 custom_prompt, 
@@ -142,7 +136,7 @@ Subject: {subject}"""
             )
             
             if not coloring_path_str:
-                raise Exception("Echec de la generation gpt-image-1 (image-to-image)")
+                raise Exception("Echec de la generation gpt-image-1-mini (image-to-image)")
             
             # Convertir en Path
             coloring_path = Path(coloring_path_str)
@@ -153,14 +147,14 @@ Subject: {subject}"""
                 "source_photo": photo_path,
                 "images": [{
                     "image_url": f"{self.base_url}/static/coloring/{coloring_path.name}",
-                    "source": "gpt-image-1 (image-to-image direct)"
+                    "source": "gpt-image-1-mini (image-to-image direct)"
                 }],
                 "total_images": 1,
                 "metadata": {
                     "source_photo": photo_path,
                     "method": "image-to-image direct editing",
                     "created_at": datetime.now().isoformat(),
-                    "model": "gpt-image-1",
+                    "model": "gpt-image-1-mini",
                     "with_colored_model": with_colored_model
                 }
             }
@@ -185,7 +179,7 @@ Subject: {subject}"""
         with_colored_model: bool = True
     ) -> Optional[str]:
         """
-        Édite directement une photo en coloriage avec gpt-image-1 (IMAGE-TO-IMAGE)
+        Édite directement une photo en coloriage avec gpt-image-1-mini (IMAGE-TO-IMAGE)
         CETTE MÉTHODE MAXIMISE LA RESSEMBLANCE en envoyant directement l'image
         
         Args:
@@ -217,7 +211,7 @@ Subject: {subject}"""
             aspect_ratio = original_width / original_height
             print(f"[DIMENSIONS] Image originale: {original_width}x{original_height} (ratio: {aspect_ratio:.2f})")
             
-            # Utiliser 'auto' pour que gpt-image-1 détecte automatiquement les meilleures proportions
+            # Utiliser 'auto' pour que gpt-image-1-mini détecte automatiquement les meilleures proportions
             # Cela évite la déformation des images avec des ratios inhabituels
             size = "auto"
             print(f"[SIZE] Utilisation de size='auto' pour adaptation automatique")
@@ -228,19 +222,19 @@ Subject: {subject}"""
             
             print(f"[API] Appel OpenAI images.edit avec photo ({len(image_data)} bytes)...")
             
-            # Appeler gpt-image-1 avec images.edit (IMAGE-TO-IMAGE)
+            # Appeler gpt-image-1-mini avec images.edit (IMAGE-TO-IMAGE)
             # IMPORTANT: Passer un tuple (filename, file_data) pour que l'API détecte le MIME type
             response = await self.client.images.edit(
-                model="gpt-image-1",
+                model="gpt-image-1-mini",
                 image=(filename, image_data),  # Tuple (filename, data) pour détecter le MIME type
                 prompt=final_prompt,
                 size=size,  # Utiliser la taille adaptée aux proportions
                 n=1
             )
             
-            print(f"[RESPONSE] Reponse recue de gpt-image-1 edit")
+            print(f"[RESPONSE] Reponse recue de gpt-image-1-mini edit")
             
-            # gpt-image-1 retourne base64
+            # gpt-image-1-mini retourne base64
             if hasattr(response, 'data') and len(response.data) > 0:
                 image_b64 = response.data[0].b64_json
                 print(f"[OK] Image editee recue (base64: {len(image_b64)} bytes)")
@@ -254,45 +248,55 @@ Subject: {subject}"""
                 print(f"[GENERATED] Image generee: {generated_width}x{generated_height} (ratio: {generated_ratio:.2f})")
                 print(f"[TARGET] Redimensionnement vers: {original_width}x{original_height} (ratio: {aspect_ratio:.2f})")
                 
+                # Déterminer la taille finale (au minimum 1536x1536 pour éviter les coupures)
+                min_size = 1536
+                if original_width < min_size or original_height < min_size:
+                    # Si l'image originale est petite, utiliser une taille carrée plus grande
+                    final_width = final_height = min_size
+                    print(f"[SMALL] Image originale petite ({original_width}x{original_height}), utilisation taille minimale {min_size}x{min_size}")
+                else:
+                    final_width, final_height = original_width, original_height
+
                 # Vérifier si les ratios sont similaires (tolérance de 5%)
-                ratio_diff = abs(generated_ratio - aspect_ratio) / aspect_ratio
+                target_ratio = final_width / final_height
+                ratio_diff = abs(generated_ratio - target_ratio) / target_ratio
                 if ratio_diff > 0.05:
                     print(f"[WARNING] Difference de ratio detectee: {ratio_diff*100:.1f}%")
-                    # Adapter en préservant le ratio original et en centrant
-                    if aspect_ratio > generated_ratio:
-                        # Image originale plus large -> adapter la largeur
-                        new_width = original_width
-                        new_height = int(original_width / generated_ratio)
+                    # Adapter en préservant le ratio cible et en centrant
+                    if target_ratio > generated_ratio:
+                        # Image cible plus large -> adapter la largeur
+                        new_width = final_width
+                        new_height = int(final_width / generated_ratio)
                     else:
-                        # Image originale plus haute -> adapter la hauteur
-                        new_height = original_height
-                        new_width = int(original_height * generated_ratio)
-                    
+                        # Image cible plus haute -> adapter la hauteur
+                        new_height = final_height
+                        new_width = int(final_height * generated_ratio)
+
                     # Redimensionner avec le ratio préservé
                     temp_resized = generated_img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-                    
-                    # Créer une image blanche aux dimensions exactes
-                    final_img = Image.new('RGB', (original_width, original_height), 'white')
-                    
+
+                    # Créer une image blanche aux dimensions finales
+                    final_img = Image.new('RGB', (final_width, final_height), 'white')
+
                     # Centrer l'image redimensionnée
-                    x_offset = (original_width - new_width) // 2
-                    y_offset = (original_height - new_height) // 2
+                    x_offset = (final_width - new_width) // 2
+                    y_offset = (final_height - new_height) // 2
                     final_img.paste(temp_resized, (x_offset, y_offset))
-                    print(f"[ADJUSTED] Image centree avec ratio preserve: {new_width}x{new_height} -> {original_width}x{original_height}")
+                    print(f"[ADJUSTED] Image centree avec ratio preserve: {new_width}x{new_height} -> {final_width}x{final_height}")
                 else:
                     # Ratios similaires -> redimensionnement direct
-                    final_img = generated_img.resize((original_width, original_height), Image.Resampling.LANCZOS)
-                    print(f"[RESIZED] Redimensionnement direct: {generated_width}x{generated_height} -> {original_width}x{original_height}")
-                
-                # Sauvegarder avec les dimensions originales
+                    final_img = generated_img.resize((final_width, final_height), Image.Resampling.LANCZOS)
+                    print(f"[RESIZED] Redimensionnement direct: {generated_width}x{generated_height} -> {final_width}x{final_height}")
+
+                # Sauvegarder avec les dimensions finales
                 output_path = self.output_dir / f"coloring_photo_direct_{uuid.uuid4().hex[:8]}.png"
                 final_img.save(output_path, 'PNG', optimize=True)
-                print(f"[OK] Coloriage photo sauvegarde avec dimensions originales: {output_path.name}")
+                print(f"[OK] Coloriage photo sauvegarde ({final_width}x{final_height}): {output_path.name}")
                 
                 return str(output_path)
             else:
                 print(f"[ERROR] Format de reponse inattendu")
-                raise Exception("Format de reponse gpt-image-1 edit inattendu")
+                raise Exception("Format de reponse gpt-image-1-mini edit inattendu")
             
         except Exception as e:
             print(f"[ERROR] Erreur edition image-to-image: {e}")
@@ -308,7 +312,7 @@ Subject: {subject}"""
         with_colored_model: bool = True
     ) -> Optional[str]:
         """
-        Génère un coloriage avec gpt-image-1 (TEXT-TO-IMAGE)
+        Génère un coloriage avec gpt-image-1-mini (TEXT-TO-IMAGE)
         Utilisé pour la génération par thème
         
         Args:
@@ -329,34 +333,38 @@ Subject: {subject}"""
             
             print(f"[PROMPT TEXT-TO-IMAGE] {final_prompt[:150]}...")
             
-            # Appeler gpt-image-1 avec qualité high
+            # Appeler gpt-image-1-mini avec qualité high et taille verticale disponible
             print(f"[API] Appel OpenAI images.generate...")
             response = await self.client.images.generate(
-                model="gpt-image-1",
+                model="gpt-image-1-mini",
                 prompt=final_prompt,
-                size="1024x1024",
+                size="1024x1536",
                 quality="high",
                 n=1
             )
             
-            print(f"[RESPONSE] Reponse recue de gpt-image-1 generate")
+            print(f"[RESPONSE] Reponse recue de gpt-image-1-mini generate")
             
-            # gpt-image-1 retourne base64
+            # gpt-image-1-mini retourne base64
             if hasattr(response, 'data') and len(response.data) > 0:
                 image_b64 = response.data[0].b64_json
                 print(f"[OK] Image generee recue (base64: {len(image_b64)} bytes)")
-                
-                # Sauvegarder directement depuis base64
+
+                # Décoder l'image générée par l'API
                 image_bytes = base64.b64decode(image_b64)
+                generated_img = Image.open(io.BytesIO(image_bytes))
+
+                print(f"[ORIGINAL] Dimensions generees: {generated_img.size}")
+
+                # Garder les dimensions naturelles de l'image générée par l'API
                 output_path = self.output_dir / f"coloring_theme_{uuid.uuid4().hex[:8]}.png"
-                with open(output_path, 'wb') as f:
-                    f.write(image_bytes)
-                print(f"[OK] Coloriage theme sauvegarde: {output_path.name}")
-                
+                generated_img.save(output_path, 'PNG', optimize=True)
+                print(f"[OK] Coloriage theme sauvegarde ({generated_img.size[0]}x{generated_img.size[1]}): {output_path.name}")
+
                 return str(output_path)
             else:
                 print(f"[ERROR] Format de reponse inattendu")
-                raise Exception("Format de reponse gpt-image-1 generate inattendu")
+                raise Exception("Format de reponse gpt-image-1-mini generate inattendu")
             
         except Exception as e:
             print(f"[ERROR] Erreur generation text-to-image: {e}")
@@ -450,13 +458,13 @@ The illustration should be:
                 description = theme_descriptions.get(theme.lower(), f"A {theme} scene suitable for children coloring")
                 print(f"[DESCRIPTION] {description}")
                 
-                # Générer avec gpt-image-1 (text-to-image)
+                # Générer avec gpt-image-1-mini (text-to-image)
                 coloring_path_str = await self._generate_coloring_with_gpt_image_1(description, None, with_colored_model)
             
             if not coloring_path_str:
-                raise Exception("Echec de la generation gpt-image-1 - chemin vide")
+                raise Exception("Echec de la generation gpt-image-1-mini - chemin vide")
             
-            print(f"[OK] Chemin gpt-image-1 recu: {coloring_path_str}")
+            print(f"[OK] Chemin gpt-image-1-mini recu: {coloring_path_str}")
             
             # Convertir en Path
             coloring_path = Path(coloring_path_str)
@@ -468,14 +476,14 @@ The illustration should be:
                 "images": [{
                     "image_url": f"{self.base_url}/static/coloring/{coloring_path.name}",
                     "theme": theme,
-                    "source": "gpt-image-1 (text-to-image)"
+                    "source": "gpt-image-1-mini (text-to-image)"
                 }],
                 "total_images": 1,
                 "metadata": {
                     "theme": theme,
                     "description": description,
                     "created_at": datetime.now().isoformat(),
-                    "model": "gpt-image-1",
+                    "model": "gpt-image-1-mini",
                     "method": "text-to-image",
                     "with_colored_model": with_colored_model
                 }
@@ -504,5 +512,5 @@ The illustration should be:
         return await self.generate_coloring_from_theme(theme)
 
 
-# Instance globale
-coloring_generator = ColoringGeneratorGPT4o()
+# Instance globale - initialisation paresseuse gérée dans main.py
+coloring_generator = None

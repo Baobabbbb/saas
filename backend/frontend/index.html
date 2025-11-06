@@ -7,6 +7,26 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/logo_v.png?v=8" />
     <meta name="msapplication-TileImage" content="/logo_v.png?v=8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO et réseaux sociaux -->
+    <meta name="description" content="HERBBIE - Créez des histoires animées personnalisées pour vos enfants avec l'intelligence artificielle. Dessins animés, coloriages et BD sur mesure." />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://herbbie.com/" />
+    <meta property="og:title" content="HERBBIE - Histoires animées personnalisées pour enfants" />
+    <meta property="og:description" content="Créez des histoires animées personnalisées pour vos enfants avec l'intelligence artificielle. Dessins animés, coloriages et BD sur mesure." />
+    <meta property="og:image" content="https://herbbie.com/logo_v.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:url" content="https://herbbie.com/" />
+    <meta name="twitter:title" content="HERBBIE - Histoires animées personnalisées pour enfants" />
+    <meta name="twitter:description" content="Créez des histoires animées personnalisées pour vos enfants avec l'intelligence artificielle." />
+    <meta name="twitter:image" content="https://herbbie.com/logo_v.png" />
+    
     <!-- Protection des données personnelles - Configuration des robots -->
     <meta name="robots" content="index, follow, noarchive, nosnippet" />
     <!-- Protection spécifique des informations personnelles dans les mentions légales -->
@@ -19,7 +39,54 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
+    <!-- Content Security Policy pour autoriser Stripe, Supabase et Google Fonts -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' data: https://js.stripe.com https://m.stripe.com https://r.stripe.com https://api.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://r.stripe.com https://m.stripe.com https://js.stripe.com https://xfbmdeuzuyixpmouhqcv.supabase.co wss://xfbmdeuzuyixpmouhqcv.supabase.co https://xfbmdeuzuyixpmouhqcv.supabase.co; frame-src 'self' https://js.stripe.com https://m.stripe.com; img-src 'self' data: https:;">
     <title>HERBBIE</title>
+    
+    <!-- Données structurées Schema.org pour le logo et l'organisation -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "HERBBIE",
+      "url": "https://herbbie.com",
+      "logo": "https://herbbie.com/logo_v.png",
+      "description": "Créez des histoires animées personnalisées, des comptines musicales, des coloriages et des bandes dessinées pour vos enfants avec l'intelligence artificielle",
+      "founder": {
+        "@type": "Person",
+        "name": "HERBBIE"
+      },
+      "foundingDate": "2024",
+      "sameAs": []
+    }
+    </script>
+    
+    <!-- WebApplication Schema pour améliorer le référencement -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "HERBBIE",
+      "url": "https://herbbie.com",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "category": "Service créatif pour enfants"
+      },
+      "description": "Application web permettant de créer des contenus personnalisés pour enfants : dessins animés, comptines musicales, histoires audio, coloriages et bandes dessinées générés par intelligence artificielle",
+      "screenshot": "https://herbbie.com/logo_v.png",
+      "featureList": [
+        "Création de dessins animés personnalisés",
+        "Génération de comptines musicales",
+        "Histoires audio sur mesure",
+        "Coloriages personnalisés",
+        "Bandes dessinées générées par IA"
+      ],
+      "browserRequirements": "Nécessite JavaScript. Compatible avec tous les navigateurs modernes."
+    }
+    </script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -34,12 +101,12 @@
         // Supprimer les anciennes clés de stockage problématiques
         try {
           localStorage.removeItem('fridayFeatures');
-          
+
           // Nettoyer les sessions Supabase corrompues
-          const supabaseKeys = Object.keys(localStorage).filter(key => 
+          const supabaseKeys = Object.keys(localStorage).filter(key =>
             key.startsWith('sb-') || key.startsWith('supabase.')
           );
-          
+
           supabaseKeys.forEach(key => {
             try {
               const value = localStorage.getItem(key);
@@ -58,7 +125,7 @@
         } catch (e) {
           console.error('Erreur lors du nettoyage:', e);
         }
-        
+
         // Vider le cache du service worker
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.getRegistrations().then(function(registrations) {
@@ -67,6 +134,21 @@
             }
           });
         }
+
+        // Intercepter et ignorer les erreurs Stripe non-critiques (tracking/analytics)
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+          // Ignorer les erreurs Stripe liées au tracking (r.stripe.com)
+          const errorMessage = args.join(' ');
+          if (errorMessage.includes('r.stripe.com') ||
+              errorMessage.includes('Failed to fetch') &&
+              (errorMessage.includes('stripe') || errorMessage.includes('merchant-ui-api'))) {
+            // Ces erreurs sont liées au tracking Stripe, pas critiques pour les paiements
+            return;
+          }
+          // Pour toutes les autres erreurs, utiliser le comportement normal
+          originalConsoleError.apply(console, args);
+        };
       })();
     </script>
   </body>

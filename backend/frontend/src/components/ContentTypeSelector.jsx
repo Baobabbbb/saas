@@ -24,12 +24,14 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
       
       setEnabledFeatures(enabled);
       
-      // Si la fonctionnalité actuellement sélectionnée est désactivée, 
-      // basculer vers la première fonctionnalité disponible
-      if (!enabled[contentType]) {
+      // Si la fonctionnalité actuellement sélectionnée est désactivée,
+      // basculer vers la première fonctionnalité disponible (sauf si c'est animation qui doit rester par défaut)
+      if (!enabled[contentType] && contentType !== 'animation') {
         const firstEnabled = Object.keys(enabled).find(key => enabled[key].enabled);
         if (firstEnabled) {
-          setContentType(firstEnabled);
+          // Toujours utiliser 'histoire' au lieu de 'audio' pour la compatibilité
+          const normalizedType = firstEnabled === 'audio' ? 'histoire' : firstEnabled;
+          setContentType(normalizedType);
         }
       }
     });
@@ -41,6 +43,12 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
     try {
       setLoading(true);
       const features = await getEnabledFeatures();
+      
+      // Normaliser: si contentType est 'audio', le changer en 'histoire'
+      if (contentType === 'audio') {
+        setContentType('histoire');
+      }
+      
       setEnabledFeatures(features);
     } catch (error) {
       console.error('Erreur lors du chargement des fonctionnalités:', error);
@@ -79,10 +87,11 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
         <div className="content-type-options">
           {enabledFeatures.animation && (
             <motion.div
-              className={`content-type-option ${contentType === 'animation' ? 'selected' : ''}`}
+              className={`content-type-option animation-full-width ${contentType === 'animation' ? 'selected' : ''}`}
               onClick={() => handleContentTypeSelect('animation')}
-              whileHover={{ y: -5 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
             >
               <div className="content-type-icon">🎬</div>
               <div className="content-type-details">
@@ -96,8 +105,9 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
             <motion.div
               className={`content-type-option ${contentType === 'comic' ? 'selected' : ''}`}
               onClick={() => handleContentTypeSelect('comic')}
-              whileHover={{ y: -5 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
             >
               <div className="content-type-icon">💬</div>
               <div className="content-type-details">
@@ -111,8 +121,9 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
             <motion.div
               className={`content-type-option ${contentType === 'coloring' ? 'selected' : ''}`}
               onClick={() => handleContentTypeSelect('coloring')}
-              whileHover={{ y: -5 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
             >
               <div className="content-type-icon">🎨</div>
               <div className="content-type-details">
@@ -122,17 +133,18 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
             </motion.div>
           )}
 
-          {enabledFeatures.audio && (
+          {(enabledFeatures.histoire || enabledFeatures.audio) && (
             <motion.div
-              className={`content-type-option ${contentType === 'audio' ? 'selected' : ''}`}
-              onClick={() => handleContentTypeSelect('audio')}
-              whileHover={{ y: -5 }}
+              className={`content-type-option ${contentType === 'histoire' ? 'selected' : ''}`}
+              onClick={() => handleContentTypeSelect('histoire')}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
             >
               <div className="content-type-icon">📖</div>
               <div className="content-type-details">
                 <h4>Histoire</h4>
-                <p>Créez une histoire audio avec narration et effets sonores</p>
+                <p>Créez une histoire avec possibilité d'ajouter une narration audio</p>
               </div>
             </motion.div>
           )}
@@ -141,8 +153,9 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
             <motion.div
               className={`content-type-option ${contentType === 'rhyme' ? 'selected' : ''}`}
               onClick={() => handleContentTypeSelect('rhyme')}
-              whileHover={{ y: -5 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
             >
               <div className="content-type-icon">🎵</div>
               <div className="content-type-details">

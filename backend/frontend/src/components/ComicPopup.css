@@ -32,7 +32,7 @@
   justify-content: space-between;
   align-items: center;
   background: var(--primary-light, #E9E5FF);
-  color: var(--primary, #6B4EFF);
+  color: var(--primary, #f5f0ff);
   border-radius: 12px 12px 0 0;
 }
 
@@ -45,7 +45,7 @@
 .comic-popup-close {
   background: rgba(107, 78, 255, 0.1);
   border: none;
-  color: var(--primary, #6B4EFF);
+  color: var(--primary, #f5f0ff);
   width: 2rem;
   height: 2rem;
   border-radius: 0.5rem;
