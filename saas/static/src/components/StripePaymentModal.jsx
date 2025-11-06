@@ -135,7 +135,7 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
 
   const labelStyle = {
     display: 'block',
-    marginBottom: '6px',
+    marginBottom: '5px',
     fontSize: '13px',
     fontWeight: '500',
     color: '#666',
@@ -153,7 +153,7 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
   return (
     <form onSubmit={handleSubmit}>
       {/* Nom du titulaire */}
-      <div style={{ marginBottom: '16px' }}>
+      <div style={{ marginBottom: '14px' }}>
         <label style={labelStyle}>
           Nom du titulaire
         </label>
@@ -174,7 +174,7 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
       </div>
 
       {/* Numéro de carte */}
-      <div style={{ marginBottom: '16px' }}>
+      <div style={{ marginBottom: '14px' }}>
         <label style={labelStyle}>
           Numéro de carte
         </label>
@@ -191,7 +191,7 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gap: '12px',
-        marginBottom: '20px'
+        marginBottom: '16px'
       }}>
         <div>
           <label style={labelStyle}>
@@ -223,7 +223,7 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
           backgroundColor: '#fff5f5',
           color: '#e53e3e',
           borderRadius: '6px',
-          marginBottom: '16px',
+          marginBottom: '14px',
           fontSize: '14px',
           border: '1px solid #feb2b2',
           fontFamily: '"Baloo 2", sans-serif'
@@ -235,7 +235,7 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
       <div style={{
         display: 'flex',
         gap: '10px',
-        marginBottom: '16px'
+        marginBottom: '0'
       }}>
         <button
           type="button"
@@ -294,15 +294,6 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
         >
           {isProcessing ? 'Traitement...' : `Payer ${priceInfo.display}`}
         </button>
-      </div>
-
-      <div style={{
-        textAlign: 'center',
-        fontSize: '12px',
-        color: '#999',
-        fontFamily: '"Baloo 2", sans-serif'
-      }}>
-        🔒 Paiement sécurisé par Stripe
       </div>
     </form>
   );
@@ -379,7 +370,7 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
         </button>
 
         <h2 style={{
-          margin: '0 0 16px 0',
+          margin: '0 0 12px 0',
           fontSize: '24px',
           fontWeight: '600',
           color: '#333',
@@ -390,8 +381,8 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
         </h2>
 
         <div style={{
-          margin: '0 0 28px 0',
-          padding: '16px 20px',
+          margin: '0 0 20px 0',
+          padding: '12px 16px',
           backgroundColor: '#f8f7ff',
           borderRadius: '12px',
           border: '2px solid #6B4EFF',
@@ -399,14 +390,14 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
           fontFamily: '"Baloo 2", sans-serif'
         }}>
           <div style={{
-            fontSize: '15px',
+            fontSize: '14px',
             color: '#666',
-            marginBottom: '4px'
+            marginBottom: '2px'
           }}>
             {priceInfo.name}
           </div>
           <div style={{
-            fontSize: '28px',
+            fontSize: '24px',
             fontWeight: '700',
             color: '#6B4EFF'
           }}>
@@ -424,16 +415,13 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
         </Elements>
 
         <div style={{
-          marginTop: '16px',
-          textAlign: 'center',
+          marginTop: '12px',
+          textAlign: 'right',
           fontSize: '11px',
-          color: '#aaa',
+          color: '#999',
           fontFamily: '"Baloo 2", sans-serif'
         }}>
-          En payant, vous acceptez nos{' '}
-          <a href="/legal" style={{ color: '#6B4EFF', textDecoration: 'none' }}>
-            CGV
-          </a>
+          🔒 Paiement sécurisé par Stripe
         </div>
         </div>
       </div>
