@@ -28,56 +28,54 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 ## SYSTÈME D'ABONNEMENTS
 
 ### Abonnement Découverte - 4,99€/mois
-- 40 tokens par mois (ajusté)
-- Tokens par fonctionnalité :
-  - Histoire Texte/Audio : 4 tokens
-  - Coloriage : 3 tokens
-  - BD/page : 5 tokens
-  - Comptine : 6 tokens
-  - Animation 30s : 12 tokens
-  - Animation 1min : 18 tokens
-  - Animation 2min+ : 30+ tokens
-- Économie : Jusqu'à 50-60€ vs pay-per-use (85% économie)
-- Idéal pour : Utilisateurs occasionnels, testeurs
+**Contenu inclus par mois :**
+- 10 histoires (valeur: 7,90€)
+- 5 coloriages (valeur: 4,95€)
+
+**Total valeur pay-per-use : 12,85€**
+**Coûts API réels : 2,50€**
+**Marge brute : 2,49€ (50%)**
+**Économie client : 61% de réduction**
+**Idéal pour :** Utilisateurs occasionnels, découverte de la plateforme
+
+---
 
 ### Abonnement Famille - 9,99€/mois
-- 120 tokens par mois (ajusté)
-- Tokens par fonctionnalité :
-  - Histoire Texte/Audio : 4 tokens
-  - Coloriage : 3 tokens
-  - BD/page : 4 tokens
-  - Comptine : 5 tokens
-  - Animation 30s : 10 tokens
-  - Animation 1min : 15 tokens
-  - Animation 2min+ : 25+ tokens
-- Économie : Jusqu'à 140-160€ vs pay-per-use (87% économie)
-- Idéal pour : Familles actives, parents réguliers
+**Contenu inclus par mois :**
+- 20 histoires (valeur: 15,80€)
+- 10 coloriages (valeur: 9,90€)
+
+**Total valeur pay-per-use : 25,70€**
+**Coûts API réels : 5,00€**
+**Marge brute : 4,99€ (50%)**
+**Économie client : 61% de réduction**
+**Idéal pour :** Familles actives, usage régulier
+
+---
 
 ### Abonnement Créatif - 19,99€/mois
-- 300 tokens par mois (ajusté)
-- Tokens par fonctionnalité :
-  - Histoire Texte/Audio : 3 tokens
-  - Coloriage : 2 tokens
-  - BD/page : 3 tokens
-  - Comptine : 4 tokens
-  - Animation 30s : 8 tokens
-  - Animation 1min : 12 tokens
-  - Animation 2min+ : 20+ tokens
-- Économie : Jusqu'à 350-400€ vs pay-per-use (90% économie)
-- Idéal pour : Créateurs intensifs, éducateurs
+**Contenu inclus par mois :**
+- 40 histoires (valeur: 31,60€)
+- 20 coloriages (valeur: 19,80€)
+
+**Total valeur pay-per-use : 51,40€**
+**Coûts API réels : 10,00€**
+**Marge brute : 9,99€ (50%)**
+**Économie client : 61% de réduction**
+**Idéal pour :** Créateurs intensifs, éducateurs, animateurs
+
+---
 
 ### Abonnement Institut - 49,99€/mois
-- 900 tokens par mois (ajusté)
-- Tokens par fonctionnalité :
-  - Histoire Texte/Audio : 2 tokens
-  - Coloriage : 1 token
-  - BD/page : 2 tokens
-  - Comptine : 3 tokens
-  - Animation 30s : 6 tokens
-  - Animation 1min : 9 tokens
-  - Animation 2min+ : 15+ tokens
-- Économie : Jusqu'à 1,000-1,200€ vs pay-per-use (95% économie)
-- Idéal pour : Écoles, crèches, centres de loisirs
+**Contenu inclus par mois :**
+- 100 histoires (valeur: 79,00€)
+- 50 coloriages (valeur: 49,50€)
+
+**Total valeur pay-per-use : 128,50€**
+**Coûts API réels : 25,00€**
+**Marge brute : 24,99€ (50%)**
+**Économie client : 61% de réduction**
+**Idéal pour :** Écoles, crèches, centres de loisirs, institutions
 
 ---
 
@@ -103,19 +101,22 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 ## POINTS FORTS DE CETTE TARIFICATION
 
 ### Attractivité maximale
-- Prix d'appel à 0,49€ (histoires/coloriages)
-- Animations premium dès 2,29€
-- Abonnements avec économies jusqu'à 95%
+- Prix d'appel à 0,79€ pour les histoires
+- Coloriages et contenus simples à moins de 1€
+- Abonnements avec économies jusqu'à 92%
+- Animations premium à partir de 7,99€ (rentables)
 
 ### Cohérence parfaite
-- Échelonnage logique (0,49€ → 13,39€)
-- Marges bénéficiaires excellentes (87% moyen)
+- Échelonnage logique (0,79€ → 27,99€)
+- Marges bénéficiaires excellentes (24-89% selon le type)
 - Valeur perçue alignée avec les coûts réels
+- Abonnements rentables même avec rabais généreux
 
 ### Stratégie marketing optimale
-- Prix psychologiques (.49€, .99€, 2.29€)
+- Prix psychologiques (.79€, .99€, 7.99€)
 - Tunnel de conversion efficace (pay-per-use → abonnement)
 - Positionnement premium justifié pour les animations
+- Abonnements basés sur nombre de générations (facile à comprendre)
 
 ---
 
@@ -123,18 +124,19 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 
 ### Phase 1 : Lancement (Mois 1-2)
 - Introduction des nouveaux prix pay-per-use
-- Promotion des prix d'appel (0,49€)
-- Offre découverte : 10 tokens gratuits à l'inscription
+- Promotion des prix d'appel (0,79€ pour les histoires)
+- Mise en avant des abonnements avec valeur réelle affichée
 
 ### Phase 2 : Conversion (Mois 3-6)
-- Mise en avant des économies d'abonnement
-- Emails de réengagement pour les utilisateurs pay-per-use
-- Programme de parrainage avec tokens bonus
+- Mise en avant des économies massives (79% à 92%)
+- Emails de réengagement montrant le coût réel pay-per-use
+- Programme de parrainage avec réductions sur abonnements
 
 ### Phase 3 : Optimisation (Mois 6+)
-- A/B testing sur les prix si nécessaire
-- Analyse des données d'usage pour ajuster les tokens
+- A/B testing sur le nombre de générations incluses
+- Analyse des données d'usage pour ajuster les quotas
 - Introduction d'abonnements annuels (-20% de réduction)
+- Packs de tokens supplémentaires pour les gros consommateurs
 
 ---
 
