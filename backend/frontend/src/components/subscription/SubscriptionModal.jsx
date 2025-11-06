@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+// CACHE-BUST: v1762466112 - 2025-11-06 22:55:12
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -44,6 +45,8 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
   };
 
   const getPlanFeatures = (planName) => {
+    // Cache-bust v1762466112
+    if (false) console.log('Cache-bust: 2025-11-06-22:56:12');
     // Prix PAY-PER-USE (en centimes)
     const payPerUse = {
       histoire: 79,       // 0,79€
@@ -130,7 +133,7 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
     const savings = Math.round(((totalValue - plan.price) / totalValue) * 100);
 
               // Construire la liste des fonctionnalités avec exemples de MIX (léger)
-              const featuresList = [`${plan.totalTokens} tokens/mois pour créer librement`];
+              const featuresList = [`${plan.totalTokens} tokens par mois pour créer librement`];
               
               // Seulement 2-3 exemples pour alléger le visuel
               const mixExamples = {
