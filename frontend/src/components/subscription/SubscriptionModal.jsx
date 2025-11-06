@@ -54,50 +54,64 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
       animation60: 1199  // 11,99€
     };
 
+    // Coûts API réels (en centimes)
+    const apiCosts = {
+      histoire: 15,      // 0,15€
+      coloring: 20,      // 0,20€
+      comic: 20,         // 0,20€
+      rhyme: 17,         // 0,17€
+      animation30: 610,  // 6,10€
+      animation60: 915   // 9,15€
+    };
+
     const plans = {
       'Découverte': {
-        price: 499,  // 4,99€
+        price: 499,  // 4,99€ | Budget API max: 2,50€ (50% de marge)
         generations: {
-          histoire: 8,      // Valeur: 6,32€ (rabais 20%)
-          coloring: 6,      // Valeur: 5,94€ (rabais 16%)
-          comic: 4,         // Valeur: 5,96€ (rabais 17%)
-          rhyme: 4,         // Valeur: 5,96€ (rabais 17%)
-          animation30: 0,   // Non inclus (trop coûteux)
-          animation60: 0    // Non inclus (trop coûteux)
-        }
-      },
-      'Famille': {
-        price: 999,  // 9,99€
-        generations: {
-          histoire: 20,     // Valeur: 15,80€ (rabais 37%)
-          coloring: 15,     // Valeur: 14,85€ (rabais 33%)
-          comic: 10,        // Valeur: 14,90€ (rabais 33%)
-          rhyme: 10,        // Valeur: 14,90€ (rabais 33%)
-          animation30: 1,   // Valeur: 7,99€ (rabais 20%)
+          histoire: 10,     // Coût API: 1,50€ | Valeur vente: 7,90€
+          coloring: 5,      // Coût API: 1,00€ | Valeur vente: 4,95€
+          comic: 0,         // Non inclus
+          rhyme: 0,         // Non inclus
+          animation30: 0,   // Non inclus
           animation60: 0    // Non inclus
         }
+        // Total coûts API: 2,50€ | Marge: 2,49€ (50%)
+      },
+      'Famille': {
+        price: 999,  // 9,99€ | Budget API max: 5,00€ (50% de marge)
+        generations: {
+          histoire: 20,     // Coût API: 3,00€ | Valeur vente: 15,80€
+          coloring: 10,     // Coût API: 2,00€ | Valeur vente: 9,90€
+          comic: 0,         // Non inclus
+          rhyme: 0,         // Non inclus
+          animation30: 0,   // Non inclus (6,10€ trop cher)
+          animation60: 0    // Non inclus
+        }
+        // Total coûts API: 5,00€ | Marge: 4,99€ (50%)
       },
       'Créatif': {
-        price: 1999,  // 19,99€
+        price: 1999,  // 19,99€ | Budget API max: 10,00€ (50% de marge)
         generations: {
-          histoire: 50,     // Valeur: 39,50€ (rabais 49%)
-          coloring: 40,     // Valeur: 39,60€ (rabais 50%)
-          comic: 25,        // Valeur: 37,25€ (rabais 46%)
-          rhyme: 25,        // Valeur: 37,25€ (rabais 46%)
-          animation30: 3,   // Valeur: 23,97€ (rabais 17%)
-          animation60: 2    // Valeur: 23,98€ (rabais 17%)
+          histoire: 40,     // Coût API: 6,00€ | Valeur vente: 31,60€
+          coloring: 20,     // Coût API: 4,00€ | Valeur vente: 19,80€
+          comic: 0,         // Non inclus
+          rhyme: 0,         // Non inclus
+          animation30: 0,   // Non inclus (trop cher)
+          animation60: 0    // Non inclus
         }
+        // Total coûts API: 10,00€ | Marge: 9,99€ (50%)
       },
       'Institut': {
-        price: 4999,  // 49,99€
+        price: 4999,  // 49,99€ | Budget API max: 25,00€ (50% de marge)
         generations: {
-          histoire: 150,    // Valeur: 118,50€ (rabais 58%)
-          coloring: 120,    // Valeur: 118,80€ (rabais 58%)
-          comic: 80,        // Valeur: 119,20€ (rabais 58%)
-          rhyme: 80,        // Valeur: 119,20€ (rabais 58%)
-          animation30: 8,   // Valeur: 63,92€ (rabais 22%)
-          animation60: 5    // Valeur: 59,95€ (rabais 17%)
+          histoire: 100,    // Coût API: 15,00€ | Valeur vente: 79,00€
+          coloring: 50,     // Coût API: 10,00€ | Valeur vente: 49,50€
+          comic: 0,         // Non inclus
+          rhyme: 0,         // Non inclus
+          animation30: 0,   // Non inclus
+          animation60: 0    // Non inclus
         }
+        // Total coûts API: 25,00€ | Marge: 24,99€ (50%)
       }
     };
 
