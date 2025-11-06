@@ -59,12 +59,19 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 ### Abonnement Découverte - 4,99€/mois
 **250 tokens/mois** (Budget API : 2,50€, Marge : 50%)
 
-**Vous pouvez générer jusqu'à :**
-- 62 histoires OU
-- 15 coloriages OU
-- 15 pages de BD OU
-- 16 comptines OU
-- 0 animation (pas assez de tokens)
+**Système flexible** : Utilisez vos tokens comme vous voulez !
+
+**Coûts en tokens :**
+- Histoire : 4 tokens
+- Coloriage : 16 tokens  
+- Page BD : 16 tokens
+- Comptine : 15 tokens
+
+**Exemples de mix possibles :**
+- 40 histoires + 5 coloriages
+- 30 histoires + 3 coloriages + 5 comptines
+- 10 coloriages + 5 comptines
+- 62 histoires (si vous n'utilisez que ça)
 
 **Idéal pour :** Utilisateurs occasionnels, découverte de la plateforme
 
@@ -73,13 +80,20 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 ### Abonnement Famille - 9,99€/mois
 **500 tokens/mois** (Budget API : 5,00€, Marge : 50%)
 
-**Vous pouvez générer jusqu'à :**
-- 125 histoires OU
-- 31 coloriages OU
-- 31 pages de BD OU
-- 33 comptines OU
-- 1 animation 30s OU
-- 0 animation 1min (besoin de 840 tokens)
+**Système flexible** : Utilisez vos tokens comme vous voulez !
+
+**Coûts en tokens :**
+- Histoire : 4 tokens
+- Coloriage : 16 tokens
+- Page BD : 16 tokens
+- Comptine : 15 tokens
+- Animation 30s : 420 tokens
+
+**Exemples de mix possibles :**
+- 80 histoires + 10 coloriages
+- 60 histoires + 5 coloriages + 8 comptines
+- 1 animation 30s + 20 histoires
+- 125 histoires (si vous n'utilisez que ça)
 
 **Idéal pour :** Familles actives, usage régulier
 
@@ -88,14 +102,22 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 ### Abonnement Créatif - 19,99€/mois
 **1000 tokens/mois** (Budget API : 10,00€, Marge : 50%)
 
-**Vous pouvez générer jusqu'à :**
-- 250 histoires OU
-- 62 coloriages OU
-- 62 pages de BD OU
-- 66 comptines OU
-- 2 animations 30s OU
-- 1 animation 1min OU
-- 0 animation 2min (besoin de 1680 tokens)
+**Système flexible** : Utilisez vos tokens comme vous voulez !
+
+**Coûts en tokens :**
+- Histoire : 4 tokens
+- Coloriage : 16 tokens
+- Page BD : 16 tokens
+- Comptine : 15 tokens
+- Animation 30s : 420 tokens
+- Animation 1min : 840 tokens
+
+**Exemples de mix possibles :**
+- 150 histoires + 20 coloriages
+- 100 histoires + 10 coloriages + 15 comptines
+- 2 animations 30s + 40 histoires
+- 1 animation 1min + 40 histoires
+- 250 histoires (si vous n'utilisez que ça)
 
 **Idéal pour :** Créateurs intensifs, éducateurs, animateurs
 
@@ -104,19 +126,26 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 ### Abonnement Institut - 49,99€/mois
 **2500 tokens/mois** (Budget API : 25,00€, Marge : 50%)
 
-**Vous pouvez générer jusqu'à :**
-- 625 histoires OU
-- 156 coloriages OU
-- 156 pages de BD OU
-- 166 comptines OU
-- 5 animations 30s OU
-- 2 animations 1min OU
-- 1 animation 2min OU
-- 0 animation 3min (besoin de 2520 tokens) OU
-- 0 animation 4min (besoin de 3360 tokens) OU
-- 0 animation 5min (besoin de 4200 tokens)
+**Système flexible** : Utilisez vos tokens comme vous voulez !
 
-**💡 Note :** Les animations 3-5min sont uniquement disponibles en PAY-PER-USE.
+**Coûts en tokens :**
+- Histoire : 4 tokens
+- Coloriage : 16 tokens
+- Page BD : 16 tokens
+- Comptine : 15 tokens
+- Animation 30s : 420 tokens
+- Animation 1min : 840 tokens
+- Animation 2min : 1680 tokens
+
+**Exemples de mix possibles :**
+- 300 histoires + 50 coloriages
+- 200 histoires + 30 coloriages + 30 comptines
+- 5 animations 30s + 100 histoires
+- 1 animation 2min + 150 histoires
+- 2 animations 1min + 100 histoires
+- 625 histoires (si vous n'utilisez que ça)
+
+**💡 Note :** Les animations 3-5min (2520-4200 tokens) sont uniquement disponibles en PAY-PER-USE.
 
 **Idéal pour :** Écoles, crèches, centres de loisirs, institutions
 

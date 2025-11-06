@@ -129,18 +129,41 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
 
     const savings = Math.round(((totalValue - plan.price) / totalValue) * 100);
 
-    // Construire la liste des fonctionnalités (affichage utilisateur)
-    const featuresList = [];
-    if (maxGenerations.histoire > 0) featuresList.push(`Jusqu'à ${maxGenerations.histoire} histoires`);
-    if (maxGenerations.coloring > 0) featuresList.push(`Jusqu'à ${maxGenerations.coloring} coloriages`);
-    if (maxGenerations.comic > 0) featuresList.push(`Jusqu'à ${maxGenerations.comic} pages de BD`);
-    if (maxGenerations.rhyme > 0) featuresList.push(`Jusqu'à ${maxGenerations.rhyme} comptines`);
-    if (maxGenerations.animation30 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation30} animation${maxGenerations.animation30 > 1 ? 's' : ''} 30s`);
-    if (maxGenerations.animation60 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation60} animation${maxGenerations.animation60 > 1 ? 's' : ''} 1min`);
-    if (maxGenerations.animation120 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation120} animation${maxGenerations.animation120 > 1 ? 's' : ''} 2min`);
-    if (maxGenerations.animation180 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation180} animation${maxGenerations.animation180 > 1 ? 's' : ''} 3min`);
-    if (maxGenerations.animation240 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation240} animation${maxGenerations.animation240 > 1 ? 's' : ''} 4min`);
-    if (maxGenerations.animation300 > 0) featuresList.push(`Jusqu'à ${maxGenerations.animation300} animation${maxGenerations.animation300 > 1 ? 's' : ''} 5min`);
+              // Construire la liste des fonctionnalités avec exemples de MIX
+              const featuresList = [`${plan.totalTokens} tokens/mois pour créer librement`];
+              
+              // Exemples de mix selon le plan
+              const mixExamples = {
+                'Découverte': [
+                  '40 histoires + 5 coloriages', // 40×4 + 5×16 = 240 tokens
+                  '30 histoires + 3 coloriages + 5 comptines', // 30×4 + 3×16 + 5×15 = 243 tokens
+                  '10 coloriages + 5 comptines' // 10×16 + 5×15 = 235 tokens
+                ],
+                'Famille': [
+                  '80 histoires + 10 coloriages',
+                  '60 histoires + 5 coloriages + 8 comptines',
+                  '1 animation 30s + 20 histoires'
+                ],
+                'Créatif': [
+                  '150 histoires + 20 coloriages',
+                  '100 histoires + 10 coloriages + 15 comptines',
+                  '2 animations 30s + 40 histoires'
+                ],
+                'Institut': [
+                  '300 histoires + 50 coloriages',
+                  '200 histoires + 30 coloriages + 30 comptines',
+                  '5 animations 30s + 100 histoires',
+                  '1 animation 2min + 150 histoires'
+                ]
+              };
+              
+              // Ajouter "Exemples de mix :" puis les exemples
+              if (mixExamples[planName]) {
+                featuresList.push('Exemples de mix possibles :');
+                mixExamples[planName].forEach(example => {
+                  featuresList.push(`• ${example}`);
+                });
+              }
 
     const features = {
       'Découverte': {
