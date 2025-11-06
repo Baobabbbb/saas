@@ -164,7 +164,7 @@ function App() {
       setNumPages(null);
     }
   }, [contentType]);
-
+  
   // Animation states
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null); // Aucun thème par défaut
   const [selectedDuration, setSelectedDuration] = useState(30); // Valeur par défaut de 30 secondes
@@ -557,7 +557,7 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-
+      
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
     } else if (contentType === 'coloring') {
@@ -596,28 +596,28 @@ function App() {
         generatedContent = coloringData;
       } else {
         // Génération classique par thème
-        const payload = {
+      const payload = {
           theme: selectedTheme,
           with_colored_model: withColoredModel
-        };
+      };
         
         // Si c'est un coloriage personnalisé, ajouter le prompt personnalisé
         if (selectedTheme === 'custom' && customColoringTheme.trim()) {
           payload.custom_prompt = customColoringTheme.trim();
         }
-        
+      
         const response = await fetch(`${API_BASE_URL}/generate_coloring/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-        if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
-        
-        const coloringData = await response.json();
-        
-        setColoringResult(coloringData);
-        generatedContent = coloringData; // Stocker pour l'historique
+      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+      
+      const coloringData = await response.json();
+      
+      setColoringResult(coloringData);
+      generatedContent = coloringData; // Stocker pour l'historique
       }
     } else if (contentType === 'comic') {
       // Génération de bande dessinée avec système de tâches asynchrones
@@ -712,10 +712,10 @@ function App() {
       const endpoint = `${API_BASE_URL}/generate-quick?theme=${encodeURIComponent(normalizedTheme)}&duration=${duration}&style=${selectedStyle || 'cartoon'}&custom_prompt=${encodeURIComponent(story || '')}`;
       const fetchOptions = {
         method: 'GET',
-          headers: {
-            'Accept': 'application/json'
-          }
-        };
+            headers: {
+              'Accept': 'application/json'
+            }
+          };
 
       const response = await fetch(endpoint, fetchOptions);
 
@@ -1101,8 +1101,8 @@ const downloadPDF = async (title, content) => {
           // Tâche Suno terminée avec succès - URL disponible
           setGeneratedResult(prev => {
             const updatedResult = {
-              ...prev,
-              audio_path: status.audio_path,
+            ...prev,
+            audio_path: status.audio_path,
               suno_url: status.suno_url, // URL Suno pour le téléchargement
               title: status.title || prev.title,
               has_music: true,
@@ -1509,16 +1509,16 @@ const downloadPDF = async (title, content) => {
         {/* Audio si disponible - Logique originale des comptines */}
         {generatedResult.suno_url && downloadReady && (
           <>
-            <div style={{
+          <div style={{ 
                 background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', 
                 borderRadius: '15px',
                 border: '2px solid #dee2e6',
-                width: '100%',
+            width: '100%',
             maxWidth: '100%',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             overflow: 'hidden'
               }}>
-                <div style={{ 
+          <div style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
               justifyContent: 'center',
@@ -1528,12 +1528,12 @@ const downloadPDF = async (title, content) => {
                   <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
                     Votre comptine est prête !
                   </h4>
-                </div>
+          </div>
                 <audio
                   controls
                   preload="metadata"
                   controlsList="nodownload"
-                  style={{
+              style={{
                     width: '100%',
                     outline: 'none'
                   }}
@@ -1578,7 +1578,7 @@ const downloadPDF = async (title, content) => {
                   // Nettoyer l'URL d'objet
                   setTimeout(() => window.URL.revokeObjectURL(url), 100);
 
-                  } catch (error) {
+                } catch (error) {
                   alert(`Erreur lors du téléchargement: ${error.message}`);
                   }
                 }
@@ -1603,7 +1603,7 @@ const downloadPDF = async (title, content) => {
               {downloadReady ? '📥 Télécharger' : '⏳ Préparation du téléchargement...'}
             </button>
           </>
-        )}
+          )}
       </div>
     </motion.div>
   ) : generatedResult && (contentType === 'histoire' || contentType === 'audio') ? (
