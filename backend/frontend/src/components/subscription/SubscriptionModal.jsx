@@ -47,18 +47,18 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
   const getPlanFeatures = (planName) => {
     // Cache-bust v1762466112
     if (false) console.log('Cache-bust: 2025-11-06-22:56:12');
-    // Prix PAY-PER-USE (en centimes)
+    // Prix PAY-PER-USE (en centimes) - NOUVEAUX PRIX RÉDUITS 2025-11-06
     const payPerUse = {
-      histoire: 79,       // 0,79€
+      histoire: 50,       // 0,50€
       coloring: 99,       // 0,99€
-      comic: 149,         // 1,49€ par page
-      rhyme: 149,         // 1,49€
-      animation30: 799,   // 7,99€
-      animation60: 1199,  // 11,99€
-      animation120: 1599, // 15,99€ (2min)
-      animation180: 1999, // 19,99€ (3min)
-      animation240: 2399, // 23,99€ (4min)
-      animation300: 2799  // 27,99€ (5min)
+      comic: 99,          // 0,99€ par page
+      rhyme: 99,          // 0,99€
+      animation30: 599,   // 5,99€
+      animation60: 999,   // 9,99€
+      animation120: 1899, // 18,99€ (2min)
+      animation180: 2799, // 27,99€ (3min)
+      animation240: 3699, // 36,99€ (4min)
+      animation300: 4699  // 46,99€ (5min)
     };
 
     // Coûts en TOKENS (1 token = 0,01€ de coût API)

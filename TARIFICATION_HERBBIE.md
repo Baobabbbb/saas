@@ -19,16 +19,16 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 
 | Fonctionnalité | Prix | Coût API Réel | Marge | Marge % |
 |---|---|---|---|---|
-| Histoire (Texte + Audio) | 0,79€ | 0,042€ | 0,75€ | 95% |
+| Histoire | 0,50€ | 0,042€ | 0,46€ | 92% |
 | Coloriage | 0,99€ | 0,16€ | 0,83€ | 84% |
-| BD par page | 1,49€ | 0,16€ | 1,33€ | 89% |
-| Comptine | 1,49€ | 0,15€ | 1,34€ | 90% |
-| Animation 30s | 7,99€ | 4,20€ | 3,79€ | 47% |
-| Animation 1min | 11,99€ | 8,40€ | 3,59€ | 30% |
-| Animation 2min | 18,99€ | 16,80€ | 2,19€ | 13% |
-| Animation 3min | 27,99€ | 25,20€ | 2,79€ | 11% |
-| Animation 4min | 36,99€ | 33,60€ | 3,39€ | 10% |
-| Animation 5min | 46,99€ | 42,00€ | 4,99€ | 12% |
+| BD par page | 0,99€ | 0,16€ | 0,83€ | 84% |
+| Comptine | 0,99€ | 0,15€ | 0,84€ | 85% |
+| Animation 30s | 5,99€ | 4,20€ | 1,79€ | 30% |
+| Animation 1min | 9,99€ | 8,40€ | 1,59€ | 16% |
+| Animation 2min | 18,99€ | 16,80€ | 2,19€ | 12% |
+| Animation 3min | 27,99€ | 25,20€ | 2,79€ | 10% |
+| Animation 4min | 36,99€ | 33,60€ | 3,39€ | 9% |
+| Animation 5min | 46,99€ | 42,00€ | 4,99€ | 11% |
 
 ---
 
