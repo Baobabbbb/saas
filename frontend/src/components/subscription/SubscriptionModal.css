@@ -159,9 +159,12 @@
 
 .subscription-plans-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.25rem;
-  margin-bottom: 1.25rem;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  max-width: 450px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .subscription-plan-card {
@@ -174,7 +177,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 450px;
+  min-height: auto;
   justify-content: space-between;
 }
 
@@ -445,11 +448,7 @@
    RESPONSIVE
    =================================== */
 
-@media (max-width: 1024px) {
-  .subscription-plans-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
+/* Grille toujours en colonne unique maintenant */
 
 @media (max-width: 768px) {
   .subscription-modal-content {
@@ -470,15 +469,8 @@
     font-size: 1.75rem;
   }
 
-  .subscription-plans-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
   .subscription-plan-card {
     padding: 1rem;
-    min-height: 400px;
   }
 
   .current-subscription-banner {
@@ -519,8 +511,7 @@
   }
 
   .subscription-plan-card {
-    padding: 1rem;
-    min-height: 380px;
+    padding: 0.75rem;
   }
 
   .plan-name {
