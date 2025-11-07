@@ -562,6 +562,7 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
       {/* Message de sécurité */}
       <div style={{
         marginTop: '12px',
+        marginBottom: '20px',
         textAlign: 'center',
         fontSize: '11px',
         color: '#999',
