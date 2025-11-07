@@ -38,11 +38,22 @@ from routes.admin_features import router as admin_features_router, load_features
 # from models.animation import AnimationRequest
 # Validation et sécurité supprimées car gérées automatiquement par Vercel + Supabase
 
+# Service d'unicité pour éviter les doublons
+from services.uniqueness_service import uniqueness_service
+
 # --- Chargement .env ---
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
 BASE_URL = os.getenv("BASE_URL", "https://herbbie.com")
+
+# Client Supabase pour le service d'unicité
+from supabase import create_client, Client
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://xfbmdeuzuyixpmouhqcv.supabase.co")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+supabase_client: Client = None
+if SUPABASE_SERVICE_KEY:
+    supabase_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 # Démarrage silencieux - pas de logs sensibles
 
@@ -519,6 +530,77 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
                 # En cas d'erreur, utiliser le contenu complet
                 pass
         
+        # 🆕 VÉRIFICATION UNICITÉ (non-bloquante, ne casse rien si erreur)
+        uniqueness_metadata = {}
+        try:
+            if supabase_client and request.get("user_id"):
+                # Vérifier l'unicité du contenu généré
+                uniqueness_check = await uniqueness_service.ensure_unique_content(
+                    supabase_client=supabase_client,
+                    user_id=request.get("user_id"),
+                    content_type="histoire",
+                    theme=story_type,
+                    generated_content=story_content,
+                    custom_data={"custom_request": custom_request if custom_request else None}
+                )
+                
+                # Si c'est un doublon exact, régénérer UNE SEULE FOIS
+                if uniqueness_check.get("should_regenerate"):
+                    print(f"🔄 Doublon détecté pour histoire {story_type}, régénération...")
+                    
+                    # Enrichir le prompt avec l'historique
+                    enhanced_prompt = uniqueness_service.enrich_prompt_with_history(
+                        prompt, 
+                        uniqueness_check.get("history", []),
+                        "histoire"
+                    )
+                    
+                    # Régénérer avec prompt enrichi et température légèrement plus élevée
+                    response = await client.chat.completions.create(
+                        model=TEXT_MODEL,
+                        messages=[
+                            {"role": "system", "content": "Tu es un conteur spécialisé dans les histoires pour enfants. Tu écris des histoires engageantes avec des valeurs positives."},
+                            {"role": "user", "content": enhanced_prompt}
+                        ],
+                        max_tokens=1000,
+                        temperature=0.85,  # Légèrement plus créatif
+                        timeout=30
+                    )
+                    
+                    content = response.choices[0].message.content.strip() if response.choices[0].message.content else ""
+                    
+                    # Ré-extraire titre et contenu
+                    if "TITRE:" in content and "HISTOIRE:" in content:
+                        lines = content.split('\n')
+                        for line in lines:
+                            if line.startswith("TITRE:"):
+                                title = line.replace("TITRE:", "").strip()
+                                break
+                        histoire_start = content.find("HISTOIRE:")
+                        if histoire_start != -1:
+                            story_content = content[histoire_start + 9:].strip()
+                    
+                    # Recalculer les métadonnées avec le nouveau contenu
+                    uniqueness_check = await uniqueness_service.ensure_unique_content(
+                        supabase_client=supabase_client,
+                        user_id=request.get("user_id"),
+                        content_type="histoire",
+                        theme=story_type,
+                        generated_content=story_content,
+                        custom_data={"custom_request": custom_request if custom_request else None}
+                    )
+                
+                # Stocker les métadonnées d'unicité
+                uniqueness_metadata = {
+                    "content_hash": uniqueness_check.get("content_hash"),
+                    "summary": uniqueness_check.get("summary"),
+                    "variation_tags": uniqueness_check.get("variation_tags")
+                }
+        except Exception as uniqueness_error:
+            # En cas d'erreur, continuer normalement sans métadonnées
+            print(f"⚠️ Service unicité non disponible (non-bloquant): {uniqueness_error}")
+            pass
+        
         # Génération de l'audio si une voix est spécifiée
         audio_path = None
         voice = request.get("voice")
@@ -547,7 +629,9 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
             "content": story_content,
             "audio_path": audio_path,
             "audio_generated": audio_path is not None,
-            "type": "audio"
+            "type": "audio",
+            # Métadonnées d'unicité (optionnelles, pour stockage dans la base)
+            "uniqueness_metadata": uniqueness_metadata if uniqueness_metadata else None
         }
         return result
     except HTTPException:
@@ -632,8 +716,59 @@ async def generate_coloring(request: dict, content_type_id: int = None):
                 detail="Service de génération de coloriage non disponible. Clé API OpenAI manquante ou invalide."
             )
 
+        # 🆕 Enrichir le prompt avec l'historique pour éviter doublons (non-bloquant)
+        try:
+            if supabase_client and request.get("user_id"):
+                # Récupérer l'historique des coloriages de l'utilisateur
+                history = await uniqueness_service.get_user_history(
+                    supabase_client=supabase_client,
+                    user_id=request.get("user_id"),
+                    content_type="coloriage",
+                    theme=theme,
+                    limit=5
+                )
+                
+                # Si l'utilisateur a déjà des coloriages sur ce thème, enrichir le prompt
+                if history and len(history) > 0:
+                    variations_used = [h.get("variation_tags", {}) for h in history]
+                    # Ajouter une suggestion de variation au custom_prompt
+                    if not custom_prompt:
+                        variation_hints = f" (variation #{len(history) + 1})"
+                        custom_prompt = f"{theme}{variation_hints}"
+        except Exception as history_error:
+            print(f"⚠️ Historique non disponible (non-bloquant): {history_error}")
+            pass
+        
         # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1-mini (génération)
         result = await generator.generate_coloring_from_theme(theme, with_colored_model, custom_prompt)
+        
+        # 🆕 Stocker les métadonnées d'unicité (non-bloquant)
+        uniqueness_metadata = {}
+        try:
+            if result.get("success") and supabase_client and request.get("user_id"):
+                # Créer un "contenu" textuel pour le hash (le prompt utilisé)
+                content_for_hash = f"{theme}_{custom_prompt}_{with_colored_model}"
+                
+                uniqueness_check = await uniqueness_service.ensure_unique_content(
+                    supabase_client=supabase_client,
+                    user_id=request.get("user_id"),
+                    content_type="coloriage",
+                    theme=theme,
+                    generated_content=content_for_hash,
+                    custom_data={
+                        "custom_prompt": custom_prompt,
+                        "with_colored_model": with_colored_model
+                    }
+                )
+                
+                uniqueness_metadata = {
+                    "content_hash": uniqueness_check.get("content_hash"),
+                    "summary": uniqueness_check.get("summary"),
+                    "variation_tags": uniqueness_check.get("variation_tags")
+                }
+        except Exception as uniqueness_error:
+            print(f"⚠️ Service unicité non disponible (non-bloquant): {uniqueness_error}")
+            pass
         
         if result.get("success") == True:
             return {
@@ -642,7 +777,9 @@ async def generate_coloring(request: dict, content_type_id: int = None):
                 "images": result.get("images", []),
                 "message": "Coloriage généré avec succès avec gpt-image-1-mini !",
                 "type": "coloring",
-                "model": "gpt-image-1-mini"
+                "model": "gpt-image-1-mini",
+                # Métadonnées d'unicité (optionnelles)
+                "uniqueness_metadata": uniqueness_metadata if uniqueness_metadata else None
             }
         else:
             error_message = result.get("error", "Erreur inconnue lors de la génération du coloriage")
@@ -830,8 +967,20 @@ async def generate_comic(request: dict):
         num_pages = request.get("num_pages", 1)
         custom_prompt = request.get("custom_prompt")
         character_photo_path = request.get("character_photo_path")
+        user_id = request.get("user_id")  # Pour unicité
         
         print(f"📚 Lancement génération BD: thème={theme}, style={art_style}, pages={num_pages}")
+        
+        # 🆕 Enrichir avec l'historique (non-bloquant)
+        try:
+            if supabase_client and user_id:
+                history = await uniqueness_service.get_user_history(
+                    supabase_client, user_id, "bd", theme, limit=3
+                )
+                if history and len(history) > 0 and not custom_prompt:
+                    custom_prompt = f"Variation #{len(history) + 1} - éviter: {', '.join([h.get('title', '') for h in history[:2]])}"
+        except Exception:
+            pass
         
         # Vérifier la clé API
         openai_key = os.getenv("OPENAI_API_KEY")
@@ -853,6 +1002,7 @@ async def generate_comic(request: dict):
             "num_pages": num_pages,
             "custom_prompt": custom_prompt,
             "character_photo_path": character_photo_path,
+            "user_id": user_id,  # Stocker pour utilisation ultérieure
             "status": "processing"
         }
         
@@ -1033,7 +1183,8 @@ async def generate_animation_post(
         theme=request.theme,
         duration=request.duration or 30,
         style=request.style or "cartoon",
-        custom_prompt=request.custom_prompt
+        custom_prompt=request.custom_prompt,
+        user_id=request.user_id if hasattr(request, 'user_id') else None
     )
 
 @app.post("/generate-quick-json")
@@ -1067,7 +1218,8 @@ async def _generate_animation_logic(
     theme: str,
     duration: int,
     style: str,
-    custom_prompt: str = None
+    custom_prompt: str = None,
+    user_id: str = None
 ):
     """
     Logique commune de génération d'animation
@@ -1097,6 +1249,21 @@ async def _generate_animation_logic(
         valid_styles = ["cartoon", "3d", "manga", "comics", "realistic", "watercolor"]
         if style not in valid_styles:
             style = "cartoon"
+        
+        # 🆕 Enrichir avec l'historique (non-bloquant)
+        try:
+            if supabase_client and user_id:
+                history = await uniqueness_service.get_user_history(
+                    supabase_client, user_id, "animation", theme, limit=3
+                )
+                if history and len(history) > 0:
+                    variation_hint = f" [Variation #{len(history) + 1}]"
+                    if custom_prompt:
+                        custom_prompt = f"{custom_prompt}{variation_hint}"
+                    else:
+                        custom_prompt = variation_hint
+        except Exception:
+            pass
 
         print(f"🎬 VRAIE Génération animation: {theme} / {style} / {duration}s / workflow: ZSEEDANCE")
 
@@ -1241,6 +1408,24 @@ async def generate_comic_task(task_id: str, theme: str, art_style: str, num_page
         
         # Stocker le résultat
         if result.get("success"):
+            # 🆕 Métadonnées d'unicité (non-bloquant)
+            uniqueness_metadata = {}
+            try:
+                user_id = comic_task_storage[task_id].get("user_id")
+                if supabase_client and user_id:
+                    synopsis = result.get("synopsis", "")
+                    uniqueness_check = await uniqueness_service.ensure_unique_content(
+                        supabase_client, user_id, "bd", theme,
+                        synopsis[:200], {"art_style": art_style, "num_pages": num_pages}
+                    )
+                    uniqueness_metadata = {
+                        "content_hash": uniqueness_check.get("content_hash"),
+                        "summary": uniqueness_check.get("summary"),
+                        "variation_tags": uniqueness_check.get("variation_tags")
+                    }
+            except Exception:
+                pass
+            
             comic_task_storage[task_id]["result"] = {
                 "status": "success",
                 "comic_id": result["comic_id"],
@@ -1250,7 +1435,8 @@ async def generate_comic_task(task_id: str, theme: str, art_style: str, num_page
                 "total_pages": result["total_pages"],
                 "theme": result["theme"],
                 "art_style": result["art_style"],
-                "generation_time": result["generation_time"]
+                "generation_time": result["generation_time"],
+                "uniqueness_metadata": uniqueness_metadata if uniqueness_metadata else None
             }
             comic_task_storage[task_id]["status"] = "completed"
             print(f"✅ BD {task_id} générée avec succès!")
