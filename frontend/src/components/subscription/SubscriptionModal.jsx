@@ -734,10 +734,12 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
     }
   };
 
+  const isPaymentStep = currentStep === 'payment';
+
   const modalContent = (
     <div className="subscription-modal-overlay" onClick={handleOverlayClick}>
       <motion.div
-        className="subscription-modal-content"
+        className={`subscription-modal-content ${isPaymentStep ? 'subscription-modal-payment' : ''}`}
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
