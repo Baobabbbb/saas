@@ -15,10 +15,21 @@ serve(async (req) => {
   try {
     const { action, userId, planId, paymentMethodId, userEmail } = await req.json();
 
-    if (!userId || !action) {
+    // Validation : action requis, userId requis sauf pour get_plans
+    if (!action) {
       return new Response(JSON.stringify({
         success: false,
-        error: 'userId et action requis'
+        error: 'action requise'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (!userId && action !== 'get_plans') {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'userId requis pour cette action'
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
