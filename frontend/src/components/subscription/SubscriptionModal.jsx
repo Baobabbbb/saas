@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-// CACHE-BUST: v1762478123 - 2025-11-07 02:15:23
+// CACHE-BUST: v1762479000 - 2025-11-07 02:30:00 - FORCE RELOAD
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -270,6 +270,8 @@ const CARD_ELEMENT_OPTIONS = {
 };
 
 const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail }) => {
+  // FORCE RELOAD 2025-11-07 02:30:00 - NOUVEAU DESIGN AVEC CHAMPS SÉPARÉS
+  console.log('🎨 SubscriptionForm NOUVEAU DESIGN chargé - 3 champs séparés');
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
