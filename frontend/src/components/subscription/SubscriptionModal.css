@@ -3,6 +3,16 @@
    Style professionnel cohérent avec l'app
    =================================== */
 
+/* Styles pour les éléments Stripe (formulaire d'abonnement) */
+.stripe-card-element {
+  transition: border-color 0.2s ease;
+}
+
+.stripe-card-element:focus-within {
+  border-color: #6B4EFF !important;
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+}
+
 .subscription-modal-overlay {
   position: fixed !important;
   top: 0 !important;

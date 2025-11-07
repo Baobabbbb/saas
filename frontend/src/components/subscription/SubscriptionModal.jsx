@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-// CACHE-BUST: v1762466112 - 2025-11-06 22:55:12
+// CACHE-BUST: v1762478123 - 2025-11-07 02:15:23
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
-  CardElement,
+  CardNumberElement,
+  CardExpiryElement,
+  CardCvcElement,
   useStripe,
   useElements
 } from '@stripe/react-stripe-js';
@@ -245,6 +247,28 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
   );
 };
 
+const CARD_ELEMENT_OPTIONS = {
+  style: {
+    base: {
+      color: '#333',
+      fontFamily: '"Baloo 2", sans-serif',
+      fontSmoothing: 'antialiased',
+      fontSize: '16px',
+      '::placeholder': {
+        color: '#b8b5d1'
+      }
+    },
+    invalid: {
+      color: '#d32f2f',
+      iconColor: '#d32f2f'
+    },
+    complete: {
+      color: '#6B4EFF',
+      iconColor: '#6B4EFF'
+    }
+  }
+};
+
 const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -256,12 +280,18 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
     event.preventDefault();
 
     if (!stripe || !elements) {
-      setError('Stripe n\'est pas chargé');
+      setError('Stripe n\'est pas encore chargé. Veuillez réessayer.');
       return;
     }
 
     if (!cardholderName.trim()) {
-      setError('Le nom du titulaire de la carte est requis');
+      setError('Veuillez entrer le nom du titulaire de la carte');
+      return;
+    }
+
+    const cardNumberElement = elements.getElement(CardNumberElement);
+    if (!cardNumberElement) {
+      setError('Impossible de charger le formulaire de paiement.');
       return;
     }
 
@@ -270,10 +300,9 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
 
     try {
       // Créer le payment method
-      const cardElement = elements.getElement(CardElement);
       const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
         type: 'card',
-        card: cardElement,
+        card: cardNumberElement,
         billing_details: {
           name: cardholderName.trim(),
           email: userEmail,
@@ -317,95 +346,226 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
     }
   };
 
-  const cardStyle = {
-    style: {
-      base: {
-        fontSize: '16px',
-        color: '#424770',
-        '::placeholder': {
-          color: '#aab7c4',
-        },
-        fontFamily: 'Inter, system-ui, sans-serif',
-      },
-      invalid: {
-        color: '#9e2146',
-      },
-    },
+  const inputStyle = {
+    width: '100%',
+    padding: '12px 14px',
+    fontSize: '15px',
+    border: '1px solid #e0e0e0',
+    borderRadius: '8px',
+    fontFamily: '"Baloo 2", sans-serif',
+    boxSizing: 'border-box',
+    outline: 'none',
+    transition: 'border-color 0.2s ease',
+    backgroundColor: 'white',
+  };
+
+  const labelStyle = {
+    display: 'block',
+    marginBottom: '5px',
+    fontSize: '13px',
+    fontWeight: '500',
+    color: '#666',
+    fontFamily: '"Baloo 2", sans-serif'
+  };
+
+  const stripeContainerStyle = {
+    padding: '12px 14px',
+    border: '1px solid #e0e0e0',
+    borderRadius: '8px',
+    backgroundColor: 'white',
+    transition: 'border-color 0.2s ease',
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <h3 className="text-xl font-bold text-gray-900 mb-4">
+    <form onSubmit={handleSubmit}>
+      {/* En-tête avec prix */}
+      <div style={{
+        margin: '0 0 20px 0',
+        padding: '12px 16px',
+        backgroundColor: '#f8f7ff',
+        borderRadius: '12px',
+        border: '2px solid #6B4EFF',
+        textAlign: 'center',
+        fontFamily: '"Baloo 2", sans-serif'
+      }}>
+        <div style={{
+          fontSize: '14px',
+          color: '#666',
+          marginBottom: '2px'
+        }}>
           S'abonner à {selectedPlan.name}
-        </h3>
-        <div className="bg-violet-50 p-4 rounded-lg mb-6">
-          <div className="text-lg font-semibold text-violet-800">
-            {(selectedPlan.price_monthly / 100).toFixed(2).replace('.', ',')}€/mois
-          </div>
-          <div className="text-sm text-violet-600">
-            Facturé mensuellement • Annulable à tout moment
-          </div>
+        </div>
+        <div style={{
+          fontSize: '24px',
+          fontWeight: '700',
+          color: '#6B4EFF'
+        }}>
+          {(selectedPlan.price_monthly / 100).toFixed(2).replace('.', ',')}€/mois
+        </div>
+        <div style={{
+          fontSize: '12px',
+          color: '#888',
+          marginTop: '4px'
+        }}>
+          Facturé mensuellement • Annulable à tout moment
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+      {/* Nom du titulaire */}
+      <div style={{ marginBottom: '14px' }}>
+        <label style={labelStyle}>
           Nom du titulaire de la carte
         </label>
         <input
           type="text"
           value={cardholderName}
           onChange={(e) => setCardholderName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
           placeholder="Jean Dupont"
           required
+          style={inputStyle}
+          onFocus={(e) => {
+            e.target.style.borderColor = '#6B4EFF';
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = '#e0e0e0';
+          }}
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Informations de carte bancaire
+      {/* Numéro de carte */}
+      <div style={{ marginBottom: '14px' }}>
+        <label style={labelStyle}>
+          Numéro de carte
         </label>
-        <div className="border border-gray-300 rounded-md p-3 focus-within:ring-2 focus-within:ring-violet-500 focus-within:border-violet-500">
-          <CardElement options={cardStyle} />
+        <div 
+          style={stripeContainerStyle}
+          className="stripe-card-element"
+        >
+          <CardNumberElement options={CARD_ELEMENT_OPTIONS} />
         </div>
       </div>
 
+      {/* Date d'expiration et CVC */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '12px',
+        marginBottom: '16px'
+      }}>
+        <div>
+          <label style={labelStyle}>
+            Date d'expiration
+          </label>
+          <div 
+            style={stripeContainerStyle}
+            className="stripe-card-element"
+          >
+            <CardExpiryElement options={CARD_ELEMENT_OPTIONS} />
+          </div>
+        </div>
+        <div>
+          <label style={labelStyle}>
+            CVC
+          </label>
+          <div 
+            style={stripeContainerStyle}
+            className="stripe-card-element"
+          >
+            <CardCvcElement options={CARD_ELEMENT_OPTIONS} />
+          </div>
+        </div>
+      </div>
+
+      {/* Message d'erreur */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3">
-          <div className="text-red-800 text-sm">{error}</div>
+        <div style={{
+          padding: '12px',
+          backgroundColor: '#fff5f5',
+          color: '#e53e3e',
+          borderRadius: '6px',
+          marginBottom: '14px',
+          fontSize: '14px',
+          border: '1px solid #feb2b2',
+          fontFamily: '"Baloo 2", sans-serif'
+        }}>
+          {error}
         </div>
       )}
 
-      <div className="flex space-x-3">
+      {/* Boutons */}
+      <div style={{
+        display: 'flex',
+        gap: '10px',
+        marginBottom: '0'
+      }}>
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors duration-200"
           disabled={loading}
+          style={{
+            flex: 1,
+            padding: '12px 20px',
+            fontSize: '15px',
+            fontWeight: '500',
+            borderRadius: '8px',
+            border: '1px solid #d0d0d0',
+            backgroundColor: 'white',
+            color: '#666',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.5 : 1,
+            fontFamily: '"Baloo 2", sans-serif',
+            transition: 'background-color 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            if (!loading) {
+              e.target.style.backgroundColor = '#f9f9f9';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'white';
+          }}
         >
           Annuler
         </button>
         <button
           type="submit"
-          className="flex-1 bg-violet-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-violet-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={loading || !stripe}
+          disabled={!stripe || loading}
+          style={{
+            flex: 1,
+            padding: '12px 20px',
+            fontSize: '15px',
+            fontWeight: '500',
+            borderRadius: '8px',
+            border: 'none',
+            backgroundColor: '#6B4EFF',
+            color: 'white',
+            cursor: (!stripe || loading) ? 'not-allowed' : 'pointer',
+            opacity: (!stripe || loading) ? 0.6 : 1,
+            fontFamily: '"Baloo 2", sans-serif',
+            transition: 'background-color 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            if (stripe && !loading) {
+              e.target.style.backgroundColor = '#5a3eef';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = '#6B4EFF';
+          }}
         >
-          {loading ? (
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Traitement...
-            </div>
-          ) : (
-            `S'abonner pour ${(selectedPlan.price_monthly / 100).toFixed(2).replace('.', ',')}€/mois`
-          )}
+          {loading ? 'Traitement...' : `S'abonner pour ${(selectedPlan.price_monthly / 100).toFixed(2).replace('.', ',')}€/mois`}
         </button>
       </div>
 
-      <div className="text-xs text-gray-500 text-center">
-        Vos informations de paiement sont sécurisées et cryptées.
-        Vous pouvez annuler votre abonnement à tout moment.
+      {/* Message de sécurité */}
+      <div style={{
+        marginTop: '12px',
+        textAlign: 'center',
+        fontSize: '11px',
+        color: '#999',
+        fontFamily: '"Baloo 2", sans-serif'
+      }}>
+        🔒 Vos informations de paiement sont sécurisées et cryptées. Vous pouvez annuler votre abonnement à tout moment.
       </div>
     </form>
   );
