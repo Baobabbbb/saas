@@ -101,6 +101,10 @@
   letter-spacing: -0.5px;
 }
 
+.subscription-modal-content.subscription-modal-payment .subscription-modal-header h2 {
+  font-size: 1.5rem;
+}
+
 .subscription-modal-close {
   background: rgba(107, 78, 255, 0.1);
   border: 2px solid rgba(107, 78, 255, 0.2);
