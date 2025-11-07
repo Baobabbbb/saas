@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any
+from copy import deepcopy
 import json
 import os
 from datetime import datetime
@@ -23,16 +24,72 @@ DEFAULT_FEATURES = {
     "comic": {"enabled": True, "name": "Bande dessinée", "icon": "💬", "description": "Création de bandes dessinées avec bulles de dialogue"},
     "coloring": {"enabled": True, "name": "Coloriage", "icon": "🎨", "description": "Pages de coloriage à imprimer pour les enfants"},
     "histoire": {"enabled": True, "name": "Histoire", "icon": "📖", "description": "Histoires avec possibilité d'ajouter une narration audio"},
-    "audio": {"enabled": True, "name": "Histoire", "icon": "📖", "description": "Histoires avec possibilité d'ajouter une narration audio"},  # Rétrocompatibilité
     "rhyme": {"enabled": True, "name": "Comptine", "icon": "🎵", "description": "Comptines musicales avec paroles et mélodies"}
 }
+
+
+def normalize_features_data(features: Dict[str, Any]) -> Dict[str, Any]:
+    """Normaliser la configuration (supprimer les doublons, forcer l'alias audio → histoire)."""
+    if not isinstance(features, dict):
+        return deepcopy(DEFAULT_FEATURES)
+
+    normalized = deepcopy(features)
+
+    # Fusionner l'ancienne clé "audio" avec "histoire" pour rétrocompatibilité
+    if "audio" in normalized:
+        audio_feature = normalized.pop("audio") or {}
+        histoire_feature = normalized.get("histoire", {})
+
+        # Prioriser les informations existantes sur "histoire" tout en complétant avec celles de "audio"
+        merged_feature = {
+            "enabled": histoire_feature.get("enabled", audio_feature.get("enabled", True)),
+            "name": histoire_feature.get("name", audio_feature.get("name", "Histoire")),
+            "icon": histoire_feature.get("icon", audio_feature.get("icon", "📖")),
+            "description": histoire_feature.get(
+                "description",
+                audio_feature.get("description", "Histoires avec possibilité d'ajouter une narration audio")
+            ),
+            "updated_at": histoire_feature.get("updated_at", audio_feature.get("updated_at"))
+        }
+
+        normalized["histoire"] = merged_feature
+
+    # S'assurer que la clé "histoire" existe avec les valeurs par défaut minimales
+    if "histoire" not in normalized:
+        normalized["histoire"] = DEFAULT_FEATURES["histoire"].copy()
+
+    # Garantir les propriétés essentielles
+    histoire_feature = normalized["histoire"]
+    histoire_feature.setdefault("enabled", True)
+    histoire_feature.setdefault("name", "Histoire")
+    histoire_feature.setdefault("icon", "📖")
+    histoire_feature.setdefault("description", "Histoires avec possibilité d'ajouter une narration audio")
+
+    # Conserver un ordre déterministe des fonctionnalités principales
+    ordered_keys = ["animation", "comic", "coloring", "histoire", "rhyme"]
+    ordered_features = {key: normalized[key] for key in ordered_keys if key in normalized}
+
+    # Ajouter toute autre fonctionnalité personnalisée à la fin pour compatibilité future
+    for key, value in normalized.items():
+        if key not in ordered_features:
+            ordered_features[key] = value
+
+    return ordered_features
 
 def load_features_config():
     """Charger la configuration depuis le fichier JSON"""
     try:
         if os.path.exists(CONFIG_FILE):
             with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                raw_features = json.load(f)
+                normalized_features = normalize_features_data(raw_features)
+
+                # Si la normalisation a modifié les données, les persister immédiatement
+                if normalized_features != raw_features:
+                    with open(CONFIG_FILE, 'w', encoding='utf-8') as nf:
+                        json.dump(normalized_features, nf, indent=2, ensure_ascii=False)
+
+                return normalized_features
         else:
             # Créer le fichier avec les valeurs par défaut
             save_features_config(DEFAULT_FEATURES)
@@ -44,8 +101,10 @@ def load_features_config():
 def save_features_config(features):
     """Sauvegarder la configuration dans le fichier JSON"""
     try:
+        normalized_features = normalize_features_data(features)
+
         with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
-            json.dump(features, f, indent=2, ensure_ascii=False)
+            json.dump(normalized_features, f, indent=2, ensure_ascii=False)
         return True
     except Exception as e:
         print(f"Erreur lors de la sauvegarde de la configuration: {e}")

@@ -27,13 +27,6 @@
     "description": "Histoires avec possibilité d'ajouter une narration audio",
     "updated_at": "2025-01-30T10:00:00.000Z"
   },
-  "audio": {
-    "enabled": true,
-    "name": "Histoire",
-    "icon": "📖",
-    "description": "Histoires avec possibilité d'ajouter une narration audio",
-    "updated_at": "2025-01-30T10:00:00.000Z"
-  },
   "rhyme": {
     "enabled": true,
     "name": "Comptine",

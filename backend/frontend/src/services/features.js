@@ -12,8 +12,59 @@ const DEFAULT_FEATURES = {
   comic: { enabled: true, name: 'Bande dessinée', icon: '💬', description: 'Création de bandes dessinées avec bulles de dialogue' },
   coloring: { enabled: true, name: 'Coloriage', icon: '🎨', description: 'Pages de coloriage à imprimer pour les enfants' },
   histoire: { enabled: true, name: 'Histoire', icon: '📖', description: 'Histoires avec possibilité d\'ajouter une narration audio' },
-  audio: { enabled: true, name: 'Histoire', icon: '📖', description: 'Histoires avec possibilité d\'ajouter une narration audio' }, // Rétrocompatibilité
   rhyme: { enabled: true, name: 'Comptine', icon: '🎵', description: 'Comptines musicales avec paroles et mélodies' }
+};
+
+const deepClone = (obj) => JSON.parse(JSON.stringify(obj || {}));
+
+const normalizeFeatures = (features = {}) => {
+  const cloned = deepClone(features);
+  const normalized = { ...cloned };
+
+  if (normalized.audio) {
+    const audioFeature = normalized.audio;
+
+    if (!normalized.histoire) {
+      normalized.histoire = audioFeature;
+    } else {
+      normalized.histoire = {
+        enabled: normalized.histoire.enabled ?? audioFeature.enabled ?? true,
+        name: normalized.histoire.name || audioFeature.name || 'Histoire',
+        icon: normalized.histoire.icon || audioFeature.icon || '📖',
+        description: normalized.histoire.description || audioFeature.description || 'Histoires avec possibilité d\'ajouter une narration audio',
+        updated_at: normalized.histoire.updated_at || audioFeature.updated_at
+      };
+    }
+
+    delete normalized.audio;
+  }
+
+  if (normalized.histoire) {
+    normalized.histoire = {
+      enabled: normalized.histoire.enabled ?? true,
+      name: normalized.histoire.name || 'Histoire',
+      icon: normalized.histoire.icon || '📖',
+      description: normalized.histoire.description || 'Histoires avec possibilité d\'ajouter une narration audio',
+      updated_at: normalized.histoire.updated_at
+    };
+  }
+
+  const orderedKeys = ['animation', 'comic', 'coloring', 'histoire', 'rhyme'];
+  const orderedFeatures = {};
+
+  orderedKeys.forEach((key) => {
+    if (normalized[key]) {
+      orderedFeatures[key] = normalized[key];
+    }
+  });
+
+  Object.keys(normalized).forEach((key) => {
+    if (!orderedFeatures[key]) {
+      orderedFeatures[key] = normalized[key];
+    }
+  });
+
+  return orderedFeatures;
 };
 
 // Fonction pour charger les fonctionnalités depuis l'API
@@ -28,10 +79,11 @@ const loadFeaturesFromAPI = async () => {
 
     if (response.ok) {
       const features = await response.json();
+      const normalizedFeatures = normalizeFeatures(features);
       // Mettre à jour le cache
-      cachedFeatures = features;
+      cachedFeatures = normalizedFeatures;
       lastFetchTime = Date.now();
-      return features;
+      return normalizedFeatures;
     } else {
       console.error('Erreur API lors du chargement des fonctionnalités:', response.status);
       throw new Error(`Erreur API: ${response.status}`);
@@ -57,7 +109,7 @@ export const getFeatures = async () => {
   } catch (error) {
     console.error('Erreur lors de la récupération des fonctionnalités:', error);
     // En cas d'erreur, utiliser les valeurs par défaut
-    return DEFAULT_FEATURES;
+    return normalizeFeatures(DEFAULT_FEATURES);
   }
 };
 
