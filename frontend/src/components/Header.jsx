@@ -43,6 +43,14 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, user
         >
           Offrez à vos enfants des créations ludiques et imaginatives personnalisées !
         </motion.h2>
+        <motion.p
+          className="animation-coming-soon"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.6 }}
+        >
+          La création de dessins animés sera bientôt disponible.
+        </motion.p>
       </div>
       
       <div className="user-account-container">
