@@ -26,7 +26,7 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
       
       // Si la fonctionnalité actuellement sélectionnée est désactivée,
       // basculer vers la première fonctionnalité disponible (sauf si c'est animation qui doit rester par défaut)
-      if (!enabled[contentType] && contentType !== 'animation') {
+      if (!enabled[contentType]) {
         const firstEnabled = Object.keys(enabled).find(key => enabled[key].enabled);
         if (firstEnabled) {
           // Toujours utiliser 'histoire' au lieu de 'audio' pour la compatibilité
@@ -50,6 +50,14 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
       }
       
       setEnabledFeatures(features);
+
+      if (Object.keys(features).length > 0 && !features[contentType]) {
+        const [firstEnabledKey] = Object.keys(features);
+        if (firstEnabledKey) {
+          const normalizedType = firstEnabledKey === 'audio' ? 'histoire' : firstEnabledKey;
+          setContentType(normalizedType);
+        }
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des fonctionnalités:', error);
     } finally {
