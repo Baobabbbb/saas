@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import './ContentTypeSelector.css';
 import { getEnabledFeatures, listenForFeatureChanges } from '../services/features';
@@ -6,6 +6,7 @@ import { getEnabledFeatures, listenForFeatureChanges } from '../services/feature
 const ContentTypeSelector = ({ contentType, setContentType }) => {
   const [enabledFeatures, setEnabledFeatures] = useState({});
   const [loading, setLoading] = useState(true);
+  const previousAnimationEnabled = useRef(null);
 
   useEffect(() => {
     // Charger les fonctionnalités activées
@@ -13,7 +14,6 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
 
     // Écouter les changements de fonctionnalités depuis le panneau
     const cleanup = listenForFeatureChanges(async (features) => {
-      
       // Filtrer les fonctionnalités activées
       const enabled = Object.entries(features)
         .filter(([key, feature]) => feature.enabled)
@@ -23,10 +23,23 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
         }, {});
       
       setEnabledFeatures(enabled);
-      
-      // Si la fonctionnalité actuellement sélectionnée est désactivée,
-      // basculer vers la première fonctionnalité disponible (sauf si c'est animation qui doit rester par défaut)
-      if (!enabled[contentType]) {
+
+      const animationEnabled = !!features.animation?.enabled;
+
+      if (!animationEnabled) {
+        const fallbackKey = features.comic?.enabled
+          ? 'comic'
+          : Object.keys(enabled).find(key => enabled[key].enabled);
+
+        if (fallbackKey) {
+          const normalizedFallback = fallbackKey === 'audio' ? 'histoire' : fallbackKey;
+          if (contentType !== normalizedFallback) {
+            setContentType(normalizedFallback);
+          }
+        }
+      } else if (previousAnimationEnabled.current === false && contentType !== 'animation') {
+        setContentType('animation');
+      } else if (!enabled[contentType]) {
         const firstEnabled = Object.keys(enabled).find(key => enabled[key].enabled);
         if (firstEnabled) {
           // Toujours utiliser 'histoire' au lieu de 'audio' pour la compatibilité
@@ -34,6 +47,8 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
           setContentType(normalizedType);
         }
       }
+
+      previousAnimationEnabled.current = animationEnabled;
     });
     
     return cleanup;
@@ -50,6 +65,25 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
       }
       
       setEnabledFeatures(features);
+
+      const animationEnabled = !!features.animation?.enabled;
+
+      if (!animationEnabled) {
+        const fallbackKey = features.comic?.enabled
+          ? 'comic'
+          : Object.keys(features)[0];
+
+        if (fallbackKey) {
+          const normalizedFallback = fallbackKey === 'audio' ? 'histoire' : fallbackKey;
+          if (contentType !== normalizedFallback) {
+            setContentType(normalizedFallback);
+          }
+        }
+      } else if (contentType !== 'animation') {
+        setContentType('animation');
+      }
+
+      previousAnimationEnabled.current = animationEnabled;
 
       if (Object.keys(features).length > 0 && !features[contentType]) {
         const [firstEnabledKey] = Object.keys(features);
