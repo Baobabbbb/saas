@@ -889,11 +889,11 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
                 )}
 
                 {currentSubscription && currentStep === 'plans' && (
-                  <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(107, 78, 255, 0.1)', textAlign: 'center' }}>
+                  <div style={{ marginTop: '1.2rem', paddingTop: '1rem', borderTop: '1px solid rgba(107, 78, 255, 0.12)', textAlign: 'center' }}>
                     <button
                       onClick={() => setCurrentStep('management')}
                       className="plan-button primary"
-                      style={{ maxWidth: '300px', margin: '0 auto' }}
+                      style={{ maxWidth: '300px', margin: '0.5rem auto 0 auto' }}
                     >
                       Gérer mon abonnement
                     </button>
