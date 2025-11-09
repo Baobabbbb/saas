@@ -704,7 +704,7 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
       <div style={{
         display: 'flex',
         gap: '10px',
-        marginBottom: '16px'
+        marginBottom: '10px'
       }}>
         <button
           onClick={onClose}
@@ -761,7 +761,9 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
           backgroundColor: '#fff7ed',
           border: '1px solid #fed7aa',
           borderRadius: '12px',
-          padding: '10px'
+          padding: '10px',
+          marginTop: '8px',
+          marginBottom: '8px'
         }}>
           <div style={{
             color: '#9a3412',
