@@ -615,7 +615,7 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      gap: '24px',
+      gap: '16px',
       fontFamily: '"Baloo 2", sans-serif'
     }}>
       <div style={{ textAlign: 'center' }}>
@@ -623,7 +623,7 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
           fontSize: '24px',
           fontWeight: '700',
           color: '#1a1a1a',
-          marginBottom: '12px'
+          marginBottom: '8px'
         }}>
           Gestion de l'abonnement
         </h3>
@@ -631,19 +631,19 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
           backgroundColor: '#f0fdf4',
           border: '1px solid #bbf7d0',
           borderRadius: '12px',
-          padding: '16px'
+          padding: '12px'
         }}>
           <div style={{
             color: '#166534',
             fontWeight: '500',
-            fontSize: '16px'
+            fontSize: '15px'
           }}>
             Plan {subscription.subscription_plans.name} actif
           </div>
           <div style={{
             color: '#16a34a',
-            fontSize: '14px',
-            marginTop: '8px'
+            fontSize: '13px',
+            marginTop: '6px'
           }}>
             Prochaine facturation: {formatDate(subscription.current_period_end)}
           </div>
@@ -654,19 +654,19 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
         backgroundColor: '#eff6ff',
         border: '1px solid #bfdbfe',
         borderRadius: '12px',
-        padding: '16px'
+        padding: '12px'
       }}>
         <div style={{
           color: '#1e40af',
           fontWeight: '500',
-          fontSize: '16px'
+          fontSize: '15px'
         }}>
           Tokens disponibles: {subscription.tokens_remaining}
         </div>
         <div style={{
           color: '#2563eb',
-          fontSize: '14px',
-          marginTop: '8px'
+          fontSize: '13px',
+          marginTop: '6px'
         }}>
           Tokens utilisés ce mois: {subscription.tokens_used_this_month || 0}
         </div>
@@ -675,21 +675,21 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
       <div style={{
         backgroundColor: '#f9fafb',
         borderRadius: '12px',
-        padding: '16px'
+        padding: '12px'
       }}>
         <h4 style={{
           fontWeight: '500',
           color: '#1a1a1a',
-          marginBottom: '12px',
-          fontSize: '16px'
+          marginBottom: '10px',
+          fontSize: '15px'
         }}>
           Détails de l'abonnement
         </h4>
         <div style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px',
-          fontSize: '14px',
+          gap: '6px',
+          fontSize: '13px',
           color: '#6b7280'
         }}>
           <div>Prix: {(subscription.subscription_plans.price_monthly / 100).toFixed(2).replace('.', ',')}€/mois</div>
@@ -701,8 +701,8 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
 
       <div style={{
         display: 'flex',
-        gap: '12px',
-        marginBottom: '20px'
+        gap: '10px',
+        marginBottom: '16px'
       }}>
         <button
           onClick={onClose}
@@ -710,12 +710,12 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
             flex: 1,
             backgroundColor: '#e5e7eb',
             color: '#1f2937',
-            padding: '12px 16px',
+            padding: '10px 14px',
             borderRadius: '8px',
             fontWeight: '500',
             border: 'none',
             cursor: 'pointer',
-            fontSize: '15px',
+            fontSize: '14px',
             transition: 'background-color 0.2s'
           }}
           onMouseEnter={(e) => e.target.style.backgroundColor = '#d1d5db'}
@@ -730,12 +730,12 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
             flex: 1,
             backgroundColor: subscription.cancel_at_period_end ? '#9ca3af' : '#dc2626',
             color: 'white',
-            padding: '12px 16px',
+            padding: '10px 14px',
             borderRadius: '8px',
             fontWeight: '500',
             border: 'none',
             cursor: (loading || subscription.cancel_at_period_end) ? 'not-allowed' : 'pointer',
-            fontSize: '15px',
+            fontSize: '14px',
             opacity: (loading || subscription.cancel_at_period_end) ? 0.5 : 1,
             transition: 'background-color 0.2s'
           }}
@@ -759,11 +759,11 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
           backgroundColor: '#fff7ed',
           border: '1px solid #fed7aa',
           borderRadius: '12px',
-          padding: '12px'
+          padding: '10px'
         }}>
           <div style={{
             color: '#9a3412',
-            fontSize: '14px'
+            fontSize: '13px'
           }}>
             ⚠️ Votre abonnement sera annulé le {formatDate(subscription.current_period_end)}
           </div>
