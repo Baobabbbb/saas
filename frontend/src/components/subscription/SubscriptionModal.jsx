@@ -199,8 +199,10 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
     );
   }
 
+  const hasActiveSubscription = Boolean(currentSubscription);
+
   return (
-    <div className="subscription-plans-grid">
+    <div className={`subscription-plans-grid ${hasActiveSubscription ? 'has-active-subscription' : ''}`}>
       {plans.map((plan) => {
         const features = getPlanFeatures(plan.name);
         const isCurrentPlan = currentSubscription?.subscription_plans?.name === plan.name;
@@ -208,7 +210,7 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
         return (
           <div
             key={plan.id}
-            className={`subscription-plan-card ${isCurrentPlan ? 'active' : ''}`}
+            className={`subscription-plan-card ${isCurrentPlan ? 'active' : ''} ${hasActiveSubscription ? 'compact' : ''}`}
           >
             <div className="plan-name">{plan.name}</div>
             <div className="plan-price">

@@ -224,6 +224,36 @@
   opacity: 1;
 }
 
+.subscription-plan-card.compact {
+  padding: 1rem;
+  min-height: 410px;
+}
+
+.subscription-plan-card.compact .plan-price {
+  margin-bottom: 0.2rem;
+}
+
+.subscription-plan-card.compact .plan-price-period {
+  margin-bottom: 0.55rem;
+}
+
+.subscription-plan-card.compact .plan-features {
+  margin: 0.5rem 0;
+}
+
+.subscription-plan-card.compact .plan-features li {
+  padding: 0.3rem 0;
+  font-size: 0.85rem;
+}
+
+.subscription-plan-card.compact .plan-ideal {
+  margin-top: 0.4rem;
+}
+
+.subscription-plan-card.compact .plan-button {
+  margin-top: 0.5rem;
+}
+
 .plan-name {
   font-size: 1.25rem;
   font-weight: 800;
