@@ -80,19 +80,25 @@ serve(async (req) => {
       .from('subscriptions')
       .select(`
         *,
-        subscription_plans!inner(*),
-        token_costs!inner(content_type, tokens_required)
+        subscription_plans(*)
       `)
       .eq('user_id', userId)
       .eq('status', 'active')
-      .eq('token_costs.content_type', contentType)
       .lte('current_period_start', new Date().toISOString())
       .gte('current_period_end', new Date().toISOString())
       .single();
 
     if (subscription && !subError) {
+      // Récupérer le coût en tokens pour ce type de contenu
+      const { data: tokenCost } = await supabase
+        .from('token_costs')
+        .select('tokens_required')
+        .eq('plan_id', subscription.plan_id)
+        .eq('content_type', contentType)
+        .single();
+
       // Calculer le coût en tokens selon le contenu
-      let tokensRequired = subscription.token_costs[0]?.tokens_required || 1;
+      let tokensRequired = tokenCost?.tokens_required || 1;
 
       // Ajustements pour les animations selon la durée
       if (contentType === 'animation') {
