@@ -25,21 +25,25 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
       setEnabledFeatures(enabled);
 
       const animationEnabled = !!features.animation?.enabled;
+      const currentEnabled = !!enabled[contentType];
 
       if (!animationEnabled) {
-        const fallbackKey = features.comic?.enabled
-          ? 'comic'
-          : Object.keys(enabled).find(key => enabled[key].enabled);
+        const shouldFallback = contentType === 'animation' || !currentEnabled;
+        if (shouldFallback) {
+          const fallbackKey = features.comic?.enabled
+            ? 'comic'
+            : Object.keys(enabled).find(key => enabled[key].enabled);
 
-        if (fallbackKey) {
-          const normalizedFallback = fallbackKey === 'audio' ? 'histoire' : fallbackKey;
-          if (contentType !== normalizedFallback) {
-            setContentType(normalizedFallback);
+          if (fallbackKey) {
+            const normalizedFallback = fallbackKey === 'audio' ? 'histoire' : fallbackKey;
+            if (contentType !== normalizedFallback) {
+              setContentType(normalizedFallback);
+            }
           }
         }
       } else if (previousAnimationEnabled.current === false && contentType !== 'animation') {
         setContentType('animation');
-      } else if (!enabled[contentType]) {
+      } else if (!currentEnabled) {
         const firstEnabled = Object.keys(enabled).find(key => enabled[key].enabled);
         if (firstEnabled) {
           // Toujours utiliser 'histoire' au lieu de 'audio' pour la compatibilité
@@ -67,25 +71,29 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
       setEnabledFeatures(features);
 
       const animationEnabled = !!features.animation?.enabled;
+      const currentEnabled = !!features[contentType];
 
       if (!animationEnabled) {
-        const fallbackKey = features.comic?.enabled
-          ? 'comic'
-          : Object.keys(features)[0];
+        const shouldFallback = contentType === 'animation' || !currentEnabled;
+        if (shouldFallback) {
+          const fallbackKey = features.comic?.enabled
+            ? 'comic'
+            : Object.keys(features).find(key => features[key].enabled);
 
-        if (fallbackKey) {
-          const normalizedFallback = fallbackKey === 'audio' ? 'histoire' : fallbackKey;
-          if (contentType !== normalizedFallback) {
-            setContentType(normalizedFallback);
+          if (fallbackKey) {
+            const normalizedFallback = fallbackKey === 'audio' ? 'histoire' : fallbackKey;
+            if (contentType !== normalizedFallback) {
+              setContentType(normalizedFallback);
+            }
           }
         }
-      } else if (contentType !== 'animation') {
+      } else if (previousAnimationEnabled.current === false && contentType !== 'animation') {
         setContentType('animation');
       }
 
       previousAnimationEnabled.current = animationEnabled;
 
-      if (Object.keys(features).length > 0 && !features[contentType]) {
+      if (Object.keys(features).length > 0 && !currentEnabled) {
         const [firstEnabledKey] = Object.keys(features);
         if (firstEnabledKey) {
           const normalizedType = firstEnabledKey === 'audio' ? 'histoire' : firstEnabledKey;
