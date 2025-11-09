@@ -893,7 +893,7 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
                     <button
                       onClick={() => setCurrentStep('management')}
                       className="plan-button primary"
-                      style={{ maxWidth: '300px', margin: '0.5rem auto 0 auto' }}
+                      style={{ maxWidth: '300px', margin: '0.5rem auto 0.75rem auto' }}
                     >
                       Gérer mon abonnement
                     </button>
