@@ -89,47 +89,37 @@ serve(async (req) => {
       .single();
 
     if (subscription && !subError) {
-      // Récupérer le coût en tokens pour ce type de contenu
-      const { data: tokenCost } = await supabase
-        .from('token_costs')
-        .select('tokens_required')
-        .eq('plan_id', subscription.plan_id)
-        .eq('content_type', contentType)
-        .single();
+      // Calculer le coût en tokens selon le type de contenu
+      // Basé sur TARIFICATION_HERBBIE.md : 1 token = 0,01€ de coût API
+      let tokensRequired = 4; // Par défaut (histoire/audio)
 
-      // Calculer le coût en tokens selon le contenu
-      let tokensRequired = tokenCost?.tokens_required || 1;
-
-      // Ajustements pour les animations selon la durée
-      if (contentType === 'animation') {
-        const duration = selectedDuration || 30; // durée en secondes
-        if (duration === 60) tokensRequired = Math.ceil(tokensRequired * 1.5);
-        else if (duration === 120) tokensRequired = Math.ceil(tokensRequired * 2.5);
-        else if (duration === 180) tokensRequired = Math.ceil(tokensRequired * 4);
-        else if (duration === 240) tokensRequired = Math.ceil(tokensRequired * 5);
-        else if (duration === 300) tokensRequired = Math.ceil(tokensRequired * 6);
-      }
-
-      // Ajustements pour les BD selon le nombre de pages
-      if ((contentType === 'bd' || contentType === 'comic') && numPages) {
-        tokensRequired = tokensRequired * numPages;
-      }
-
-      // Ajustements pour les histoires avec audio
-      // Si l'utilisateur choisit une voix, c'est une histoire audio qui coûte plus cher
-      if ((contentType === 'histoire' || contentType === 'story') && selectedVoice && (selectedVoice === 'female' || selectedVoice === 'male')) {
-        // Histoire audio coûte légèrement plus que histoire texte
-        // On utilise le coût de 'audio' si disponible, sinon on garde le coût histoire
-        const { data: audioCost } = await supabase
-          .from('token_costs')
-          .select('tokens_required')
-          .eq('plan_id', subscription.plan_id)
-          .eq('content_type', 'audio')
-          .single();
-        
-        if (audioCost) {
-          tokensRequired = audioCost.tokens_required;
+      // Coûts de base selon le type de contenu
+      if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio') {
+        tokensRequired = 4; // 0,042€ → 4 tokens
+      } else if (contentType === 'coloriage') {
+        tokensRequired = 16; // 0,16€ → 16 tokens
+      } else if (contentType === 'bd' || contentType === 'comic') {
+        tokensRequired = 16; // 0,16€ par page → 16 tokens
+        // Multiplier par le nombre de pages
+        if (numPages && numPages > 0) {
+          tokensRequired = tokensRequired * numPages;
         }
+      } else if (contentType === 'comptine' || contentType === 'rhyme') {
+        tokensRequired = 15; // 0,15€ → 15 tokens
+      } else if (contentType === 'animation') {
+        // Coûts animations basés sur la durée (Veo 3.1 Fast: 0,14€/seconde)
+        const duration = selectedDuration || 30; // durée en secondes
+        const costPerSecond = 0.14; // €
+        const totalCost = costPerSecond * duration;
+        tokensRequired = Math.ceil(totalCost * 100); // Convertir en tokens (1 token = 0,01€)
+        
+        // Vérification des coûts selon la tarification:
+        // 30s: 4,20€ → 420 tokens
+        // 60s: 8,40€ → 840 tokens
+        // 120s: 16,80€ → 1680 tokens
+        // 180s: 25,20€ → 2520 tokens
+        // 240s: 33,60€ → 3360 tokens
+        // 300s: 42,00€ → 4200 tokens
       }
 
       // Vérifier si l'utilisateur a assez de tokens

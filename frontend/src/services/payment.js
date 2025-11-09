@@ -355,53 +355,37 @@ export const getUserTokens = async (userId) => {
 };
 
 // Calculer le coût en tokens pour un contenu
+// Basé sur TARIFICATION_HERBBIE.md : 1 token = 0,01€ de coût API
 export const calculateTokenCost = (contentType, options = {}, subscription = null) => {
-  let tokensRequired = 1; // Par défaut
+  let tokensRequired = 4; // Par défaut (histoire)
 
-  if (subscription) {
-    // Récupérer le coût depuis la base de données des coûts par plan
-    // Pour l'instant, approximation basée sur le document TARIFICATION_HERBBIE.md
-    const planName = subscription.subscription_plans?.name;
-
-    const tokenCosts = {
-      'Découverte': {
-        'histoire': 3, 'audio': 3, 'coloriage': 2, 'bd': 4, 'comptine': 5, 'animation': 10
-      },
-      'Famille': {
-        'histoire': 3, 'audio': 3, 'coloriage': 2, 'bd': 3, 'comptine': 4, 'animation': 8
-      },
-      'Créatif': {
-        'histoire': 2, 'audio': 2, 'coloriage': 1, 'bd': 2, 'comptine': 3, 'animation': 5
-      },
-      'Institut': {
-        'histoire': 1, 'audio': 1, 'coloriage': 1, 'bd': 1, 'comptine': 2, 'animation': 3
-      }
-    };
-
-    if (planName && tokenCosts[planName]) {
-      tokensRequired = tokenCosts[planName][contentType] || 1;
+  // Coûts de base IDENTIQUES pour tous les plans (1 token = 0,01€ de coût API)
+  if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio') {
+    tokensRequired = 4; // 0,042€ → 4 tokens
+  } else if (contentType === 'coloriage') {
+    tokensRequired = 16; // 0,16€ → 16 tokens
+  } else if (contentType === 'bd' || contentType === 'comic') {
+    tokensRequired = 16; // 0,16€ par page → 16 tokens
+    // Multiplier par le nombre de pages
+    if (options.pages && options.pages > 0) {
+      tokensRequired = tokensRequired * options.pages;
     }
-  } else {
-    // Coûts approximatifs pour pay-per-use
-    const payPerUseCosts = {
-      'histoire': 1, 'audio': 1, 'coloriage': 1, 'bd': 4, 'comptine': 5, 'animation': 10
-    };
-    tokensRequired = payPerUseCosts[contentType] || 1;
-  }
-
-  // Ajustements pour les animations selon la durée
-  if (contentType === 'animation' && options.duration) {
-    const duration = options.duration;
-    if (duration === 60) tokensRequired = Math.ceil(tokensRequired * 1.5);
-    else if (duration === 120) tokensRequired = Math.ceil(tokensRequired * 2.5);
-    else if (duration === 180) tokensRequired = Math.ceil(tokensRequired * 4);
-    else if (duration === 240) tokensRequired = Math.ceil(tokensRequired * 5);
-    else if (duration === 300) tokensRequired = Math.ceil(tokensRequired * 6);
-  }
-
-  // Ajustements pour les BD selon le nombre de pages
-  if ((contentType === 'bd' || contentType === 'comic') && options.pages) {
-    tokensRequired = tokensRequired * options.pages;
+  } else if (contentType === 'comptine' || contentType === 'rhyme') {
+    tokensRequired = 15; // 0,15€ → 15 tokens
+  } else if (contentType === 'animation') {
+    // Coûts animations basés sur la durée (Veo 3.1 Fast: 0,14€/seconde)
+    const duration = options.duration || 30; // durée en secondes
+    const costPerSecond = 0.14; // €
+    const totalCost = costPerSecond * duration;
+    tokensRequired = Math.ceil(totalCost * 100); // Convertir en tokens (1 token = 0,01€)
+    
+    // Résultat selon la tarification:
+    // 30s: 4,20€ → 420 tokens
+    // 60s: 8,40€ → 840 tokens
+    // 120s: 16,80€ → 1680 tokens
+    // 180s: 25,20€ → 2520 tokens
+    // 240s: 33,60€ → 3360 tokens
+    // 300s: 42,00€ → 4200 tokens
   }
 
   return tokensRequired;
