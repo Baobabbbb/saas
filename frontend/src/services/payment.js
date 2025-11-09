@@ -295,6 +295,21 @@ export const cancelSubscription = async (userId) => {
   }
 };
 
+// Confirmer un abonnement après paiement réussi
+export const confirmSubscription = async (stripeSubscriptionId) => {
+  try {
+    const { data, error } = await supabase.functions.invoke('manage-subscription', {
+      body: { action: 'confirm_subscription', stripeSubscriptionId }
+    });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Erreur confirmation abonnement:', error);
+    throw error;
+  }
+};
+
 // Déduire des tokens après utilisation
 export const deductTokens = async (userId, contentType, tokensUsed, options = {}) => {
   try {

@@ -16,6 +16,7 @@ import {
   getUserSubscription,
   createSubscription,
   cancelSubscription,
+  confirmSubscription,
   getUserTokens
 } from '../../services/payment';
 import './SubscriptionModal.css';
@@ -332,6 +333,14 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
           if (confirmError) {
             setError(confirmError.message);
             return;
+          }
+
+          // Confirmer l'abonnement dans Supabase après paiement réussi
+          try {
+            await confirmSubscription(result.stripeSubscription.id);
+          } catch (confirmErr) {
+            console.error('Erreur confirmation abonnement:', confirmErr);
+            // Ne pas bloquer si la confirmation échoue, l'abonnement existe déjà
           }
         }
 
