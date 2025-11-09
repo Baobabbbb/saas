@@ -16,8 +16,7 @@ import {
   getUserSubscription,
   createSubscription,
   cancelSubscription,
-  confirmSubscription,
-  getUserTokens
+  confirmSubscription
 } from '../../services/payment';
 import './SubscriptionModal.css';
 
@@ -585,20 +584,6 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
 
 const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
   const [loading, setLoading] = useState(false);
-  const [tokensInfo, setTokensInfo] = useState(null);
-
-  useEffect(() => {
-    loadTokensInfo();
-  }, []);
-
-  const loadTokensInfo = async () => {
-    try {
-      const { totalTokens } = await getUserTokens(subscription.user_id);
-      setTokensInfo({ totalTokens });
-    } catch (error) {
-      console.error('Erreur chargement tokens:', error);
-    }
-  };
 
   const handleCancelSubscription = async () => {
     if (!confirm('Êtes-vous sûr de vouloir annuler votre abonnement ? Il restera actif jusqu\'à la fin de la période en cours.')) {
@@ -665,29 +650,27 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
         </div>
       </div>
 
-      {tokensInfo && (
+      <div style={{
+        backgroundColor: '#eff6ff',
+        border: '1px solid #bfdbfe',
+        borderRadius: '12px',
+        padding: '16px'
+      }}>
         <div style={{
-          backgroundColor: '#eff6ff',
-          border: '1px solid #bfdbfe',
-          borderRadius: '12px',
-          padding: '16px'
+          color: '#1e40af',
+          fontWeight: '500',
+          fontSize: '16px'
         }}>
-          <div style={{
-            color: '#1e40af',
-            fontWeight: '500',
-            fontSize: '16px'
-          }}>
-            Tokens disponibles: {tokensInfo.totalTokens}
-          </div>
-          <div style={{
-            color: '#2563eb',
-            fontSize: '14px',
-            marginTop: '8px'
-          }}>
-            Tokens utilisés ce mois: {subscription.tokens_used_this_month || 0}
-          </div>
+          Tokens disponibles: {subscription.tokens_remaining}
         </div>
-      )}
+        <div style={{
+          color: '#2563eb',
+          fontSize: '14px',
+          marginTop: '8px'
+        }}>
+          Tokens utilisés ce mois: {subscription.tokens_used_this_month || 0}
+        </div>
+      </div>
 
       <div style={{
         backgroundColor: '#f9fafb',
