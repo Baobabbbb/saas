@@ -50,6 +50,11 @@
   width: calc(100% - 2rem) !important;
 }
 
+.subscription-modal-content.subscription-modal-management {
+  max-width: 550px !important;
+  width: calc(100% - 2rem) !important;
+}
+
 @keyframes modalFadeIn {
   from {
     opacity: 0;

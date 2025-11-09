@@ -718,7 +718,8 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
 
       <div style={{
         display: 'flex',
-        gap: '12px'
+        gap: '12px',
+        marginBottom: '20px'
       }}>
         <button
           onClick={onClose}
@@ -844,11 +845,12 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
   };
 
   const isPaymentStep = currentStep === 'payment';
+  const isManagementStep = currentStep === 'management';
 
   const modalContent = (
     <div className="subscription-modal-overlay" onClick={handleOverlayClick}>
       <motion.div
-        className={`subscription-modal-content ${isPaymentStep ? 'subscription-modal-payment' : ''}`}
+        className={`subscription-modal-content ${isPaymentStep ? 'subscription-modal-payment' : ''} ${isManagementStep ? 'subscription-modal-management' : ''}`}
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
