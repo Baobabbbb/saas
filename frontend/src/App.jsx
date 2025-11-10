@@ -643,7 +643,8 @@ function App() {
         // Génération classique par thème
       const payload = {
           theme: selectedTheme,
-          with_colored_model: withColoredModel
+          with_colored_model: withColoredModel,
+          user_id: user?.id  // ✅ Ajouter user_id pour Supabase Storage
       };
         
         // Si c'est un coloriage personnalisé, ajouter le prompt personnalisé
@@ -669,7 +670,8 @@ function App() {
       const payload = {
         theme: selectedComicsTheme === 'custom' ? customComicsStory : selectedComicsTheme,
         art_style: selectedComicsStyle || 'cartoon', // Style par défaut si aucun sélectionné
-        num_pages: numPages || 1 // Nombre de pages par défaut si aucun sélectionné
+        num_pages: numPages || 1, // Nombre de pages par défaut si aucun sélectionné
+        user_id: user?.id  // ✅ Ajouter user_id pour Supabase Storage
       };
 
       // Si histoire personnalisée
