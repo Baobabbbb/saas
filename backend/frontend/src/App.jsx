@@ -396,19 +396,64 @@ function App() {
   const currentTheme = selectedAnimationTheme || 'space';
 
   // Mettre à jour le texte du bouton selon le statut admin et le type de contenu
-  const updateButtonText = (adminStatus) => {
+  const updateButtonText = async (adminStatus) => {
     if (adminStatus) {
       setButtonText('Générer Gratuitement');
     } else {
-      // Préparer les options selon le type de contenu
+      // Vérifier si l'utilisateur a un abonnement actif avec des tokens
+      if (user) {
+        try {
+          // Préparer les options selon le type de contenu
+          const permissionOptions = {};
+          
+          if (contentType === 'animation') {
+            permissionOptions.selectedDuration = selectedDuration;
+          } else if (contentType === 'comic' || contentType === 'bd') {
+            permissionOptions.numPages = numPages || 1;
+          } else if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio') {
+            permissionOptions.selectedVoice = selectedVoice;
+          }
+
+          const { data: permissionData } = await supabase.functions.invoke('check-permission', {
+            body: {
+              contentType,
+              userId: user.id,
+              userEmail: user.email,
+              ...permissionOptions
+            }
+          });
+
+          // Si l'utilisateur a un abonnement actif avec des tokens suffisants
+          if (permissionData?.hasPermission && permissionData?.reason === 'subscription_active') {
+            // Afficher le texte sans prix
+            if (contentType === 'rhyme' || contentType === 'comptine') {
+              setButtonText('Créer ma comptine');
+            } else if (contentType === 'coloring' || contentType === 'coloriage') {
+              setButtonText('Créer mon coloriage');
+            } else if (contentType === 'comic' || contentType === 'bd') {
+              setButtonText('Créer ma bande dessinée');
+            } else if (contentType === 'animation') {
+              setButtonText('Créer mon dessin animé');
+            } else if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio') {
+              setButtonText('Créer mon histoire');
+            } else {
+              setButtonText('Créer mon contenu');
+            }
+            return;
+          }
+        } catch (error) {
+          console.error('Erreur vérification abonnement pour bouton:', error);
+        }
+      }
+
+      // Sinon, afficher le prix (pas d'abonnement ou tokens insuffisants)
       let options = {};
 
       if (contentType === 'animation') {
         options.duration = selectedDuration;
       } else if (contentType === 'comic' || contentType === 'bd') {
-        options.pages = numPages || 1; // Par défaut 1 page si non défini
+        options.pages = numPages || 1;
       } else if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio') {
-        // Pour les histoires, inclure le choix de la voix
         options.voice = selectedVoice;
       }
 
@@ -422,7 +467,7 @@ function App() {
   // Mettre à jour le prix quand les options changent
   useEffect(() => {
     updateButtonText(userHasFreeAccess);
-  }, [selectedVoice, selectedDuration, numPages, contentType, userHasFreeAccess]);
+  }, [selectedVoice, selectedDuration, numPages, contentType, userHasFreeAccess, user]);
   
   // Handle Generation
   const handleGenerate = async () => {

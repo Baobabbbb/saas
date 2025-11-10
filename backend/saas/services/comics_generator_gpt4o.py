@@ -15,6 +15,7 @@ from typing import List, Dict, Any, Optional
 from PIL import Image
 import io
 from dotenv import load_dotenv
+from services.supabase_storage import get_storage_service
 
 load_dotenv()
 
@@ -359,7 +360,8 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
         self,
         story_data: Dict[str, Any],
         art_style: str,
-        character_photo_path: Optional[str] = None
+        character_photo_path: Optional[str] = None,
+        user_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
         Génère toutes les planches de BD avec gpt-image-1-mini
@@ -398,10 +400,33 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
                     character_photo_path  # Passer la photo
                 )
                 
+                # 📤 Upload vers Supabase Storage si user_id fourni
+                storage_service = get_storage_service()
+                if storage_service and user_id:
+                    upload_result = await storage_service.upload_file(
+                        file_path=str(image_path),
+                        user_id=user_id,
+                        content_type="comic",
+                        creation_id=comic_id,
+                        custom_filename=f"page_{page_num}.png"
+                    )
+                    
+                    if upload_result["success"]:
+                        # Utiliser l'URL signée Supabase (valide 1 an)
+                        image_url = upload_result["signed_url"]
+                        print(f"✅ Image uploadée vers Supabase Storage")
+                    else:
+                        # Fallback sur chemin local si upload échoue
+                        image_url = f"/static/cache/comics/{comic_id}/page_{page_num}.png"
+                        print(f"⚠️ Upload Supabase échoué, utilisation chemin local")
+                else:
+                    # Pas de Storage configuré, utiliser chemin local
+                    image_url = f"/static/cache/comics/{comic_id}/page_{page_num}.png"
+                
                 # Construire la réponse (format compatible avec le reste de l'app)
                 page_info = {
                     "page_number": page_num,
-                    "image_url": f"/static/cache/comics/{comic_id}/page_{page_num}.png",
+                    "image_url": image_url,
                     "image_path": str(image_path),
                     "panels_count": len(page_data["panels"]),
                     "description": f"Planche {page_num} de {story_data['title']}"
@@ -585,7 +610,8 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
         num_pages: int,
         art_style: str,
         custom_prompt: Optional[str] = None,
-        character_photo_path: Optional[str] = None
+        character_photo_path: Optional[str] = None,
+        user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Crée une bande dessinée complète
@@ -611,7 +637,8 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
             pages, comic_id = await self.generate_comic_pages(
                 story_data=story_data,
                 art_style=art_style,
-                character_photo_path=character_photo_path  # Passer la photo pour images.edit()
+                character_photo_path=character_photo_path,  # Passer la photo pour images.edit()
+                user_id=user_id  # Passer user_id pour upload Supabase Storage
             )
             
             generation_time = (datetime.now() - start_time).total_seconds()

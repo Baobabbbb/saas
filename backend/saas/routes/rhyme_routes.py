@@ -6,11 +6,20 @@ from typing import Dict, Any
 import os
 from openai import AsyncOpenAI
 from services.suno_service import suno_service
+from services.uniqueness_service import uniqueness_service
 
 router = APIRouter()
 
 # Configuration
 TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
+
+# Client Supabase pour le service d'unicité
+from supabase import create_client, Client
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://xfbmdeuzuyixpmouhqcv.supabase.co")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+supabase_client: Client = None
+if SUPABASE_SERVICE_KEY:
+    supabase_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 
 def detect_customization(custom_request: str) -> bool:
@@ -43,8 +52,27 @@ async def generate_rhyme_endpoint(request: Dict[str, Any]):
     try:
         theme = request.get("theme", "animaux")
         custom_request = request.get("custom_request", "")
+        user_id = request.get("user_id")  # ID utilisateur pour unicité
         
         needs_custom = detect_customization(custom_request)
+        
+        # 🆕 Enrichir avec l'historique pour éviter doublons (non-bloquant)
+        history_context = ""
+        try:
+            if supabase_client and user_id:
+                history = await uniqueness_service.get_user_history(
+                    supabase_client=supabase_client,
+                    user_id=user_id,
+                    content_type="comptine",
+                    theme=theme,
+                    limit=3
+                )
+                
+                if history and len(history) > 0:
+                    history_context = f"\n\n[ÉVITER LES DOUBLONS: L'utilisateur a déjà {len(history)} comptine(s) sur {theme}. Crée quelque chose de complètement différent.]"
+        except Exception as history_error:
+            print(f"⚠️ Historique non disponible (non-bloquant): {history_error}")
+            pass
         
         # Si l'utilisateur a entré une personnalisation, générer un prompt optimisé
         if needs_custom and custom_request:
@@ -81,8 +109,8 @@ Réponds UNIQUEMENT avec le prompt optimisé, sans explications supplémentaires
             
             optimized_prompt = prompt_resp.choices[0].message.content.strip() if prompt_resp.choices[0].message.content else custom_request
             
-            # Étape 2 : Générer les paroles avec GPT-4o-mini
-            lyrics_prompt = f"Écris une courte comptine joyeuse en français pour enfants de 3-8 ans.\nDemande: {custom_request}\nFormat: TITRE: [titre]\nCOMPTINE: [texte]"
+            # Étape 2 : Générer les paroles avec GPT-4o-mini (enrichi avec historique)
+            lyrics_prompt = f"Écris une courte comptine joyeuse en français pour enfants de 3-8 ans.\nDemande: {custom_request}{history_context}\nFormat: TITRE: [titre]\nCOMPTINE: [texte]"
             
             lyrics_resp = await client.chat.completions.create(
                 model=TEXT_MODEL,
@@ -148,6 +176,33 @@ Réponds UNIQUEMENT avec le prompt optimisé, sans explications supplémentaires
         if suno_res.get("status") == "success":
             task_id = suno_res.get("task_id")
             
+            # 🆕 Stocker les métadonnées d'unicité (non-bloquant)
+            uniqueness_metadata = {}
+            try:
+                if supabase_client and user_id:
+                    content_for_hash = f"{theme}_{custom_request}_{lyrics_text[:100]}"
+                    
+                    uniqueness_check = await uniqueness_service.ensure_unique_content(
+                        supabase_client=supabase_client,
+                        user_id=user_id,
+                        content_type="comptine",
+                        theme=theme,
+                        generated_content=content_for_hash,
+                        custom_data={
+                            "custom_request": custom_request,
+                            "custom_mode": needs_custom
+                        }
+                    )
+                    
+                    uniqueness_metadata = {
+                        "content_hash": uniqueness_check.get("content_hash"),
+                        "summary": uniqueness_check.get("summary"),
+                        "variation_tags": uniqueness_check.get("variation_tags")
+                    }
+            except Exception as uniqueness_error:
+                print(f"⚠️ Service unicité non disponible (non-bloquant): {uniqueness_error}")
+                pass
+            
             return {
                 "title": title_text,
                 "content": lyrics_text,
@@ -158,7 +213,9 @@ Réponds UNIQUEMENT avec le prompt optimisé, sans explications supplémentaires
                 "service": "suno",
                 "has_music": True,
                 "custom_mode": needs_custom,
-                "message": "Comptine générée, musique en cours..."
+                "message": "Comptine générée, musique en cours...",
+                # Métadonnées d'unicité (optionnelles)
+                "uniqueness_metadata": uniqueness_metadata if uniqueness_metadata else None
             }
         else:
             err = suno_res.get("error", "Unknown")

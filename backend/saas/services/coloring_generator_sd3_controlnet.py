@@ -14,6 +14,7 @@ from PIL import Image, ImageEnhance, ImageOps
 import io
 import requests
 from dotenv import load_dotenv
+from services.supabase_storage import get_storage_service
 
 load_dotenv()
 
@@ -66,7 +67,8 @@ no text, no logos, no watermarks, no realistic textures, no gradients, no shadow
         photo_path: str,
         control_mode: Literal["canny", "scribble"] = "canny",
         control_strength: float = 0.7,
-        custom_prompt: Optional[str] = None
+        custom_prompt: Optional[str] = None,
+        user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Convertit une photo en coloriage avec ControlNet
@@ -110,17 +112,39 @@ no text, no logos, no watermarks, no realistic textures, no gradients, no shadow
             # 5. Post-traiter pour optimiser (noir/blanc pur)
             final_path = await self._post_process_coloring(coloring_path)
             
+            # 📤 Upload vers Supabase Storage si user_id fourni
+            storage_service = get_storage_service()
+            if storage_service and user_id:
+                upload_result = await storage_service.upload_file(
+                    file_path=str(final_path),
+                    user_id=user_id,
+                    content_type="coloring",
+                    custom_filename=final_path.name
+                )
+                
+                if upload_result["success"]:
+                    image_url = upload_result["signed_url"]
+                    control_image_url = image_url  # Même fichier pour les deux
+                    print(f"✅ Image uploadée vers Supabase Storage")
+                else:
+                    image_url = f"{self.base_url}/static/coloring/{final_path.name}"
+                    control_image_url = f"{self.base_url}/static/coloring/{control_path.name}"
+                    print(f"⚠️ Upload Supabase échoué, utilisation chemin local")
+            else:
+                image_url = f"{self.base_url}/static/coloring/{final_path.name}"
+                control_image_url = f"{self.base_url}/static/coloring/{control_path.name}"
+            
             # 6. Construire la réponse
             result = {
                 "success": True,
                 "source_photo": photo_path,
                 "images": [{
-                    "image_url": f"{self.base_url}/static/coloring/{final_path.name}",
+                    "image_url": image_url,
                     "control_mode": control_mode,
                     "control_strength": control_strength,
                     "source": "sd3_controlnet"
                 }],
-                "control_image_url": f"{self.base_url}/static/coloring/{control_path.name}",
+                "control_image_url": control_image_url,
                 "total_images": 1,
                 "metadata": {
                     "source_photo": photo_path,
@@ -375,7 +399,7 @@ no text, no logos, no watermarks, no realistic textures, no gradients, no shadow
             print(f"⚠️ Erreur post-traitement: {e}")
             return image_path
     
-    async def generate_coloring_from_theme(self, theme: str) -> Dict[str, Any]:
+    async def generate_coloring_from_theme(self, theme: str, user_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Génération par thème (pour compatibilité)
         Note: Cette méthode n'utilise pas ControlNet car pas de photo source
@@ -432,11 +456,30 @@ no text, no logos, no watermarks, no realistic textures, no gradients, no shadow
                 # Post-traiter
                 final_path = await self._post_process_coloring(output_path)
                 
+                # 📤 Upload vers Supabase Storage si user_id fourni
+                storage_service = get_storage_service()
+                if storage_service and user_id:
+                    upload_result = await storage_service.upload_file(
+                        file_path=str(final_path),
+                        user_id=user_id,
+                        content_type="coloring",
+                        custom_filename=final_path.name
+                    )
+                    
+                    if upload_result["success"]:
+                        image_url = upload_result["signed_url"]
+                        print(f"✅ Image uploadée vers Supabase Storage")
+                    else:
+                        image_url = f"{self.base_url}/static/coloring/{final_path.name}"
+                        print(f"⚠️ Upload Supabase échoué, utilisation chemin local")
+                else:
+                    image_url = f"{self.base_url}/static/coloring/{final_path.name}"
+                
                 return {
                     "success": True,
                     "theme": theme,
                     "images": [{
-                        "image_url": f"{self.base_url}/static/coloring/{final_path.name}",
+                        "image_url": image_url,
                         "theme": theme,
                         "source": "sd3_standard"
                     }],

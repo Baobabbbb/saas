@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-// CACHE-BUST: v1762466112 - 2025-11-06 22:55:12
+// CACHE-BUST: v1762479000 - 2025-11-07 02:30:00 - FORCE RELOAD
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
-  CardElement,
+  CardNumberElement,
+  CardExpiryElement,
+  CardCvcElement,
   useStripe,
   useElements
 } from '@stripe/react-stripe-js';
@@ -14,7 +16,7 @@ import {
   getUserSubscription,
   createSubscription,
   cancelSubscription,
-  getUserTokens
+  confirmSubscription
 } from '../../services/payment';
 import './SubscriptionModal.css';
 
@@ -197,8 +199,10 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
     );
   }
 
+  const hasActiveSubscription = Boolean(currentSubscription);
+
   return (
-    <div className="subscription-plans-grid">
+    <div className={`subscription-plans-grid ${hasActiveSubscription ? 'has-active-subscription' : ''}`}>
       {plans.map((plan) => {
         const features = getPlanFeatures(plan.name);
         const isCurrentPlan = currentSubscription?.subscription_plans?.name === plan.name;
@@ -206,7 +210,7 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
         return (
           <div
             key={plan.id}
-            className={`subscription-plan-card ${isCurrentPlan ? 'active' : ''}`}
+            className={`subscription-plan-card ${isCurrentPlan ? 'active' : ''} ${hasActiveSubscription ? 'compact' : ''}`}
           >
             <div className="plan-name">{plan.name}</div>
             <div className="plan-price">
@@ -245,7 +249,31 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
   );
 };
 
+const CARD_ELEMENT_OPTIONS = {
+  style: {
+    base: {
+      color: '#333',
+      fontFamily: '"Baloo 2", sans-serif',
+      fontSmoothing: 'antialiased',
+      fontSize: '16px',
+      '::placeholder': {
+        color: '#b8b5d1'
+      }
+    },
+    invalid: {
+      color: '#d32f2f',
+      iconColor: '#d32f2f'
+    },
+    complete: {
+      color: '#6B4EFF',
+      iconColor: '#6B4EFF'
+    }
+  }
+};
+
 const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail }) => {
+  // FORCE RELOAD 2025-11-07 02:30:00 - NOUVEAU DESIGN AVEC CHAMPS SÉPARÉS
+  console.log('🎨 SubscriptionForm NOUVEAU DESIGN chargé - 3 champs séparés');
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
@@ -256,12 +284,18 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
     event.preventDefault();
 
     if (!stripe || !elements) {
-      setError('Stripe n\'est pas chargé');
+      setError('Stripe n\'est pas encore chargé. Veuillez réessayer.');
       return;
     }
 
     if (!cardholderName.trim()) {
-      setError('Le nom du titulaire de la carte est requis');
+      setError('Veuillez entrer le nom du titulaire de la carte');
+      return;
+    }
+
+    const cardNumberElement = elements.getElement(CardNumberElement);
+    if (!cardNumberElement) {
+      setError('Impossible de charger le formulaire de paiement.');
       return;
     }
 
@@ -270,10 +304,9 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
 
     try {
       // Créer le payment method
-      const cardElement = elements.getElement(CardElement);
       const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
         type: 'card',
-        card: cardElement,
+        card: cardNumberElement,
         billing_details: {
           name: cardholderName.trim(),
           email: userEmail,
@@ -302,6 +335,14 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
             setError(confirmError.message);
             return;
           }
+
+          // Confirmer l'abonnement dans Supabase après paiement réussi
+          try {
+            await confirmSubscription(result.stripeSubscription.id);
+          } catch (confirmErr) {
+            console.error('Erreur confirmation abonnement:', confirmErr);
+            // Ne pas bloquer si la confirmation échoue, l'abonnement existe déjà
+          }
         }
 
         onSuccess();
@@ -317,95 +358,227 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
     }
   };
 
-  const cardStyle = {
-    style: {
-      base: {
-        fontSize: '16px',
-        color: '#424770',
-        '::placeholder': {
-          color: '#aab7c4',
-        },
-        fontFamily: 'Inter, system-ui, sans-serif',
-      },
-      invalid: {
-        color: '#9e2146',
-      },
-    },
+  const inputStyle = {
+    width: '100%',
+    padding: '12px 14px',
+    fontSize: '15px',
+    border: '1px solid #e0e0e0',
+    borderRadius: '8px',
+    fontFamily: '"Baloo 2", sans-serif',
+    boxSizing: 'border-box',
+    outline: 'none',
+    transition: 'border-color 0.2s ease',
+    backgroundColor: 'white',
+  };
+
+  const labelStyle = {
+    display: 'block',
+    marginBottom: '5px',
+    fontSize: '13px',
+    fontWeight: '500',
+    color: '#666',
+    fontFamily: '"Baloo 2", sans-serif'
+  };
+
+  const stripeContainerStyle = {
+    padding: '12px 14px',
+    border: '1px solid #e0e0e0',
+    borderRadius: '8px',
+    backgroundColor: 'white',
+    transition: 'border-color 0.2s ease',
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <h3 className="text-xl font-bold text-gray-900 mb-4">
+    <form onSubmit={handleSubmit}>
+      {/* En-tête avec prix */}
+      <div style={{
+        margin: '0 0 20px 0',
+        padding: '12px 16px',
+        backgroundColor: '#f8f7ff',
+        borderRadius: '12px',
+        border: '2px solid #6B4EFF',
+        textAlign: 'center',
+        fontFamily: '"Baloo 2", sans-serif'
+      }}>
+        <div style={{
+          fontSize: '14px',
+          color: '#666',
+          marginBottom: '2px'
+        }}>
           S'abonner à {selectedPlan.name}
-        </h3>
-        <div className="bg-violet-50 p-4 rounded-lg mb-6">
-          <div className="text-lg font-semibold text-violet-800">
-            {(selectedPlan.price_monthly / 100).toFixed(2).replace('.', ',')}€/mois
-          </div>
-          <div className="text-sm text-violet-600">
-            Facturé mensuellement • Annulable à tout moment
-          </div>
+        </div>
+        <div style={{
+          fontSize: '24px',
+          fontWeight: '700',
+          color: '#6B4EFF'
+        }}>
+          {(selectedPlan.price_monthly / 100).toFixed(2).replace('.', ',')}€/mois
+        </div>
+        <div style={{
+          fontSize: '12px',
+          color: '#888',
+          marginTop: '4px'
+        }}>
+          Facturé mensuellement • Annulable à tout moment
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+      {/* Nom du titulaire */}
+      <div style={{ marginBottom: '14px' }}>
+        <label style={labelStyle}>
           Nom du titulaire de la carte
         </label>
         <input
           type="text"
           value={cardholderName}
           onChange={(e) => setCardholderName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
           placeholder="Jean Dupont"
           required
+          style={inputStyle}
+          onFocus={(e) => {
+            e.target.style.borderColor = '#6B4EFF';
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = '#e0e0e0';
+          }}
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Informations de carte bancaire
+      {/* Numéro de carte */}
+      <div style={{ marginBottom: '14px' }}>
+        <label style={labelStyle}>
+          Numéro de carte
         </label>
-        <div className="border border-gray-300 rounded-md p-3 focus-within:ring-2 focus-within:ring-violet-500 focus-within:border-violet-500">
-          <CardElement options={cardStyle} />
+        <div 
+          style={stripeContainerStyle}
+          className="stripe-card-element"
+        >
+          <CardNumberElement options={CARD_ELEMENT_OPTIONS} />
         </div>
       </div>
 
+      {/* Date d'expiration et CVC */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '12px',
+        marginBottom: '16px'
+      }}>
+        <div>
+          <label style={labelStyle}>
+            Date d'expiration
+          </label>
+          <div 
+            style={stripeContainerStyle}
+            className="stripe-card-element"
+          >
+            <CardExpiryElement options={CARD_ELEMENT_OPTIONS} />
+          </div>
+        </div>
+        <div>
+          <label style={labelStyle}>
+            CVC
+          </label>
+          <div 
+            style={stripeContainerStyle}
+            className="stripe-card-element"
+          >
+            <CardCvcElement options={CARD_ELEMENT_OPTIONS} />
+          </div>
+        </div>
+      </div>
+
+      {/* Message d'erreur */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3">
-          <div className="text-red-800 text-sm">{error}</div>
+        <div style={{
+          padding: '12px',
+          backgroundColor: '#fff5f5',
+          color: '#e53e3e',
+          borderRadius: '6px',
+          marginBottom: '14px',
+          fontSize: '14px',
+          border: '1px solid #feb2b2',
+          fontFamily: '"Baloo 2", sans-serif'
+        }}>
+          {error}
         </div>
       )}
 
-      <div className="flex space-x-3">
+      {/* Boutons */}
+      <div style={{
+        display: 'flex',
+        gap: '10px',
+        marginBottom: '0'
+      }}>
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors duration-200"
           disabled={loading}
+          style={{
+            flex: 1,
+            padding: '12px 20px',
+            fontSize: '15px',
+            fontWeight: '500',
+            borderRadius: '8px',
+            border: '1px solid #d0d0d0',
+            backgroundColor: 'white',
+            color: '#666',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.5 : 1,
+            fontFamily: '"Baloo 2", sans-serif',
+            transition: 'background-color 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            if (!loading) {
+              e.target.style.backgroundColor = '#f9f9f9';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'white';
+          }}
         >
           Annuler
         </button>
         <button
           type="submit"
-          className="flex-1 bg-violet-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-violet-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={loading || !stripe}
+          disabled={!stripe || loading}
+          style={{
+            flex: 1,
+            padding: '12px 20px',
+            fontSize: '15px',
+            fontWeight: '500',
+            borderRadius: '8px',
+            border: 'none',
+            backgroundColor: '#6B4EFF',
+            color: 'white',
+            cursor: (!stripe || loading) ? 'not-allowed' : 'pointer',
+            opacity: (!stripe || loading) ? 0.6 : 1,
+            fontFamily: '"Baloo 2", sans-serif',
+            transition: 'background-color 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            if (stripe && !loading) {
+              e.target.style.backgroundColor = '#5a3eef';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = '#6B4EFF';
+          }}
         >
-          {loading ? (
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Traitement...
-            </div>
-          ) : (
-            `S'abonner pour ${(selectedPlan.price_monthly / 100).toFixed(2).replace('.', ',')}€/mois`
-          )}
+          {loading ? 'Traitement...' : `S'abonner pour ${(selectedPlan.price_monthly / 100).toFixed(2).replace('.', ',')}€/mois`}
         </button>
       </div>
 
-      <div className="text-xs text-gray-500 text-center">
-        Vos informations de paiement sont sécurisées et cryptées.
-        Vous pouvez annuler votre abonnement à tout moment.
+      {/* Message de sécurité */}
+      <div style={{
+        marginTop: '12px',
+        marginBottom: '20px',
+        textAlign: 'center',
+        fontSize: '11px',
+        color: '#999',
+        fontFamily: '"Baloo 2", sans-serif'
+      }}>
+        🔒 Vos informations de paiement sont sécurisées et cryptées. Vous pouvez annuler votre abonnement à tout moment.
       </div>
     </form>
   );
@@ -413,20 +586,6 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
 
 const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
   const [loading, setLoading] = useState(false);
-  const [tokensInfo, setTokensInfo] = useState(null);
-
-  useEffect(() => {
-    loadTokensInfo();
-  }, []);
-
-  const loadTokensInfo = async () => {
-    try {
-      const { totalTokens } = await getUserTokens(subscription.user_id);
-      setTokensInfo({ totalTokens });
-    } catch (error) {
-      console.error('Erreur chargement tokens:', error);
-    }
-  };
 
   const handleCancelSubscription = async () => {
     if (!confirm('Êtes-vous sûr de vouloir annuler votre abonnement ? Il restera actif jusqu\'à la fin de la période en cours.')) {
@@ -455,35 +614,86 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '16px',
+      fontFamily: '"Baloo 2", sans-serif'
+    }}>
+      <div style={{ textAlign: 'center' }}>
+        <h3 style={{
+          fontSize: '24px',
+          fontWeight: '700',
+          color: '#1a1a1a',
+          marginBottom: '8px'
+        }}>
           Gestion de l'abonnement
         </h3>
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="text-green-800 font-medium">
+        <div style={{
+          backgroundColor: '#f0fdf4',
+          border: '1px solid #bbf7d0',
+          borderRadius: '12px',
+          padding: '12px'
+        }}>
+          <div style={{
+            color: '#166534',
+            fontWeight: '500',
+            fontSize: '15px'
+          }}>
             Plan {subscription.subscription_plans.name} actif
           </div>
-          <div className="text-green-600 text-sm mt-1">
+          <div style={{
+            color: '#16a34a',
+            fontSize: '13px',
+            marginTop: '6px'
+          }}>
             Prochaine facturation: {formatDate(subscription.current_period_end)}
           </div>
         </div>
       </div>
 
-      {tokensInfo && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="text-blue-800 font-medium">
-            Tokens disponibles: {tokensInfo.totalTokens}
-          </div>
-          <div className="text-blue-600 text-sm mt-1">
-            Tokens utilisés ce mois: {subscription.tokens_used_this_month || 0}
-          </div>
+      <div style={{
+        backgroundColor: '#eff6ff',
+        border: '1px solid #bfdbfe',
+        borderRadius: '12px',
+        padding: '12px'
+      }}>
+        <div style={{
+          color: '#1e40af',
+          fontWeight: '500',
+          fontSize: '15px'
+        }}>
+          Tokens disponibles: {subscription.tokens_remaining}
         </div>
-      )}
+        <div style={{
+          color: '#2563eb',
+          fontSize: '13px',
+          marginTop: '6px'
+        }}>
+          Tokens utilisés ce mois: {subscription.tokens_used_this_month || 0}
+        </div>
+      </div>
 
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="font-medium text-gray-900 mb-3">Détails de l'abonnement</h4>
-        <div className="space-y-2 text-sm text-gray-600">
+      <div style={{
+        backgroundColor: '#f9fafb',
+        borderRadius: '12px',
+        padding: '12px'
+      }}>
+        <h4 style={{
+          fontWeight: '500',
+          color: '#1a1a1a',
+          marginBottom: '10px',
+          fontSize: '15px'
+        }}>
+          Détails de l'abonnement
+        </h4>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+          fontSize: '13px',
+          color: '#6b7280'
+        }}>
           <div>Prix: {(subscription.subscription_plans.price_monthly / 100).toFixed(2).replace('.', ',')}€/mois</div>
           <div>Début de période: {formatDate(subscription.current_period_start)}</div>
           <div>Fin de période: {formatDate(subscription.current_period_end)}</div>
@@ -491,25 +701,74 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
         </div>
       </div>
 
-      <div className="flex space-x-3">
+      <div style={{
+        display: 'flex',
+        gap: '10px',
+        marginBottom: '0px'
+      }}>
         <button
           onClick={onClose}
-          className="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors duration-200"
+          style={{
+            flex: 1,
+            backgroundColor: '#e5e7eb',
+            color: '#1f2937',
+            padding: '10px 14px',
+            borderRadius: '8px',
+            fontWeight: '500',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '14px',
+            transition: 'background-color 0.2s'
+          }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = '#d1d5db'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = '#e5e7eb'}
         >
           Fermer
         </button>
         <button
           onClick={handleCancelSubscription}
-          className="flex-1 bg-red-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading || subscription.cancel_at_period_end}
+          style={{
+            flex: 1,
+            backgroundColor: subscription.cancel_at_period_end ? '#9ca3af' : '#dc2626',
+            color: 'white',
+            padding: '10px 14px',
+            borderRadius: '8px',
+            fontWeight: '500',
+            border: 'none',
+            cursor: (loading || subscription.cancel_at_period_end) ? 'not-allowed' : 'pointer',
+            fontSize: '14px',
+            opacity: (loading || subscription.cancel_at_period_end) ? 0.5 : 1,
+            transition: 'background-color 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            if (!loading && !subscription.cancel_at_period_end) {
+              e.target.style.backgroundColor = '#b91c1c';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!loading && !subscription.cancel_at_period_end) {
+              e.target.style.backgroundColor = '#dc2626';
+            }
+          }}
         >
           {loading ? 'Annulation...' : 'Annuler l\'abonnement'}
         </button>
       </div>
 
       {subscription.cancel_at_period_end && (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-          <div className="text-orange-800 text-sm">
+        <div style={{
+          backgroundColor: '#fff7ed',
+          border: '1px solid #fed7aa',
+          borderRadius: '12px',
+          padding: '10px',
+          marginTop: '0px',
+          marginBottom: '14px'
+        }}>
+          <div style={{
+            color: '#9a3412',
+            fontSize: '13px'
+          }}>
             ⚠️ Votre abonnement sera annulé le {formatDate(subscription.current_period_end)}
           </div>
         </div>
@@ -572,10 +831,13 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
     }
   };
 
+  const isPaymentStep = currentStep === 'payment';
+  const isManagementStep = currentStep === 'management';
+
   const modalContent = (
     <div className="subscription-modal-overlay" onClick={handleOverlayClick}>
       <motion.div
-        className="subscription-modal-content"
+        className={`subscription-modal-content ${isPaymentStep ? 'subscription-modal-payment' : ''} ${isManagementStep ? 'subscription-modal-management' : ''}`}
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
@@ -629,11 +891,11 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
                 )}
 
                 {currentSubscription && currentStep === 'plans' && (
-                  <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(107, 78, 255, 0.1)', textAlign: 'center' }}>
+                  <div style={{ marginTop: '1.2rem', paddingTop: '1rem', borderTop: '1px solid rgba(107, 78, 255, 0.12)', textAlign: 'center' }}>
                     <button
                       onClick={() => setCurrentStep('management')}
                       className="plan-button primary"
-                      style={{ maxWidth: '300px', margin: '0 auto' }}
+                      style={{ maxWidth: '300px', margin: '0.5rem auto 0.75rem auto' }}
                     >
                       Gérer mon abonnement
                     </button>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import './ContentTypeSelector.css';
 import { getEnabledFeatures, listenForFeatureChanges } from '../services/features';
@@ -6,6 +6,7 @@ import { getEnabledFeatures, listenForFeatureChanges } from '../services/feature
 const ContentTypeSelector = ({ contentType, setContentType }) => {
   const [enabledFeatures, setEnabledFeatures] = useState({});
   const [loading, setLoading] = useState(true);
+  const previousAnimationEnabled = useRef(null);
 
   useEffect(() => {
     // Charger les fonctionnalités activées
@@ -13,7 +14,6 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
 
     // Écouter les changements de fonctionnalités depuis le panneau
     const cleanup = listenForFeatureChanges(async (features) => {
-      
       // Filtrer les fonctionnalités activées
       const enabled = Object.entries(features)
         .filter(([key, feature]) => feature.enabled)
@@ -23,10 +23,27 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
         }, {});
       
       setEnabledFeatures(enabled);
-      
-      // Si la fonctionnalité actuellement sélectionnée est désactivée,
-      // basculer vers la première fonctionnalité disponible (sauf si c'est animation qui doit rester par défaut)
-      if (!enabled[contentType] && contentType !== 'animation') {
+
+      const animationEnabled = !!features.animation?.enabled;
+      const currentEnabled = !!enabled[contentType];
+
+      if (!animationEnabled) {
+        const shouldFallback = contentType === 'animation' || !currentEnabled;
+        if (shouldFallback) {
+          const fallbackKey = features.comic?.enabled
+            ? 'comic'
+            : Object.keys(enabled).find(key => enabled[key].enabled);
+
+          if (fallbackKey) {
+            const normalizedFallback = fallbackKey === 'audio' ? 'histoire' : fallbackKey;
+            if (contentType !== normalizedFallback) {
+              setContentType(normalizedFallback);
+            }
+          }
+        }
+      } else if (previousAnimationEnabled.current === false && contentType !== 'animation') {
+        setContentType('animation');
+      } else if (!currentEnabled) {
         const firstEnabled = Object.keys(enabled).find(key => enabled[key].enabled);
         if (firstEnabled) {
           // Toujours utiliser 'histoire' au lieu de 'audio' pour la compatibilité
@@ -34,6 +51,8 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
           setContentType(normalizedType);
         }
       }
+
+      previousAnimationEnabled.current = animationEnabled;
     });
     
     return cleanup;
@@ -50,6 +69,37 @@ const ContentTypeSelector = ({ contentType, setContentType }) => {
       }
       
       setEnabledFeatures(features);
+
+      const animationEnabled = !!features.animation?.enabled;
+      const currentEnabled = !!features[contentType];
+
+      if (!animationEnabled) {
+        const shouldFallback = contentType === 'animation' || !currentEnabled;
+        if (shouldFallback) {
+          const fallbackKey = features.comic?.enabled
+            ? 'comic'
+            : Object.keys(features).find(key => features[key].enabled);
+
+          if (fallbackKey) {
+            const normalizedFallback = fallbackKey === 'audio' ? 'histoire' : fallbackKey;
+            if (contentType !== normalizedFallback) {
+              setContentType(normalizedFallback);
+            }
+          }
+        }
+      } else if (previousAnimationEnabled.current === false && contentType !== 'animation') {
+        setContentType('animation');
+      }
+
+      previousAnimationEnabled.current = animationEnabled;
+
+      if (Object.keys(features).length > 0 && !currentEnabled) {
+        const [firstEnabledKey] = Object.keys(features);
+        if (firstEnabledKey) {
+          const normalizedType = firstEnabledKey === 'audio' ? 'histoire' : firstEnabledKey;
+          setContentType(normalizedType);
+        }
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des fonctionnalités:', error);
     } finally {

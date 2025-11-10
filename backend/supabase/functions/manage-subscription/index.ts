@@ -13,12 +13,23 @@ serve(async (req) => {
   }
 
   try {
-    const { action, userId, planId, paymentMethodId, userEmail } = await req.json();
+    const { action, userId, planId, paymentMethodId, userEmail, stripeSubscriptionId } = await req.json();
 
-    if (!userId || !action) {
+    // Validation : action requis, userId requis sauf pour get_plans
+    if (!action) {
       return new Response(JSON.stringify({
         success: false,
-        error: 'userId et action requis'
+        error: 'action requise'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (!userId && action !== 'get_plans' && action !== 'confirm_subscription') {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'userId requis pour cette action'
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -264,6 +275,53 @@ serve(async (req) => {
         return new Response(JSON.stringify({
           success: true,
           plans: plans
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      case 'confirm_subscription': {
+        // Confirmer l'abonnement après paiement réussi
+        if (!stripeSubscriptionId) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'stripeSubscriptionId requis'
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        // Récupérer l'abonnement Stripe pour vérifier son statut
+        const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+
+        // Mettre à jour l'abonnement dans Supabase
+        const { data: updatedSub, error: updateError } = await supabase
+          .from('subscriptions')
+          .update({
+            status: stripeSubscription.status,
+            current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
+            current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('stripe_subscription_id', stripeSubscriptionId)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error('Erreur mise à jour abonnement:', updateError);
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Erreur lors de la confirmation de l\'abonnement'
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify({
+          success: true,
+          subscription: updatedSub
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });

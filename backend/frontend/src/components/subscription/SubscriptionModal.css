@@ -3,6 +3,16 @@
    Style professionnel cohérent avec l'app
    =================================== */
 
+/* Styles pour les éléments Stripe (formulaire d'abonnement) */
+.stripe-card-element {
+  transition: border-color 0.2s ease;
+}
+
+.stripe-card-element:focus-within {
+  border-color: #6B4EFF !important;
+  box-shadow: 0 0 0 3px rgba(107, 78, 255, 0.1);
+}
+
 .subscription-modal-overlay {
   position: fixed !important;
   top: 0 !important;
@@ -33,6 +43,16 @@
   scrollbar-color: rgba(107, 78, 255, 0.4) transparent;
   z-index: 100000 !important;
   animation: modalFadeIn 0.3s ease-out;
+}
+
+.subscription-modal-content.subscription-modal-payment {
+  max-width: 620px !important;
+  width: calc(100% - 2rem) !important;
+}
+
+.subscription-modal-content.subscription-modal-management {
+  max-width: 550px !important;
+  width: calc(100% - 2rem) !important;
 }
 
 @keyframes modalFadeIn {
@@ -84,6 +104,10 @@
   color: #6B4EFF;
   margin: 0;
   letter-spacing: -0.5px;
+}
+
+.subscription-modal-content.subscription-modal-payment .subscription-modal-header h2 {
+  font-size: 1.5rem;
 }
 
 .subscription-modal-close {
@@ -198,6 +222,36 @@
 
 .subscription-plan-card.active::before {
   opacity: 1;
+}
+
+.subscription-plan-card.compact {
+  padding: 1rem;
+  min-height: 410px;
+}
+
+.subscription-plan-card.compact .plan-price {
+  margin-bottom: 0.2rem;
+}
+
+.subscription-plan-card.compact .plan-price-period {
+  margin-bottom: 0.55rem;
+}
+
+.subscription-plan-card.compact .plan-features {
+  margin: 0.5rem 0;
+}
+
+.subscription-plan-card.compact .plan-features li {
+  padding: 0.3rem 0;
+  font-size: 0.85rem;
+}
+
+.subscription-plan-card.compact .plan-ideal {
+  margin-top: 0.4rem;
+}
+
+.subscription-plan-card.compact .plan-button {
+  margin-top: 0.5rem;
 }
 
 .plan-name {
@@ -435,12 +489,6 @@
    RESPONSIVE
    =================================== */
 
-@media (max-width: 1024px) {
-  .subscription-plans-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 @media (max-width: 768px) {
   .subscription-modal-content {
     width: 98% !important;
@@ -509,7 +557,7 @@
   }
 
   .subscription-plan-card {
-    padding: 1rem;
+    padding: 0.75rem;
     min-height: 380px;
   }
 

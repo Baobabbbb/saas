@@ -15,6 +15,7 @@ import io
 import requests
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
+from services.supabase_storage import get_storage_service
 
 load_dotenv()
 
@@ -110,7 +111,8 @@ Subject: {subject}"""
         self, 
         photo_path: str,
         custom_prompt: Optional[str] = None,
-        with_colored_model: bool = True
+        with_colored_model: bool = True,
+        user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Convertit une photo en coloriage avec gpt-image-1-mini IMAGE-TO-IMAGE DIRECT
@@ -141,12 +143,31 @@ Subject: {subject}"""
             # Convertir en Path
             coloring_path = Path(coloring_path_str)
             
+            # 📤 Upload vers Supabase Storage si user_id fourni
+            storage_service = get_storage_service()
+            if storage_service and user_id:
+                upload_result = await storage_service.upload_file(
+                    file_path=str(coloring_path),
+                    user_id=user_id,
+                    content_type="coloring",
+                    custom_filename=coloring_path.name
+                )
+                
+                if upload_result["success"]:
+                    image_url = upload_result["signed_url"]
+                    print(f"✅ Image uploadée vers Supabase Storage")
+                else:
+                    image_url = f"{self.base_url}/static/coloring/{coloring_path.name}"
+                    print(f"⚠️ Upload Supabase échoué, utilisation chemin local")
+            else:
+                image_url = f"{self.base_url}/static/coloring/{coloring_path.name}"
+            
             # Construire la réponse
             result = {
                 "success": True,
                 "source_photo": photo_path,
                 "images": [{
-                    "image_url": f"{self.base_url}/static/coloring/{coloring_path.name}",
+                    "image_url": image_url,
                     "source": "gpt-image-1-mini (image-to-image direct)"
                 }],
                 "total_images": 1,
@@ -373,7 +394,7 @@ Subject: {subject}"""
             traceback.print_exc()
             raise
     
-    async def generate_coloring_from_theme(self, theme: str, with_colored_model: bool = True, custom_prompt: Optional[str] = None) -> Dict[str, Any]:
+    async def generate_coloring_from_theme(self, theme: str, with_colored_model: bool = True, custom_prompt: Optional[str] = None, user_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Génération de coloriage par thème (TEXT-TO-IMAGE classique)
         
@@ -469,12 +490,31 @@ The illustration should be:
             # Convertir en Path
             coloring_path = Path(coloring_path_str)
             
+            # 📤 Upload vers Supabase Storage si user_id fourni
+            storage_service = get_storage_service()
+            if storage_service and user_id:
+                upload_result = await storage_service.upload_file(
+                    file_path=str(coloring_path),
+                    user_id=user_id,
+                    content_type="coloring",
+                    custom_filename=coloring_path.name
+                )
+                
+                if upload_result["success"]:
+                    image_url = upload_result["signed_url"]
+                    print(f"✅ Image uploadée vers Supabase Storage")
+                else:
+                    image_url = f"{self.base_url}/static/coloring/{coloring_path.name}"
+                    print(f"⚠️ Upload Supabase échoué, utilisation chemin local")
+            else:
+                image_url = f"{self.base_url}/static/coloring/{coloring_path.name}"
+            
             # Construire la réponse
             result = {
                 "success": True,
                 "theme": theme,
                 "images": [{
-                    "image_url": f"{self.base_url}/static/coloring/{coloring_path.name}",
+                    "image_url": image_url,
                     "theme": theme,
                     "source": "gpt-image-1-mini (text-to-image)"
                 }],
