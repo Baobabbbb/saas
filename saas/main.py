@@ -47,13 +47,17 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
 BASE_URL = os.getenv("BASE_URL", "https://herbbie.com")
 
-# Client Supabase pour le service d'unicité
+# Client Supabase pour le service d'unicité et Storage
 from supabase import create_client, Client
+from services.supabase_storage import init_storage_service, get_storage_service
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://xfbmdeuzuyixpmouhqcv.supabase.co")
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 supabase_client: Client = None
 if SUPABASE_SERVICE_KEY:
     supabase_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    # Initialiser le service Storage
+    init_storage_service(supabase_client, SUPABASE_URL)
+    print("✅ Service Supabase Storage initialisé")
 
 # Démarrage silencieux - pas de logs sensibles
 
@@ -740,7 +744,7 @@ async def generate_coloring(request: dict, content_type_id: int = None):
             pass
         
         # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1-mini (génération)
-        result = await generator.generate_coloring_from_theme(theme, with_colored_model, custom_prompt)
+        result = await generator.generate_coloring_from_theme(theme, with_colored_model, custom_prompt, user_id=request.get("user_id"))
         
         # 🆕 Stocker les métadonnées d'unicité (non-bloquant)
         uniqueness_metadata = {}
@@ -888,7 +892,8 @@ async def convert_photo_to_coloring(request: dict):
         result = await generator.generate_coloring_from_photo(
             photo_path=photo_path,
             custom_prompt=custom_prompt,
-            with_colored_model=with_colored_model
+            with_colored_model=with_colored_model,
+            user_id=request.get("user_id")  # Passer user_id pour Supabase Storage
         )
         
         if result.get("success") == True:
@@ -1403,7 +1408,8 @@ async def generate_comic_task(task_id: str, theme: str, art_style: str, num_page
             num_pages=num_pages,
             art_style=art_style,
             custom_prompt=custom_prompt,
-            character_photo_path=character_photo_path
+            character_photo_path=character_photo_path,
+            user_id=user_id  # Passer user_id pour Supabase Storage
         )
         
         # Stocker le résultat

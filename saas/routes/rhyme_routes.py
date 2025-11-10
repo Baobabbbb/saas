@@ -16,7 +16,7 @@ TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
 # Client Supabase pour le service d'unicité
 from supabase import create_client, Client
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://xfbmdeuzuyixpmouhqcv.supabase.co")
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 supabase_client: Client = None
 if SUPABASE_SERVICE_KEY:
     supabase_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
