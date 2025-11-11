@@ -51,7 +51,7 @@
 }
 
 .subscription-modal-content.subscription-modal-management {
-  max-width: 620px !important;
+  max-width: 700px !important;
   width: calc(100% - 2rem) !important;
 }
 
