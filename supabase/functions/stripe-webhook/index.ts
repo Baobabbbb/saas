@@ -163,35 +163,10 @@ serve(async (req) => {
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
-        // Traiter les paiements directs de contenus (pas d'abonnement)
+        // Paiements directs (pay-per-use) gérés côté frontend via contentPaidDirectly
+        // Pas besoin d'enregistrement en base, le système fonctionne sans historique
         if (paymentIntent.metadata?.contentType && paymentIntent.metadata?.userId) {
-          const userId = paymentIntent.metadata.userId;
-          const contentType = paymentIntent.metadata.contentType;
-          const amount = paymentIntent.amount; // en centimes
-
-          console.log(`Paiement réussi pour ${userId}: ${amount} centimes, type: ${contentType}`);
-
-          // Le contenu est déjà payé, pas besoin de déduire des tokens
-          // L'utilisateur peut générer le contenu sans passer par le système de tokens
-          // On enregistre juste la transaction pour historique
-          const { error } = await supabase
-            .from('payments')
-            .insert({
-              user_id: userId,
-              amount: amount,
-              currency: 'eur',
-              status: 'succeeded',
-              stripe_payment_intent_id: paymentIntent.id,
-              content_type: contentType,
-              metadata: paymentIntent.metadata,
-              created_at: new Date().toISOString()
-            });
-
-          if (error) {
-            console.error('Erreur enregistrement paiement:', error);
-          } else {
-            console.log('Paiement enregistré pour utilisateur:', userId);
-          }
+          console.log(`Paiement pay-per-use réussi pour ${paymentIntent.metadata.userId}: ${paymentIntent.amount} centimes, type: ${paymentIntent.metadata.contentType}`);
         }
         break;
       }
