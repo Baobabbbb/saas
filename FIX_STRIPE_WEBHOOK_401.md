@@ -9,21 +9,24 @@ Stripe ne parvient pas à envoyer des webhooks à l'endpoint Supabase :
 
 ## ✅ Solution
 
-Configurer Stripe pour envoyer le header `apikey` avec la clé anonyme Supabase dans les paramètres du webhook.
+Désactiver `verify_jwt` pour la fonction `stripe-webhook` dans le fichier `config.toml` de Supabase.
 
 ### 📋 Étapes de Configuration
 
-1. **Aller dans le Dashboard Stripe** :
-   - https://dashboard.stripe.com/webhooks
-   - Sélectionner l'endpoint : `https://xfbmdeuzuyixpmouhqcv.supabase.co/functions/v1/stripe-webhook`
+1. **Modifier `backend/supabase/config.toml`** :
+   - Ajouter la section suivante à la fin du fichier :
+   ```toml
+   [functions.stripe-webhook]
+   verify_jwt = false
+   ```
 
-2. **Ajouter le header `apikey`** :
-   - Cliquer sur "Modifier" ou "Settings" de l'endpoint
-   - Dans la section "Headers" ou "Custom headers", ajouter :
-     - **Header name** : `apikey`
-     - **Header value** : `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmYm1kZXV6dXlpeHBtb3VocWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMzE3ODQsImV4cCI6MjA2NDkwNzc4NH0.XzFIT3BwW9dKRrmFFbSAufCpC1SZuUI-VU2Uer5VoTw`
+2. **Déployer la configuration** :
+   - La configuration sera automatiquement appliquée lors du prochain déploiement
+   - Ou utiliser `supabase functions deploy stripe-webhook` pour redéployer la fonction
 
-3. **Sauvegarder** et tester
+### 🔒 Sécurité
+
+La fonction vérifie toujours la signature Stripe (ligne 32 de `stripe-webhook/index.ts`), donc la sécurité est maintenue. Seule l'authentification JWT Supabase est désactivée, car Stripe n'a pas de token JWT.
 
 ### 🔍 Vérification
 
@@ -39,4 +42,5 @@ La clé anonyme Supabase (`anon key`) est publique et peut être utilisée pour 
 
 **Date** : 11 novembre 2025  
 **Status** : ⚠️ En attente de configuration dans Stripe Dashboard
+
 
