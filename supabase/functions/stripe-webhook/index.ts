@@ -14,25 +14,52 @@ serve(async (req) => {
   }
 
   try {
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'), {
+    // Vérifier que les variables d'environnement sont définies
+    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
+    const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+    if (!stripeSecretKey || !webhookSecret || !supabaseUrl || !supabaseServiceKey) {
+      console.error('Variables d\'environnement manquantes:', {
+        hasStripeKey: !!stripeSecretKey,
+        hasWebhookSecret: !!webhookSecret,
+        hasSupabaseUrl: !!supabaseUrl,
+        hasServiceKey: !!supabaseServiceKey
+      });
+      return new Response(JSON.stringify({ error: 'Configuration manquante' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2023-10-16',
     });
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL'),
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    );
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.text();
     const sig = req.headers.get('stripe-signature');
 
+    if (!sig) {
+      console.error('Signature Stripe manquante dans les headers');
+      return new Response(JSON.stringify({ error: 'Signature manquante' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     let event: Stripe.Event;
 
     try {
-      event = stripe.webhooks.constructEvent(body, sig, Deno.env.get('STRIPE_WEBHOOK_SECRET'));
+      event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
     } catch (err) {
       console.error('Erreur vérification webhook:', err);
-      return new Response('Webhook signature verification failed', { status: 400 });
+      return new Response(JSON.stringify({ error: 'Webhook signature verification failed' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
     console.log('Événement Stripe reçu:', event.type);
@@ -86,58 +113,71 @@ serve(async (req) => {
         const invoice = event.data.object as Stripe.Invoice;
 
         if (invoice.subscription) {
-          // Renouvellement d'abonnement réussi - remettre les tokens
-          const { data: subscription, error: subError } = await supabase
-            .from('subscriptions')
-            .select('id, plan_id, tokens_used_this_month, subscription_plans(tokens_allocated)')
-            .eq('stripe_subscription_id', invoice.subscription)
-            .single();
-
-          if (!subError && subscription) {
-            const tokensAllocated = subscription.subscription_plans.tokens_allocated;
-            const tokensUsed = subscription.tokens_used_this_month;
-
-            // Calculer les tokens restants (conserver les tokens non utilisés + nouveaux tokens)
-            const { data: currentSub } = await supabase
+          try {
+            // Renouvellement d'abonnement réussi - remettre les tokens
+            const { data: subscription, error: subError } = await supabase
               .from('subscriptions')
-              .select('tokens_remaining')
-              .eq('id', subscription.id)
+              .select('id, user_id, plan_id, tokens_used_this_month, subscription_plans(tokens_allocated)')
+              .eq('stripe_subscription_id', invoice.subscription)
               .single();
 
-            const newTokensRemaining = (currentSub?.tokens_remaining || 0) - tokensUsed + tokensAllocated;
+            if (subError) {
+              console.error('Erreur récupération abonnement:', subError);
+            } else if (subscription) {
+              const tokensAllocated = subscription.subscription_plans?.tokens_allocated || 0;
+              const tokensUsed = subscription.tokens_used_this_month || 0;
 
-            // Mettre à jour l'abonnement
-            const { error: updateError } = await supabase
-              .from('subscriptions')
-              .update({
-                tokens_remaining: Math.max(0, newTokensRemaining), // Ne pas aller en négatif
-                tokens_used_this_month: 0, // Reset du compteur
-                status: 'active',
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', subscription.id);
+              // Calculer les tokens restants (conserver les tokens non utilisés + nouveaux tokens)
+              const { data: currentSub } = await supabase
+                .from('subscriptions')
+                .select('tokens_remaining')
+                .eq('id', subscription.id)
+                .single();
 
-            if (updateError) {
-              console.error('Erreur mise à jour tokens renouvellement:', updateError);
-            } else {
-              console.log('Tokens renouvelés pour abonnement:', subscription.id);
-            }
+              const newTokensRemaining = (currentSub?.tokens_remaining || 0) - tokensUsed + tokensAllocated;
 
-            // Enregistrer la transaction de renouvellement
-            await supabase
-              .from('user_tokens')
-              .insert({
-                user_id: subscription.user_id,
-                tokens_amount: tokensAllocated,
-                transaction_type: 'subscription_renewal',
-                subscription_id: subscription.id,
-                stripe_payment_id: invoice.payment_intent,
-                metadata: {
-                  invoice_id: invoice.id,
-                  period_start: invoice.period_start,
-                  period_end: invoice.period_end
+              // Mettre à jour l'abonnement
+              const { error: updateError } = await supabase
+                .from('subscriptions')
+                .update({
+                  tokens_remaining: Math.max(0, newTokensRemaining), // Ne pas aller en négatif
+                  tokens_used_this_month: 0, // Reset du compteur
+                  status: 'active',
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', subscription.id);
+
+              if (updateError) {
+                console.error('Erreur mise à jour tokens renouvellement:', updateError);
+              } else {
+                console.log('Tokens renouvelés pour abonnement:', subscription.id);
+              }
+
+              // Enregistrer la transaction de renouvellement
+              if (subscription.user_id) {
+                const { error: tokenError } = await supabase
+                  .from('user_tokens')
+                  .insert({
+                    user_id: subscription.user_id,
+                    tokens_amount: tokensAllocated,
+                    transaction_type: 'subscription_renewal',
+                    subscription_id: subscription.id,
+                    stripe_payment_id: invoice.payment_intent,
+                    metadata: {
+                      invoice_id: invoice.id,
+                      period_start: invoice.period_start,
+                      period_end: invoice.period_end
+                    }
+                  });
+
+                if (tokenError) {
+                  console.error('Erreur enregistrement tokens:', tokenError);
                 }
-              });
+              }
+            }
+          } catch (err) {
+            console.error('Erreur traitement invoice.payment_succeeded:', err);
+            // On continue quand même pour retourner 200
           }
         }
         break;
@@ -181,30 +221,35 @@ serve(async (req) => {
 
         // Traiter les achats de tokens ponctuels
         if (session.metadata?.type === 'token_purchase') {
-          const userId = session.metadata.user_id;
-          const tokensAmount = parseInt(session.metadata.tokens_amount);
+          try {
+            const userId = session.metadata.user_id;
+            const tokensAmount = parseInt(session.metadata.tokens_amount);
 
-          if (userId && tokensAmount) {
-            // Ajouter les tokens à l'utilisateur
-            const { error } = await supabase
-              .from('user_tokens')
-              .insert({
-                user_id: userId,
-                tokens_amount: tokensAmount,
-                transaction_type: 'purchase',
-                stripe_payment_id: session.payment_intent,
-                expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 an
-                metadata: {
-                  session_id: session.id,
-                  amount_paid: session.amount_total
-                }
-              });
+            if (userId && tokensAmount) {
+              // Ajouter les tokens à l'utilisateur
+              const { error } = await supabase
+                .from('user_tokens')
+                .insert({
+                  user_id: userId,
+                  tokens_amount: tokensAmount,
+                  transaction_type: 'purchase',
+                  stripe_payment_id: session.payment_intent,
+                  expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 an
+                  metadata: {
+                    session_id: session.id,
+                    amount_paid: session.amount_total
+                  }
+                });
 
-            if (error) {
-              console.error('Erreur ajout tokens:', error);
-            } else {
-              console.log('Tokens ajoutés pour utilisateur:', userId);
+              if (error) {
+                console.error('Erreur ajout tokens:', error);
+              } else {
+                console.log('Tokens ajoutés pour utilisateur:', userId);
+              }
             }
+          } catch (err) {
+            console.error('Erreur traitement checkout.session.completed:', err);
+            // On continue quand même pour retourner 200
           }
         }
         break;
@@ -220,8 +265,14 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Erreur webhook Stripe:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+    // Toujours retourner 200 pour éviter que Stripe réessaie indéfiniment
+    // Les erreurs sont loggées pour investigation
+    return new Response(JSON.stringify({ 
+      received: true, 
+      error: error.message,
+      note: 'Erreur traitée, vérifier les logs'
+    }), {
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
