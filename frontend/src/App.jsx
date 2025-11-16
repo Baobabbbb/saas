@@ -983,7 +983,13 @@ function App() {
 
     // 🔄 DÉDUCTION DES TOKENS APRÈS GÉNÉRATION RÉUSSIE
     // (Seulement si l'utilisateur n'a pas d'accès gratuit ET n'a pas payé directement)
+    // Si contentPaidDirectly est true, le paiement a déjà été effectué, pas besoin de déduire des tokens
     if (!userHasFreeAccess && !contentPaidDirectly && generatedContent) {
+      console.log('[DEBUG] Tentative déduction tokens:', {
+        userHasFreeAccess,
+        contentPaidDirectly,
+        hasGeneratedContent: !!generatedContent
+      });
       try {
         const { calculateTokenCost, deductTokens } = await import('./services/payment');
 
@@ -1032,6 +1038,7 @@ function App() {
         console.error('❌ Erreur lors de la déduction des tokens:', tokenError);
         // Ne pas bloquer la génération si la déduction échoue
         // (pour éviter de casser l'expérience utilisateur)
+        // La fonction deductTokens retourne maintenant un objet au lieu de throw
       }
     }
     

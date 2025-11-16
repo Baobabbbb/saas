@@ -304,23 +304,41 @@ export const confirmSubscription = async (stripeSubscriptionId) => {
 // Déduire des tokens après utilisation
 export const deductTokens = async (userId, contentType, tokensUsed, options = {}) => {
   try {
+    const payload = {
+      userId,
+      contentType,
+      tokensUsed: Number(tokensUsed), // S'assurer que c'est un nombre
+      selectedDuration: options.duration,
+      numPages: options.pages,
+      selectedVoice: options.voice,
+      transactionId: options.transactionId || `txn_${Date.now()}`
+    };
+    
+    console.log('[DEBUG deductTokens] Payload envoyé:', payload);
+    
     const { data, error } = await supabase.functions.invoke('deduct-tokens', {
-      body: {
-        userId,
-        contentType,
-        tokensUsed,
-        selectedDuration: options.duration,
-        numPages: options.pages,
-        selectedVoice: options.voice,
-        transactionId: options.transactionId || `txn_${Date.now()}`
-      }
+      body: payload
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('[DEBUG deductTokens] Erreur Supabase:', error);
+      // Essayer de récupérer plus de détails sur l'erreur
+      if (error.message) {
+        console.error('[DEBUG deductTokens] Message erreur:', error.message);
+      }
+      if (error.context) {
+        console.error('[DEBUG deductTokens] Contexte erreur:', error.context);
+      }
+      throw error;
+    }
+    
+    console.log('[DEBUG deductTokens] Succès:', data);
     return data;
   } catch (error) {
     console.error('Erreur déduction tokens:', error);
-    throw error;
+    // Ne pas bloquer la génération si la déduction échoue
+    // Retourner un objet vide pour que le code continue
+    return { success: false, error: error.message || 'Erreur déduction tokens' };
   }
 };
 
