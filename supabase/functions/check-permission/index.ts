@@ -24,7 +24,23 @@ serve(async (req) => {
   }
 
   try {
-    const { contentType, userId, userEmail, selectedDuration, numPages, selectedVoice } = await req.json();
+    // Parser le body JSON avec gestion d'erreur
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (jsonError) {
+      console.error('Erreur parsing JSON:', jsonError);
+      return new Response(JSON.stringify({
+        hasPermission: false,
+        reason: 'invalid_json',
+        error: 'Erreur lors du parsing du body JSON'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const { contentType, userId, userEmail, selectedDuration, numPages, selectedVoice } = requestBody;
 
     if (!userId || !contentType) {
       return new Response(JSON.stringify({
