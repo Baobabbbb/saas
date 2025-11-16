@@ -587,14 +587,29 @@ function App() {
         if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
         generatedContent = await response.json();
       } else if (contentType === 'histoire' || contentType === 'audio') {
+      // Récupérer le JWT Supabase pour l'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token ? `Bearer ${session.access_token}` : null;
+      
       const payload = {
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
         voice: selectedVoice,
-        custom_request: customRequest
+        custom_request: customRequest,
+        user_id: user?.id // Ajouter user_id au payload
       };
+      
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Ajouter le header Authorization si le token est disponible
+      if (authToken) {
+        headers['Authorization'] = authToken;
+      }
+      
       const response = await fetch(`${API_BASE_URL}/generate_audio_story/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload)
       });
       
@@ -685,9 +700,22 @@ function App() {
           payload.custom_prompt = customColoringTheme.trim();
         }
       
+        // Récupérer le JWT Supabase pour l'authentification
+        const { data: { session } } = await supabase.auth.getSession();
+        const authToken = session?.access_token ? `Bearer ${session.access_token}` : null;
+        
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        // Ajouter le header Authorization si le token est disponible
+        if (authToken) {
+          headers['Authorization'] = authToken;
+        }
+        
         const response = await fetch(`${API_BASE_URL}/generate_coloring/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload)
       });
 
@@ -717,9 +745,22 @@ function App() {
         payload.character_photo_path = characterPhoto.file_path;
       }
 
+      // Récupérer le JWT Supabase pour l'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token ? `Bearer ${session.access_token}` : null;
+      
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Ajouter le header Authorization si le token est disponible
+      if (authToken) {
+        headers['Authorization'] = authToken;
+      }
+      
       const response = await fetch(`${API_BASE_URL}/generate_comic/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload)
       });
 
