@@ -37,10 +37,26 @@ serve(async (req) => {
       });
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL'),
-      Deno.env.get('SUPABASE_SERVICE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    );
+    // Vérifier les variables d'environnement
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Variables d\'environnement manquantes:', {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseServiceKey
+      });
+      return new Response(JSON.stringify({
+        hasPermission: false,
+        reason: 'configuration_error',
+        error: 'Configuration Supabase manquante'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Vérifier le rôle utilisateur
     const { data: profile, error: profileError } = await supabase
@@ -213,10 +229,14 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Erreur dans check-permission:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
     return new Response(JSON.stringify({
       hasPermission: false,
       reason: 'error',
-      error: error.message
+      error: errorMessage,
+      stack: errorStack
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
