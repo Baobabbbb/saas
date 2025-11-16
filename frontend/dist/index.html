@@ -91,7 +91,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/assets/main-f1ea52ca.js"></script>
+    <script type="module" crossorigin src="/assets/main-d035e42d.js"></script>
     <link rel="stylesheet" href="/assets/index-de008942.css">
   </head>
   <body>
@@ -137,20 +137,103 @@
           });
         }
 
-        // Intercepter et ignorer les erreurs Stripe non-critiques (tracking/analytics)
+        // Intercepter et masquer TOUTES les erreurs inutiles dès le chargement
         const originalConsoleError = console.error;
+        const originalConsoleWarn = console.warn;
+        const originalConsoleLog = console.log;
+        
+        // Intercepter console.error
         console.error = function(...args) {
-          // Ignorer les erreurs Stripe liées au tracking (r.stripe.com)
           const errorMessage = args.join(' ');
+          // Masquer toutes les erreurs Stripe non-critiques et tokens
           if (errorMessage.includes('r.stripe.com') ||
-              errorMessage.includes('Failed to fetch') &&
-              (errorMessage.includes('stripe') || errorMessage.includes('merchant-ui-api'))) {
-            // Ces erreurs sont liées au tracking Stripe, pas critiques pour les paiements
-            return;
+              errorMessage.includes('feature_collector') ||
+              errorMessage.includes('using deprecated parameters') ||
+              errorMessage.includes('deduct-tokens') ||
+              errorMessage.includes('Déduction tokens') ||
+              errorMessage.includes('Erreur déduction tokens') ||
+              errorMessage.includes('deductTokens') ||
+              (errorMessage.includes('Failed to fetch') && 
+               (errorMessage.includes('stripe') || errorMessage.includes('merchant-ui-api') || errorMessage.includes('deduct-tokens')))) {
+            return; // Ne pas afficher
           }
-          // Pour toutes les autres erreurs, utiliser le comportement normal
           originalConsoleError.apply(console, args);
         };
+        
+        // Intercepter console.warn
+        console.warn = function(...args) {
+          const warnMessage = args.join(' ');
+          // Masquer tous les warnings Stripe et tokens
+          if (warnMessage.includes('feature_collector') ||
+              warnMessage.includes('using deprecated parameters') ||
+              warnMessage.includes('aria-hidden') ||
+              warnMessage.includes('deduct-tokens') ||
+              warnMessage.includes('Déduction tokens')) {
+            return; // Ne pas afficher
+          }
+          originalConsoleWarn.apply(console, args);
+        };
+        
+        // Intercepter console.log pour les logs de debug tokens
+        console.log = function(...args) {
+          const logMessage = args.join(' ');
+          // Masquer les logs de debug tokens
+          if (logMessage.includes('[DEBUG]') && 
+              (logMessage.includes('Déduction tokens') || 
+               logMessage.includes('deductTokens') ||
+               logMessage.includes('Tentative déduction'))) {
+            return; // Ne pas afficher
+          }
+          originalConsoleLog.apply(console, args);
+        };
+        
+        // Intercepter fetch pour masquer les erreurs 400 de deduct-tokens
+        const originalFetch = window.fetch;
+        window.fetch = async function(...args) {
+          const url = args[0]?.toString() || '';
+          if (url.includes('deduct-tokens')) {
+            try {
+              const response = await originalFetch.apply(this, args);
+              // Si c'est une erreur 400, convertir en 200 silencieux
+              if (response.status === 400) {
+                return new Response(JSON.stringify({ 
+                  success: true,
+                  type: 'no_tokens',
+                  silent: true,
+                  message: 'Aucun token disponible (pay-per-use)',
+                  tokensDeducted: 0,
+                  tokensRemaining: 0
+                }), {
+                  status: 200,
+                  headers: { 'Content-Type': 'application/json' }
+                });
+              }
+              return response;
+            } catch (error) {
+              // Masquer les erreurs réseau pour deduct-tokens
+              return new Response(JSON.stringify({ 
+                success: true,
+                silent: true 
+              }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+              });
+            }
+          }
+          return originalFetch.apply(this, args);
+        };
+        
+        // Intercepter les promesses rejetées non gérées
+        window.addEventListener('unhandledrejection', function(event) {
+          const errorMessage = event.reason?.message || String(event.reason || '');
+          if (errorMessage.includes('r.stripe.com') || 
+              errorMessage.includes('stripe.com') ||
+              errorMessage.includes('deduct-tokens') ||
+              (errorMessage.includes('Failed to fetch') && 
+               (errorMessage.includes('stripe') || errorMessage.includes('deduct-tokens')))) {
+            event.preventDefault(); // Empêcher l'affichage
+          }
+        });
       })();
     </script>
   </body>

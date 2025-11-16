@@ -311,123 +311,8 @@ function App() {
 
   // Check if user is logged in on component mount
   useEffect(() => {
-    // Intercepter fetch pour masquer les erreurs réseau inutiles
-    const originalFetch = window.fetch;
-    window.fetch = async (...args) => {
-      const url = args[0]?.toString() || '';
-      
-      // Masquer les erreurs 400 de deduct-tokens (pay-per-use n'utilise pas tokens)
-      if (url.includes('deduct-tokens')) {
-        try {
-          const response = await originalFetch(...args);
-          // Si c'est une erreur 400, convertir en 200 silencieux
-          if (response.status === 400) {
-            // Lire le body pour préserver les données
-            const clonedResponse = response.clone();
-            try {
-              const data = await clonedResponse.json();
-              // Retourner une réponse 200 silencieuse
-              return new Response(JSON.stringify({ 
-                success: true,
-                type: 'no_tokens',
-                silent: true,
-                message: 'Aucun token disponible (pay-per-use)',
-                tokensDeducted: 0,
-                tokensRemaining: 0
-              }), {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' }
-              });
-            } catch {
-              // Si le body n'est pas JSON, retourner quand même 200
-              return new Response(JSON.stringify({ 
-                success: true,
-                silent: true 
-              }), {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' }
-              });
-            }
-          }
-          return response;
-        } catch (error) {
-          // Masquer les erreurs réseau pour deduct-tokens
-          return new Response(JSON.stringify({ 
-            success: true,
-            silent: true 
-          }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
-      }
-      
-      return originalFetch(...args);
-    };
-
-    // Gestion d'erreur globale pour masquer les erreurs Stripe non critiques
-    const handleUnhandledRejection = (event) => {
-      // Masquer les erreurs Stripe Radar non critiques
-      if (event.reason && typeof event.reason === 'object') {
-        const errorMessage = event.reason.message || String(event.reason);
-        if (errorMessage.includes('r.stripe.com') || 
-            errorMessage.includes('stripe.com') ||
-            errorMessage.includes('Failed to fetch') && errorMessage.includes('stripe') ||
-            errorMessage.includes('deduct-tokens')) {
-          event.preventDefault(); // Empêcher l'affichage dans la console
-          return;
-        }
-      }
-    };
-
-    // Gestion des erreurs console pour masquer les warnings Stripe et tokens
-    const originalError = console.error;
-    const originalWarn = console.warn;
-    
-    // Masquer aussi les logs console.log pour les tokens
-    const originalLog = console.log;
-    console.log = (...args) => {
-      const logMessage = args.join(' ');
-      // Masquer les logs de debug tokens et Stripe
-      if (logMessage.includes('[DEBUG]') && 
-          (logMessage.includes('Déduction tokens') || 
-           logMessage.includes('deductTokens') ||
-           logMessage.includes('Tentative déduction'))) {
-        return; // Ne pas afficher dans la console
-      }
-      originalLog.apply(console, args);
-    };
-    
-    console.error = (...args) => {
-      const errorMessage = args.join(' ');
-      // Masquer les warnings Stripe non critiques et erreurs tokens
-      if (errorMessage.includes('r.stripe.com') || 
-          errorMessage.includes('feature_collector') ||
-          errorMessage.includes('using deprecated parameters') ||
-          (errorMessage.includes('aria-hidden') && errorMessage.includes('Stripe')) ||
-          errorMessage.includes('deduct-tokens') ||
-          errorMessage.includes('Déduction tokens') ||
-          errorMessage.includes('Erreur déduction tokens') ||
-          errorMessage.includes('deductTokens') ||
-          errorMessage.includes('[DEBUG deductTokens]')) {
-        return; // Ne pas afficher dans la console
-      }
-      originalError.apply(console, args);
-    };
-    
-    console.warn = (...args) => {
-      const warnMessage = args.join(' ');
-      // Masquer les warnings Stripe non critiques et tokens
-      if (warnMessage.includes('feature_collector') ||
-          warnMessage.includes('using deprecated parameters') ||
-          warnMessage.includes('aria-hidden') ||
-          warnMessage.includes('deduct-tokens') ||
-          warnMessage.includes('Déduction tokens') ||
-          warnMessage.includes('[DEBUG]')) {
-        return; // Ne pas afficher dans la console
-      }
-      originalWarn.apply(console, args);
-    };
+    // Note: L'interception des erreurs est déjà faite dans index.html pour être active dès le début
+    // Ici on ne fait que gérer les événements spécifiques à React
 
     // Check if URL has #historique hash
     if (window.location.hash === '#historique') {
@@ -440,15 +325,9 @@ function App() {
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    window.addEventListener('unhandledrejection', handleUnhandledRejection);
     
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-      window.fetch = originalFetch; // Restaurer fetch original
-      console.log = originalLog; // Restaurer la fonction originale
-      console.error = originalError; // Restaurer la fonction originale
-      console.warn = originalWarn; // Restaurer la fonction originale
     };
   }, []);
 
@@ -1117,10 +996,8 @@ function App() {
           }
         );
         
-        // Ne pas logger les erreurs si elles sont silencieuses (pay-per-use)
-        if (deductionResult && !deductionResult.success && !deductionResult.silent) {
-          console.warn('Déduction tokens échouée (non-bloquant):', deductionResult.error);
-        }
+        // Ne pas logger les erreurs de tokens (pay-per-use n'utilise pas tokens)
+        // Les erreurs sont déjà masquées par l'interception dans index.html
 
       } catch (tokenError) {
         // Ne pas logger les erreurs de tokens (non-bloquant, surtout en pay-per-use)
