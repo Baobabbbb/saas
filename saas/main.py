@@ -623,7 +623,6 @@ async def stream_audio(filename: str, download: bool = False):
 @app.post("/generate_audio_story/")
 async def generate_audio_story(
     request: dict,
-    req: Request,
     authorization: Optional[str] = Header(None)
 ):
     try:
@@ -635,7 +634,12 @@ async def generate_audio_story(
             )
 
         # Extraire user_id depuis JWT (prioritaire) ou depuis le body (fallback)
-        user_id = await extract_user_id_from_jwt(authorization, req)
+        user_id = None
+        if authorization:
+            try:
+                user_id = await extract_user_id_from_jwt(authorization, None)
+            except:
+                pass
         if not user_id:
             user_id = request.get("user_id") or request.get("userId")
         
