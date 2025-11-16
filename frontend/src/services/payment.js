@@ -3,17 +3,8 @@ import { supabase } from '../supabaseClient'
 // Vérifier si l'utilisateur a la permission (admin, abonnement ou payé)
 export const checkPaymentPermission = async (contentType, userId, userEmail, options = {}) => {
   try {
-    // Simulation temporaire basée sur l'email
-    if (userEmail === 'fredagathe77@gmail.com') {
-      return {
-        hasPermission: true,
-        reason: 'admin_access',
-        userRole: 'admin',
-        isAdmin: true
-      }
-    }
-
-    // Pour les autres utilisateurs, vérifier dans la vraie table profiles
+    // Vérifier le rôle admin dans la table profiles (logique déplacée côté backend)
+    // La vérification admin est maintenant gérée côté serveur pour plus de sécurité
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')

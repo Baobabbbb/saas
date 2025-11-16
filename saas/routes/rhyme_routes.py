@@ -1,14 +1,28 @@
 """
 Routes pour la génération de comptines musicales avec Suno AI
 """
-from fastapi import APIRouter, HTTPException
-from typing import Dict, Any
+from fastapi import APIRouter, HTTPException, Request, Header
+from typing import Dict, Any, Optional
 import os
+import jwt
 from openai import AsyncOpenAI
 from services.suno_service import suno_service
 from services.uniqueness_service import uniqueness_service
 
 router = APIRouter()
+
+# Helper pour extraire user_id depuis JWT
+async def extract_user_id_from_jwt(authorization: Optional[str] = None) -> Optional[str]:
+    """Extrait le user_id depuis le JWT Supabase"""
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    
+    try:
+        token = authorization.split(" ")[1]
+        decoded = jwt.decode(token, options={"verify_signature": False})
+        return decoded.get("sub")
+    except:
+        return None
 
 # Configuration
 TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
@@ -47,12 +61,25 @@ def detect_customization(custom_request: str) -> bool:
 
 
 @router.post("/generate_rhyme/")
-async def generate_rhyme_endpoint(request: Dict[str, Any]):
+async def generate_rhyme_endpoint(
+    request: Dict[str, Any],
+    req: Request,
+    authorization: Optional[str] = Header(None)
+):
     """Génère une comptine musicale"""
     try:
+        # Extraire user_id depuis JWT (prioritaire) ou depuis le body (fallback)
+        user_id = await extract_user_id_from_jwt(authorization)
+        if not user_id:
+            user_id = request.get("user_id") or request.get("userId")
+        
+        # Utiliser le user_id extrait pour toutes les opérations suivantes
+        if user_id:
+            request["user_id"] = user_id
+        
         theme = request.get("theme", "animaux")
         custom_request = request.get("custom_request", "")
-        user_id = request.get("user_id")  # ID utilisateur pour unicité
+        user_id = user_id or request.get("user_id")  # ID utilisateur pour unicité
         
         needs_custom = detect_customization(custom_request)
         

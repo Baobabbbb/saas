@@ -1,5 +1,20 @@
 // Service pour gérer les fonctionnalités via l'API backend
+import { supabase } from '../supabaseClient';
+
 const API_URL = '/api/features';
+
+/**
+ * Récupère le token JWT Supabase depuis la session actuelle
+ */
+const getAuthToken = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ? `Bearer ${session.access_token}` : null;
+  } catch (error) {
+    console.error('Erreur lors de la récupération du token:', error);
+    return null;
+  }
+};
 
 /**
  * Récupérer toutes les fonctionnalités depuis l'API
@@ -27,15 +42,23 @@ export const getFeaturesFromAPI = async () => {
 };
 
 /**
- * Mettre à jour une fonctionnalité via l'API
+ * Mettre à jour une fonctionnalité via l'API (requiert admin)
  */
 export const updateFeatureAPI = async (featureKey, enabled) => {
   try {
+    const authToken = await getAuthToken();
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Ajouter le header Authorization si un token est disponible
+    if (authToken) {
+      headers['Authorization'] = authToken;
+    }
+    
     const response = await fetch(`${API_URL}/${featureKey}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({ enabled }),
     });
 
@@ -43,8 +66,9 @@ export const updateFeatureAPI = async (featureKey, enabled) => {
       const data = await response.json();
       return data.features;
     } else {
-      console.error('Erreur lors de la mise à jour:', response.statusText);
-      throw new Error(`Erreur API: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Erreur lors de la mise à jour:', response.status, errorText);
+      throw new Error(`Erreur API: ${response.status} - ${errorText}`);
     }
   } catch (error) {
     console.error('Erreur lors de la mise à jour de la fonctionnalité:', error);
@@ -53,23 +77,32 @@ export const updateFeatureAPI = async (featureKey, enabled) => {
 };
 
 /**
- * Réinitialiser toutes les fonctionnalités via l'API
+ * Réinitialiser toutes les fonctionnalités via l'API (requiert admin)
  */
 export const resetFeaturesAPI = async () => {
   try {
+    const authToken = await getAuthToken();
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Ajouter le header Authorization si un token est disponible
+    if (authToken) {
+      headers['Authorization'] = authToken;
+    }
+    
     const response = await fetch(`${API_URL}/reset`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     if (response.ok) {
       const data = await response.json();
       return data.features;
     } else {
-      console.error('Erreur lors de la réinitialisation:', response.statusText);
-      throw new Error(`Erreur API: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Erreur lors de la réinitialisation:', response.status, errorText);
+      throw new Error(`Erreur API: ${response.status} - ${errorText}`);
     }
   } catch (error) {
     console.error('Erreur lors de la réinitialisation:', error);

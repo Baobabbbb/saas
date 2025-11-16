@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Request
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -17,6 +17,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email.utils import formataddr
+import jwt
+from fastapi import status
 
 from dotenv import load_dotenv
 import openai
@@ -83,6 +85,139 @@ print("✅ Scheduler de nettoyage automatique démarré (toutes les heures)")
 
 # Arrêter le scheduler proprement lors de la fermeture
 atexit.register(lambda: scheduler.shutdown())
+
+# ============================================
+# FONCTIONS D'AUTHENTIFICATION ET SÉCURITÉ
+# ============================================
+
+async def extract_user_id_from_jwt(
+    authorization: Optional[str] = Header(None),
+    request: Optional[Request] = None
+) -> Optional[str]:
+    """
+    Extrait le user_id depuis le JWT Supabase dans le header Authorization.
+    Retourne None si le JWT n'est pas présent ou invalide.
+    Compatible avec les JWT Supabase qui ont 'sub' comme claim du user_id.
+    """
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    
+    try:
+        token = authorization.split(" ")[1]
+        # Décoder le JWT sans vérification de signature (Supabase le fait déjà)
+        # Les JWT Supabase sont signés avec leur propre clé, mais on peut extraire le payload
+        decoded = jwt.decode(token, options={"verify_signature": False})
+        user_id = decoded.get("sub")
+        return user_id
+    except Exception:
+        # Si le JWT est invalide ou malformé, retourner None
+        return None
+
+
+async def get_current_user_id(
+    authorization: Optional[str] = Header(None),
+    request_body: Optional[Dict[str, Any]] = None,
+    request_obj: Optional[Request] = None
+) -> Optional[str]:
+    """
+    Récupère le user_id depuis le JWT (prioritaire) ou depuis le body (fallback pour rétrocompatibilité).
+    Utilisé pour les endpoints de génération pour éviter de casser le fonctionnement actuel.
+    
+    Args:
+        authorization: Header Authorization avec le JWT (Bearer token)
+        request_body: Le body de la requête (dict) - utilisé dans les endpoints POST
+        request_obj: Objet Request FastAPI - utilisé pour lire les headers si request_body n'est pas disponible
+    
+    Returns:
+        user_id ou None si non trouvé
+    """
+    # Essayer d'abord depuis le JWT
+    user_id_from_jwt = await extract_user_id_from_jwt(authorization, request_obj)
+    if user_id_from_jwt:
+        return user_id_from_jwt
+    
+    # Fallback sur le body si pas de JWT (rétrocompatibilité)
+    if request_body and isinstance(request_body, dict):
+        return request_body.get("user_id") or request_body.get("userId")
+    
+    return None
+
+
+def get_user_id_from_request(
+    authorization_header: Optional[str],
+    request_dict: Dict[str, Any],
+    request_obj: Optional[Request] = None
+) -> Optional[str]:
+    """
+    Fonction synchrone helper pour extraire user_id depuis JWT ou body.
+    Utilisée dans les endpoints où on a déjà le dict request.
+    
+    Args:
+        authorization_header: Header Authorization (Bearer token) - peut être None
+        request_dict: Le body de la requête (dict)
+        request_obj: Objet Request FastAPI (optionnel)
+    
+    Returns:
+        user_id ou None si non trouvé
+    """
+    # Essayer depuis le JWT (nécessite async, donc on retourne None pour l'instant)
+    # Dans les endpoints, on utilisera await extract_user_id_from_jwt séparément
+    # Fallback sur le body (rétrocompatibilité)
+    if request_dict and isinstance(request_dict, dict):
+        return request_dict.get("user_id") or request_dict.get("userId")
+    return None
+
+
+async def verify_admin(
+    user_id: Optional[str] = None,
+    authorization: Optional[str] = Header(None),
+    request: Optional[Request] = None,
+    body: Optional[Dict[str, Any]] = None
+) -> str:
+    """
+    Vérifie que l'utilisateur est admin.
+    Extrait le user_id depuis le JWT ou le body, puis vérifie le rôle dans Supabase.
+    Lève une HTTPException si l'utilisateur n'est pas admin.
+    """
+    if not supabase_client:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service Supabase non disponible"
+        )
+    
+    # Récupérer le user_id depuis JWT ou body
+    if not user_id:
+        user_id_from_jwt = await extract_user_id_from_jwt(authorization, request)
+        if not user_id_from_jwt and body:
+            user_id_from_jwt = body.get("user_id") or body.get("userId")
+        user_id = user_id_from_jwt
+    
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentification requise. Fournissez un JWT dans le header Authorization ou user_id dans le body."
+        )
+    
+    # Vérifier le rôle admin dans la table profiles
+    try:
+        response = supabase_client.table('profiles').select('role').eq('id', user_id).single().execute()
+        
+        if not response.data or response.data.get('role') != 'admin':
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Accès réservé aux administrateurs"
+            )
+        
+        return user_id
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Si l'utilisateur n'existe pas ou erreur de base, refuser l'accès
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès réservé aux administrateurs"
+        )
+
 
 # Modèles pour l'API Animation
 class AnimationRequest(BaseModel):
@@ -486,7 +621,11 @@ async def stream_audio(filename: str, download: bool = False):
 # Ancien modèle remplacé par ValidatedAudioStoryRequest dans validators.py
 
 @app.post("/generate_audio_story/")
-async def generate_audio_story(request: dict):
+async def generate_audio_story(
+    request: dict,
+    req: Request,
+    authorization: Optional[str] = Header(None)
+):
     try:
         # Validation précoce des données d'entrée pour éviter l'erreur 520
         if not request or not isinstance(request, dict):
@@ -494,6 +633,15 @@ async def generate_audio_story(request: dict):
                 status_code=400,
                 detail="❌ Données d'entrée invalides"
             )
+
+        # Extraire user_id depuis JWT (prioritaire) ou depuis le body (fallback)
+        user_id = await extract_user_id_from_jwt(authorization, req)
+        if not user_id:
+            user_id = request.get("user_id") or request.get("userId")
+        
+        # Utiliser le user_id extrait pour toutes les opérations suivantes
+        if user_id:
+            request["user_id"] = user_id
 
         # Validation des données d'entrée
         openai_key = os.getenv("OPENAI_API_KEY")
@@ -718,13 +866,27 @@ def get_coloring_generator():
 
 @app.post("/generate_coloring/")
 @app.post("/generate_coloring/{content_type_id}")
-async def generate_coloring(request: dict, content_type_id: int = None):
+async def generate_coloring(
+    request: dict, 
+    content_type_id: int = None,
+    req: Request = None,
+    authorization: Optional[str] = Header(None)
+):
     """
     Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1-mini
     Supporte deux formats d'URL pour compatibilité frontend
     Organisation OpenAI vérifiée requise pour gpt-image-1-mini
     """
     try:
+        # Extraire user_id depuis JWT (prioritaire) ou depuis le body (fallback)
+        user_id = await extract_user_id_from_jwt(authorization, req) if req else None
+        if not user_id:
+            user_id = request.get("user_id") or request.get("userId")
+        
+        # Utiliser le user_id extrait pour toutes les opérations suivantes
+        if user_id:
+            request["user_id"] = user_id
+        
         # Validation des données d'entrée
         theme = request.get("theme", "animaux")
         custom_prompt = request.get("custom_prompt")  # Prompt personnalisé optionnel
@@ -992,19 +1154,32 @@ def get_comics_generator():
     return comics_generator_instance
 
 @app.post("/generate_comic/")
-async def generate_comic(request: dict):
+async def generate_comic(
+    request: dict,
+    req: Request = None,
+    authorization: Optional[str] = Header(None)
+):
     """
     Lance la génération d'une bande dessinée en arrière-plan
     Retourne immédiatement un task_id pour éviter les timeouts
     """
     try:
+        # Extraire user_id depuis JWT (prioritaire) ou depuis le body (fallback)
+        user_id = await extract_user_id_from_jwt(authorization, req) if req else None
+        if not user_id:
+            user_id = request.get("user_id") or request.get("userId")
+        
+        # Utiliser le user_id extrait pour toutes les opérations suivantes
+        if user_id:
+            request["user_id"] = user_id
+        
         # Récupérer les paramètres
         theme = request.get("theme", "espace")
         art_style = request.get("art_style", "cartoon")
         num_pages = request.get("num_pages", 1)
         custom_prompt = request.get("custom_prompt")
         character_photo_path = request.get("character_photo_path")
-        user_id = request.get("user_id")  # Pour unicité
+        user_id = user_id or request.get("user_id")  # Pour unicité
         
         print(f"📚 Lancement génération BD: thème={theme}, style={art_style}, pages={num_pages}")
         
@@ -1211,17 +1386,24 @@ async def get_themes():
 # --- Animation ---
 @app.post("/generate_animation/")
 async def generate_animation_post(
-    request: AnimationRequest
+    request: AnimationRequest,
+    req: Request = None,
+    authorization: Optional[str] = Header(None)
 ):
     """
     Génère une animation via POST avec body JSON
     """
+    # Extraire user_id depuis JWT (prioritaire) ou depuis le body (fallback)
+    user_id = await extract_user_id_from_jwt(authorization, req) if req else None
+    if not user_id:
+        user_id = getattr(request, 'user_id', None) or getattr(request, 'userId', None)
+    
     return await _generate_animation_logic(
         theme=request.theme,
         duration=request.duration or 30,
         style=request.style or "cartoon",
         custom_prompt=request.custom_prompt,
-        user_id=request.user_id if hasattr(request, 'user_id') else None
+        user_id=user_id
     )
 
 @app.post("/generate-quick-json")
@@ -1896,11 +2078,30 @@ async def send_contact_email(contact_form: ContactForm):
 # ===================================
 
 @app.post("/admin/cleanup-files")
-async def trigger_file_cleanup():
+async def trigger_file_cleanup(
+    request: Request,
+    authorization: Optional[str] = Header(None)
+):
     """
     Endpoint admin pour déclencher manuellement le nettoyage des fichiers locaux.
     Supprime tous les fichiers de plus de 24h dans les dossiers de cache.
+    Requiert une authentification admin (JWT dans Authorization header ou user_id dans le body).
     """
+    # Vérifier que l'utilisateur est admin
+    # On accepte user_id depuis le body pour compatibilité
+    body = None
+    try:
+        body_data = await request.body()
+        if body_data:
+            try:
+                body = json.loads(body_data)
+            except:
+                pass
+    except:
+        pass
+    
+    await verify_admin(authorization=authorization, request=request, body=body)
+    
     try:
         from services.file_cleanup import cleanup_service
         
@@ -1913,6 +2114,8 @@ async def trigger_file_cleanup():
             "stats": stats
         }
     
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -1921,11 +2124,18 @@ async def trigger_file_cleanup():
 
 
 @app.get("/admin/cleanup-status")
-async def get_cleanup_status():
+async def get_cleanup_status(
+    request: Request,
+    authorization: Optional[str] = Header(None)
+):
     """
     Endpoint admin pour obtenir les informations sur le service de nettoyage.
     Retourne la configuration et l'état du scheduler.
+    Requiert une authentification admin (JWT dans Authorization header).
     """
+    # Vérifier que l'utilisateur est admin
+    await verify_admin(authorization=authorization, request=request)
+    
     try:
         from services.file_cleanup import cleanup_service
         

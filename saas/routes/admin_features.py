@@ -1,15 +1,103 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Header
 from pydantic import BaseModel
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from copy import deepcopy
 import json
 import os
+import jwt
 from datetime import datetime
+from fastapi import status
 
 # Fichier de stockage local pour les configurations
 CONFIG_FILE = "features_config.json"
 
 router = APIRouter(prefix="/api", tags=["admin"])
+
+# ============================================
+# FONCTIONS D'AUTHENTIFICATION ADMIN
+# ============================================
+
+# Import du client Supabase depuis l'environnement
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://xfbmdeuzuyixpmouhqcv.supabase.co")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+
+async def get_supabase_client():
+    """Récupère le client Supabase"""
+    if not SUPABASE_SERVICE_KEY:
+        return None
+    try:
+        from supabase import create_client, Client
+        return create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    except:
+        return None
+
+async def extract_user_id_from_jwt(authorization: Optional[str] = Header(None)) -> Optional[str]:
+    """Extrait le user_id depuis le JWT Supabase"""
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    
+    try:
+        token = authorization.split(" ")[1]
+        decoded = jwt.decode(token, options={"verify_signature": False})
+        return decoded.get("sub")
+    except:
+        return None
+
+async def verify_admin_for_features(
+    request: Request,
+    authorization: Optional[str] = Header(None)
+) -> str:
+    """Vérifie que l'utilisateur est admin pour les routes features"""
+    supabase_client = await get_supabase_client()
+    
+    if not supabase_client:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service Supabase non disponible"
+        )
+    
+    # Récupérer le user_id depuis JWT
+    user_id = await extract_user_id_from_jwt(authorization)
+    
+    # Si pas de JWT, essayer de récupérer depuis le body pour POST/PUT
+    if not user_id and request:
+        try:
+            if request.method in ["POST", "PUT"]:
+                # Lire le body brut pour éviter de le consommer deux fois
+                body_data = await request.body()
+                if body_data:
+                    try:
+                        body = json.loads(body_data)
+                        user_id = body.get("user_id") or body.get("userId")
+                    except:
+                        pass
+        except:
+            pass
+    
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentification requise. Fournissez un JWT dans le header Authorization."
+        )
+    
+    # Vérifier le rôle admin
+    try:
+        response = supabase_client.table('profiles').select('role').eq('id', user_id).single().execute()
+        
+        if not response.data or response.data.get('role') != 'admin':
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Accès réservé aux administrateurs"
+            )
+        
+        return user_id
+    except HTTPException:
+        raise
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès réservé aux administrateurs"
+        )
 
 # Modèles Pydantic
 class FeatureUpdate(BaseModel):
@@ -121,8 +209,16 @@ async def get_features():
         return DEFAULT_FEATURES
 
 @router.put("/features/{feature_key}")
-async def update_feature(feature_key: str, feature_update: FeatureUpdate):
-    """Mettre à jour une fonctionnalité spécifique"""
+async def update_feature(
+    feature_key: str, 
+    feature_update: FeatureUpdate,
+    request: Request,
+    authorization: Optional[str] = Header(None)
+):
+    """Mettre à jour une fonctionnalité spécifique (requiert admin)"""
+    # Vérifier que l'utilisateur est admin
+    await verify_admin_for_features(authorization=authorization, request=request)
+    
     try:
         # Charger la configuration actuelle
         features = load_features_config()
@@ -148,8 +244,14 @@ async def update_feature(feature_key: str, feature_update: FeatureUpdate):
         raise HTTPException(status_code=500, detail="Erreur interne du serveur")
 
 @router.post("/features/reset")
-async def reset_features():
-    """Réinitialiser toutes les fonctionnalités à leur état par défaut"""
+async def reset_features(
+    request: Request,
+    authorization: Optional[str] = Header(None)
+):
+    """Réinitialiser toutes les fonctionnalités à leur état par défaut (requiert admin)"""
+    # Vérifier que l'utilisateur est admin
+    await verify_admin_for_features(authorization=authorization, request=request)
+    
     try:
         # Réinitialiser toutes les fonctionnalités à True
         features = load_features_config()
