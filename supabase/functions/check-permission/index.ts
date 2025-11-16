@@ -245,15 +245,15 @@ serve(async (req) => {
       .or('expires_at.is.null,expires_at.gte.' + new Date().toISOString())
       .order('created_at', { ascending: false });
 
+    // Coût estimé pour pay-per-use (approximation) - déclaré avant le bloc conditionnel
+    let estimatedTokensCost = 1; // Par défaut
+    if (contentType === 'animation') estimatedTokensCost = 10;
+    else if (contentType === 'comptine') estimatedTokensCost = 5;
+    else if (contentType === 'bd' || contentType === 'comic') estimatedTokensCost = 4;
+
     if (userTokens && userTokens.length > 0) {
       // Calculer le total des tokens disponibles
       const totalTokens = userTokens.reduce((sum, token) => sum + token.tokens_amount, 0);
-
-      // Coût estimé pour pay-per-use (approximation)
-      let estimatedTokensCost = 1; // Par défaut
-      if (contentType === 'animation') estimatedTokensCost = 10;
-      else if (contentType === 'comptine') estimatedTokensCost = 5;
-      else if (contentType === 'bd' || contentType === 'comic') estimatedTokensCost = 4;
 
       if (totalTokens >= estimatedTokensCost) {
         return new Response(JSON.stringify({
