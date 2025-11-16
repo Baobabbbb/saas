@@ -38,8 +38,9 @@ serve(async (req) => {
     }
 
     // Vérifier les variables d'environnement
+    // Utiliser SUPABASE_SERVICE_ROLE_KEY en priorité (comme dans stripe-webhook)
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SERVICE_KEY');
     
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error('Variables d\'environnement manquantes:', {
