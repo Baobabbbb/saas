@@ -232,6 +232,22 @@ class GenerateQuickRequest(BaseModel):
     style: str = "cartoon"
     custom_prompt: Optional[str] = None
 
+# Modèle pour les requêtes de génération (flexible pour accepter n'importe quel champ)
+class GenerateRequest(BaseModel):
+    class Config:
+        extra = "allow"  # Permet des champs supplémentaires
+    
+    story_type: Optional[str] = None
+    voice: Optional[str] = None
+    custom_request: Optional[str] = None
+    user_id: Optional[str] = None
+    userId: Optional[str] = None
+    theme: Optional[str] = None
+    custom_prompt: Optional[str] = None
+    art_style: Optional[str] = None
+    num_pages: Optional[int] = None
+    character_photo_path: Optional[str] = None
+
 # Modèle pour le formulaire de contact
 class ContactForm(BaseModel):
     firstName: str
@@ -622,12 +638,15 @@ async def stream_audio(filename: str, download: bool = False):
 
 @app.post("/generate_audio_story/")
 async def generate_audio_story(
-    request: dict,
+    request: GenerateRequest,
     authorization: Optional[str] = Header(None)
 ):
     try:
+        # Convertir le modèle Pydantic en dict pour compatibilité
+        request_dict = request.dict()
+        
         # Validation précoce des données d'entrée pour éviter l'erreur 520
-        if not request or not isinstance(request, dict):
+        if not request_dict:
             raise HTTPException(
                 status_code=400,
                 detail="❌ Données d'entrée invalides"
@@ -655,8 +674,8 @@ async def generate_audio_story(
                 detail="❌ Clé API OpenAI non configurée ou invalide"
             )
 
-        story_type = request.get("story_type", "aventure")
-        custom_request = request.get("custom_request", "")
+        story_type = request_dict.get("story_type", "aventure")
+        custom_request = request_dict.get("custom_request", "")
 
         # Validation du type d'histoire
         if not isinstance(story_type, str) or len(story_type) > 50:
@@ -721,11 +740,11 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         # 🆕 VÉRIFICATION UNICITÉ (non-bloquante, ne casse rien si erreur)
         uniqueness_metadata = {}
         try:
-            if supabase_client and request.get("user_id"):
+            if supabase_client and request_dict.get("user_id"):
                 # Vérifier l'unicité du contenu généré
                 uniqueness_check = await uniqueness_service.ensure_unique_content(
                     supabase_client=supabase_client,
-                    user_id=request.get("user_id"),
+                    user_id=request_dict.get("user_id"),
                     content_type="histoire",
                     theme=story_type,
                     generated_content=story_content,
@@ -771,7 +790,7 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
                     # Recalculer les métadonnées avec le nouveau contenu
                     uniqueness_check = await uniqueness_service.ensure_unique_content(
                         supabase_client=supabase_client,
-                        user_id=request.get("user_id"),
+                        user_id=request_dict.get("user_id"),
                         content_type="histoire",
                         theme=story_type,
                         generated_content=story_content,
@@ -791,7 +810,7 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         
         # Génération de l'audio si une voix est spécifiée
         audio_path = None
-        voice = request.get("voice")
+        voice = request_dict.get("voice")
 
         # Validation de la voix
         if voice and isinstance(voice, str) and voice in ["male", "female"]:
@@ -832,7 +851,7 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         print(f"Details: {error_details}")
         # Retourner une réponse valide même en cas d'erreur pour éviter l'erreur 520
         return {
-            "title": f"Histoire {request.get('story_type', 'aventure')}",
+            "title": f"Histoire {request_dict.get('story_type', 'aventure')}",
             "content": "Une erreur est survenue lors de la génération. Veuillez réessayer.",
             "audio_path": None,
             "audio_generated": False,
