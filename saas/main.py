@@ -232,21 +232,7 @@ class GenerateQuickRequest(BaseModel):
     style: str = "cartoon"
     custom_prompt: Optional[str] = None
 
-# Modèle pour les requêtes de génération (flexible pour accepter n'importe quel champ)
-class GenerateRequest(BaseModel):
-    class Config:
-        extra = "allow"  # Permet des champs supplémentaires
-    
-    story_type: Optional[str] = None
-    voice: Optional[str] = None
-    custom_request: Optional[str] = None
-    user_id: Optional[str] = None
-    userId: Optional[str] = None
-    theme: Optional[str] = None
-    custom_prompt: Optional[str] = None
-    art_style: Optional[str] = None
-    num_pages: Optional[int] = None
-    character_photo_path: Optional[str] = None
+# Pas de modèle Pydantic strict - on accepte n'importe quel dict
 
 # Modèle pour le formulaire de contact
 class ContactForm(BaseModel):
@@ -638,19 +624,18 @@ async def stream_audio(filename: str, download: bool = False):
 
 @app.post("/generate_audio_story/")
 async def generate_audio_story(
-    request: GenerateRequest,
+    request: Dict[str, Any] = Body(...),
     authorization: Optional[str] = Header(None)
 ):
     try:
-        # Convertir le modèle Pydantic en dict pour compatibilité
-        request_dict = request.dict()
-        
         # Validation précoce des données d'entrée pour éviter l'erreur 520
-        if not request_dict:
+        if not request or not isinstance(request, dict):
             raise HTTPException(
                 status_code=400,
                 detail="❌ Données d'entrée invalides"
             )
+        
+        request_dict = request
 
         # Extraire user_id depuis JWT (prioritaire) ou depuis le body (fallback)
         user_id = None
