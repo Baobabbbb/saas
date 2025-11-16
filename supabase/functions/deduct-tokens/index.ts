@@ -194,16 +194,17 @@ serve(async (req) => {
       }
       
       if (!userTokens || userTokens.length === 0) {
-        console.log('[DEBUG deduct-tokens] Aucun token disponible pour userId:', userId);
-        // Si l'utilisateur n'a pas de tokens, retourner succès mais avec un message
-        // (pour ne pas bloquer la génération si c'est un paiement direct)
+        // Si l'utilisateur n'a pas de tokens, retourner succès (pay-per-use)
+        // Ne pas logger pour éviter le bruit dans les logs
         return new Response(JSON.stringify({
           success: true,
           type: 'no_tokens',
-          message: 'Aucun token disponible, mais génération autorisée (paiement direct possible)',
+          message: 'Aucun token disponible (pay-per-use)',
           tokensDeducted: 0,
-          tokensRemaining: 0
+          tokensRemaining: 0,
+          silent: true
         }), {
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
