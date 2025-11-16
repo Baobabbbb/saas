@@ -56,8 +56,16 @@ serve(async (req) => {
       event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
     } catch (err) {
       console.error('Erreur vérification webhook:', err);
-      return new Response(JSON.stringify({ error: 'Webhook signature verification failed' }), {
-        status: 400,
+      console.error('Webhook secret configuré:', webhookSecret ? `${webhookSecret.substring(0, 10)}...` : 'MANQUANT');
+      console.error('Signature reçue:', sig ? `${sig.substring(0, 20)}...` : 'MANQUANTE');
+      // Retourner 200 pour éviter que Stripe réessaie indéfiniment
+      // Mais logger l'erreur pour investigation
+      return new Response(JSON.stringify({ 
+        received: true,
+        error: 'Webhook signature verification failed',
+        note: 'Le STRIPE_WEBHOOK_SECRET dans Supabase ne correspond pas au secret du webhook dans Stripe. Vérifie les logs pour plus de détails.'
+      }), {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
