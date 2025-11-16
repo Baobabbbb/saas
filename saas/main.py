@@ -624,18 +624,36 @@ async def stream_audio(filename: str, download: bool = False):
 
 @app.post("/generate_audio_story/")
 async def generate_audio_story(
-    request: Dict[str, Any] = Body(...),
+    req: Request,
     authorization: Optional[str] = Header(None)
 ):
     try:
-        # Validation précoce des données d'entrée pour éviter l'erreur 520
-        if not request or not isinstance(request, dict):
+        # Parser le body JSON manuellement avec gestion d'erreurs détaillée
+        try:
+            body_bytes = await req.body()
+            if not body_bytes:
+                raise HTTPException(
+                    status_code=422,
+                    detail="Body vide"
+                )
+            request_dict = json.loads(body_bytes)
+        except json.JSONDecodeError as e:
             raise HTTPException(
-                status_code=400,
-                detail="❌ Données d'entrée invalides"
+                status_code=422,
+                detail=f"JSON invalide: {str(e)}"
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Erreur parsing body: {str(e)}"
             )
         
-        request_dict = request
+        # Validation précoce des données d'entrée
+        if not request_dict or not isinstance(request_dict, dict):
+            raise HTTPException(
+                status_code=422,
+                detail="Données d'entrée invalides: doit être un objet JSON"
+            )
 
         # Extraire user_id depuis JWT (prioritaire) ou depuis le body (fallback)
         user_id = None
