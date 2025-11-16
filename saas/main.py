@@ -218,9 +218,20 @@ async def favicon():
 @app.get("/api/config")
 async def get_config():
     """Fournit les variables de configuration nécessaires au frontend"""
+    # Retirer la clé hardcodée en fallback pour sécurité
+    # Les variables d'environnement doivent être configurées sur Railway
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_anon_key = os.getenv("SUPABASE_ANON_KEY")
+    
+    if not supabase_url or not supabase_anon_key:
+        raise HTTPException(
+            status_code=500,
+            detail="Configuration Supabase manquante. Vérifiez les variables d'environnement SUPABASE_URL et SUPABASE_ANON_KEY sur Railway."
+        )
+    
     return {
-        "supabase_url": os.getenv("SUPABASE_URL", "https://xfbmdeuzuyixpmouhqcv.supabase.co"),
-        "supabase_anon_key": os.getenv("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmYm1kZXV6dXlpeHBtb3VocWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMzE3ODQsImV4cCI6MjA2NDkwNzc4NH0.XzFIT3BwW9dKRrmFFbSAufCpC1SZuUI-VU2Uer5VoTw"),
+        "supabase_url": supabase_url,
+        "supabase_anon_key": supabase_anon_key,
         "base_url": BASE_URL
     }
 
