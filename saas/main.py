@@ -869,7 +869,6 @@ def get_coloring_generator():
 async def generate_coloring(
     request: dict, 
     content_type_id: int = None,
-    req: Request = None,
     authorization: Optional[str] = Header(None)
 ):
     """
@@ -879,7 +878,12 @@ async def generate_coloring(
     """
     try:
         # Extraire user_id depuis JWT (prioritaire) ou depuis le body (fallback)
-        user_id = await extract_user_id_from_jwt(authorization, req) if req else None
+        user_id = None
+        if authorization:
+            try:
+                user_id = await extract_user_id_from_jwt(authorization, None)
+            except:
+                pass
         if not user_id:
             user_id = request.get("user_id") or request.get("userId")
         
@@ -1156,7 +1160,6 @@ def get_comics_generator():
 @app.post("/generate_comic/")
 async def generate_comic(
     request: dict,
-    req: Request = None,
     authorization: Optional[str] = Header(None)
 ):
     """
@@ -1165,7 +1168,12 @@ async def generate_comic(
     """
     try:
         # Extraire user_id depuis JWT (prioritaire) ou depuis le body (fallback)
-        user_id = await extract_user_id_from_jwt(authorization, req) if req else None
+        user_id = None
+        if authorization:
+            try:
+                user_id = await extract_user_id_from_jwt(authorization, None)
+            except:
+                pass
         if not user_id:
             user_id = request.get("user_id") or request.get("userId")
         
@@ -1387,14 +1395,18 @@ async def get_themes():
 @app.post("/generate_animation/")
 async def generate_animation_post(
     request: AnimationRequest,
-    req: Request = None,
     authorization: Optional[str] = Header(None)
 ):
     """
     Génère une animation via POST avec body JSON
     """
     # Extraire user_id depuis JWT (prioritaire) ou depuis le body (fallback)
-    user_id = await extract_user_id_from_jwt(authorization, req) if req else None
+    user_id = None
+    if authorization:
+        try:
+            user_id = await extract_user_id_from_jwt(authorization, None)
+        except:
+            pass
     if not user_id:
         user_id = getattr(request, 'user_id', None) or getattr(request, 'userId', None)
     
