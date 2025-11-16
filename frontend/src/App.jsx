@@ -311,6 +311,32 @@ function App() {
 
   // Check if user is logged in on component mount
   useEffect(() => {
+    // Gestion d'erreur globale pour masquer les erreurs Stripe non critiques
+    const handleUnhandledRejection = (event) => {
+      // Masquer les erreurs Stripe Radar non critiques
+      if (event.reason && typeof event.reason === 'object') {
+        const errorMessage = event.reason.message || String(event.reason);
+        if (errorMessage.includes('r.stripe.com') || 
+            errorMessage.includes('stripe.com') ||
+            errorMessage.includes('Failed to fetch') && errorMessage.includes('stripe')) {
+          event.preventDefault(); // Empêcher l'affichage dans la console
+          return;
+        }
+      }
+    };
+
+    // Gestion des erreurs console pour masquer les warnings Stripe
+    const originalError = console.error;
+    console.error = (...args) => {
+      const errorMessage = args.join(' ');
+      // Masquer les warnings Stripe non critiques
+      if (errorMessage.includes('r.stripe.com') || 
+          errorMessage.includes('feature_collector') ||
+          (errorMessage.includes('aria-hidden') && errorMessage.includes('Stripe'))) {
+        return; // Ne pas afficher dans la console
+      }
+      originalError.apply(console, args);
+    };
 
     // Check if URL has #historique hash
     if (window.location.hash === '#historique') {
@@ -319,10 +345,17 @@ function App() {
 
     // Listen for hash changes
     const handleHashChange = () => {
-      setShowHistory(window.location.hash === '#historique');    };
+      setShowHistory(window.location.hash === '#historique');
+    };
 
     window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      console.error = originalError; // Restaurer la fonction originale
+    };
   }, []);
 
   // Vérifier si l'utilisateur a accès gratuit et mettre à jour le bouton

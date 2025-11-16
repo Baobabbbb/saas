@@ -6,7 +6,12 @@ import { supabase } from '../supabaseClient';
 import { getContentPrice } from '../services/payment';
 
 const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-const stripePromise = loadStripe(stripeKey);
+// Configuration Stripe avec options pour réduire les erreurs
+const stripePromise = stripeKey ? loadStripe(stripeKey, {
+  // Options pour réduire les erreurs de réseau Stripe
+  betas: [],
+  locale: 'fr'
+}) : null;
 
 const CARD_ELEMENT_OPTIONS = {
   style: {

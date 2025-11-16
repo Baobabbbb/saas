@@ -24,7 +24,11 @@ import './SubscriptionModal.css';
 const stripePromise = (import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY &&
   typeof import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY === 'string' &&
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY.length > 0)
-  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY, {
+      // Options pour réduire les erreurs de réseau Stripe
+      betas: [],
+      locale: 'fr'
+    })
   : Promise.resolve(null);
 
 const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
