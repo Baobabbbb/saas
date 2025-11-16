@@ -660,11 +660,11 @@ async def generate_audio_story(
             except:
                 pass
         if not user_id:
-            user_id = request.get("user_id") or request.get("userId")
+            user_id = request_dict.get("user_id") or request_dict.get("userId")
         
         # Utiliser le user_id extrait pour toutes les opérations suivantes
         if user_id:
-            request["user_id"] = user_id
+            request_dict["user_id"] = user_id
 
         # Validation des données d'entrée
         openai_key = os.getenv("OPENAI_API_KEY")
