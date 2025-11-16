@@ -623,11 +623,11 @@ async def stream_audio(filename: str, download: bool = False):
 # Ancien modèle remplacé par ValidatedAudioStoryRequest dans validators.py
 
 @app.post("/generate_audio_story/")
-async def generate_audio_story(
-    req: Request,
-    authorization: Optional[str] = Header(None)
-):
+async def generate_audio_story(req: Request):
     try:
+        # Extraire le header Authorization manuellement
+        authorization = req.headers.get("Authorization") or req.headers.get("authorization")
+        
         # Parser le body JSON - essayer req.json() d'abord (plus simple)
         try:
             request_dict = await req.json()
