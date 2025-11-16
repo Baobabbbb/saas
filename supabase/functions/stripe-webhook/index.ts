@@ -44,8 +44,13 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Lire le body en tant que texte brut (important pour Stripe webhooks)
     const body = await req.text();
     const sig = req.headers.get('stripe-signature');
+
+    // Logger pour diagnostic
+    console.log('Body reçu:', body ? `${body.length} caractères` : 'VIDE');
+    console.log('Signature reçue:', sig ? `${sig.substring(0, 30)}...` : 'MANQUANTE');
 
     if (!sig) {
       console.error('Signature Stripe manquante dans les headers');
@@ -62,9 +67,24 @@ serve(async (req) => {
       });
     }
 
+    if (!body || body.length === 0) {
+      console.error('Body vide reçu');
+      console.error('Content-Type:', req.headers.get('content-type'));
+      // Retourner 200 mais logger l'erreur
+      return new Response(JSON.stringify({ 
+        received: true,
+        error: 'Body vide reçu',
+        note: 'Le body de la requête Stripe est vide. Vérifie les logs pour plus de détails.'
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     let event: Stripe.Event;
 
     try {
+      // Passer le body brut à Stripe pour vérification
       event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
     } catch (err) {
       console.error('Erreur vérification webhook:', err);
