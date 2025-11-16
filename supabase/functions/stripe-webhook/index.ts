@@ -3,6 +3,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno';
 
 serve(async (req) => {
+  // Logger toutes les requêtes pour diagnostic
+  console.log('Webhook Stripe reçu:', req.method, req.url);
+  console.log('Headers reçus:', Object.fromEntries(req.headers.entries()));
+
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature'
@@ -10,6 +14,7 @@ serve(async (req) => {
 
   // Gérer les requêtes OPTIONS (CORS preflight)
   if (req.method === 'OPTIONS') {
+    console.log('Réponse OPTIONS envoyée');
     return new Response('ok', { headers: corsHeaders });
   }
 
@@ -44,8 +49,15 @@ serve(async (req) => {
 
     if (!sig) {
       console.error('Signature Stripe manquante dans les headers');
-      return new Response(JSON.stringify({ error: 'Signature manquante' }), {
-        status: 400,
+      console.error('Headers reçus:', Object.fromEntries(req.headers.entries()));
+      // Retourner 200 pour éviter que Stripe réessaie indéfiniment
+      // Mais logger l'erreur pour investigation
+      return new Response(JSON.stringify({ 
+        received: true,
+        error: 'Signature Stripe manquante dans les headers',
+        note: 'Vérifie que Stripe envoie bien le header stripe-signature. Consulte les logs pour voir les headers reçus.'
+      }), {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
