@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Request, Header, Depends
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request, Header, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -622,7 +622,7 @@ async def stream_audio(filename: str, download: bool = False):
 
 @app.post("/generate_audio_story/")
 async def generate_audio_story(
-    request: dict,
+    request: dict = Body(...),
     authorization: Optional[str] = Header(None)
 ):
     try:
@@ -871,7 +871,7 @@ def get_coloring_generator():
 @app.post("/generate_coloring/")
 @app.post("/generate_coloring/{content_type_id}")
 async def generate_coloring(
-    request: dict, 
+    request: dict = Body(...), 
     content_type_id: int = None,
     authorization: Optional[str] = Header(None)
 ):
@@ -1163,7 +1163,7 @@ def get_comics_generator():
 
 @app.post("/generate_comic/")
 async def generate_comic(
-    request: dict,
+    request: dict = Body(...),
     authorization: Optional[str] = Header(None)
 ):
     """
