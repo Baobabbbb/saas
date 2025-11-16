@@ -622,25 +622,10 @@ async def stream_audio(filename: str, download: bool = False):
 
 @app.post("/generate_audio_story/")
 async def generate_audio_story(
-    req: Request,
+    request: dict,
     authorization: Optional[str] = Header(None)
 ):
     try:
-        # Parser le body JSON manuellement pour éviter les problèmes de validation FastAPI
-        try:
-            body_data = await req.body()
-            if not body_data:
-                raise HTTPException(
-                    status_code=400,
-                    detail="❌ Body vide"
-                )
-            request = json.loads(body_data)
-        except json.JSONDecodeError:
-            raise HTTPException(
-                status_code=400,
-                detail="❌ JSON invalide"
-            )
-        
         # Validation précoce des données d'entrée pour éviter l'erreur 520
         if not request or not isinstance(request, dict):
             raise HTTPException(
@@ -886,24 +871,10 @@ def get_coloring_generator():
 @app.post("/generate_coloring/")
 @app.post("/generate_coloring/{content_type_id}")
 async def generate_coloring(
-    req: Request,
+    request: dict,
     content_type_id: int = None,
     authorization: Optional[str] = Header(None)
 ):
-    # Parser le body JSON manuellement pour éviter les problèmes de validation FastAPI
-    try:
-        body_data = await req.body()
-        if not body_data:
-            raise HTTPException(
-                status_code=400,
-                detail="❌ Body vide"
-            )
-        request = json.loads(body_data)
-    except json.JSONDecodeError:
-        raise HTTPException(
-            status_code=400,
-            detail="❌ JSON invalide"
-        )
     """
     Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1-mini
     Supporte deux formats d'URL pour compatibilité frontend
@@ -1192,23 +1163,9 @@ def get_comics_generator():
 
 @app.post("/generate_comic/")
 async def generate_comic(
-    req: Request,
+    request: dict,
     authorization: Optional[str] = Header(None)
 ):
-    # Parser le body JSON manuellement pour éviter les problèmes de validation FastAPI
-    try:
-        body_data = await req.body()
-        if not body_data:
-            raise HTTPException(
-                status_code=400,
-                detail="❌ Body vide"
-            )
-        request = json.loads(body_data)
-    except json.JSONDecodeError:
-        raise HTTPException(
-            status_code=400,
-            detail="❌ JSON invalide"
-        )
     """
     Lance la génération d'une bande dessinée en arrière-plan
     Retourne immédiatement un task_id pour éviter les timeouts
