@@ -24,6 +24,22 @@ serve(async (req) => {
   }
 
   try {
+    // Parser le body JSON avec gestion d'erreurs
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (jsonError) {
+      console.error('Erreur parsing JSON:', jsonError);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Erreur lors du parsing du body JSON',
+        details: jsonError instanceof Error ? jsonError.message : String(jsonError)
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const {
       userId,
       contentType,
@@ -32,22 +48,53 @@ serve(async (req) => {
       numPages,
       selectedVoice,
       transactionId
-    } = await req.json();
+    } = requestBody;
 
-    if (!userId || !contentType || !tokensUsed) {
+    console.log('[DEBUG deduct-tokens] Paramètres reçus:', {
+      userId: userId ? 'présent' : 'manquant',
+      contentType: contentType ? 'présent' : 'manquant',
+      tokensUsed: tokensUsed !== undefined ? `présent (${tokensUsed})` : 'manquant',
+      selectedDuration,
+      numPages,
+      selectedVoice,
+      transactionId
+    });
+
+    if (!userId || !contentType || tokensUsed === undefined || tokensUsed === null) {
       return new Response(JSON.stringify({
         success: false,
-        error: 'Paramètres requis manquants: userId, contentType, tokensUsed'
+        error: 'Paramètres requis manquants: userId, contentType, tokensUsed',
+        received: {
+          hasUserId: !!userId,
+          hasContentType: !!contentType,
+          hasTokensUsed: tokensUsed !== undefined && tokensUsed !== null,
+          tokensUsedValue: tokensUsed
+        }
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL'),
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    );
+    // Utiliser SUPABASE_SERVICE_KEY avec fallback sur SUPABASE_SERVICE_ROLE_KEY
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Variables d\'environnement manquantes:', {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseServiceKey
+      });
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Configuration Supabase manquante'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Vérifier si l'utilisateur a un abonnement actif
     const { data: subscription, error: subError } = await supabase

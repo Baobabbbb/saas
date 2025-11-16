@@ -998,17 +998,33 @@ function App() {
           tokenOptions.voice = selectedVoice;
         }
 
+        // Normaliser le contentType pour le calcul des tokens
+        const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
+        
         // Obtenir le coût en tokens
-        const tokensRequired = calculateTokenCost(contentType, tokenOptions);
+        const tokensRequired = calculateTokenCost(normalizedContentType, tokenOptions);
+        
+        console.log('[DEBUG] Déduction tokens:', {
+          userId: user.id,
+          contentType: normalizedContentType,
+          tokensRequired,
+          tokenOptions
+        });
+
+        // Vérifier que tokensRequired est valide
+        if (!tokensRequired || tokensRequired <= 0) {
+          console.warn('[DEBUG] tokensRequired invalide, skip déduction:', tokensRequired);
+          return; // Ne pas déduire si le coût est invalide
+        }
 
         // Déduire les tokens
         const deductionResult = await deductTokens(
           user.id,
-          contentType,
+          normalizedContentType,
           tokensRequired,
           {
             ...tokenOptions,
-            transactionId: `gen_${Date.now()}_${contentType}`
+            transactionId: `gen_${Date.now()}_${normalizedContentType}`
           }
         );
 
