@@ -54,40 +54,79 @@ serve(async (req) => {
     }
 
     // Vérifier les variables d'environnement
-    // Utiliser SUPABASE_SERVICE_ROLE_KEY en priorité (comme dans stripe-webhook)
+    // Les Edge Functions Supabase ont accès par défaut à SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SERVICE_KEY');
     
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error('Variables d\'environnement manquantes:', {
         hasUrl: !!supabaseUrl,
-        hasKey: !!supabaseServiceKey
+        hasKey: !!supabaseServiceKey,
+        urlValue: supabaseUrl ? 'present' : 'missing',
+        keyValue: supabaseServiceKey ? 'present' : 'missing'
       });
       return new Response(JSON.stringify({
         hasPermission: false,
         reason: 'configuration_error',
-        error: 'Configuration Supabase manquante'
+        error: 'Configuration Supabase manquante',
+        debug: {
+          hasUrl: !!supabaseUrl,
+          hasKey: !!supabaseServiceKey
+        }
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    let supabase;
+    try {
+      supabase = createClient(supabaseUrl, supabaseServiceKey);
+    } catch (clientError) {
+      console.error('Erreur création client Supabase:', clientError);
+      return new Response(JSON.stringify({
+        hasPermission: false,
+        reason: 'client_error',
+        error: 'Erreur lors de la création du client Supabase',
+        details: clientError instanceof Error ? clientError.message : String(clientError)
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     // Vérifier le rôle utilisateur
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single();
+    let profile, profileError;
+    try {
+      const result = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+      profile = result.data;
+      profileError = result.error;
+    } catch (queryError) {
+      console.error('Erreur exception lors de la requête profil:', queryError);
+      return new Response(JSON.stringify({
+        hasPermission: false,
+        reason: 'query_exception',
+        error: 'Exception lors de la requête profil',
+        details: queryError instanceof Error ? queryError.message : String(queryError)
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     if (profileError) {
       console.error('Erreur récupération profil:', profileError);
       return new Response(JSON.stringify({
         hasPermission: false,
         reason: 'profile_error',
-        error: 'Erreur lors de la récupération du profil'
+        error: 'Erreur lors de la récupération du profil',
+        details: profileError.message || String(profileError),
+        code: profileError.code,
+        hint: profileError.hint
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
