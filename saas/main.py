@@ -628,44 +628,42 @@ async def generate_audio_story(
     authorization: Optional[str] = Header(None)
 ):
     try:
-        # Parser le body JSON manuellement avec gestion d'erreurs détaillée
+        # Parser le body JSON - essayer req.json() d'abord (plus simple)
         try:
-            body_bytes = await req.body()
-            print(f"[DEBUG generate_audio_story] Body reçu: {len(body_bytes)} bytes")
-            if not body_bytes:
-                print("[DEBUG] Body vide!")
+            request_dict = await req.json()
+            print(f"[DEBUG generate_audio_story] JSON parsé avec succès via req.json(). Clés: {list(request_dict.keys())}")
+        except Exception as json_error:
+            # Fallback: parser manuellement
+            print(f"[DEBUG] req.json() a échoué: {json_error}, tentative parsing manuel...")
+            try:
+                body_bytes = await req.body()
+                print(f"[DEBUG] Body reçu: {len(body_bytes)} bytes")
+                if not body_bytes:
+                    raise HTTPException(
+                        status_code=422,
+                        detail="Body vide"
+                    )
+                
+                body_str = body_bytes.decode('utf-8')
+                print(f"[DEBUG] Body string (premiers 200 chars): {body_str[:200]}")
+                
+                request_dict = json.loads(body_str)
+                print(f"[DEBUG] JSON parsé avec succès manuellement. Clés: {list(request_dict.keys())}")
+                
+            except json.JSONDecodeError as e:
+                print(f"[DEBUG] Erreur JSON: {e}")
                 raise HTTPException(
                     status_code=422,
-                    detail="Body vide"
+                    detail=f"JSON invalide: {str(e)}"
                 )
-            
-            # Décoder en string puis parser JSON
-            body_str = body_bytes.decode('utf-8')
-            print(f"[DEBUG] Body string (premiers 200 chars): {body_str[:200]}")
-            
-            request_dict = json.loads(body_str)
-            print(f"[DEBUG] JSON parsé avec succès. Clés: {list(request_dict.keys())}")
-            
-        except UnicodeDecodeError as e:
-            print(f"[DEBUG] Erreur décodage UTF-8: {e}")
-            raise HTTPException(
-                status_code=422,
-                detail=f"Erreur décodage UTF-8: {str(e)}"
-            )
-        except json.JSONDecodeError as e:
-            print(f"[DEBUG] Erreur JSON: {e}, body: {body_bytes[:200] if 'body_bytes' in locals() else 'N/A'}")
-            raise HTTPException(
-                status_code=422,
-                detail=f"JSON invalide: {str(e)}"
-            )
-        except Exception as e:
-            print(f"[DEBUG] Erreur inattendue: {e}")
-            import traceback
-            print(f"[DEBUG] Traceback: {traceback.format_exc()}")
-            raise HTTPException(
-                status_code=422,
-                detail=f"Erreur parsing body: {str(e)}"
-            )
+            except Exception as e:
+                print(f"[DEBUG] Erreur inattendue: {e}")
+                import traceback
+                print(f"[DEBUG] Traceback: {traceback.format_exc()}")
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Erreur parsing body: {str(e)}"
+                )
         
         # Validation précoce des données d'entrée
         if not request_dict or not isinstance(request_dict, dict):
