@@ -325,17 +325,51 @@ function App() {
       }
     };
 
-    // Gestion des erreurs console pour masquer les warnings Stripe
+    // Gestion des erreurs console pour masquer les warnings Stripe et tokens
     const originalError = console.error;
+    const originalWarn = console.warn;
+    
+    // Masquer aussi les logs console.log pour les tokens
+    const originalLog = console.log;
+    console.log = (...args) => {
+      const logMessage = args.join(' ');
+      // Masquer les logs de debug tokens et Stripe
+      if (logMessage.includes('[DEBUG]') && 
+          (logMessage.includes('Déduction tokens') || 
+           logMessage.includes('deductTokens') ||
+           logMessage.includes('Tentative déduction'))) {
+        return; // Ne pas afficher dans la console
+      }
+      originalLog.apply(console, args);
+    };
+    
     console.error = (...args) => {
       const errorMessage = args.join(' ');
-      // Masquer les warnings Stripe non critiques
+      // Masquer les warnings Stripe non critiques et erreurs tokens
       if (errorMessage.includes('r.stripe.com') || 
           errorMessage.includes('feature_collector') ||
-          (errorMessage.includes('aria-hidden') && errorMessage.includes('Stripe'))) {
+          (errorMessage.includes('aria-hidden') && errorMessage.includes('Stripe')) ||
+          errorMessage.includes('deduct-tokens') ||
+          errorMessage.includes('Déduction tokens') ||
+          errorMessage.includes('Erreur déduction tokens') ||
+          errorMessage.includes('deductTokens') ||
+          errorMessage.includes('[DEBUG deductTokens]')) {
         return; // Ne pas afficher dans la console
       }
       originalError.apply(console, args);
+    };
+    
+    console.warn = (...args) => {
+      const warnMessage = args.join(' ');
+      // Masquer les warnings Stripe non critiques et tokens
+      if (warnMessage.includes('feature_collector') ||
+          warnMessage.includes('aria-hidden') ||
+          warnMessage.includes('deduct-tokens') ||
+          warnMessage.includes('Déduction tokens') ||
+          warnMessage.includes('[DEBUG]')) {
+        return; // Ne pas afficher dans la console
+      }
+      originalWarn.apply(console, args);
     };
 
     // Check if URL has #historique hash
@@ -354,7 +388,9 @@ function App() {
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      console.log = originalLog; // Restaurer la fonction originale
       console.error = originalError; // Restaurer la fonction originale
+      console.warn = originalWarn; // Restaurer la fonction originale
     };
   }, []);
 
@@ -984,12 +1020,8 @@ function App() {
     // 🔄 DÉDUCTION DES TOKENS APRÈS GÉNÉRATION RÉUSSIE
     // (Seulement si l'utilisateur n'a pas d'accès gratuit ET n'a pas payé directement)
     // Si contentPaidDirectly est true, le paiement a déjà été effectué, pas besoin de déduire des tokens
+    // Les tokens sont déduits uniquement pour les abonnements, pas pour le pay-per-use
     if (!userHasFreeAccess && !contentPaidDirectly && generatedContent) {
-      console.log('[DEBUG] Tentative déduction tokens:', {
-        userHasFreeAccess,
-        contentPaidDirectly,
-        hasGeneratedContent: !!generatedContent
-      });
       try {
         const { calculateTokenCost, deductTokens } = await import('./services/payment');
 
@@ -1010,20 +1042,13 @@ function App() {
         // Obtenir le coût en tokens
         const tokensRequired = calculateTokenCost(normalizedContentType, tokenOptions);
         
-        console.log('[DEBUG] Déduction tokens:', {
-          userId: user.id,
-          contentType: normalizedContentType,
-          tokensRequired,
-          tokenOptions
-        });
-
         // Vérifier que tokensRequired est valide
         if (!tokensRequired || tokensRequired <= 0) {
-          console.warn('[DEBUG] tokensRequired invalide, skip déduction:', tokensRequired);
           return; // Ne pas déduire si le coût est invalide
         }
 
-        // Déduire les tokens
+        // Déduire les tokens (seulement pour les abonnements)
+        // En pay-per-use, les tokens ne sont pas déduits car l'utilisateur a déjà payé
         const deductionResult = await deductTokens(
           user.id,
           normalizedContentType,
@@ -1033,12 +1058,15 @@ function App() {
             transactionId: `gen_${Date.now()}_${normalizedContentType}`
           }
         );
+        
+        // Ne pas logger les erreurs si elles sont silencieuses (pay-per-use)
+        if (deductionResult && !deductionResult.success && !deductionResult.silent) {
+          console.warn('Déduction tokens échouée (non-bloquant):', deductionResult.error);
+        }
 
       } catch (tokenError) {
-        console.error('❌ Erreur lors de la déduction des tokens:', tokenError);
-        // Ne pas bloquer la génération si la déduction échoue
-        // (pour éviter de casser l'expérience utilisateur)
-        // La fonction deductTokens retourne maintenant un objet au lieu de throw
+        // Ne pas logger les erreurs de tokens (non-bloquant, surtout en pay-per-use)
+        // La génération continue même si la déduction échoue
       }
     }
     

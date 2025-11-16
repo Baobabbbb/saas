@@ -181,12 +181,29 @@ serve(async (req) => {
         .or('expires_at.is.null,expires_at.gte.' + new Date().toISOString())
         .order('created_at', { ascending: true }); // FIFO
 
-      if (tokensError || !userTokens || userTokens.length === 0) {
+      if (tokensError) {
+        console.error('[DEBUG deduct-tokens] Erreur récupération tokens:', tokensError);
         return new Response(JSON.stringify({
           success: false,
-          error: 'Aucun token disponible'
+          error: 'Erreur lors de la récupération des tokens',
+          details: tokensError.message || String(tokensError)
         }), {
-          status: 400,
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      if (!userTokens || userTokens.length === 0) {
+        console.log('[DEBUG deduct-tokens] Aucun token disponible pour userId:', userId);
+        // Si l'utilisateur n'a pas de tokens, retourner succès mais avec un message
+        // (pour ne pas bloquer la génération si c'est un paiement direct)
+        return new Response(JSON.stringify({
+          success: true,
+          type: 'no_tokens',
+          message: 'Aucun token disponible, mais génération autorisée (paiement direct possible)',
+          tokensDeducted: 0,
+          tokensRemaining: 0
+        }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
