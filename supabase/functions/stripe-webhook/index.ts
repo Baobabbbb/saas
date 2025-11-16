@@ -45,12 +45,30 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Lire le body en tant que texte brut (important pour Stripe webhooks)
-    const body = await req.text();
+    // Essayer différentes méthodes pour lire le body
+    let body: string;
+    try {
+      // Méthode 1 : text() directement
+      body = await req.text();
+    } catch (err) {
+      console.error('Erreur lecture body avec text():', err);
+      // Méthode 2 : arrayBuffer() puis conversion
+      try {
+        const buffer = await req.arrayBuffer();
+        body = new TextDecoder().decode(buffer);
+      } catch (err2) {
+        console.error('Erreur lecture body avec arrayBuffer():', err2);
+        body = '';
+      }
+    }
+
     const sig = req.headers.get('stripe-signature');
 
     // Logger pour diagnostic
     console.log('Body reçu:', body ? `${body.length} caractères` : 'VIDE');
     console.log('Signature reçue:', sig ? `${sig.substring(0, 30)}...` : 'MANQUANTE');
+    console.log('Content-Type:', req.headers.get('content-type'));
+    console.log('Content-Length:', req.headers.get('content-length'));
 
     if (!sig) {
       console.error('Signature Stripe manquante dans les headers');
