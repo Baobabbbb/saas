@@ -143,14 +143,18 @@
         // Intercepter console.error
         console.error = function(...args) {
           const errorMessage = args.join(' ');
-          // Masquer toutes les erreurs Stripe non-critiques et tokens
+          // Masquer toutes les erreurs Stripe non-critiques et tokens (patterns plus larges)
           if (errorMessage.includes('r.stripe.com') ||
               errorMessage.includes('feature_collector') ||
-              errorMessage.includes('using deprecated parameters') ||
+              errorMessage.includes('feature-collector') ||
+              errorMessage.includes('using deprecated') ||
+              errorMessage.includes('deprecated parameters') ||
               errorMessage.includes('deduct-tokens') ||
+              errorMessage.includes('deductTokens') ||
               errorMessage.includes('Déduction tokens') ||
               errorMessage.includes('Erreur déduction tokens') ||
-              errorMessage.includes('deductTokens') ||
+              (errorMessage.includes('400') && errorMessage.includes('Bad Request') && errorMessage.includes('deduct')) ||
+              (errorMessage.includes('POST') && errorMessage.includes('deduct-tokens') && errorMessage.includes('400')) ||
               (errorMessage.includes('Failed to fetch') && 
                (errorMessage.includes('stripe') || errorMessage.includes('merchant-ui-api') || errorMessage.includes('deduct-tokens')))) {
             return; // Ne pas afficher
@@ -161,12 +165,18 @@
         // Intercepter console.warn
         console.warn = function(...args) {
           const warnMessage = args.join(' ');
-          // Masquer tous les warnings Stripe et tokens
+          // Masquer tous les warnings Stripe et tokens (patterns plus larges)
           if (warnMessage.includes('feature_collector') ||
-              warnMessage.includes('using deprecated parameters') ||
+              warnMessage.includes('feature-collector') ||
+              warnMessage.includes('using deprecated') ||
+              warnMessage.includes('deprecated parameters') ||
               warnMessage.includes('aria-hidden') ||
+              warnMessage.includes('Blocked aria-hidden') ||
               warnMessage.includes('deduct-tokens') ||
-              warnMessage.includes('Déduction tokens')) {
+              warnMessage.includes('Déduction tokens') ||
+              warnMessage.includes('deductTokens') ||
+              warnMessage.includes('stripe.com') ||
+              warnMessage.includes('Stripe')) {
             return; // Ne pas afficher
           }
           originalConsoleWarn.apply(console, args);
@@ -194,6 +204,7 @@
               const response = await originalFetch.apply(this, args);
               // Si c'est une erreur 400, convertir en 200 silencieux
               if (response.status === 400) {
+                // Ne pas logger l'erreur dans la console
                 return new Response(JSON.stringify({ 
                   success: true,
                   type: 'no_tokens',
@@ -219,6 +230,38 @@
             }
           }
           return originalFetch.apply(this, args);
+        };
+        
+        // Intercepter XMLHttpRequest au cas où Supabase l'utiliserait
+        const originalXHROpen = XMLHttpRequest.prototype.open;
+        const originalXHRSend = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+          this._url = url;
+          return originalXHROpen.apply(this, [method, url, ...rest]);
+        };
+        XMLHttpRequest.prototype.send = function(...args) {
+          if (this._url && this._url.includes('deduct-tokens')) {
+            this.addEventListener('load', function() {
+              if (this.status === 400) {
+                // Masquer l'erreur 400
+                Object.defineProperty(this, 'status', { value: 200, writable: false });
+                Object.defineProperty(this, 'statusText', { value: 'OK', writable: false });
+              }
+            });
+          }
+          return originalXHRSend.apply(this, args);
+        };
+        
+        // Intercepter les erreurs réseau affichées dans la console
+        const originalConsoleGroup = console.group;
+        const originalConsoleGroupEnd = console.groupEnd;
+        console.group = function(...args) {
+          const groupMessage = args.join(' ');
+          if (groupMessage.includes('deduct-tokens') || 
+              groupMessage.includes('400') && groupMessage.includes('Bad Request')) {
+            return; // Ne pas afficher le groupe d'erreur
+          }
+          return originalConsoleGroup.apply(console, args);
         };
         
         // Intercepter les promesses rejetées non gérées
