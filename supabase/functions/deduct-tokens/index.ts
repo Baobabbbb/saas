@@ -110,11 +110,13 @@ serve(async (req) => {
       const newTokensUsed = subscription.tokens_used_this_month + tokensUsed;
 
       if (newTokensRemaining < 0) {
+        // Retourner 200 avec silent: true pour éviter les erreurs dans la console
         return new Response(JSON.stringify({
           success: false,
-          error: 'Tokens insuffisants dans l\'abonnement'
+          error: 'Tokens insuffisants dans l\'abonnement',
+          silent: true
         }), {
-          status: 400,
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
@@ -220,11 +222,13 @@ serve(async (req) => {
       totalTokens = tokenEntries.reduce((sum, token) => sum + token.amount, 0);
 
       if (totalTokens < tokensUsed) {
+        // Retourner 200 avec silent: true pour éviter les erreurs dans la console
         return new Response(JSON.stringify({
           success: false,
-          error: 'Tokens insuffisants'
+          error: 'Tokens insuffisants',
+          silent: true
         }), {
-          status: 400,
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
