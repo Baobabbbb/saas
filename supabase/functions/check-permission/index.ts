@@ -40,13 +40,13 @@ serve(async (req) => {
       });
     }
     
-    const { contentType, userId, userEmail, selectedDuration, numPages, selectedVoice } = requestBody;
+    let { contentType, userId, userEmail, selectedDuration, numPages, selectedVoice } = requestBody;
 
-    if (!userId || !contentType) {
+    if (!contentType) {
       return new Response(JSON.stringify({
         hasPermission: false,
         reason: 'missing_parameters',
-        error: 'userId et contentType requis'
+        error: 'contentType requis'
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -94,6 +94,50 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    // Vérifier l'authentification JWT via Supabase
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
+    if (!authHeader.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({
+        hasPermission: false,
+        reason: 'unauthorized',
+        error: 'Authorization header manquant'
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const jwt = authHeader.replace('Bearer ', '').trim();
+    const { data: authData, error: authError } = await supabase.auth.getUser(jwt);
+
+    if (authError || !authData?.user?.id) {
+      console.error('Erreur validation JWT:', authError);
+      return new Response(JSON.stringify({
+        hasPermission: false,
+        reason: 'unauthorized',
+        error: 'JWT invalide ou expiré'
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Forcer l'utilisation du user_id issu du JWT
+    const tokenUserId = authData.user.id;
+    if (userId && userId !== tokenUserId) {
+      return new Response(JSON.stringify({
+        hasPermission: false,
+        reason: 'user_mismatch',
+        error: 'userId ne correspond pas au token',
+        userIdReceived: userId
+      }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    userId = tokenUserId;
 
     // Vérifier le rôle utilisateur
     let profile, profileError;

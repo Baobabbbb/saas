@@ -1,31 +1,19 @@
 // Service pour gérer les fonctionnalités via l'API backend
-import { supabase } from '../supabaseClient';
+import { authFetch, buildAuthHeaders } from './apiClient';
 
 const API_URL = '/api/features';
-
-/**
- * Récupère le token JWT Supabase depuis la session actuelle
- */
-const getAuthToken = async () => {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.access_token ? `Bearer ${session.access_token}` : null;
-  } catch (error) {
-    console.error('Erreur lors de la récupération du token:', error);
-    return null;
-  }
-};
 
 /**
  * Récupérer toutes les fonctionnalités depuis l'API
  */
 export const getFeaturesFromAPI = async () => {
   try {
-    const response = await fetch(API_URL, {
+    const response = await authFetch(API_URL, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
+      skipAuth: false
     });
 
     if (response.ok) {
@@ -46,17 +34,11 @@ export const getFeaturesFromAPI = async () => {
  */
 export const updateFeatureAPI = async (featureKey, enabled) => {
   try {
-    const authToken = await getAuthToken();
-    const headers = {
+    const headers = await buildAuthHeaders({
       'Content-Type': 'application/json',
-    };
+    });
     
-    // Ajouter le header Authorization si un token est disponible
-    if (authToken) {
-      headers['Authorization'] = authToken;
-    }
-    
-    const response = await fetch(`${API_URL}/${featureKey}`, {
+    const response = await authFetch(`${API_URL}/${featureKey}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify({ enabled }),
@@ -81,17 +63,11 @@ export const updateFeatureAPI = async (featureKey, enabled) => {
  */
 export const resetFeaturesAPI = async () => {
   try {
-    const authToken = await getAuthToken();
-    const headers = {
+    const headers = await buildAuthHeaders({
       'Content-Type': 'application/json',
-    };
+    });
     
-    // Ajouter le header Authorization si un token est disponible
-    if (authToken) {
-      headers['Authorization'] = authToken;
-    }
-    
-    const response = await fetch(`${API_URL}/reset`, {
+    const response = await authFetch(`${API_URL}/reset`, {
       method: 'POST',
       headers,
     });

@@ -26,6 +26,7 @@ import ComicsSelector from './components/ComicsSelector';
 import ComicsPopup from './components/ComicsPopup';
 import useSupabaseUser from './hooks/useSupabaseUser';
 import { API_BASE_URL, ANIMATION_API_BASE_URL } from './config/api';
+import { authFetch } from './services/apiClient';
 
 import { addCreation } from './services/creations';
 import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
@@ -201,7 +202,7 @@ function App() {
     
     while (attempts < maxAttempts) {
       try {
-        const res = await fetch(`${API_BASE_URL}/status/${taskId}`);
+        const res = await authFetch(`${API_BASE_URL}/status/${taskId}`);
         
         if (res.ok) {
           const statusPayload = await res.json();
@@ -238,7 +239,7 @@ function App() {
     
     while (attempts < maxAttempts) {
       try {
-        const res = await fetch(`${API_BASE_URL}/status_comic/${taskId}`);
+        const res = await authFetch(`${API_BASE_URL}/status_comic/${taskId}`);
         
         if (res.ok) {
           const statusPayload = await res.json();
@@ -275,7 +276,7 @@ function App() {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await fetch(`${API_BASE_URL}/upload_character_photo/`, {
+      const response = await authFetch(`${API_BASE_URL}/upload_character_photo/`, {
         method: 'POST',
         body: formData
       });
@@ -551,7 +552,7 @@ function App() {
           language: 'fr'
         };
         // Utiliser l'endpoint correct pour les comptines
-        const response = await fetch(`${API_BASE_URL}/generate_rhyme/`, {
+        const response = await authFetch(`${API_BASE_URL}/generate_rhyme/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -560,29 +561,16 @@ function App() {
         if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
         generatedContent = await response.json();
       } else if (contentType === 'histoire' || contentType === 'audio') {
-      // Récupérer le JWT Supabase pour l'authentification
-      const { data: { session } } = await supabase.auth.getSession();
-      const authToken = session?.access_token ? `Bearer ${session.access_token}` : null;
-      
       const payload = {
         story_type: selectedAudioStory === 'custom' ? customAudioStory : selectedAudioStory,
         voice: selectedVoice,
         custom_request: customRequest,
         user_id: user?.id // Ajouter user_id au payload
       };
-      
-      const headers = {
-        'Content-Type': 'application/json'
-      };
-      
-      // Ajouter le header Authorization si le token est disponible
-      if (authToken) {
-        headers['Authorization'] = authToken;
-      }
-      
-      const response = await fetch(`${API_BASE_URL}/generate_audio_story/`, {
+
+      const response = await authFetch(`${API_BASE_URL}/generate_audio_story/`, {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       
@@ -618,7 +606,7 @@ function App() {
         custom_request: customRequest
       };
 
-      const response = await fetch(`${API_BASE_URL}/generate_story/`, {
+      const response = await authFetch(`${API_BASE_URL}/generate_story/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -633,7 +621,7 @@ function App() {
         const formData = new FormData();
         formData.append('file', uploadedPhoto);
         
-        const uploadResponse = await fetch(`${API_BASE_URL}/upload_photo_for_coloring/`, {
+        const uploadResponse = await authFetch(`${API_BASE_URL}/upload_photo_for_coloring/`, {
           method: 'POST',
           body: formData
         });
@@ -648,7 +636,7 @@ function App() {
           with_colored_model: withColoredModel
         };
         
-        const conversionResponse = await fetch(`${API_BASE_URL}/convert_photo_to_coloring/`, {
+        const conversionResponse = await authFetch(`${API_BASE_URL}/convert_photo_to_coloring/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(conversionPayload)
@@ -673,22 +661,9 @@ function App() {
           payload.custom_prompt = customColoringTheme.trim();
         }
       
-        // Récupérer le JWT Supabase pour l'authentification
-        const { data: { session } } = await supabase.auth.getSession();
-        const authToken = session?.access_token ? `Bearer ${session.access_token}` : null;
-        
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        // Ajouter le header Authorization si le token est disponible
-        if (authToken) {
-          headers['Authorization'] = authToken;
-        }
-        
-        const response = await fetch(`${API_BASE_URL}/generate_coloring/`, {
+      const response = await authFetch(`${API_BASE_URL}/generate_coloring/`, {
         method: 'POST',
-        headers,
+      headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
@@ -718,22 +693,9 @@ function App() {
         payload.character_photo_path = characterPhoto.file_path;
       }
 
-      // Récupérer le JWT Supabase pour l'authentification
-      const { data: { session } } = await supabase.auth.getSession();
-      const authToken = session?.access_token ? `Bearer ${session.access_token}` : null;
-      
-      const headers = {
-        'Content-Type': 'application/json'
-      };
-      
-      // Ajouter le header Authorization si le token est disponible
-      if (authToken) {
-        headers['Authorization'] = authToken;
-      }
-      
-      const response = await fetch(`${API_BASE_URL}/generate_comic/`, {
+      const response = await authFetch(`${API_BASE_URL}/generate_comic/`, {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
@@ -794,13 +756,6 @@ function App() {
       };
       const normalizedTheme = normalizedThemeMap[currentTheme] || currentTheme || 'adventure';
 
-      const payload = {
-        theme: normalizedTheme,
-        duration: Number(selectedDuration),
-        // user_id optionnel: non requis pour la démo
-        custom_prompt: story || undefined
-      };
-
       // Utiliser toujours le vrai pipeline zseedance (endpoint generate-quick - GET seulement)
       const duration = selectedDuration || 30; // Valeur par défaut de 30 secondes si non sélectionnée
       const endpoint = `${API_BASE_URL}/generate-quick?theme=${encodeURIComponent(normalizedTheme)}&duration=${duration}&style=${selectedStyle || 'cartoon'}&custom_prompt=${encodeURIComponent(story || '')}`;
@@ -811,7 +766,7 @@ function App() {
             }
           };
 
-      const response = await fetch(endpoint, fetchOptions);
+      const response = await authFetch(endpoint, fetchOptions);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -980,9 +935,17 @@ function App() {
         const tokensRequired = calculateTokenCost(normalizedContentType, tokenOptions);
         
         // Vérifier que tokensRequired est valide
-        if (!tokensRequired || tokensRequired <= 0) {
+        if (!tokensRequired || tokensRequired <= 0 || typeof tokensRequired !== 'number') {
+          console.log('[DEBUG] Tokens non requis ou invalides:', tokensRequired);
           return; // Ne pas déduire si le coût est invalide
         }
+
+        console.log('[DEBUG] Déduction de tokens:', {
+          userId: user.id,
+          contentType: normalizedContentType,
+          tokensRequired,
+          tokenOptions
+        });
 
         // Déduire les tokens (seulement pour les abonnements)
         // En pay-per-use, les tokens ne sont pas déduits car l'utilisateur a déjà payé
@@ -995,6 +958,8 @@ function App() {
             transactionId: `gen_${Date.now()}_${normalizedContentType}`
           }
         );
+
+        console.log('[DEBUG] Résultat déduction:', deductionResult);
         
         // Ne pas logger les erreurs de tokens (pay-per-use n'utilise pas tokens)
         // Les erreurs sont déjà masquées par l'interception dans index.html
@@ -1215,7 +1180,7 @@ const downloadPDF = async (title, content) => {
     
     const checkStatus = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/check_task_status/${taskId}`);
+        const response = await authFetch(`${API_BASE_URL}/check_task_status/${taskId}`);
         const status = await response.json();
         
         if (status.status === 'completed') {

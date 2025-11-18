@@ -252,81 +252,6 @@
           originalConsoleLog.apply(console, args);
         };
         
-        // Intercepter fetch pour masquer les erreurs 400 de deduct-tokens
-        const originalFetch = window.fetch;
-        window.fetch = async function(...args) {
-          const url = args[0]?.toString() || '';
-          const isDeductTokens = url.includes('deduct-tokens');
-          
-          if (isDeductTokens) {
-            try {
-              const response = await originalFetch.apply(this, args);
-              // Si c'est une erreur 400, convertir en 200 silencieux
-              if (response.status === 400) {
-                // Cloner la réponse pour éviter de modifier l'original
-                const clonedResponse = response.clone();
-                // Ne pas logger l'erreur dans la console - retourner une réponse 200
-                return new Response(JSON.stringify({ 
-                  success: true,
-                  type: 'no_tokens',
-                  silent: true,
-                  message: 'Aucun token disponible (pay-per-use)',
-                  tokensDeducted: 0,
-                  tokensRemaining: 0
-                }), {
-                  status: 200,
-                  statusText: 'OK',
-                  headers: { 'Content-Type': 'application/json' }
-                });
-              }
-              return response;
-            } catch (error) {
-              // Masquer les erreurs réseau pour deduct-tokens
-              return new Response(JSON.stringify({ 
-                success: true,
-                silent: true 
-              }), {
-                status: 200,
-                statusText: 'OK',
-                headers: { 'Content-Type': 'application/json' }
-              });
-            }
-          }
-          return originalFetch.apply(this, args);
-        };
-        
-        // Intercepter XMLHttpRequest au cas où Supabase l'utiliserait
-        const originalXHROpen = XMLHttpRequest.prototype.open;
-        const originalXHRSend = XMLHttpRequest.prototype.send;
-        XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-          this._url = url;
-          return originalXHROpen.apply(this, [method, url, ...rest]);
-        };
-        XMLHttpRequest.prototype.send = function(...args) {
-          if (this._url && this._url.includes('deduct-tokens')) {
-            this.addEventListener('load', function() {
-              if (this.status === 400) {
-                // Masquer l'erreur 400
-                Object.defineProperty(this, 'status', { value: 200, writable: false });
-                Object.defineProperty(this, 'statusText', { value: 'OK', writable: false });
-              }
-            });
-          }
-          return originalXHRSend.apply(this, args);
-        };
-        
-        // Intercepter les erreurs réseau affichées dans la console
-        const originalConsoleGroup = console.group;
-        const originalConsoleGroupEnd = console.groupEnd;
-        console.group = function(...args) {
-          const groupMessage = args.join(' ');
-          if (groupMessage.includes('deduct-tokens') || 
-              groupMessage.includes('400') && groupMessage.includes('Bad Request')) {
-            return; // Ne pas afficher le groupe d'erreur
-          }
-          return originalConsoleGroup.apply(console, args);
-        };
-        
         // Intercepter les promesses rejetées non gérées
         window.addEventListener('unhandledrejection', function(event) {
           const errorMessage = event.reason?.message || String(event.reason || '');
@@ -339,64 +264,7 @@
           }
         });
         
-        // Intercepter les erreurs réseau avant qu'elles ne soient loggées par le navigateur
-        // Utiliser MutationObserver pour masquer les messages d'erreur ajoutés au DOM de la console
-        if (window.console && console._commandLineAPI) {
-          const originalLog = console._commandLineAPI.log;
-          console._commandLineAPI.log = function(...args) {
-            const message = argsToString(...args);
-            if (message.includes('deduct-tokens') && message.includes('400')) {
-              return;
-            }
-            return originalLog.apply(this, args);
-          };
-        }
-        
-        // Intercepter Supabase functions.invoke si possible
-        // Attendre que Supabase soit chargé
-        const originalAddEventListener = EventTarget.prototype.addEventListener;
-        EventTarget.prototype.addEventListener = function(type, listener, options) {
-          if (type === 'error' && listener && listener.toString().includes('deduct-tokens')) {
-            // Ne pas ajouter les listeners d'erreur pour deduct-tokens
-            return;
-          }
-          return originalAddEventListener.call(this, type, listener, options);
-        };
-        
-        // Masquer les erreurs réseau dans la console en interceptant les logs du navigateur
-        // Cette approche intercepte les messages avant qu'ils n'atteignent la console
-        const devtools = {
-          original: {
-            log: console.log,
-            error: console.error,
-            warn: console.warn
-          }
-        };
-        
-        // Intercepter aussi les erreurs qui peuvent être loggées par le navigateur directement
-        // (comme les erreurs réseau dans l'onglet Console)
-        const observer = new MutationObserver(function(mutations) {
-          // Cette approche ne fonctionne pas car la console n'est pas dans le DOM
-          // Mais on peut essayer d'intercepter au niveau de l'API console elle-même
-        });
-        
-        // Une meilleure approche : intercepter au niveau de l'API console native
-        // En utilisant Object.defineProperty pour rendre console.error non-writable
-        // puis le réécrire avec notre version
-        try {
-          Object.defineProperty(console, 'error', {
-            value: console.error,
-            writable: true,
-            configurable: true
-          });
-          Object.defineProperty(console, 'warn', {
-            value: console.warn,
-            writable: true,
-            configurable: true
-          });
-        } catch (e) {
-          // Ignorer si on ne peut pas redéfinir
-        }
+        // Les interceptions réseau sont désactivées pour conserver les codes HTTP authentiques
       })();
     </script>
   </body>

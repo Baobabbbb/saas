@@ -40,7 +40,7 @@ serve(async (req) => {
       });
     }
 
-    const {
+    let {
       userId,
       contentType,
       tokensUsed,
@@ -60,18 +60,31 @@ serve(async (req) => {
       transactionId
     });
 
-    if (!userId || !contentType || tokensUsed === undefined || tokensUsed === null) {
+    // Validation améliorée des paramètres
+    if (!contentType || tokensUsed === undefined || tokensUsed === null || tokensUsed <= 0) {
+      console.log('[DEBUG deduct-tokens] Paramètres invalides - retour silencieux');
       return new Response(JSON.stringify({
-        success: false,
-        error: 'Paramètres requis manquants: userId, contentType, tokensUsed',
-        received: {
-          hasUserId: !!userId,
-          hasContentType: !!contentType,
-          hasTokensUsed: tokensUsed !== undefined && tokensUsed !== null,
-          tokensUsedValue: tokensUsed
-        }
+        success: true,
+        type: 'no_deduction',
+        message: 'Aucun token à déduire (paramètres invalides)',
+        silent: true
       }), {
-        status: 400,
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Vérifier que tokensUsed est un nombre valide
+    const tokensUsedNum = Number(tokensUsed);
+    if (isNaN(tokensUsedNum) || tokensUsedNum <= 0) {
+      console.log('[DEBUG deduct-tokens] tokensUsed invalide:', tokensUsed);
+      return new Response(JSON.stringify({
+        success: true,
+        type: 'no_deduction',
+        message: 'Aucun token à déduire (valeur invalide)',
+        silent: true
+      }), {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -96,6 +109,47 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
+    if (!authHeader.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Authorization header manquant',
+        reason: 'unauthorized'
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const jwt = authHeader.replace('Bearer ', '').trim();
+    const { data: authData, error: authError } = await supabase.auth.getUser(jwt);
+
+    if (authError || !authData?.user?.id) {
+      console.error('Erreur validation JWT:', authError);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'JWT invalide ou expiré',
+        reason: 'unauthorized'
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const tokenUserId = authData.user.id;
+    if (userId && userId !== tokenUserId) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'userId ne correspond pas au token',
+        reason: 'user_mismatch'
+      }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    userId = tokenUserId;
+
     // Vérifier si l'utilisateur a un abonnement actif
     const { data: subscription, error: subError } = await supabase
       .from('subscriptions')
@@ -106,8 +160,8 @@ serve(async (req) => {
 
     if (subscription && !subError) {
       // Déduire les tokens de l'abonnement
-      const newTokensRemaining = subscription.tokens_remaining - tokensUsed;
-      const newTokensUsed = subscription.tokens_used_this_month + tokensUsed;
+      const newTokensRemaining = subscription.tokens_remaining - tokensUsedNum;
+      const newTokensUsed = subscription.tokens_used_this_month + tokensUsedNum;
 
       if (newTokensRemaining < 0) {
         // Retourner 200 avec silent: true pour éviter les erreurs dans la console
@@ -147,7 +201,7 @@ serve(async (req) => {
         .from('user_tokens')
         .insert({
           user_id: userId,
-          tokens_amount: -tokensUsed,
+          tokens_amount: -tokensUsedNum,
           transaction_type: 'usage',
           subscription_id: subscription.id,
           metadata: {
@@ -166,7 +220,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({
         success: true,
         type: 'subscription',
-        tokensDeducted: tokensUsed,
+        tokensDeducted: tokensUsedNum,
         tokensRemaining: newTokensRemaining,
         subscription: subscription
       }), {
@@ -221,7 +275,7 @@ serve(async (req) => {
 
       totalTokens = tokenEntries.reduce((sum, token) => sum + token.amount, 0);
 
-      if (totalTokens < tokensUsed) {
+      if (totalTokens < tokensUsedNum) {
         // Retourner 200 avec silent: true pour éviter les erreurs dans la console
         return new Response(JSON.stringify({
           success: false,
@@ -234,7 +288,7 @@ serve(async (req) => {
       }
 
       // Déduire les tokens (FIFO)
-      let remainingToDeduct = tokensUsed;
+      let remainingToDeduct = tokensUsedNum;
       const tokensToUpdate = [];
 
       for (const token of tokenEntries) {
@@ -289,7 +343,7 @@ serve(async (req) => {
         .from('user_tokens')
         .insert({
           user_id: userId,
-          tokens_amount: -tokensUsed,
+          tokens_amount: -tokensUsedNum,
           transaction_type: 'usage',
           metadata: {
             contentType,
@@ -306,12 +360,12 @@ serve(async (req) => {
       }
 
       // Calculer les tokens restants
-      const newTotalTokens = totalTokens - tokensUsed;
+      const newTotalTokens = totalTokens - tokensUsedNum;
 
       return new Response(JSON.stringify({
         success: true,
         type: 'tokens',
-        tokensDeducted: tokensUsed,
+        tokensDeducted: tokensUsedNum,
         tokensRemaining: newTotalTokens,
         tokensUsed: tokensToUpdate
       }), {
