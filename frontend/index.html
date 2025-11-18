@@ -151,9 +151,31 @@
                 if (arg.status || arg.statusText || arg.message) {
                   return JSON.stringify({ status: arg.status, statusText: arg.statusText, message: arg.message, url: arg.url });
                 }
+                // Pour les objets complexes, essayer de récupérer toutes les propriétés importantes
+                if (arg.constructor && arg.constructor.name) {
+                  const objStr = JSON.stringify(arg, Object.getOwnPropertyNames(arg));
+                  return objStr;
+                }
+                // Essayer de convertir en string de manière récursive
+                const keys = Object.keys(arg);
+                if (keys.length > 0) {
+                  const objStr = keys.map(key => {
+                    try {
+                      return key + ':' + (typeof arg[key] === 'object' ? JSON.stringify(arg[key]) : String(arg[key]));
+                    } catch (e) {
+                      return key + ':[object]';
+                    }
+                  }).join(' ');
+                  return objStr;
+                }
                 return JSON.stringify(arg);
               } catch (e) {
-                return String(arg);
+                // En dernier recours, utiliser toString()
+                try {
+                  return arg.toString();
+                } catch (e2) {
+                  return '[object]';
+                }
               }
             }
             return String(arg);
@@ -190,19 +212,28 @@
         // Intercepter console.warn
         console.warn = function(...args) {
           const warnMessage = argsToString(...args);
-          // Masquer tous les warnings Stripe et tokens (patterns plus larges)
+          // Masquer tous les warnings Stripe et tokens (patterns plus larges et spécifiques)
           if (warnMessage.includes('feature_collector') ||
               warnMessage.includes('feature-collector') ||
               warnMessage.includes('using deprecated') ||
               warnMessage.includes('deprecated parameters') ||
               warnMessage.includes('aria-hidden') ||
               warnMessage.includes('Blocked aria-hidden') ||
+              warnMessage.includes('aria-hidden on an element') ||
+              warnMessage.includes('Element with focus') ||
+              warnMessage.includes('Ancestor with aria-hidden') ||
+              warnMessage.includes('PrivateStripeElement') ||
+              warnMessage.includes('_PrivateStripeElement') ||
+              warnMessage.includes('assistive technology') ||
+              warnMessage.includes('inert attribute') ||
               warnMessage.includes('deduct-tokens') ||
               warnMessage.includes('Déduction tokens') ||
               warnMessage.includes('deductTokens') ||
               warnMessage.includes('stripe.com') ||
               warnMessage.includes('Stripe') ||
-              warnMessage.includes('js.stripe.com')) {
+              warnMessage.includes('js.stripe.com') ||
+              warnMessage.includes('m.stripe.com') ||
+              warnMessage.includes('r.stripe.com')) {
             return; // Ne pas afficher
           }
           originalConsoleWarn.apply(console, args);
