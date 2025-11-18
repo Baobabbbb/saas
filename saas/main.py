@@ -270,7 +270,18 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/static/generated/{filename}")
 async def serve_generated_video(filename: str):
     """Sert les vidéos générées localement"""
-    file_path = os.path.join("static", "generated", filename)
+    # Sécurisation contre path traversal
+    safe_filename = os.path.basename(filename)
+    if safe_filename != filename or ".." in filename or "/" in filename or "\\" in filename:
+        raise HTTPException(status_code=400, detail="Nom de fichier invalide")
+    
+    file_path = os.path.join("static", "generated", safe_filename)
+    # Vérifier que le chemin résolu est bien dans le répertoire autorisé
+    resolved_path = os.path.abspath(file_path)
+    base_dir = os.path.abspath("static/generated")
+    if not resolved_path.startswith(base_dir):
+        raise HTTPException(status_code=403, detail="Accès refusé")
+    
     if os.path.exists(file_path):
         return FileResponse(file_path, media_type="video/mp4")
     else:
