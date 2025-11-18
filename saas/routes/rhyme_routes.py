@@ -4,25 +4,48 @@ Routes pour la génération de comptines musicales avec Suno AI
 from fastapi import APIRouter, HTTPException, Request, Header
 from typing import Dict, Any, Optional
 import os
-import jwt
+import httpx
 from openai import AsyncOpenAI
 from services.suno_service import suno_service
 from services.uniqueness_service import uniqueness_service
 
 router = APIRouter()
 
-# Helper pour extraire user_id depuis JWT
+# Helper pour extraire user_id depuis JWT avec validation sécurisée
 async def extract_user_id_from_jwt(authorization: Optional[str] = None) -> Optional[str]:
-    """Extrait le user_id depuis le JWT Supabase"""
+    """
+    Valide le JWT via l'API Supabase et retourne l'identifiant utilisateur.
+    Utilise l'endpoint /auth/v1/user pour garantir la vérification côté serveur.
+    """
     if not authorization or not authorization.startswith("Bearer "):
         return None
     
-    try:
-        token = authorization.split(" ")[1]
-        decoded = jwt.decode(token, options={"verify_signature": False})
-        return decoded.get("sub")
-    except:
+    token = authorization.split(" ")[1]
+    
+    SUPABASE_URL = os.getenv("SUPABASE_URL", "https://xfbmdeuzuyixpmouhqcv.supabase.co")
+    SUPABASE_AUTH_API_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+    
+    if not token or not SUPABASE_URL or not SUPABASE_AUTH_API_KEY:
         return None
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "apikey": SUPABASE_AUTH_API_KEY
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(f"{SUPABASE_URL}/auth/v1/user", headers=headers)
+
+        if response.status_code == 200:
+            data = response.json()
+            return data.get("id") or data.get("user", {}).get("id")
+
+        print(f"[SECURITY] JWT invalide (status={response.status_code})")
+    except httpx.HTTPError as exc:
+        print(f"[SECURITY] Erreur lors de la validation JWT : {exc}")
+
+    return None
 
 # Configuration
 TEXT_MODEL = os.getenv("TEXT_MODEL", "gpt-4o-mini")
@@ -68,18 +91,19 @@ async def generate_rhyme_endpoint(
 ):
     """Génère une comptine musicale"""
     try:
-        # Extraire user_id depuis JWT (prioritaire) ou depuis le body (fallback)
+        # Extraire user_id depuis JWT uniquement
         user_id = await extract_user_id_from_jwt(authorization)
         if not user_id:
-            user_id = request.get("user_id") or request.get("userId")
+            raise HTTPException(
+                status_code=401,
+                detail="Authentification requise. Fournissez un JWT valide dans le header Authorization."
+            )
         
         # Utiliser le user_id extrait pour toutes les opérations suivantes
-        if user_id:
-            request["user_id"] = user_id
+        request["user_id"] = user_id
         
         theme = request.get("theme", "animaux")
         custom_request = request.get("custom_request", "")
-        user_id = user_id or request.get("user_id")  # ID utilisateur pour unicité
         
         needs_custom = detect_customization(custom_request)
         

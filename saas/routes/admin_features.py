@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional
 from copy import deepcopy
 import json
 import os
-import jwt
+import httpx
 from datetime import datetime
 from fastapi import status
 
@@ -20,6 +20,7 @@ router = APIRouter(prefix="/api", tags=["admin"])
 # Import du client Supabase depuis l'environnement
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://xfbmdeuzuyixpmouhqcv.supabase.co")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+SUPABASE_AUTH_API_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_ANON_KEY")
 
 async def get_supabase_client():
     """Récupère le client Supabase"""
@@ -32,16 +33,36 @@ async def get_supabase_client():
         return None
 
 async def extract_user_id_from_jwt(authorization: Optional[str] = Header(None)) -> Optional[str]:
-    """Extrait le user_id depuis le JWT Supabase"""
+    """
+    Valide le JWT via l'API Supabase et retourne l'identifiant utilisateur.
+    Utilise l'endpoint /auth/v1/user pour garantir la vérification côté serveur.
+    """
     if not authorization or not authorization.startswith("Bearer "):
         return None
     
-    try:
-        token = authorization.split(" ")[1]
-        decoded = jwt.decode(token, options={"verify_signature": False})
-        return decoded.get("sub")
-    except:
+    token = authorization.split(" ")[1]
+    
+    if not token or not SUPABASE_URL or not SUPABASE_AUTH_API_KEY:
         return None
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "apikey": SUPABASE_AUTH_API_KEY
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(f"{SUPABASE_URL}/auth/v1/user", headers=headers)
+
+        if response.status_code == 200:
+            data = response.json()
+            return data.get("id") or data.get("user", {}).get("id")
+
+        print(f"[SECURITY] JWT invalide (status={response.status_code})")
+    except httpx.HTTPError as exc:
+        print(f"[SECURITY] Erreur lors de la validation JWT : {exc}")
+
+    return None
 
 async def verify_admin_for_features(
     request: Request,
@@ -56,23 +77,8 @@ async def verify_admin_for_features(
             detail="Service Supabase non disponible"
         )
     
-    # Récupérer le user_id depuis JWT
+    # Récupérer le user_id depuis JWT uniquement
     user_id = await extract_user_id_from_jwt(authorization)
-    
-    # Si pas de JWT, essayer de récupérer depuis le body pour POST/PUT
-    if not user_id and request:
-        try:
-            if request.method in ["POST", "PUT"]:
-                # Lire le body brut pour éviter de le consommer deux fois
-                body_data = await request.body()
-                if body_data:
-                    try:
-                        body = json.loads(body_data)
-                        user_id = body.get("user_id") or body.get("userId")
-                    except:
-                        pass
-        except:
-            pass
     
     if not user_id:
         raise HTTPException(
