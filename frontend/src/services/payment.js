@@ -306,11 +306,6 @@ export const deductTokens = async (userId, contentType, tokensUsed, options = {}
   try {
     // Validation côté client pour éviter les appels inutiles
     if (!userId || !contentType || tokensUsed === undefined || tokensUsed === null || tokensUsed <= 0) {
-      console.log('[DEBUG deductTokens] Appel ignoré - paramètres invalides:', {
-        userId: !!userId,
-        contentType: !!contentType,
-        tokensUsed: tokensUsed
-      });
       return { success: true, type: 'no_deduction', message: 'Aucun token à déduire', silent: true };
     }
 
@@ -324,23 +319,18 @@ export const deductTokens = async (userId, contentType, tokensUsed, options = {}
       transactionId: options.transactionId || `txn_${Date.now()}`
     };
 
-    console.log('[DEBUG deductTokens] Appel avec payload:', payload);
-
     const { data, error } = await supabase.functions.invoke('deduct-tokens', {
       body: payload
     });
 
     if (error) {
-      console.log('[DEBUG deductTokens] Erreur Edge Function:', error);
       // Ne pas logger les erreurs si c'est un paiement direct (erreurs attendues)
       // Les erreurs de tokens sont normales en pay-per-use
       return { success: false, error: error.message || 'Erreur déduction tokens', silent: true };
     }
 
-    console.log('[DEBUG deductTokens] Succès:', data);
     return data;
   } catch (error) {
-    console.log('[DEBUG deductTokens] Exception:', error);
     // Ne pas logger les erreurs si c'est un paiement direct (erreurs attendues)
     // Les erreurs de tokens sont normales en pay-per-use
     return { success: false, error: error.message || 'Erreur déduction tokens', silent: true };

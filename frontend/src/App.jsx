@@ -936,16 +936,8 @@ function App() {
         
         // Vérifier que tokensRequired est valide
         if (!tokensRequired || tokensRequired <= 0 || typeof tokensRequired !== 'number') {
-          console.log('[DEBUG] Tokens non requis ou invalides:', tokensRequired);
           return; // Ne pas déduire si le coût est invalide
         }
-
-        console.log('[DEBUG] Déduction de tokens:', {
-          userId: user.id,
-          contentType: normalizedContentType,
-          tokensRequired,
-          tokenOptions
-        });
 
         // Déduire les tokens (seulement pour les abonnements)
         // En pay-per-use, les tokens ne sont pas déduits car l'utilisateur a déjà payé
@@ -958,8 +950,6 @@ function App() {
             transactionId: `gen_${Date.now()}_${normalizedContentType}`
           }
         );
-
-        console.log('[DEBUG] Résultat déduction:', deductionResult);
         
         // Ne pas logger les erreurs de tokens (pay-per-use n'utilise pas tokens)
         // Les erreurs sont déjà masquées par l'interception dans index.html
