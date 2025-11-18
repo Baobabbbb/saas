@@ -89,28 +89,28 @@ export const createPaymentSession = async (contentType, userId, userEmail, optio
 export const getContentPrice = (contentType, options = {}) => {
 
   const prices = {
-    // NOUVEAUX PRIX 2025-11-06 : Plus accessibles !
-    'comptine': { amount: 99, name: 'Comptine Musicale', currency: 'EUR', display: '0,99€' },
-    'histoire': { amount: 50, name: 'Histoire', currency: 'EUR', display: '0,50€' },
-    'audio': { amount: 50, name: 'Histoire', currency: 'EUR', display: '0,50€' },
-    'coloriage': { amount: 99, name: 'Coloriage Personnalisé', currency: 'EUR', display: '0,99€' },
-    'coloring': { amount: 99, name: 'Coloriage personnalisé', currency: 'EUR', display: '0,99€' },
-    'bd': { amount: 99, name: 'Page de Bande Dessinée', currency: 'EUR', display: '0,99€' },
-    'comic': { amount: 99, name: 'Page de Bande Dessinée', currency: 'EUR', display: '0,99€' },
-    'story': { amount: 50, name: 'Histoire', currency: 'EUR', display: '0,50€' },
-    'rhyme': { amount: 99, name: 'Comptine musicale', currency: 'EUR', display: '0,99€' },
+    // NOUVEAUX PRIX 2025-11-16 : Encore plus accessibles !
+    'comptine': { amount: 69, name: 'Comptine Musicale', currency: 'EUR', display: '0,69€' },
+    'histoire': { amount: 29, name: 'Histoire', currency: 'EUR', display: '0,29€' },
+    'audio': { amount: 29, name: 'Histoire', currency: 'EUR', display: '0,29€' },
+    'coloriage': { amount: 69, name: 'Coloriage Personnalisé', currency: 'EUR', display: '0,69€' },
+    'coloring': { amount: 69, name: 'Coloriage personnalisé', currency: 'EUR', display: '0,69€' },
+    'bd': { amount: 69, name: 'Page de Bande Dessinée', currency: 'EUR', display: '0,69€' },
+    'comic': { amount: 69, name: 'Page de Bande Dessinée', currency: 'EUR', display: '0,69€' },
+    'story': { amount: 29, name: 'Histoire', currency: 'EUR', display: '0,29€' },
+    'rhyme': { amount: 69, name: 'Comptine musicale', currency: 'EUR', display: '0,69€' },
 
     // Animations avec marges réduites (prix attractifs)
     'animation': { amount: 599, name: 'Animation IA 30s', currency: 'EUR', display: '5,99€' }
   }
 
-  // Gestion spéciale pour les histoires (prix unique : 0,50€)
+  // Gestion spéciale pour les histoires (prix unique : 0,29€)
   if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio') {
     return {
-      amount: 50,
+      amount: 29,
       name: 'Histoire',
       currency: 'EUR',
-      display: '0,50€'
+      display: '0,29€'
     }
   }
 

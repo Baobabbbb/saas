@@ -53,12 +53,12 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
   const getPlanFeatures = (planName) => {
     // Cache-bust v1762466112
     if (false) console.log('Cache-bust: 2025-11-06-22:56:12');
-    // Prix PAY-PER-USE (en centimes) - NOUVEAUX PRIX RÉDUITS 2025-11-06
+    // Prix PAY-PER-USE (en centimes) - NOUVEAUX PRIX RÉDUITS 2025-11-16
     const payPerUse = {
-      histoire: 50,       // 0,50€
-      coloring: 99,       // 0,99€
-      comic: 99,          // 0,99€ par page
-      rhyme: 99,          // 0,99€
+      histoire: 29,       // 0,29€
+      coloring: 69,       // 0,69€
+      comic: 69,          // 0,69€ par page
+      rhyme: 69,          // 0,69€
       animation30: 599,   // 5,99€
       animation60: 999,   // 9,99€
       animation120: 1899, // 18,99€ (2min)
