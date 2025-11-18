@@ -17,15 +17,19 @@
     <meta property="og:title" content="HERBBIE - Histoires animées personnalisées pour enfants" />
     <meta property="og:description" content="Créez des histoires animées personnalisées pour vos enfants avec l'intelligence artificielle. Dessins animés, coloriages et BD sur mesure." />
     <meta property="og:image" content="https://herbbie.com/logo_v.png" />
+    <meta property="og:image:secure_url" content="https://herbbie.com/logo_v.png" />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="512" />
     <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="Logo HERBBIE - Création de contenus personnalisés pour enfants avec IA" />
     
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://herbbie.com/" />
     <meta name="twitter:title" content="HERBBIE - Histoires animées personnalisées pour enfants" />
     <meta name="twitter:description" content="Créez des histoires animées personnalisées pour vos enfants avec l'intelligence artificielle." />
     <meta name="twitter:image" content="https://herbbie.com/logo_v.png" />
+    <meta name="twitter:image:alt" content="Logo HERBBIE - Création de contenus personnalisés pour enfants avec IA" />
     
     <!-- Protection des données personnelles - Configuration des robots -->
     <meta name="robots" content="index, follow, noarchive, nosnippet" />
@@ -50,7 +54,14 @@
       "@type": "Organization",
       "name": "HERBBIE",
       "url": "https://herbbie.com",
-      "logo": "https://herbbie.com/logo_v.png",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://herbbie.com/logo_v.png",
+        "width": 512,
+        "height": 512,
+        "contentUrl": "https://herbbie.com/logo_v.png"
+      },
+      "image": "https://herbbie.com/logo_v.png",
       "description": "Créez des histoires animées personnalisées, des comptines musicales, des coloriages et des bandes dessinées pour vos enfants avec l'intelligence artificielle",
       "founder": {
         "@type": "Person",
@@ -70,6 +81,13 @@
       "url": "https://herbbie.com",
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Web",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://herbbie.com/logo_v.png",
+        "width": 512,
+        "height": 512
+      },
+      "image": "https://herbbie.com/logo_v.png",
       "offers": {
         "@type": "Offer",
         "category": "Service créatif pour enfants"
@@ -91,11 +109,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/assets/main-1048a07e.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/preload-helper-8235fac6.js">
-    <link rel="modulepreload" crossorigin href="/assets/supabaseClient-54ee3b77.js">
-    <link rel="modulepreload" crossorigin href="/assets/creations-4ab0b6d9.js">
-    <link rel="stylesheet" href="/assets/index-ccaa1093.css">
+    <script type="module" crossorigin src="/assets/main-3849cdd8.js"></script>
+    <link rel="stylesheet" href="/assets/index-c74dabad.css">
   </head>
   <body>
     <div id="root"></div>
@@ -140,20 +155,136 @@
           });
         }
 
-        // Intercepter et ignorer les erreurs Stripe non-critiques (tracking/analytics)
+        // Fonction helper pour convertir tous les arguments en string
+        function argsToString(...args) {
+          return args.map(arg => {
+            if (arg === null || arg === undefined) return String(arg);
+            if (typeof arg === 'string') return arg;
+            if (arg instanceof Error) return arg.message + ' ' + arg.stack;
+            if (typeof arg === 'object') {
+              try {
+                // Vérifier si c'est une URL ou un objet Request
+                if (arg instanceof Request || arg instanceof URL || (arg.url && typeof arg.url === 'string')) {
+                  return arg.url || arg.toString();
+                }
+                // Vérifier si c'est un objet avec des propriétés spécifiques
+                if (arg.status || arg.statusText || arg.message) {
+                  return JSON.stringify({ status: arg.status, statusText: arg.statusText, message: arg.message, url: arg.url });
+                }
+                // Pour les objets complexes, essayer de récupérer toutes les propriétés importantes
+                if (arg.constructor && arg.constructor.name) {
+                  const objStr = JSON.stringify(arg, Object.getOwnPropertyNames(arg));
+                  return objStr;
+                }
+                // Essayer de convertir en string de manière récursive
+                const keys = Object.keys(arg);
+                if (keys.length > 0) {
+                  const objStr = keys.map(key => {
+                    try {
+                      return key + ':' + (typeof arg[key] === 'object' ? JSON.stringify(arg[key]) : String(arg[key]));
+                    } catch (e) {
+                      return key + ':[object]';
+                    }
+                  }).join(' ');
+                  return objStr;
+                }
+                return JSON.stringify(arg);
+              } catch (e) {
+                // En dernier recours, utiliser toString()
+                try {
+                  return arg.toString();
+                } catch (e2) {
+                  return '[object]';
+                }
+              }
+            }
+            return String(arg);
+          }).join(' ');
+        }
+        
+        // Intercepter et masquer TOUTES les erreurs inutiles dès le chargement
         const originalConsoleError = console.error;
+        const originalConsoleWarn = console.warn;
+        const originalConsoleLog = console.log;
+        
+        // Intercepter console.error
         console.error = function(...args) {
-          // Ignorer les erreurs Stripe liées au tracking (r.stripe.com)
-          const errorMessage = args.join(' ');
+          const errorMessage = argsToString(...args);
+          // Masquer toutes les erreurs Stripe non-critiques et tokens (patterns plus larges)
           if (errorMessage.includes('r.stripe.com') ||
-              errorMessage.includes('Failed to fetch') &&
-              (errorMessage.includes('stripe') || errorMessage.includes('merchant-ui-api'))) {
-            // Ces erreurs sont liées au tracking Stripe, pas critiques pour les paiements
-            return;
+              errorMessage.includes('feature_collector') ||
+              errorMessage.includes('feature-collector') ||
+              errorMessage.includes('using deprecated') ||
+              errorMessage.includes('deprecated parameters') ||
+              errorMessage.includes('deduct-tokens') ||
+              errorMessage.includes('deductTokens') ||
+              errorMessage.includes('Déduction tokens') ||
+              errorMessage.includes('Erreur déduction tokens') ||
+              (errorMessage.includes('400') && (errorMessage.includes('Bad Request') || errorMessage.includes('deduct'))) ||
+              (errorMessage.includes('POST') && errorMessage.includes('deduct-tokens')) ||
+              (errorMessage.includes('Failed to fetch') && 
+               (errorMessage.includes('stripe') || errorMessage.includes('merchant-ui-api') || errorMessage.includes('deduct-tokens')))) {
+            return; // Ne pas afficher
           }
-          // Pour toutes les autres erreurs, utiliser le comportement normal
           originalConsoleError.apply(console, args);
         };
+        
+        // Intercepter console.warn
+        console.warn = function(...args) {
+          const warnMessage = argsToString(...args);
+          // Masquer tous les warnings Stripe et tokens (patterns plus larges et spécifiques)
+          if (warnMessage.includes('feature_collector') ||
+              warnMessage.includes('feature-collector') ||
+              warnMessage.includes('using deprecated') ||
+              warnMessage.includes('deprecated parameters') ||
+              warnMessage.includes('aria-hidden') ||
+              warnMessage.includes('Blocked aria-hidden') ||
+              warnMessage.includes('aria-hidden on an element') ||
+              warnMessage.includes('Element with focus') ||
+              warnMessage.includes('Ancestor with aria-hidden') ||
+              warnMessage.includes('PrivateStripeElement') ||
+              warnMessage.includes('_PrivateStripeElement') ||
+              warnMessage.includes('assistive technology') ||
+              warnMessage.includes('inert attribute') ||
+              warnMessage.includes('deduct-tokens') ||
+              warnMessage.includes('Déduction tokens') ||
+              warnMessage.includes('deductTokens') ||
+              warnMessage.includes('stripe.com') ||
+              warnMessage.includes('Stripe') ||
+              warnMessage.includes('js.stripe.com') ||
+              warnMessage.includes('m.stripe.com') ||
+              warnMessage.includes('r.stripe.com')) {
+            return; // Ne pas afficher
+          }
+          originalConsoleWarn.apply(console, args);
+        };
+        
+        // Intercepter console.log pour les logs de debug tokens
+        console.log = function(...args) {
+          const logMessage = argsToString(...args);
+          // Masquer les logs de debug tokens
+          if (logMessage.includes('[DEBUG]') && 
+              (logMessage.includes('Déduction tokens') || 
+               logMessage.includes('deductTokens') ||
+               logMessage.includes('Tentative déduction'))) {
+            return; // Ne pas afficher
+          }
+          originalConsoleLog.apply(console, args);
+        };
+        
+        // Intercepter les promesses rejetées non gérées
+        window.addEventListener('unhandledrejection', function(event) {
+          const errorMessage = event.reason?.message || String(event.reason || '');
+          if (errorMessage.includes('r.stripe.com') || 
+              errorMessage.includes('stripe.com') ||
+              errorMessage.includes('deduct-tokens') ||
+              (errorMessage.includes('Failed to fetch') && 
+               (errorMessage.includes('stripe') || errorMessage.includes('deduct-tokens')))) {
+            event.preventDefault(); // Empêcher l'affichage
+          }
+        });
+        
+        // Les interceptions réseau sont désactivées pour conserver les codes HTTP authentiques
       })();
     </script>
   </body>

@@ -371,3 +371,122 @@ git commit -m "feat: Implémentation Supabase Storage pour toutes les créations
 git push origin main
 ```
 
+---
+
+## 🧹 Nettoyage Automatique des Fichiers Locaux
+
+### Principe
+
+Les fichiers sont maintenant **doublement stockés** :
+1. ✅ **Supabase Storage** → Persistant, accessible partout (source de vérité)
+2. ✅ **Cache local** → Temporaire, pour la performance (supprimé après 24h)
+
+### Architecture du nettoyage
+
+**Service**: `backend/saas/services/file_cleanup.py`
+- Supprime automatiquement les fichiers locaux de **plus de 24h**
+- S'exécute **toutes les heures** via APScheduler
+- Nettoie les dossiers :
+  - `static/cache/coloring/`
+  - `static/cache/comics/`
+  - `static/cache/animations/`
+  - `static/cache/audio/`
+  - `static/coloring/`
+  - `static/generated_comics/`
+
+### Fonctionnalités
+
+**Nettoyage intelligent** :
+- ✅ Vérifie l'âge des fichiers (modification time)
+- ✅ Supprime uniquement les fichiers de +24h
+- ✅ Nettoie les dossiers vides
+- ✅ Log détaillé (fichiers supprimés, espace libéré)
+- ✅ Gestion d'erreurs robuste
+
+**Scheduler automatique** :
+- Démarre avec l'application FastAPI
+- S'exécute toutes les heures
+- S'arrête proprement lors de la fermeture
+
+### Endpoints Admin
+
+**Déclencher un nettoyage manuel** :
+```bash
+POST /admin/cleanup-files
+```
+
+Retourne :
+```json
+{
+  "success": true,
+  "message": "Nettoyage des fichiers locaux effectué",
+  "stats": {
+    "files_deleted": 42,
+    "space_freed_mb": 156.78,
+    "directories_cleaned": 3,
+    "errors": 0
+  }
+}
+```
+
+**Vérifier le status du nettoyage** :
+```bash
+GET /admin/cleanup-status
+```
+
+Retourne :
+```json
+{
+  "success": true,
+  "config": {
+    "max_age_hours": 24,
+    "cache_directories": [...],
+    "cleanup_interval": "1 hour"
+  },
+  "scheduler_running": true,
+  "next_run": "2025-11-11T01:00:00"
+}
+```
+
+### Configuration
+
+Pour modifier l'intervalle de nettoyage, éditer `main.py` :
+
+```python
+scheduler.add_job(
+    func=run_scheduled_cleanup,
+    trigger="interval",
+    hours=1,  # ← Modifier ici (ex: hours=2 pour toutes les 2h)
+    ...
+)
+```
+
+Pour modifier l'âge maximum des fichiers, éditer `file_cleanup.py` :
+
+```python
+cleanup_service = FileCleanupService(max_age_hours=24)  # ← Modifier ici
+```
+
+### Avantages
+
+✅ **Économie d'espace** : Suppression automatique des fichiers obsolètes  
+✅ **Performance** : Cache local pour servir rapidement les fichiers récents  
+✅ **Persistance** : Fichiers toujours disponibles via Supabase Storage  
+✅ **Maintenance zéro** : Tout est automatique  
+✅ **Monitoring** : Endpoints admin pour surveiller le système  
+
+### Logs
+
+Au démarrage de l'application :
+```
+✅ Service Supabase Storage initialisé
+✅ Scheduler de nettoyage automatique démarré (toutes les heures)
+```
+
+Lors d'un nettoyage :
+```
+🧹 Début du nettoyage automatique des fichiers locaux...
+✅ Fichier supprimé: static/cache/coloring/old_file.png (âge: 25.3h)
+✅ Nettoyage terminé: 42 fichiers supprimés, 156.78 MB libérés, 3 dossiers nettoyés, 0 erreurs
+```
+

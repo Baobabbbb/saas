@@ -68,17 +68,17 @@ serve(async (req) => {
         limit_count: limit
       }));
     } else if (action === 'get_payment_stats') {
-      // Statistiques de paiement pour les admins
+      // Statistiques basées sur les abonnements actifs
       ({ data, error } = await supabase.rpc('exec_sql', {
         query: `
           SELECT
-            COUNT(*) as total_payments,
-            SUM(amount) as total_revenue,
-            AVG(amount) as avg_payment,
-            COUNT(DISTINCT user_id) as unique_customers
-          FROM generation_permissions
-          WHERE stripe_payment_intent_id IS NOT NULL
-          AND status = 'completed'
+            COUNT(*) as total_subscriptions,
+            SUM(sp.price_monthly) as monthly_revenue,
+            AVG(sp.price_monthly) as avg_subscription_price,
+            COUNT(DISTINCT s.user_id) as unique_customers
+          FROM subscriptions s
+          JOIN subscription_plans sp ON s.plan_id = sp.id
+          WHERE s.status = 'active'
         `
       }));
     } else if (action === 'get_customers') {

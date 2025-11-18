@@ -186,23 +186,13 @@ serve(async (req) => {
       }
     }
 
-    // Vérifier les permissions payées actives (système legacy)
-    const { data: permission, error: permError } = await supabase
-      .from('generation_permissions')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('content_type', contentType)
-      .eq('status', 'completed')
-      .eq('is_active', true)
-      .single();
-
-    const hasPermission = !!permission && !permError;
-
+    // Aucun abonnement actif et pas d'accès gratuit → paiement requis
+    // Le système pay-per-use est géré côté frontend via contentPaidDirectly
     return new Response(JSON.stringify({
-      hasPermission,
-      reason: hasPermission ? 'payment_verified' : 'payment_required',
+      hasPermission: false,
+      reason: 'payment_required',
       userRole: 'user',
-      permission: permission || null,
+      estimatedTokensCost,
       contentType,
       userId
     }), {

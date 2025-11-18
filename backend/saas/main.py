@@ -59,9 +59,30 @@ if SUPABASE_SERVICE_KEY:
     init_storage_service(supabase_client, SUPABASE_URL)
     print("✅ Service Supabase Storage initialisé")
 
+# Service de nettoyage automatique des fichiers locaux
+from services.file_cleanup import run_scheduled_cleanup
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
+
 # Démarrage silencieux - pas de logs sensibles
 
 app = FastAPI(title="API FRIDAY - Contenu Créatif IA", version="2.0", description="API pour générer du contenu créatif pour enfants : BD, coloriages, histoires, comptines")
+
+# Initialiser le scheduler pour le nettoyage automatique
+scheduler = BackgroundScheduler()
+scheduler.add_job(
+    func=run_scheduled_cleanup,
+    trigger="interval",
+    hours=1,  # Exécuter toutes les heures
+    id="file_cleanup_job",
+    name="Nettoyage automatique des fichiers locaux",
+    replace_existing=True
+)
+scheduler.start()
+print("✅ Scheduler de nettoyage automatique démarré (toutes les heures)")
+
+# Arrêter le scheduler proprement lors de la fermeture
+atexit.register(lambda: scheduler.shutdown())
 
 # Modèles pour l'API Animation
 class AnimationRequest(BaseModel):
@@ -1857,3 +1878,59 @@ async def send_contact_email(contact_form: ContactForm):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+
+# ===================================
+# ENDPOINT ADMIN - NETTOYAGE FICHIERS
+# ===================================
+
+@app.post("/admin/cleanup-files")
+async def trigger_file_cleanup():
+    """
+    Endpoint admin pour déclencher manuellement le nettoyage des fichiers locaux.
+    Supprime tous les fichiers de plus de 24h dans les dossiers de cache.
+    """
+    try:
+        from services.file_cleanup import cleanup_service
+        
+        # Exécuter le nettoyage
+        stats = cleanup_service.run_cleanup()
+        
+        return {
+            "success": True,
+            "message": "Nettoyage des fichiers locaux effectué",
+            "stats": stats
+        }
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors du nettoyage: {str(e)}"
+        )
+
+
+@app.get("/admin/cleanup-status")
+async def get_cleanup_status():
+    """
+    Endpoint admin pour obtenir les informations sur le service de nettoyage.
+    Retourne la configuration et l'état du scheduler.
+    """
+    try:
+        from services.file_cleanup import cleanup_service
+        
+        return {
+            "success": True,
+            "config": {
+                "max_age_hours": cleanup_service.max_age_seconds / 3600,
+                "cache_directories": cleanup_service.cache_directories,
+                "cleanup_interval": "1 hour"
+            },
+            "scheduler_running": scheduler.running,
+            "next_run": scheduler.get_jobs()[0].next_run_time.isoformat() if scheduler.get_jobs() else None
+        }
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors de la récupération du status: {str(e)}"
+        )
