@@ -115,7 +115,7 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
             card: cardNumberElement,
             billing_details: {
               name: cardholderName,
-              email: user.email,
+              email: user?.email || 'anonymous@guest.com',
             },
           },
         }
