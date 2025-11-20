@@ -25,19 +25,32 @@ serve(async (req) => {
   }
 
   try {
-    const { contentType, userId, userEmail, amount, description, successUrl, cancelUrl } = await req.json();
+    console.log('=== DEBUT CREATE-PAYMENT ===');
+    console.log('Headers reçus:', Object.fromEntries(req.headers.entries()));
+
+    const body = await req.json();
+    console.log('Body reçu:', body);
+
+    const { contentType, userId, userEmail, amount, description, successUrl, cancelUrl } = body;
+
+    console.log('Paramètres extraits:', { contentType, userId, userEmail, amount });
 
     // Validation des paramètres
     if (!contentType || !userId) {
+      console.log('ERREUR: Paramètres manquants');
       throw new Error('Paramètres manquants: contentType et userId requis');
     }
 
     // Initialisation Stripe avec la clé secrète
     const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
+    console.log('Clé Stripe présente:', !!stripeSecretKey);
+
     if (!stripeSecretKey) {
+      console.log('ERREUR: Clé secrète Stripe non configurée');
       throw new Error('Clé secrète Stripe non configurée');
     }
 
+    console.log('Initialisation Stripe...');
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2024-06-20',
       httpClient: Stripe.createFetchHttpClient(),
@@ -45,7 +58,9 @@ serve(async (req) => {
 
     // Utiliser le montant calculé côté frontend
     const finalAmount = amount || 49; // 0.49€ par défaut si pas spécifié
+    console.log('Montant final:', finalAmount);
 
+    console.log('Création PaymentIntent...');
     // Créer un PaymentIntent pour paiement dans la popup
     const paymentIntent = await stripe.paymentIntents.create({
       amount: finalAmount,
@@ -61,7 +76,7 @@ serve(async (req) => {
       receipt_email: userEmail,
     });
 
-    console.log(`PaymentIntent créé pour ${userEmail}: ${paymentIntent.id}, montant: ${finalAmount} centimes`);
+    console.log(`✅ PaymentIntent créé pour ${userEmail}: ${paymentIntent.id}, montant: ${finalAmount} centimes`);
 
     return new Response(JSON.stringify({
       clientSecret: paymentIntent.client_secret,
@@ -79,12 +94,16 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Erreur dans create-payment:', error);
+    console.error('❌ ERREUR dans create-payment:', error);
+    console.error('Stack:', error.stack);
+
+    // Retourner toujours 200 pour éviter les exceptions JavaScript côté frontend
     return new Response(JSON.stringify({
       error: error.message,
-      details: error.stack
+      details: error.stack,
+      timestamp: new Date().toISOString()
     }), {
-      status: 500,
+      status: 200, // Changé de 500 à 200 pour éviter les exceptions
       headers: {
         ...corsHeaders,
         'Content-Type': 'application/json'
