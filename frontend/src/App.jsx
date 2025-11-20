@@ -492,9 +492,10 @@ function App() {
   
   // Handle Generation
   const handleGenerate = async () => {
-    // Récupérer l'utilisateur connecté
+    // Si pas connecté, ouvrir directement le paiement (pas de bonus ni d'abonnement possible)
     if (!user) {
-      alert('Vous devez être connecté pour générer du contenu');
+      setPaymentContentType(contentType);
+      setShowPaymentModal(true);
       return;
     }
 
@@ -935,20 +936,22 @@ function App() {
         };
       }
       
-      // Enregistrer dans l'historique via Supabase
-      try {
-        await addCreation({
-          type: contentType,
-          title: title,
-          data: newCreation        });
-        
-        // Forcer la revérification du bonus dans le Header
-        setRefreshBonusTrigger(prev => prev + 1);
-        
-        // Forcer la mise à jour du texte du bouton
-        updateButtonText(userHasFreeAccess);
-      } catch (historyError) {
-        // Erreur silencieuse - historique non critique
+      // Enregistrer dans l'historique via Supabase (seulement si connecté)
+      if (user) {
+        try {
+          await addCreation({
+            type: contentType,
+            title: title,
+            data: newCreation        });
+          
+          // Forcer la revérification du bonus dans le Header
+          setRefreshBonusTrigger(prev => prev + 1);
+          
+          // Forcer la mise à jour du texte du bouton
+          updateButtonText(userHasFreeAccess);
+        } catch (historyError) {
+          // Erreur silencieuse - historique non critique
+        }
       }
 
     // setTimeout(() => setShowConfetti(false), 3000);

@@ -70,19 +70,15 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) {
-        throw new Error('Vous devez être connecté pour effectuer un paiement');
-      }
-
-      // Créer un PaymentIntent via l'Edge Function
+      // Créer un PaymentIntent via l'Edge Function (même sans user)
       const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-payment', {
         body: {
           amount: priceInfo.amount,
           currency: priceInfo.currency,
           contentType: normalizedContentType,
           description: priceInfo.name,
-          userId: user.id,
-          userEmail: user.email
+          userId: user?.id || 'anonymous',
+          userEmail: user?.email || 'anonymous@guest.com'
         }
       });
 

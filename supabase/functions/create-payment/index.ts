@@ -35,10 +35,10 @@ serve(async (req) => {
 
     console.log('Paramètres extraits:', { contentType, userId, userEmail, amount });
 
-    // Validation des paramètres
-    if (!contentType || !userId) {
-      console.log('ERREUR: Paramètres manquants');
-      throw new Error('Paramètres manquants: contentType et userId requis');
+    // Validation des paramètres (accepter anonymous)
+    if (!contentType) {
+      console.log('ERREUR: Paramètre contentType manquant');
+      throw new Error('Paramètre contentType requis');
     }
 
     // Initialisation Stripe avec la clé secrète
