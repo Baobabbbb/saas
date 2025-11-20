@@ -87,7 +87,7 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, user
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.5 }}
           >
-            🎁 <strong>Bonus bienvenue :</strong> Votre première histoire ou coloriage est gratuit !
+            🎁 Un coloriage ou une histoire gratuit après inscription !
           </motion.p>
         )}
 
