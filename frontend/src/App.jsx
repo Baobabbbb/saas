@@ -408,7 +408,7 @@ function App() {
       setButtonText('Générer Gratuitement');
     } else {
       // Vérifier d'abord si c'est la première création (bonus bienvenue)
-      if (user) {
+      if (user && (contentType === 'histoire' || contentType === 'story' || contentType === 'audio' || contentType === 'coloriage' || contentType === 'coloring')) {
         try {
           // Vérifier si l'utilisateur a déjà créé du contenu
           const { data: creations, error: creationsError } = await supabase
@@ -418,7 +418,7 @@ function App() {
             .limit(1);
 
           if (!creationsError && creations && creations.length === 0) {
-            // Aucune création = bonus bienvenue disponible
+            // Aucune création = bonus bienvenue disponible (uniquement histoire ou coloriage)
             setButtonText('🎁 Créer gratuitement (bonus bienvenue)');
             return;
           }
@@ -503,21 +503,29 @@ function App() {
       return;
     }
 
-    // Vérifier si c'est la première création (bonus bienvenue)
-    try {
-      const { data: creations, error: creationsError } = await supabase
-        .from('creations')
-        .select('id')
-        .eq('user_id', user.id)
-        .limit(1);
+    // Vérifier si c'est la première création (bonus bienvenue uniquement pour histoires et coloriages)
+    if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio' || contentType === 'coloriage' || contentType === 'coloring') {
+      try {
+        const { data: creations, error: creationsError } = await supabase
+          .from('creations')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1);
 
-      if (!creationsError && creations && creations.length === 0) {
-        // Première création = bonus bienvenue, génération gratuite !
-        console.log('🎁 Bonus bienvenue activé - première création gratuite');
-        startGeneration();
-        return;
+        if (!creationsError && creations && creations.length === 0) {
+          // Première création histoire/coloriage = bonus bienvenue, génération gratuite !
+          console.log('🎁 Bonus bienvenue activé - première histoire ou coloriage gratuit');
+          startGeneration();
+          return;
+        }
+      } catch (bonusError) {
+        console.error('Erreur vérification bonus:', bonusError);
+        // Continuer avec la logique normale si erreur
       }
+    }
 
+    // Si utilisateur normal, vérifier les permissions via Edge Function
+    try {
       // Préparer les options selon le type de contenu
       const permissionOptions = {};
       
