@@ -277,7 +277,6 @@ const CARD_ELEMENT_OPTIONS = {
 
 const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail }) => {
   // FORCE RELOAD 2025-11-07 02:30:00 - NOUVEAU DESIGN AVEC CHAMPS SÉPARÉS
-  console.log('🎨 SubscriptionForm NOUVEAU DESIGN chargé - 3 champs séparés');
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);

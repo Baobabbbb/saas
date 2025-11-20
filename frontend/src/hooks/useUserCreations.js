@@ -4,23 +4,19 @@ import { supabase } from "../supabaseClient";
 // Fonction pour migrer les anciennes créations vers l'utilisateur Supabase actuel
 async function attemptCreationsMigration(currentUserId) {
   try {
-    console.log('🔄 HERBBIE: Tentative de migration des créations...');
     
     // Récupérer l'email de l'utilisateur actuel
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user?.email) {
-      console.log('⚠️ HERBBIE: Pas d\'email utilisateur pour la migration');
       return;
     }
     
     const userEmail = session.user.email;
-    console.log('📧 HERBBIE: Email utilisateur pour migration:', userEmail);
     
     // Chercher les créations avec ancien format basé sur l'email
     const emailHash = btoa(userEmail).slice(0, 10);
     const legacyUserId = `friday-user-${emailHash}`;
     
-    console.log('🔍 HERBBIE: Recherche créations avec ancien ID:', legacyUserId);
     
     const { data: legacyCreations, error: legacyError } = await supabase
       .from('creations')
@@ -33,7 +29,6 @@ async function attemptCreationsMigration(currentUserId) {
     }
     
     if (legacyCreations && legacyCreations.length > 0) {
-      console.log(`🔄 HERBBIE: ${legacyCreations.length} créations à migrer trouvées`);
       
       // Migrer chaque création vers le nouvel ID
       for (const creation of legacyCreations) {
@@ -47,9 +42,7 @@ async function attemptCreationsMigration(currentUserId) {
         }
       }
       
-      console.log('✅ HERBBIE: Migration terminée');
     } else {
-      console.log('ℹ️ HERBBIE: Aucune création legacy trouvée à migrer');
     }
     
   } catch (error) {

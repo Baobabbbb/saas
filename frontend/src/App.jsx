@@ -515,7 +515,10 @@ function App() {
 
         if (!creationsError && creations && creations.length === 0) {
           // Première création histoire/coloriage = bonus bienvenue, génération gratuite !
-          console.log('🎁 Bonus bienvenue activé - première histoire ou coloriage gratuit');
+          // Debug bonus (uniquement en développement)
+          if (import.meta.env.DEV) {
+            console.log('🎁 Bonus bienvenue activé - première histoire ou coloriage gratuit');
+          }
           startGeneration();
           return;
         }
