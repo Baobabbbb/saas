@@ -57,7 +57,7 @@ serve(async (req) => {
     });
 
     // Utiliser le montant calculé côté frontend
-    const finalAmount = amount || 49; // 0.49€ par défaut si pas spécifié
+    const finalAmount = amount || 50; // 0.50€ par défaut (minimum Stripe)
     console.log('Montant final:', finalAmount);
 
     console.log('Création PaymentIntent...');
