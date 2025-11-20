@@ -87,11 +87,28 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
       });
 
       if (paymentError) {
+        console.error('Erreur Edge Function:', paymentError);
+        try {
+          // Essayer de parser le body de l'erreur si c'est du JSON
+          const errorBody = JSON.parse(paymentError.message);
+          if (errorBody && errorBody.error) {
+             throw new Error(errorBody.error);
+          }
+        } catch (e) {
+          // Si ce n'est pas du JSON, utiliser le message tel quel
+        }
         throw new Error(paymentError.message || 'Erreur lors de la création du paiement');
       }
 
+      // Vérifier si l'Edge Function a retourné une erreur logique (status 200 mais success: false)
+      if (paymentData && paymentData.error) {
+        console.error('Erreur logique create-payment:', paymentData);
+        throw new Error(paymentData.error);
+      }
+
       if (!paymentData || !paymentData.clientSecret) {
-        throw new Error('Impossible de créer le paiement');
+        console.error('Réponse create-payment invalide:', paymentData);
+        throw new Error('Impossible de créer le paiement (réponse invalide)');
       }
 
       // Confirmer le paiement avec la carte

@@ -97,13 +97,15 @@ serve(async (req) => {
     console.error('❌ ERREUR dans create-payment:', error);
     console.error('Stack:', error.stack);
 
-    // Retourner 500 pour les vraies erreurs - le frontend sait les gérer
+    // Retourner 200 avec l'erreur pour que le frontend puisse l'afficher
+    // (au lieu de 500 qui est souvent masqué par le client Supabase)
     return new Response(JSON.stringify({
       error: error.message,
       details: error.stack,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      success: false
     }), {
-      status: 500, // Garder 500 pour les vraies erreurs
+      status: 200, 
       headers: {
         ...corsHeaders,
         'Content-Type': 'application/json'
