@@ -1,10 +1,10 @@
 # GRILLE TARIFAIRE COMPLÈTE HERBBIE
 
-*Dernière mise à jour : Novembre 2025*
+*Dernière mise à jour : Novembre 2025 - Prix arrondis (0,50€ et 0,70€)*
 
 ## Vue d'ensemble
 
-Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisateurs tout en maintenant d'excellentes marges bénéficiaires (75% en moyenne).
+Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisateurs tout en maintenant d'excellentes marges bénéficiaires (70% en moyenne).
 
 ---
 
@@ -20,9 +20,9 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 | Fonctionnalité | Prix | Coût API Réel | Marge | Marge % |
 |---|---|---|---|---|
 | Histoire | 0,50€ | 0,042€ | 0,46€ | 92% |
-| Coloriage | 0,99€ | 0,16€ | 0,83€ | 84% |
-| BD par page | 0,99€ | 0,16€ | 0,83€ | 84% |
-| Comptine | 0,99€ | 0,15€ | 0,84€ | 85% |
+| Coloriage | 0,70€ | 0,16€ | 0,54€ | 78% |
+| BD par page | 0,70€ | 0,16€ | 0,54€ | 78% |
+| Comptine | 0,70€ | 0,15€ | 0,55€ | 79% |
 | Animation 30s | 5,99€ | 4,20€ | 1,79€ | 30% |
 | Animation 1min | 9,99€ | 8,40€ | 1,59€ | 16% |
 | Animation 2min | 18,99€ | 16,80€ | 2,19€ | 12% |
@@ -154,11 +154,11 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 ## ANALYSE FINANCIÈRE GLOBALE
 
 ### Marges bénéficiaires
-- Marge moyenne pondérée : 75% (ajustée)
+- Marge moyenne pondérée : 70% (ajustée après réduction des prix)
 - Coûts API totaux : 35-40% du CA (réel)
 - Infrastructure/Serveur : 5-8% du CA
 - Marketing/Paiements : 5-7% du CA
-- Marge nette : 42-48%
+- Marge nette : 40-45%
 
 ### Prévisions de revenus (1,000 utilisateurs actifs/mois)
 - CA pay-per-use : 35,000-45,000€
@@ -173,19 +173,19 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 ## POINTS FORTS DE CETTE TARIFICATION
 
 ### Attractivité maximale
-- Prix d'appel à 0,79€ pour les histoires
-- Coloriages et contenus simples à moins de 1€
+- Prix d'appel à 0,50€ pour les histoires
+- Coloriages, BD et comptines à 0,70€ (prix psychologiques ronds)
 - Abonnements avec économies jusqu'à 92%
-- Animations premium à partir de 7,99€ (rentables)
+- Animations premium à partir de 5,99€ (rentables)
 
 ### Cohérence parfaite
-- Échelonnage logique (0,79€ → 27,99€)
-- Marges bénéficiaires excellentes (24-89% selon le type)
+- Échelonnage logique (0,50€ → 46,99€)
+- Marges bénéficiaires excellentes (9-85% selon le type)
 - Valeur perçue alignée avec les coûts réels
 - Abonnements rentables même avec rabais généreux
 
 ### Stratégie marketing optimale
-- Prix psychologiques (.79€, .99€, 7.99€)
+- Prix psychologiques (.50€, .70€, 5.99€)
 - Tunnel de conversion efficace (pay-per-use → abonnement)
 - Positionnement premium justifié pour les animations
 - Abonnements basés sur nombre de générations (facile à comprendre)
@@ -196,7 +196,7 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 
 ### Phase 1 : Lancement (Mois 1-2)
 - Introduction des nouveaux prix pay-per-use
-- Promotion des prix d'appel (0,79€ pour les histoires)
+- Promotion des prix d'appel (0,50€ pour les histoires)
 - Mise en avant des abonnements avec valeur réelle affichée
 
 ### Phase 2 : Conversion (Mois 3-6)
