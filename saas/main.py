@@ -683,13 +683,11 @@ async def generate_audio_story(req: Request):
                 detail="Données d'entrée invalides: doit être un objet JSON"
             )
 
-        # Extraire user_id depuis JWT
+        # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
         user_id = await extract_user_id_from_jwt(authorization, None)
         if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentification requise pour générer une histoire audio"
-            )
+            # Mode invité : utiliser un user_id temporaire
+            user_id = request_dict.get("user_id") or "anonymous"
         
         request_dict["user_id"] = user_id
 
@@ -927,13 +925,11 @@ async def generate_coloring(
     Organisation OpenAI vérifiée requise pour gpt-image-1-mini
     """
     try:
-        # Extraire user_id depuis JWT
+        # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
         user_id = await extract_user_id_from_jwt(authorization, None)
         if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentification requise pour générer un coloriage"
-            )
+            # Mode invité : utiliser un user_id temporaire
+            user_id = request_dict.get("user_id") or "anonymous"
         
         request["user_id"] = user_id
         
@@ -1213,13 +1209,11 @@ async def generate_comic(
     Retourne immédiatement un task_id pour éviter les timeouts
     """
     try:
-        # Extraire user_id depuis JWT
+        # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
         user_id = await extract_user_id_from_jwt(authorization, None)
         if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentification requise pour générer une bande dessinée"
-            )
+            # Mode invité : utiliser un user_id temporaire
+            user_id = request_dict.get("user_id") or "anonymous"
         
         request["user_id"] = user_id
         
@@ -1442,13 +1436,10 @@ async def generate_animation_post(
     """
     Génère une animation via POST avec body JSON
     """
-    # Extraire user_id depuis JWT
+    # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
     user_id = await extract_user_id_from_jwt(authorization, None)
     if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentification requise pour générer une animation"
-        )
+        user_id = "anonymous"
     
     return await _generate_animation_logic(
         theme=request.theme,
@@ -1466,12 +1457,10 @@ async def generate_quick_json(
     """
     Génère une animation via POST avec body JSON uniquement (nouvelle route)
     """
+    # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
     user_id = await extract_user_id_from_jwt(authorization, None)
     if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentification requise pour générer une animation rapide"
-        )
+        user_id = "anonymous"
 
     return await _generate_animation_logic(
         theme=request.theme,
@@ -1493,12 +1482,10 @@ async def generate_animation(
     Génère une VRAIE animation avec Runway ML Veo 3.1 Fast (workflow zseedance)
     Supporte les requêtes GET avec query parameters - PLUS DE MODE, toujours vrai pipeline
     """
+    # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
     user_id = await extract_user_id_from_jwt(authorization, None)
     if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentification requise pour générer une animation"
-        )
+        user_id = "anonymous"
     return await _generate_animation_logic(theme, duration, style, custom_prompt, user_id=user_id)
 
 async def _generate_animation_logic(
