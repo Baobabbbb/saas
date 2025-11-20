@@ -89,16 +89,16 @@ export const createPaymentSession = async (contentType, userId, userEmail, optio
 export const getContentPrice = (contentType, options = {}) => {
 
   const prices = {
-    // PRIX CONFORMES STRIPE (minimum 0,50€)
-    'comptine': { amount: 69, name: 'Comptine Musicale', currency: 'EUR', display: '0,69€' },
+    // PRIX ARRONDIS À 0,50€ et 0,70€
+    'comptine': { amount: 70, name: 'Comptine Musicale', currency: 'EUR', display: '0,70€' },
     'histoire': { amount: 50, name: 'Histoire', currency: 'EUR', display: '0,50€' },
     'audio': { amount: 50, name: 'Histoire', currency: 'EUR', display: '0,50€' },
-    'coloriage': { amount: 69, name: 'Coloriage Personnalisé', currency: 'EUR', display: '0,69€' },
-    'coloring': { amount: 69, name: 'Coloriage personnalisé', currency: 'EUR', display: '0,69€' },
-    'bd': { amount: 69, name: 'Page de Bande Dessinée', currency: 'EUR', display: '0,69€' },
-    'comic': { amount: 69, name: 'Page de Bande Dessinée', currency: 'EUR', display: '0,69€' },
+    'coloriage': { amount: 70, name: 'Coloriage Personnalisé', currency: 'EUR', display: '0,70€' },
+    'coloring': { amount: 70, name: 'Coloriage personnalisé', currency: 'EUR', display: '0,70€' },
+    'bd': { amount: 70, name: 'Page de Bande Dessinée', currency: 'EUR', display: '0,70€' },
+    'comic': { amount: 70, name: 'Page de Bande Dessinée', currency: 'EUR', display: '0,70€' },
     'story': { amount: 50, name: 'Histoire', currency: 'EUR', display: '0,50€' },
-    'rhyme': { amount: 69, name: 'Comptine musicale', currency: 'EUR', display: '0,69€' },
+    'rhyme': { amount: 70, name: 'Comptine musicale', currency: 'EUR', display: '0,70€' },
 
     // Animations avec marges réduites (prix attractifs)
     'animation': { amount: 599, name: 'Animation IA 30s', currency: 'EUR', display: '5,99€' }
