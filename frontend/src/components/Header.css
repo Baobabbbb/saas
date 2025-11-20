@@ -38,6 +38,19 @@
   margin: 0;
 }
 
+.welcome-bonus-message {
+  margin: 1rem 0;
+  padding: 1rem 1.5rem;
+  background-color: #f0f9f0;
+  border: 3px solid #4ade80;
+  border-radius: 12px;
+  color: #166534;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(74, 222, 128, 0.3);
+}
+
 .animation-coming-soon {
   margin-top: 0.5rem;
   font-size: 1rem;
