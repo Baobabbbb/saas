@@ -97,13 +97,13 @@ serve(async (req) => {
     console.error('❌ ERREUR dans create-payment:', error);
     console.error('Stack:', error.stack);
 
-    // Retourner toujours 200 pour éviter les exceptions JavaScript côté frontend
+    // Retourner 500 pour les vraies erreurs - le frontend sait les gérer
     return new Response(JSON.stringify({
       error: error.message,
       details: error.stack,
       timestamp: new Date().toISOString()
     }), {
-      status: 200, // Changé de 500 à 200 pour éviter les exceptions
+      status: 500, // Garder 500 pour les vraies erreurs
       headers: {
         ...corsHeaders,
         'Content-Type': 'application/json'
