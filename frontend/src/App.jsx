@@ -114,6 +114,7 @@ const getSafeFilename = (title) => {
 
 function App() {
   const [contentType, setContentTypeRaw] = useState('animation'); // 'rhyme', 'audio', 'coloring', 'animation' - Dessin animé sélectionné par défaut
+  const [refreshBonusTrigger, setRefreshBonusTrigger] = useState(0); // Trigger pour forcer la revérification du bonus
   
   // Wrapper pour normaliser 'audio' → 'histoire' automatiquement
   const setContentType = (type) => {
@@ -937,6 +938,12 @@ function App() {
           type: contentType,
           title: title,
           data: newCreation        });
+        
+        // Forcer la revérification du bonus dans le Header
+        setRefreshBonusTrigger(prev => prev + 1);
+        
+        // Forcer la mise à jour du texte du bouton
+        updateButtonText(userHasFreeAccess);
       } catch (historyError) {
         // Erreur silencieuse - historique non critique
       }
@@ -1305,6 +1312,7 @@ const downloadPDF = async (title, content) => {
       onOpenHistory={() => setShowHistory(true)}
       userId={user?.id}
       onOpenSubscription={() => setShowSubscriptionModal(true)}
+      refreshBonusTrigger={refreshBonusTrigger}
     />
 
     {/* 🌟 Étoiles filantes pour dynamiser le fond */}

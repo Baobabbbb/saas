@@ -4,7 +4,7 @@ import './Header.css';
 import UserAccount from './UserAccount';
 import { supabase } from '../supabaseClient';
 
-const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, userId, onOpenSubscription }) => {
+const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, userId, onOpenSubscription, refreshBonusTrigger }) => {
   const [showWelcomeBonus, setShowWelcomeBonus] = useState(false);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, user
     };
 
     checkWelcomeBonus();
-  }, [isLoggedIn, userId]);
+  }, [isLoggedIn, userId, refreshBonusTrigger]);
 
   return (
     <header className="header">
