@@ -203,7 +203,9 @@ function App() {
     
     while (attempts < maxAttempts) {
       try {
-        const res = await authFetch(`${API_BASE_URL}/status/${taskId}`);
+        const res = await authFetch(`${API_BASE_URL}/status/${taskId}`, {
+          skipAuth: !user // Désactiver l'auth pour les invités
+        });
         
         if (res.ok) {
           const statusPayload = await res.json();
@@ -240,7 +242,9 @@ function App() {
     
     while (attempts < maxAttempts) {
       try {
-        const res = await authFetch(`${API_BASE_URL}/status_comic/${taskId}`);
+        const res = await authFetch(`${API_BASE_URL}/status_comic/${taskId}`, {
+          skipAuth: !user // Désactiver l'auth pour les invités
+        });
         
         if (res.ok) {
           const statusPayload = await res.json();
@@ -279,7 +283,8 @@ function App() {
       
       const response = await authFetch(`${API_BASE_URL}/upload_character_photo/`, {
         method: 'POST',
-        body: formData
+        body: formData,
+        skipAuth: !user // Désactiver l'auth pour les invités
       });
       
       if (!response.ok) throw new Error(`Erreur upload : ${response.status}`);
@@ -594,7 +599,8 @@ function App() {
         const response = await authFetch(`${API_BASE_URL}/generate_rhyme/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
+          skipAuth: !user // Désactiver l'auth pour les invités
         });
 
         if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
@@ -610,7 +616,8 @@ function App() {
       const response = await authFetch(`${API_BASE_URL}/generate_audio_story/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        skipAuth: !user // Désactiver l'auth pour les invités
       });
       
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
@@ -648,7 +655,8 @@ function App() {
       const response = await authFetch(`${API_BASE_URL}/generate_story/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        skipAuth: !user // Désactiver l'auth pour les invités
       });
       
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
@@ -662,7 +670,8 @@ function App() {
         
         const uploadResponse = await authFetch(`${API_BASE_URL}/upload_photo_for_coloring/`, {
           method: 'POST',
-          body: formData
+          body: formData,
+          skipAuth: !user // Désactiver l'auth pour les invités
         });
         
         if (!uploadResponse.ok) throw new Error(`Erreur upload : ${uploadResponse.status}`);
@@ -678,7 +687,8 @@ function App() {
         const conversionResponse = await authFetch(`${API_BASE_URL}/convert_photo_to_coloring/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(conversionPayload)
+          body: JSON.stringify(conversionPayload),
+          skipAuth: !user // Désactiver l'auth pour les invités
         });
         
         if (!conversionResponse.ok) throw new Error(`Erreur conversion : ${conversionResponse.status}`);
@@ -703,7 +713,8 @@ function App() {
       const response = await authFetch(`${API_BASE_URL}/generate_coloring/`, {
         method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        skipAuth: !user // Désactiver l'auth pour les invités
       });
 
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
@@ -735,7 +746,8 @@ function App() {
       const response = await authFetch(`${API_BASE_URL}/generate_comic/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        skipAuth: !user // Désactiver l'auth pour les invités
       });
 
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
@@ -805,7 +817,10 @@ function App() {
             }
           };
 
-      const response = await authFetch(endpoint, fetchOptions);
+      const response = await authFetch(endpoint, {
+        ...fetchOptions,
+        skipAuth: !user // Désactiver l'auth pour les invités
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -1217,7 +1232,9 @@ const downloadPDF = async (title, content) => {
     
     const checkStatus = async () => {
       try {
-        const response = await authFetch(`${API_BASE_URL}/check_task_status/${taskId}`);
+        const response = await authFetch(`${API_BASE_URL}/check_task_status/${taskId}`, {
+          skipAuth: !user // Désactiver l'auth pour les invités
+        });
         const status = await response.json();
         
         if (status.status === 'completed') {
