@@ -407,9 +407,22 @@ function App() {
     if (adminStatus) {
       setButtonText('Générer Gratuitement');
     } else {
-      // Vérifier si l'utilisateur a un abonnement actif avec des tokens
+      // Vérifier d'abord si c'est la première création (bonus bienvenue)
       if (user) {
         try {
+          // Vérifier si l'utilisateur a déjà créé du contenu
+          const { data: creations, error: creationsError } = await supabase
+            .from('creations')
+            .select('id')
+            .eq('user_id', user.id)
+            .limit(1);
+
+          if (!creationsError && creations && creations.length === 0) {
+            // Aucune création = bonus bienvenue disponible
+            setButtonText('🎁 Créer gratuitement (bonus bienvenue)');
+            return;
+          }
+
           // Préparer les options selon le type de contenu
           const permissionOptions = {};
           
@@ -490,8 +503,21 @@ function App() {
       return;
     }
 
-    // Si utilisateur normal, vérifier les permissions via Edge Function
+    // Vérifier si c'est la première création (bonus bienvenue)
     try {
+      const { data: creations, error: creationsError } = await supabase
+        .from('creations')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      if (!creationsError && creations && creations.length === 0) {
+        // Première création = bonus bienvenue, génération gratuite !
+        console.log('🎁 Bonus bienvenue activé - première création gratuite');
+        startGeneration();
+        return;
+      }
+
       // Préparer les options selon le type de contenu
       const permissionOptions = {};
       

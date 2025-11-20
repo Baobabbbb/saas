@@ -1,9 +1,45 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import './Header.css';
 import UserAccount from './UserAccount';
+import { supabase } from '../supabaseClient';
 
 const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, userId, onOpenSubscription }) => {
+  const [showWelcomeBonus, setShowWelcomeBonus] = useState(false);
+
+  useEffect(() => {
+    const checkWelcomeBonus = async () => {
+      if (isLoggedIn && userId) {
+        try {
+          // Vérifier si l'utilisateur a déjà créé du contenu
+          const { data: creations, error: creationsError } = await supabase
+            .from('creations')
+            .select('id')
+            .eq('user_id', userId)
+            .limit(1);
+
+          if (creationsError) {
+            console.error('Erreur vérification créations:', creationsError);
+            setShowWelcomeBonus(false);
+            return;
+          }
+
+          // Si aucune création, afficher le bonus
+          const hasCreations = creations && creations.length > 0;
+          setShowWelcomeBonus(!hasCreations);
+        } catch (error) {
+          console.error('Erreur vérification bonus bienvenue:', error);
+          setShowWelcomeBonus(false);
+        }
+      } else {
+        // Si pas connecté, afficher le bonus pour inciter à l'inscription
+        setShowWelcomeBonus(true);
+      }
+    };
+
+    checkWelcomeBonus();
+  }, [isLoggedIn, userId]);
+
   return (
     <header className="header">
       <div className="header-content">
@@ -43,6 +79,18 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, user
         >
           Offrez à vos enfants des créations ludiques et imaginatives personnalisées !
         </motion.h2>
+
+        {showWelcomeBonus && (
+          <motion.p
+            className="welcome-bonus-message"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.5 }}
+          >
+            🎁 <strong>Bonus bienvenue :</strong> Votre première création est gratuite !
+          </motion.p>
+        )}
+
         <motion.p
           className="animation-coming-soon"
           initial={{ opacity: 0, y: -10 }}
