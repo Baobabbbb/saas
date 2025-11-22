@@ -915,7 +915,7 @@ def get_coloring_generator():
 @app.post("/generate_coloring/")
 @app.post("/generate_coloring/{content_type_id}")
 async def generate_coloring(
-    request: dict,
+    request: ColoringRequest = Body(...),
     content_type_id: int = None,
     http_request: Request = None
 ):
@@ -929,14 +929,12 @@ async def generate_coloring(
         user_id = await extract_user_id_from_jwt(http_request.headers.get("authorization") if http_request else None, None)
         if not user_id:
             # Mode invité : utiliser un user_id temporaire
-            user_id = request_dict.get("user_id") or "anonymous"
-        
-        request["user_id"] = user_id
-        
+            user_id = request.user_id or "anonymous"
+
         # Validation des données d'entrée
-        theme = request.get("theme", "animaux")
-        custom_prompt = request.get("custom_prompt")  # Prompt personnalisé optionnel
-        with_colored_model = request.get("with_colored_model", True)  # Par défaut avec modèle
+        theme = request.theme
+        custom_prompt = request.custom_prompt  # Prompt personnalisé optionnel
+        with_colored_model = request.with_colored_model  # Par défaut avec modèle
         
         if custom_prompt:
             print(f"[COLORING] Generation coloriage personnalisé gpt-image-1-mini: '{custom_prompt}' ({'avec' if with_colored_model else 'sans'} modèle coloré)")
