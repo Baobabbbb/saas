@@ -12,8 +12,7 @@ export const getFeaturesFromAPI = async () => {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-      },
-      skipAuth: false
+      }
     });
 
     if (response.ok) {

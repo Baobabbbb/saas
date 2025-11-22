@@ -281,8 +281,7 @@ function App() {
       
       const response = await authFetch(`${API_BASE_URL}/upload_character_photo/`, {
         method: 'POST',
-        body: formData,
-        skipAuth: !user // Désactiver l'auth pour les invités
+        body: formData
       });
       
       if (!response.ok) throw new Error(`Erreur upload : ${response.status}`);
@@ -613,8 +612,7 @@ function App() {
       const response = await authFetch(`${API_BASE_URL}/generate_audio_story/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        skipAuth: !user // Désactiver l'auth pour les invités
+        body: JSON.stringify(payload)
       });
       
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
@@ -652,8 +650,7 @@ function App() {
       const response = await authFetch(`${API_BASE_URL}/generate_story/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        skipAuth: !user // Désactiver l'auth pour les invités
+        body: JSON.stringify(payload)
       });
       
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
@@ -708,8 +705,7 @@ function App() {
       const response = await authFetch(`${API_BASE_URL}/generate_coloring/`, {
         method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        skipAuth: !user // Désactiver l'auth pour les invités
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
@@ -741,8 +737,7 @@ function App() {
       const response = await authFetch(`${API_BASE_URL}/generate_comic/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        skipAuth: !user // Désactiver l'auth pour les invités
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
@@ -813,8 +808,7 @@ function App() {
           };
 
       const response = await authFetch(endpoint, {
-        ...fetchOptions,
-        skipAuth: !user // Désactiver l'auth pour les invités
+        ...fetchOptions
       });
 
       if (!response.ok) {
