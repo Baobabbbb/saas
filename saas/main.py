@@ -924,7 +924,7 @@ def get_coloring_generator():
             return None
     return coloring_generator
 
-@app.post("/generate_coloring/")
+@app.post("/generate_coloring/", response_model=None)
 async def generate_coloring(
     req: Request,
     authorization: Optional[str] = Header(None)
