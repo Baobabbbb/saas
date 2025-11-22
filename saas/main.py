@@ -924,7 +924,7 @@ def get_coloring_generator():
 @app.post("/generate_coloring/")
 @app.post("/generate_coloring/{content_type_id}")
 async def generate_coloring(
-    request: dict = Body(...),
+    request: Dict[str, Any] = Body(...),
     content_type_id: int = None,
     authorization: Optional[str] = Header(None)
 ):
