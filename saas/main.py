@@ -8,14 +8,7 @@ from typing import Optional, List, Dict, Any
 from unidecode import unidecode
 
 # Modèles Pydantic pour la validation des requêtes
-class ColoringRequest(BaseModel):
-    theme: str
-    with_colored_model: Optional[bool] = True
-    custom_prompt: Optional[str] = None
-    user_id: Optional[str] = None
-
-    class Config:
-        allow_none_optional = True
+# ColoringRequest supprimé - on utilise Request + req.json() maintenant
 import traceback
 import os
 import json
