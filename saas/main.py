@@ -940,14 +940,30 @@ async def generate_coloring(
                 detail="Authentification requise pour générer un coloriage"
             )
         
-        # Parser le body JSON - exactement comme generate_audio_story
+        # Parser le body JSON - avec fallback comme generate_audio_story
         try:
             request = await req.json()
         except Exception as json_error:
-            raise HTTPException(
-                status_code=422,
-                detail=f"Erreur de parsing JSON: {str(json_error)}"
-            )
+            # Fallback: parser manuellement
+            try:
+                body_bytes = await req.body()
+                if not body_bytes:
+                    raise HTTPException(
+                        status_code=422,
+                        detail="Body vide"
+                    )
+                body_str = body_bytes.decode('utf-8')
+                request = json.loads(body_str)
+            except json.JSONDecodeError as e:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"JSON invalide: {str(e)}"
+                )
+            except Exception as e:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Erreur parsing body: {str(e)}"
+                )
 
         request["user_id"] = user_id
 
