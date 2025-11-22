@@ -643,10 +643,15 @@ async def stream_audio(filename: str, download: bool = False):
 # Ancien modèle remplacé par ValidatedAudioStoryRequest dans validators.py
 
 @app.post("/generate_audio_story/")
-async def generate_audio_story(req: Request):
+async def generate_audio_story(req: Request, authorization: Optional[str] = Header(None)):
     try:
-        # Extraire le header Authorization manuellement
-        authorization = req.headers.get("Authorization") or req.headers.get("authorization")
+        # Extraire user_id depuis JWT - AUTHENTIFICATION REQUISE
+        user_id = await extract_user_id_from_jwt(authorization, None)
+        if not user_id:
+            raise HTTPException(
+                status_code=401,
+                detail="Authentification requise pour générer une histoire audio"
+            )
         
         # Parser le body JSON - essayer req.json() d'abord (plus simple)
         try:
@@ -693,12 +698,6 @@ async def generate_audio_story(req: Request):
                 detail="Données d'entrée invalides: doit être un objet JSON"
             )
 
-        # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
-        user_id = await extract_user_id_from_jwt(http_request.headers.get("authorization") if http_request else None, None)
-        if not user_id:
-            # Mode invité : utiliser un user_id temporaire
-            user_id = request_dict.get("user_id") or "anonymous"
-        
         request_dict["user_id"] = user_id
 
         # Validation des données d'entrée
@@ -925,9 +924,9 @@ def get_coloring_generator():
 @app.post("/generate_coloring/")
 @app.post("/generate_coloring/{content_type_id}")
 async def generate_coloring(
-    coloring_request: ColoringRequest = Body(...),
+    request: ColoringRequest,
     content_type_id: int = None,
-    http_request: Request
+    authorization: Optional[str] = Header(None)
 ):
     """
     Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1-mini
@@ -935,21 +934,18 @@ async def generate_coloring(
     Organisation OpenAI vérifiée requise pour gpt-image-1-mini
     """
     try:
-        # Extraire le header Authorization manuellement depuis Request
-        auth_header = None
-        if http_request:
-            auth_header = http_request.headers.get("authorization") or http_request.headers.get("Authorization")
-        
-        # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
-        user_id = await extract_user_id_from_jwt(auth_header, None)
+        # Extraire user_id depuis JWT - AUTHENTIFICATION REQUISE
+        user_id = await extract_user_id_from_jwt(authorization, None)
         if not user_id:
-            # Mode invité : utiliser un user_id temporaire
-            user_id = coloring_request.user_id or "anonymous"
+            raise HTTPException(
+                status_code=401,
+                detail="Authentification requise pour générer un coloriage"
+            )
 
         # Validation des données d'entrée
-        theme = coloring_request.theme
-        custom_prompt = coloring_request.custom_prompt  # Prompt personnalisé optionnel
-        with_colored_model = coloring_request.with_colored_model  # Par défaut avec modèle
+        theme = request.theme
+        custom_prompt = request.custom_prompt  # Prompt personnalisé optionnel
+        with_colored_model = request.with_colored_model  # Par défaut avec modèle
         
         if custom_prompt:
             print(f"[COLORING] Generation coloriage personnalisé gpt-image-1-mini: '{custom_prompt}' ({'avec' if with_colored_model else 'sans'} modèle coloré)")
@@ -1218,18 +1214,20 @@ def get_comics_generator():
 @app.post("/generate_comic/")
 async def generate_comic(
     request: dict,
-    http_request: Request = None
+    authorization: Optional[str] = Header(None)
 ):
     """
     Lance la génération d'une bande dessinée en arrière-plan
     Retourne immédiatement un task_id pour éviter les timeouts
     """
     try:
-        # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
-        user_id = await extract_user_id_from_jwt(http_request.headers.get("authorization") if http_request else None, None)
+        # Extraire user_id depuis JWT - AUTHENTIFICATION REQUISE
+        user_id = await extract_user_id_from_jwt(authorization, None)
         if not user_id:
-            # Mode invité : utiliser un user_id temporaire
-            user_id = request_dict.get("user_id") or "anonymous"
+            raise HTTPException(
+                status_code=401,
+                detail="Authentification requise pour générer une bande dessinée"
+            )
         
         request["user_id"] = user_id
         
@@ -1447,15 +1445,18 @@ async def get_themes():
 @app.post("/generate_animation/")
 async def generate_animation_post(
     request: AnimationRequest,
-    http_request: Request = None
+    authorization: Optional[str] = Header(None)
 ):
     """
     Génère une animation via POST avec body JSON
     """
-    # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
-    user_id = await extract_user_id_from_jwt(http_request.headers.get("authorization") if http_request else None, None)
+    # Extraire user_id depuis JWT - AUTHENTIFICATION REQUISE
+    user_id = await extract_user_id_from_jwt(authorization, None)
     if not user_id:
-        user_id = "anonymous"
+        raise HTTPException(
+            status_code=401,
+            detail="Authentification requise pour générer une animation"
+        )
     
     return await _generate_animation_logic(
         theme=request.theme,
@@ -1468,15 +1469,18 @@ async def generate_animation_post(
 @app.post("/generate-quick-json")
 async def generate_quick_json(
     request: GenerateQuickRequest,
-    http_request: Request = None
+    authorization: Optional[str] = Header(None)
 ):
     """
     Génère une animation via POST avec body JSON uniquement (nouvelle route)
     """
-    # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
-    user_id = await extract_user_id_from_jwt(http_request.headers.get("authorization") if http_request else None, None)
+    # Extraire user_id depuis JWT - AUTHENTIFICATION REQUISE
+    user_id = await extract_user_id_from_jwt(authorization, None)
     if not user_id:
-        user_id = "anonymous"
+        raise HTTPException(
+            status_code=401,
+            detail="Authentification requise pour générer une animation rapide"
+        )
 
     return await _generate_animation_logic(
         theme=request.theme,
@@ -1492,16 +1496,19 @@ async def generate_animation(
     duration: int = 30,
     style: str = "cartoon",
     custom_prompt: str = None,
-    http_request: Request = None
+    authorization: Optional[str] = Header(None)
 ):
     """
     Génère une VRAIE animation avec Runway ML Veo 3.1 Fast (workflow zseedance)
     Supporte les requêtes GET avec query parameters - PLUS DE MODE, toujours vrai pipeline
     """
-    # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
-    user_id = await extract_user_id_from_jwt(http_request.headers.get("authorization") if http_request else None, None)
+    # Extraire user_id depuis JWT - AUTHENTIFICATION REQUISE
+    user_id = await extract_user_id_from_jwt(authorization, None)
     if not user_id:
-        user_id = "anonymous"
+        raise HTTPException(
+            status_code=401,
+            detail="Authentification requise pour générer une animation"
+        )
     return await _generate_animation_logic(theme, duration, style, custom_prompt, user_id=user_id)
 
 async def _generate_animation_logic(

@@ -25,15 +25,15 @@ export async function buildAuthHeaders(existingHeaders = {}) {
 }
 
 /**
- * Wrapper fetch qui ajoute automatiquement le header Authorization (sauf skipAuth).
+ * Wrapper fetch qui ajoute automatiquement le header Authorization.
+ * Authentification requise pour toutes les requêtes.
  */
 export async function authFetch(url, options = {}) {
-  const { skipAuth = false, headers, ...rest } = options;
+  const { headers, ...rest } = options;
   let finalHeaders = headers || {};
 
-  if (!skipAuth) {
-    finalHeaders = await buildAuthHeaders(finalHeaders);
-  }
+  // Toujours ajouter l'authentification
+  finalHeaders = await buildAuthHeaders(finalHeaders);
 
   return fetch(url, {
     ...rest,
