@@ -924,7 +924,7 @@ def get_coloring_generator():
 @app.post("/generate_coloring/")
 @app.post("/generate_coloring/{content_type_id}")
 async def generate_coloring(
-    req: Request,
+    request: dict = Body(...),
     content_type_id: int = None,
     authorization: Optional[str] = Header(None)
 ):
@@ -942,29 +942,12 @@ async def generate_coloring(
                 detail="Authentification requise pour générer un coloriage"
             )
 
-        # Parser le body JSON
-        try:
-            request_dict = await req.json()
-        except Exception as json_error:
-            raise HTTPException(
-                status_code=422,
-                detail=f"Erreur de parsing JSON: {str(json_error)}"
-            )
-        
-        # Validation et extraction des données
-        theme = request_dict.get("theme")
-        if not theme or not isinstance(theme, str) or theme.strip() == "":
-            raise HTTPException(
-                status_code=422,
-                detail="Le champ 'theme' est requis et doit être une chaîne non vide"
-            )
-        
-        with_colored_model = request_dict.get("with_colored_model", True)
-        if not isinstance(with_colored_model, bool):
-            # Convertir string/autre en booléen
-            with_colored_model = str(with_colored_model).lower() in ('true', '1', 'yes')
-        
-        custom_prompt = request_dict.get("custom_prompt")
+        request["user_id"] = user_id
+
+        # Validation des données d'entrée
+        theme = request.get("theme", "animaux")
+        custom_prompt = request.get("custom_prompt")  # Prompt personnalisé optionnel
+        with_colored_model = request.get("with_colored_model", True)  # Par défaut avec modèle
         
         if custom_prompt:
             print(f"[COLORING] Generation coloriage personnalisé gpt-image-1-mini: '{custom_prompt}' ({'avec' if with_colored_model else 'sans'} modèle coloré)")
@@ -990,11 +973,11 @@ async def generate_coloring(
 
         # 🆕 Enrichir le prompt avec l'historique pour éviter doublons (non-bloquant)
         try:
-            if supabase_client and user_id:
+            if supabase_client and request.get("user_id"):
                 # Récupérer l'historique des coloriages de l'utilisateur
                 history = await uniqueness_service.get_user_history(
                     supabase_client=supabase_client,
-                    user_id=user_id,
+                    user_id=request.get("user_id"),
                     content_type="coloriage",
                     theme=theme,
                     limit=5
