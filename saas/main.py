@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, validator
 from typing import Optional, List, Dict, Any
 from unidecode import unidecode
 
@@ -13,6 +13,18 @@ class ColoringRequest(BaseModel):
     with_colored_model: Optional[bool] = True
     custom_prompt: Optional[str] = None
     user_id: Optional[str] = None
+
+    @validator('theme')
+    def validate_theme(cls, v):
+        if v is None or v == '':
+            raise ValueError('Le thème est requis et ne peut pas être vide')
+        return v
+    
+    @validator('with_colored_model', pre=True)
+    def validate_with_colored_model(cls, v):
+        if v is None:
+            return True  # Valeur par défaut
+        return bool(v)
 
     class Config:
         allow_none_optional = True
@@ -240,17 +252,19 @@ class ContactForm(BaseModel):
 @app.exception_handler(ValidationError)
 async def validation_exception_handler(request: Request, exc: ValidationError):
     """Gestionnaire pour les erreurs de validation Pydantic"""
+    from fastapi.responses import JSONResponse
     errors = []
     for error in exc.errors():
         field = " -> ".join(str(loc) for loc in error["loc"])
         message = error["msg"]
         errors.append(f"{field}: {message}")
     
-    return HTTPException(
+    return JSONResponse(
         status_code=422,
-        detail={
+        content={
             "message": "Erreur de validation des données d'entrée",
-            "errors": errors
+            "errors": errors,
+            "detail": f"Données invalides: {', '.join(errors)}"
         }
     )
 

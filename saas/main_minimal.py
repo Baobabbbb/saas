@@ -15,3 +15,5 @@ async def health_check():
         "version": "minimal",
         "message": "Herbbie minimal application is running"
     }
+
+

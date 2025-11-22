@@ -691,10 +691,15 @@ function App() {
         generatedContent = coloringData;
       } else {
         // Génération classique par thème
+        // Validation: s'assurer que les valeurs requises ne sont pas null
+        if (!selectedTheme || withColoredModel === null) {
+          throw new Error('Thème et modèle coloré sont requis pour générer un coloriage');
+        }
+        
       const payload = {
           theme: selectedTheme,
-          with_colored_model: withColoredModel,
-          user_id: user?.id  // ✅ Ajouter user_id pour Supabase Storage
+          with_colored_model: Boolean(withColoredModel), // S'assurer que c'est un booléen
+          user_id: user?.id || null  // ✅ Ajouter user_id pour Supabase Storage
       };
         
         // Si c'est un coloriage personnalisé, ajouter le prompt personnalisé
