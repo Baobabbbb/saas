@@ -924,7 +924,6 @@ def get_coloring_generator():
 @app.post("/generate_coloring/")
 async def generate_coloring(
     req: Request,
-    content_type_id: Optional[int] = None,
     authorization: Optional[str] = Header(None)
 ):
     """
@@ -960,7 +959,7 @@ async def generate_coloring(
         if custom_prompt:
             print(f"[COLORING] Generation coloriage personnalisé gpt-image-1-mini: '{custom_prompt}' ({'avec' if with_colored_model else 'sans'} modèle coloré)")
         else:
-            print(f"[COLORING] Generation coloriage gpt-image-1-mini: {theme} ({'avec' if with_colored_model else 'sans'} modèle coloré) (content_type_id={content_type_id})")
+            print(f"[COLORING] Generation coloriage gpt-image-1-mini: {theme} ({'avec' if with_colored_model else 'sans'} modèle coloré)")
         
         # Vérifier la clé API OpenAI
         openai_key = os.getenv("OPENAI_API_KEY")
