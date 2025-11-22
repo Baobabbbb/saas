@@ -697,16 +697,21 @@ function App() {
         }
         
       const payload = {
-          theme: selectedTheme,
-          with_colored_model: Boolean(withColoredModel), // S'assurer que c'est un booléen
-          user_id: user?.id || null  // ✅ Ajouter user_id pour Supabase Storage
+          theme: String(selectedTheme), // S'assurer que c'est une chaîne
+          with_colored_model: Boolean(withColoredModel) // S'assurer que c'est un booléen
       };
+        
+        // Ajouter user_id seulement si l'utilisateur est connecté
+        if (user?.id) {
+          payload.user_id = user.id;
+        }
         
         // Si c'est un coloriage personnalisé, ajouter le prompt personnalisé
         if (selectedTheme === 'custom' && customColoringTheme.trim()) {
           payload.custom_prompt = customColoringTheme.trim();
         }
       
+      console.log('[DEBUG] Payload coloriage:', payload);
       const response = await authFetch(`${API_BASE_URL}/generate_coloring/`, {
         method: 'POST',
       headers: { 'Content-Type': 'application/json' },
