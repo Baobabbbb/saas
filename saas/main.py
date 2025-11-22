@@ -14,16 +14,23 @@ class ColoringRequest(BaseModel):
     custom_prompt: Optional[str] = None
     user_id: Optional[str] = None
 
-    @validator('theme')
+    @validator('theme', pre=True)
     def validate_theme(cls, v):
-        if v is None or v == '':
-            raise ValueError('Le thème est requis et ne peut pas être vide')
-        return v
+        if v is None:
+            raise ValueError('Le thème est requis')
+        if isinstance(v, str) and v.strip() == '':
+            raise ValueError('Le thème ne peut pas être vide')
+        return str(v) if v is not None else v
     
     @validator('with_colored_model', pre=True)
     def validate_with_colored_model(cls, v):
         if v is None:
             return True  # Valeur par défaut
+        if isinstance(v, bool):
+            return v
+        # Convertir string "true"/"false" en booléen
+        if isinstance(v, str):
+            return v.lower() in ('true', '1', 'yes')
         return bool(v)
 
     class Config:
@@ -948,6 +955,8 @@ async def generate_coloring(
     Organisation OpenAI vérifiée requise pour gpt-image-1-mini
     """
     try:
+        # Log pour debug
+        print(f"[DEBUG COLORING] Requête reçue - theme: {request.theme}, with_colored_model: {request.with_colored_model}, user_id: {request.user_id}")
         # Extraire user_id depuis JWT - AUTHENTIFICATION REQUISE
         user_id = await extract_user_id_from_jwt(authorization, None)
         if not user_id:
@@ -960,6 +969,13 @@ async def generate_coloring(
         theme = request.theme
         custom_prompt = request.custom_prompt  # Prompt personnalisé optionnel
         with_colored_model = request.with_colored_model  # Par défaut avec modèle
+        
+        # Validation supplémentaire pour éviter les erreurs silencieuses
+        if not theme or theme.strip() == '':
+            raise HTTPException(
+                status_code=422,
+                detail="Le thème est requis et ne peut pas être vide"
+            )
         
         if custom_prompt:
             print(f"[COLORING] Generation coloriage personnalisé gpt-image-1-mini: '{custom_prompt}' ({'avec' if with_colored_model else 'sans'} modèle coloré)")
@@ -1054,6 +1070,21 @@ async def generate_coloring(
                 status_code=500, 
                 detail=f"❌ La création du coloriage a échoué : {error_message}"
             )
+    except ValidationError as e:
+        # Erreur de validation Pydantic
+        errors = []
+        for error in e.errors():
+            field = " -> ".join(str(loc) for loc in error["loc"])
+            message = error["msg"]
+            errors.append(f"{field}: {message}")
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message": "Erreur de validation des données d'entrée",
+                "errors": errors,
+                "detail": f"Données invalides: {', '.join(errors)}"
+            }
+        )
             
     except HTTPException:
         raise
