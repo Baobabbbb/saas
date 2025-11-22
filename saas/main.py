@@ -130,23 +130,23 @@ async def fetch_user_id_from_supabase(token: str) -> Optional[str]:
     return None
 
 async def extract_user_id_from_jwt(
-    authorization: Optional[str] = Header(None),
+    auth_token: Optional[str] = None,
     request: Optional[Request] = None
 ) -> Optional[str]:
     """
-    Extrait le user_id depuis le JWT Supabase dans le header Authorization.
+    Extrait le user_id depuis le JWT Supabase.
     Retourne None si le JWT n'est pas présent ou invalide.
     Compatible avec les JWT Supabase qui ont 'sub' comme claim du user_id.
     """
-    if not authorization or not authorization.startswith("Bearer "):
+    if not auth_token or not auth_token.startswith("Bearer "):
         return None
-    
-    token = authorization.split(" ")[1]
+
+    token = auth_token.split(" ")[1]
     return await fetch_user_id_from_supabase(token)
 
 
 async def get_current_user_id(
-    authorization: Optional[str] = Header(None),
+    auth_token: Optional[str] = None,
     request_body: Optional[Dict[str, Any]] = None,
     request_obj: Optional[Request] = None
 ) -> Optional[str]:
@@ -155,14 +155,14 @@ async def get_current_user_id(
     Utilisé pour les endpoints de génération pour éviter de casser le fonctionnement actuel.
     
     Args:
-        authorization: Header Authorization avec le JWT (Bearer token)
+        auth_token: Header Authorization avec le JWT (Bearer token)
         request_body: Le body de la requête (dict) - utilisé dans les endpoints POST
         request_obj: Objet Request FastAPI - utilisé pour lire les headers si request_body n'est pas disponible
     
     Returns:
         user_id ou None si non trouvé
     """
-    return await extract_user_id_from_jwt(authorization, request_obj)
+    return await extract_user_id_from_jwt(auth_token, request_obj)
 
 
 async def verify_admin(
@@ -925,9 +925,9 @@ def get_coloring_generator():
 @app.post("/generate_coloring/")
 @app.post("/generate_coloring/{content_type_id}")
 async def generate_coloring(
-    request: ColoringRequest = Body(...),
+    coloring_request: ColoringRequest = Body(...),
     content_type_id: int = None,
-    http_request: Request = None
+    http_request: Request
 ):
     """
     Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1-mini
@@ -935,16 +935,21 @@ async def generate_coloring(
     Organisation OpenAI vérifiée requise pour gpt-image-1-mini
     """
     try:
+        # Extraire le header Authorization manuellement depuis Request
+        auth_header = None
+        if http_request:
+            auth_header = http_request.headers.get("authorization") or http_request.headers.get("Authorization")
+        
         # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
-        user_id = await extract_user_id_from_jwt(http_request.headers.get("authorization") if http_request else None, None)
+        user_id = await extract_user_id_from_jwt(auth_header, None)
         if not user_id:
             # Mode invité : utiliser un user_id temporaire
-            user_id = request.user_id or "anonymous"
+            user_id = coloring_request.user_id or "anonymous"
 
         # Validation des données d'entrée
-        theme = request.theme
-        custom_prompt = request.custom_prompt  # Prompt personnalisé optionnel
-        with_colored_model = request.with_colored_model  # Par défaut avec modèle
+        theme = coloring_request.theme
+        custom_prompt = coloring_request.custom_prompt  # Prompt personnalisé optionnel
+        with_colored_model = coloring_request.with_colored_model  # Par défaut avec modèle
         
         if custom_prompt:
             print(f"[COLORING] Generation coloriage personnalisé gpt-image-1-mini: '{custom_prompt}' ({'avec' if with_colored_model else 'sans'} modèle coloré)")
