@@ -924,7 +924,7 @@ def get_coloring_generator():
 @app.post("/generate_coloring/")
 @app.post("/generate_coloring/{content_type_id}")
 async def generate_coloring(
-    request: dict,
+    req: Request,
     content_type_id: int = None,
     authorization: Optional[str] = Header(None)
 ):
@@ -940,6 +940,15 @@ async def generate_coloring(
             raise HTTPException(
                 status_code=401,
                 detail="Authentification requise pour générer un coloriage"
+            )
+        
+        # Parser le body JSON - exactement comme generate_audio_story
+        try:
+            request = await req.json()
+        except Exception as json_error:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Erreur de parsing JSON: {str(json_error)}"
             )
 
         request["user_id"] = user_id
