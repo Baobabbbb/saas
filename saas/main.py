@@ -14,14 +14,15 @@ class ColoringRequest(BaseModel):
     custom_prompt: Optional[str] = None
     user_id: Optional[str] = None
 
-    @validator('theme', pre=True)
+    @validator('theme')
     def validate_theme(cls, v):
         if v is None:
             raise ValueError('Le thème est requis')
-        if isinstance(v, str) and v.strip() == '':
+        if not isinstance(v, str):
+            raise ValueError('Le thème doit être une chaîne de caractères')
+        if v.strip() == '':
             raise ValueError('Le thème ne peut pas être vide')
-        # Convertir en string si ce n'est pas déjà le cas
-        return str(v)
+        return v
     
     @validator('with_colored_model', pre=True)
     def validate_with_colored_model(cls, v):
