@@ -917,9 +917,9 @@ def get_coloring_generator():
             return None
     return coloring_generator
 
-@app.post("/generate_coloring/", response_model=None)
+@app.post("/generate_coloring/")
 async def generate_coloring(
-    request_body: Dict[str, Any] = Body(...),
+    request: dict,
     authorization: Optional[str] = Header(None)
 ):
     """
@@ -935,9 +935,6 @@ async def generate_coloring(
                 status_code=401,
                 detail="Authentification requise pour générer un coloriage"
             )
-        
-        # Utiliser directement request_body (déjà parsé par FastAPI)
-        request = request_body
 
         request["user_id"] = user_id
 
