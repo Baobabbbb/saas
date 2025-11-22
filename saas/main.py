@@ -684,7 +684,7 @@ async def generate_audio_story(req: Request):
             )
 
         # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
-        user_id = await extract_user_id_from_jwt(authorization, None)
+        user_id = await extract_user_id_from_jwt(http_request.headers.get("authorization") if http_request else None, None)
         if not user_id:
             # Mode invité : utiliser un user_id temporaire
             user_id = request_dict.get("user_id") or "anonymous"
@@ -917,7 +917,7 @@ def get_coloring_generator():
 async def generate_coloring(
     request: dict,
     content_type_id: int = None,
-    authorization: Optional[str] = Header(None)
+    http_request: Request = None
 ):
     """
     Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1-mini
@@ -926,7 +926,7 @@ async def generate_coloring(
     """
     try:
         # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
-        user_id = await extract_user_id_from_jwt(authorization, None)
+        user_id = await extract_user_id_from_jwt(http_request.headers.get("authorization") if http_request else None, None)
         if not user_id:
             # Mode invité : utiliser un user_id temporaire
             user_id = request_dict.get("user_id") or "anonymous"
@@ -1202,7 +1202,7 @@ def get_comics_generator():
 @app.post("/generate_comic/")
 async def generate_comic(
     request: dict,
-    authorization: Optional[str] = Header(None)
+    http_request: Request = None
 ):
     """
     Lance la génération d'une bande dessinée en arrière-plan
@@ -1210,7 +1210,7 @@ async def generate_comic(
     """
     try:
         # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
-        user_id = await extract_user_id_from_jwt(authorization, None)
+        user_id = await extract_user_id_from_jwt(http_request.headers.get("authorization") if http_request else None, None)
         if not user_id:
             # Mode invité : utiliser un user_id temporaire
             user_id = request_dict.get("user_id") or "anonymous"
@@ -1431,13 +1431,13 @@ async def get_themes():
 @app.post("/generate_animation/")
 async def generate_animation_post(
     request: AnimationRequest,
-    authorization: Optional[str] = Header(None)
+    http_request: Request = None
 ):
     """
     Génère une animation via POST avec body JSON
     """
     # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
-    user_id = await extract_user_id_from_jwt(authorization, None)
+    user_id = await extract_user_id_from_jwt(http_request.headers.get("authorization") if http_request else None, None)
     if not user_id:
         user_id = "anonymous"
     
@@ -1452,13 +1452,13 @@ async def generate_animation_post(
 @app.post("/generate-quick-json")
 async def generate_quick_json(
     request: GenerateQuickRequest,
-    authorization: Optional[str] = Header(None)
+    http_request: Request = None
 ):
     """
     Génère une animation via POST avec body JSON uniquement (nouvelle route)
     """
     # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
-    user_id = await extract_user_id_from_jwt(authorization, None)
+    user_id = await extract_user_id_from_jwt(http_request.headers.get("authorization") if http_request else None, None)
     if not user_id:
         user_id = "anonymous"
 
@@ -1476,14 +1476,14 @@ async def generate_animation(
     duration: int = 30,
     style: str = "cartoon",
     custom_prompt: str = None,
-    authorization: Optional[str] = Header(None)
+    http_request: Request = None
 ):
     """
     Génère une VRAIE animation avec Runway ML Veo 3.1 Fast (workflow zseedance)
     Supporte les requêtes GET avec query parameters - PLUS DE MODE, toujours vrai pipeline
     """
     # Extraire user_id depuis JWT (ou utiliser 'anonymous' pour les invités)
-    user_id = await extract_user_id_from_jwt(authorization, None)
+    user_id = await extract_user_id_from_jwt(http_request.headers.get("authorization") if http_request else None, None)
     if not user_id:
         user_id = "anonymous"
     return await _generate_animation_logic(theme, duration, style, custom_prompt, user_id=user_id)
