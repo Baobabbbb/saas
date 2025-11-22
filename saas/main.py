@@ -20,7 +20,8 @@ class ColoringRequest(BaseModel):
             raise ValueError('Le thème est requis')
         if isinstance(v, str) and v.strip() == '':
             raise ValueError('Le thème ne peut pas être vide')
-        return str(v) if v is not None else v
+        # Convertir en string si ce n'est pas déjà le cas
+        return str(v)
     
     @validator('with_colored_model', pre=True)
     def validate_with_colored_model(cls, v):
@@ -1070,22 +1071,6 @@ async def generate_coloring(
                 status_code=500, 
                 detail=f"❌ La création du coloriage a échoué : {error_message}"
             )
-    except ValidationError as e:
-        # Erreur de validation Pydantic
-        errors = []
-        for error in e.errors():
-            field = " -> ".join(str(loc) for loc in error["loc"])
-            message = error["msg"]
-            errors.append(f"{field}: {message}")
-        raise HTTPException(
-            status_code=422,
-            detail={
-                "message": "Erreur de validation des données d'entrée",
-                "errors": errors,
-                "detail": f"Données invalides: {', '.join(errors)}"
-            }
-        )
-            
     except HTTPException:
         raise
     except Exception as e:
