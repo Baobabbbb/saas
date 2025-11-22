@@ -975,11 +975,11 @@ async def generate_coloring(
 
         # 🆕 Enrichir le prompt avec l'historique pour éviter doublons (non-bloquant)
         try:
-            if supabase_client and request.get("user_id"):
+            if supabase_client and user_id:
                 # Récupérer l'historique des coloriages de l'utilisateur
                 history = await uniqueness_service.get_user_history(
                     supabase_client=supabase_client,
-                    user_id=request.get("user_id"),
+                    user_id=user_id,
                     content_type="coloriage",
                     theme=theme,
                     limit=5
@@ -997,18 +997,18 @@ async def generate_coloring(
             pass
         
         # Générer le coloriage avec GPT-4o-mini (analyse) + gpt-image-1-mini (génération)
-        result = await generator.generate_coloring_from_theme(theme, with_colored_model, custom_prompt, user_id=request.get("user_id"))
+        result = await generator.generate_coloring_from_theme(theme, with_colored_model, custom_prompt, user_id=user_id)
         
         # 🆕 Stocker les métadonnées d'unicité (non-bloquant)
         uniqueness_metadata = {}
         try:
-            if result.get("success") and supabase_client and request.get("user_id"):
+            if result.get("success") and supabase_client and user_id:
                 # Créer un "contenu" textuel pour le hash (le prompt utilisé)
                 content_for_hash = f"{theme}_{custom_prompt}_{with_colored_model}"
                 
                 uniqueness_check = await uniqueness_service.ensure_unique_content(
                     supabase_client=supabase_client,
-                    user_id=request.get("user_id"),
+                    user_id=user_id,
                     content_type="coloriage",
                     theme=theme,
                     generated_content=content_for_hash,
