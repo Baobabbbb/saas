@@ -246,6 +246,9 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
         message = error["msg"]
         errors.append(f"{field}: {message}")
     
+    # Log pour debug
+    print(f"[DEBUG ValidationError] URL: {request.url}, Method: {request.method}, Errors: {errors}")
+    
     return HTTPException(
         status_code=422,
         detail={
