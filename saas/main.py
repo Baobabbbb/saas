@@ -1048,7 +1048,10 @@ async def generate_coloring(
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
+        error_traceback = traceback.format_exc()
         print(f"❌ Erreur génération coloriage: {e}")
+        print(f"❌ Traceback complet:\n{error_traceback}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la génération : {str(e)}")
 
 
