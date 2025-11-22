@@ -919,7 +919,7 @@ def get_coloring_generator():
 
 @app.post("/generate_coloring/", response_model=None)
 async def generate_coloring(
-    req: Request,
+    request_body: Dict[str, Any] = Body(...),
     authorization: Optional[str] = Header(None)
 ):
     """
@@ -936,30 +936,8 @@ async def generate_coloring(
                 detail="Authentification requise pour générer un coloriage"
             )
         
-        # Parser le body JSON - avec fallback comme generate_audio_story
-        try:
-            request = await req.json()
-        except Exception as json_error:
-            # Fallback: parser manuellement
-            try:
-                body_bytes = await req.body()
-                if not body_bytes:
-                    raise HTTPException(
-                        status_code=422,
-                        detail="Body vide"
-                    )
-                body_str = body_bytes.decode('utf-8')
-                request = json.loads(body_str)
-            except json.JSONDecodeError as e:
-                raise HTTPException(
-                    status_code=422,
-                    detail=f"JSON invalide: {str(e)}"
-                )
-            except Exception as e:
-                raise HTTPException(
-                    status_code=422,
-                    detail=f"Erreur parsing body: {str(e)}"
-                )
+        # Utiliser directement request_body (déjà parsé par FastAPI)
+        request = request_body
 
         request["user_id"] = user_id
 
