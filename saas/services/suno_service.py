@@ -337,7 +337,7 @@ class SunoService:
             traceback.print_exc()
             return None
 
-    async def check_task_status(self, task_id: str) -> Dict[str, Any]:
+    async def check_task_status(self, task_id: str, user_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Vérifie le statut d'une tâche Suno
         Documentation: https://docs.sunoapi.org/suno-api/generate-music
@@ -426,14 +426,59 @@ class SunoService:
                                             "message": "❌ URL audio non disponible"
                                         }
 
-                                    # 🎯 RETOUR AU SYSTÈME ORIGINAL : URL Suno directe
-                                    # Le téléchargement automatique sera implémenté plus tard quand les URLs seront accessibles
                                     print(f"🎵 URL audio disponible: {audio_url_val[:100]}...")
+                                    
+                                    # 📤 Télécharger et uploader vers Supabase Storage si user_id fourni
+                                    audio_path_supabase = None
+                                    if user_id:
+                                        try:
+                                            # Télécharger l'audio depuis Suno
+                                            temp_audio_path = await self.download_and_store_audio(audio_url_val, task_id)
+                                            
+                                            if temp_audio_path:
+                                                # Uploader vers Supabase Storage
+                                                from services.supabase_storage import get_storage_service
+                                                storage_service = get_storage_service()
+                                                
+                                                if storage_service:
+                                                    # Construire le chemin complet du fichier temporaire
+                                                    import os
+                                                    # temp_audio_path est déjà "audio/filename.mp3"
+                                                    full_temp_path = os.path.join(os.getcwd(), temp_audio_path)
+                                                    
+                                                    if os.path.exists(full_temp_path):
+                                                        upload_result = await storage_service.upload_file(
+                                                            file_path=full_temp_path,
+                                                            user_id=user_id,
+                                                            content_type="rhyme",
+                                                            custom_filename=f"comptine_{task_id}.mp3"
+                                                        )
+                                                        
+                                                        if upload_result.get("success"):
+                                                            audio_path_supabase = upload_result.get("signed_url")
+                                                            print(f"✅ Audio uploadé vers Supabase Storage: {audio_path_supabase[:100]}...")
+                                                            
+                                                            # Supprimer le fichier temporaire local
+                                                            try:
+                                                                os.remove(full_temp_path)
+                                                            except:
+                                                                pass
+                                                        else:
+                                                            print(f"⚠️ Échec upload Supabase Storage: {upload_result.get('error')}")
+                                                else:
+                                                    print("⚠️ Service Supabase Storage non disponible")
+                                            else:
+                                                print("⚠️ Échec téléchargement audio depuis Suno")
+                                        except Exception as upload_error:
+                                            print(f"⚠️ Erreur upload audio vers Supabase Storage: {upload_error}")
+                                            import traceback
+                                            traceback.print_exc()
+                                    
                                     return {
                                         "status": "completed",
                                         "task_id": task_id,
-                                        "audio_path": None,  # Pas de fichier local pour l'instant
-                                        "suno_url": audio_url_val,
+                                        "audio_path": audio_path_supabase,  # URL Supabase Storage si upload réussi
+                                        "suno_url": audio_url_val,  # URL Suno originale (fallback)
                                         "title": clip.get("title", "Comptine"),
                                         "duration": clip.get("duration"),
                                         "message": "✅ Comptine générée avec succès"

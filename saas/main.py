@@ -495,12 +495,20 @@ app.include_router(rhyme_router)
 # Voir routes/rhyme_routes.py pour le nouveau code propre
 
 @app.get("/check_task_status/{task_id}")
-async def check_task_status(task_id: str):
+async def check_task_status(task_id: str, req: Request = None):
     """
     Vérifie le statut d'une tâche musicale Suno AI
     """
     try:
-        result = await suno_service.check_task_status(task_id)
+        # Extraire user_id depuis JWT si disponible
+        user_id = None
+        if req:
+            authorization = req.headers.get("authorization")
+            if authorization:
+                from routes.rhyme_routes import extract_user_id_from_jwt
+                user_id = await extract_user_id_from_jwt(authorization)
+        
+        result = await suno_service.check_task_status(task_id, user_id=user_id)
         return result
     except Exception as e:
         print(f"❌ Erreur vérification statut Suno: {e}")
