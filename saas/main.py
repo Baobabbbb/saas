@@ -636,9 +636,10 @@ async def stream_audio(filename: str, download: bool = False):
 # Ancien modèle remplacé par ValidatedAudioStoryRequest dans validators.py
 
 @app.post("/generate_audio_story/")
-async def generate_audio_story(req: Request, authorization: Optional[str] = Header(None)):
+async def generate_audio_story(request: dict, req: Request = None):
     try:
         # Extraire user_id depuis JWT - AUTHENTIFICATION REQUISE
+        authorization = req.headers.get("authorization") if req else None
         user_id = await extract_user_id_from_jwt(authorization, None)
         if not user_id:
             raise HTTPException(
@@ -646,41 +647,14 @@ async def generate_audio_story(req: Request, authorization: Optional[str] = Head
                 detail="Authentification requise pour générer une histoire audio"
             )
         
-        # Parser le body JSON - essayer req.json() d'abord (plus simple)
-        try:
-            request_dict = await req.json()
-        except Exception as json_error:
-            # Fallback: parser manuellement
-            try:
-                body_bytes = await req.body()
-                if not body_bytes:
-                    raise HTTPException(
-                        status_code=422,
-                        detail="Body vide"
-                    )
-                
-                body_str = body_bytes.decode('utf-8')
-                request_dict = json.loads(body_str)
-                
-            except json.JSONDecodeError as e:
-                raise HTTPException(
-                    status_code=422,
-                    detail=f"JSON invalide: {str(e)}"
-                )
-            except Exception as e:
-                raise HTTPException(
-                    status_code=422,
-                    detail=f"Erreur parsing body: {str(e)}"
-                )
-        
-        # Validation précoce des données d'entrée
-        if not request_dict or not isinstance(request_dict, dict):
+        # Validation précoce des données d'entrée pour éviter l'erreur 520
+        if not request or not isinstance(request, dict):
             raise HTTPException(
-                status_code=422,
-                detail="Données d'entrée invalides: doit être un objet JSON"
+                status_code=400,
+                detail="❌ Données d'entrée invalides"
             )
 
-        request_dict["user_id"] = user_id
+        request["user_id"] = user_id
 
         # Validation des données d'entrée
         openai_key = os.getenv("OPENAI_API_KEY")
@@ -690,8 +664,8 @@ async def generate_audio_story(req: Request, authorization: Optional[str] = Head
                 detail="❌ Clé API OpenAI non configurée ou invalide"
             )
 
-        story_type = request_dict.get("story_type", "aventure")
-        custom_request = request_dict.get("custom_request", "")
+        story_type = request.get("story_type", "aventure")
+        custom_request = request.get("custom_request", "")
 
         # Validation du type d'histoire
         if not isinstance(story_type, str) or len(story_type) > 50:
@@ -756,11 +730,11 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         # 🆕 VÉRIFICATION UNICITÉ (non-bloquante, ne casse rien si erreur)
         uniqueness_metadata = {}
         try:
-            if supabase_client and request_dict.get("user_id"):
+            if supabase_client and request.get("user_id"):
                 # Vérifier l'unicité du contenu généré
                 uniqueness_check = await uniqueness_service.ensure_unique_content(
                     supabase_client=supabase_client,
-                    user_id=request_dict.get("user_id"),
+                    user_id=request.get("user_id"),
                     content_type="histoire",
                     theme=story_type,
                     generated_content=story_content,
@@ -806,7 +780,7 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
                     # Recalculer les métadonnées avec le nouveau contenu
                     uniqueness_check = await uniqueness_service.ensure_unique_content(
                         supabase_client=supabase_client,
-                        user_id=request_dict.get("user_id"),
+                        user_id=request.get("user_id"),
                         content_type="histoire",
                         theme=story_type,
                         generated_content=story_content,
@@ -826,7 +800,7 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         
         # Génération de l'audio si une voix est spécifiée
         audio_path = None
-        voice = request_dict.get("voice")
+        voice = request.get("voice")
 
         # Validation de la voix
         if voice and isinstance(voice, str) and voice in ["male", "female"]:
@@ -867,7 +841,7 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
         print(f"Details: {error_details}")
         # Retourner une réponse valide même en cas d'erreur pour éviter l'erreur 520
         return {
-            "title": f"Histoire {request_dict.get('story_type', 'aventure')}",
+            "title": f"Histoire {request.get('story_type', 'aventure')}",
             "content": "Une erreur est survenue lors de la génération. Veuillez réessayer.",
             "audio_path": None,
             "audio_generated": False,
@@ -1192,24 +1166,20 @@ def get_comics_generator():
     return comics_generator_instance
 
 @app.post("/generate_comic/")
-async def generate_comic(
-    request: dict,
-    authorization: Optional[str] = Header(None)
-):
+async def generate_comic(request: dict, req: Request = None):
     """
     Lance la génération d'une bande dessinée en arrière-plan
     Retourne immédiatement un task_id pour éviter les timeouts
     """
     try:
         # Extraire user_id depuis JWT - AUTHENTIFICATION REQUISE
+        authorization = req.headers.get("authorization") if req else None
         user_id = await extract_user_id_from_jwt(authorization, None)
         if not user_id:
             raise HTTPException(
                 status_code=401,
                 detail="Authentification requise pour générer une bande dessinée"
             )
-        
-        request["user_id"] = user_id
         
         # Récupérer les paramètres
         theme = request.get("theme", "espace")
