@@ -58,7 +58,7 @@ const History = ({ onClose, onSelect }) => {
     // Si c'est un chemin local (commence par static/), ignorer car les fichiers locaux ont été supprimés
     // Les fichiers sont maintenant uniquement dans Supabase Storage
     if (audioPath.startsWith('static/')) {
-      console.warn(`[History] Chemin audio local obsolète ignoré: ${audioPath}`);
+      // Ne pas logger de warning - les anciens chemins locaux sont normaux pour les anciennes créations
       return null; // Ne pas essayer de charger les anciens fichiers locaux
     }
     

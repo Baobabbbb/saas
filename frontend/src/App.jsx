@@ -788,8 +788,18 @@ function App() {
 
       // Ne définir le résultat qu'après complétion
       if (finalData?.pages && finalData.pages.length > 0) {
-        setComicsResult(finalData);
-        generatedContent = finalData;
+        // S'assurer que finalData a toutes les propriétés nécessaires
+        const comicResult = {
+          ...finalData,
+          title: finalData.title || 'Ma Bande Dessinée 📚',
+          synopsis: finalData.synopsis || '',
+          art_style: finalData.art_style || 'cartoon',
+          total_pages: finalData.total_pages || finalData.pages.length
+        };
+        setComicsResult(comicResult);
+        generatedContent = comicResult;
+      } else {
+        console.error('[App] BD incomplète - pages manquantes:', finalData);
       }
     } else if (contentType === 'animation') {
       // Déterminer le contenu de l'histoire
@@ -900,7 +910,7 @@ function App() {
       title = generatedContent?.title || generateChildFriendlyTitle('coloriage', selectedTheme);
     } else if (contentType === 'comic') {
       // Utiliser le titre généré par l'IA pour la BD
-      title = comicsResult?.title || 'Ma Bande Dessinée 📚';
+      title = generatedContent?.title || 'Ma Bande Dessinée 📚';
     } else if (contentType === 'animation') {
       // Utiliser le titre généré par l'IA depuis l'API animation
       title = generatedContent?.title || generateChildFriendlyTitle('animation', currentTheme || 'aventure');
@@ -927,16 +937,16 @@ function App() {
           metadata: generatedContent?.metadata || {}
         };
       } else if (contentType === 'comic') {
-        // Pour les BD, utiliser les données de la BD
+        // Pour les BD, utiliser les données de la BD depuis generatedContent (qui contient finalData)
         newCreation = {
           id: Date.now().toString(),
           type: contentType,
           title: title,
           createdAt: new Date().toISOString(),
-          content: comicsResult ? `BD de ${comicsResult.total_pages} planche(s) - ${comicsResult.total_pages * 4} cases` : 'Bande dessinée générée',
+          content: generatedContent ? `BD de ${generatedContent.total_pages || (generatedContent.pages?.length || 0)} planche(s) - ${(generatedContent.total_pages || (generatedContent.pages?.length || 0)) * 4} cases` : 'Bande dessinée générée',
           theme: selectedComicsTheme,
-          pages: comicsResult?.pages || [],
-          comic_data: comicsResult || {}
+          pages: generatedContent?.pages || [],
+          comic_data: generatedContent || {}
         };
       } else if (contentType === 'animation') {
         // Pour les animations, utiliser les données de l'animation
