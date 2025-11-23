@@ -928,15 +928,17 @@ function App() {
           clips: generatedContent?.clips || [],
           animation_data: generatedContent || {}
         };
-      } else if (contentType === 'histoire') {
-        // Pour les histoires, utiliser les données de l'histoire
+      } else if (contentType === 'histoire' || contentType === 'audio') {
+        // Pour les histoires (texte ou audio), utiliser les données de l'histoire
         newCreation = {
           id: Date.now().toString(),
-          type: contentType,
+          type: contentType === 'audio' ? 'histoire' : contentType, // Normaliser 'audio' → 'histoire'
           title: title,
           createdAt: new Date().toISOString(),
           content: generatedContent?.content || generatedContent || 'Histoire générée...',
-          story_type: selectedStory === 'custom' ? 'custom' : selectedStory
+          story_type: (selectedStory === 'custom' ? 'custom' : selectedStory) || (selectedAudioStory === 'custom' ? 'custom' : selectedAudioStory),
+          audio_path: generatedContent?.audio_path || null,
+          audio_generated: !!generatedContent?.audio_path
         };
       } else {
         // Pour les autres types (rhyme, audio)

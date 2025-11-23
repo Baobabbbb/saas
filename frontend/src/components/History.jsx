@@ -43,6 +43,21 @@ const History = ({ onClose, onSelect }) => {
       minute: '2-digit'
     }).format(date);
   };
+
+  // Fonction helper pour obtenir l'URL audio correcte
+  // Gère les URLs Supabase Storage complètes (https://) et les chemins relatifs
+  const getAudioUrl = (creation) => {
+    const audioPath = creation.audio_path || creation.data?.audio_path;
+    if (!audioPath) return null;
+    
+    // Si c'est déjà une URL complète (Supabase Storage), l'utiliser directement
+    if (audioPath.startsWith('http://') || audioPath.startsWith('https://')) {
+      return audioPath;
+    }
+    
+    // Sinon, construire l'URL avec API_BASE_URL (ancien format local)
+    return `${API_BASE_URL}/${audioPath}`;
+  };
   const getContentTypeIcon = (type) => {
     switch (type) {
       case 'story':
@@ -239,7 +254,7 @@ const History = ({ onClose, onSelect }) => {
           ) : (
             <div className="creations-list">{creations.map((creation) => {
               // Déterminer les classes CSS selon le contenu
-              const hasAudio = !!(creation.audio_path || creation.data?.audio_path);
+              const hasAudio = !!getAudioUrl(creation);
               const hasText = !!(creation.content || creation.data?.content);
               const itemClasses = [
                 'creation-item',
@@ -265,23 +280,23 @@ const History = ({ onClose, onSelect }) => {
                   <div className="creation-meta">
                     <span className="creation-type">{getContentTypeLabel(creation.type)}</span>
                     <span className="creation-date">{formatDate(creation.created_at)}</span>
-                  </div>                  {(creation.audio_path || creation.data?.audio_path) && (
+                  </div>                  {getAudioUrl(creation) && (
                     <audio
                       controls
                       className="creation-audio"
-                      src={`${API_BASE_URL}/${creation.audio_path || creation.data?.audio_path}`}
+                      src={getAudioUrl(creation)}
                     />
                   )}
 
                   <div className="creation-actions">
                     {/* Pour les comptines : bouton spécial qui télécharge le MP3 */}
-                    {creation.type === 'rhyme' && (creation.audio_path || creation.data?.audio_path) && (
+                    {creation.type === 'rhyme' && getAudioUrl(creation) && (
                       <button
                         className="btn-pdf"
                         onClick={async (e) => {
                           e.stopPropagation();
                           try {
-                            const audioUrl = `${API_BASE_URL}/${creation.audio_path || creation.data?.audio_path}`;
+                            const audioUrl = getAudioUrl(creation);
                             const response = await fetch(audioUrl);
                             const blob = await response.blob();
                             const blobUrl = URL.createObjectURL(blob);
@@ -319,7 +334,7 @@ const History = ({ onClose, onSelect }) => {
                     )}
                     
                     {/* Pour les histoires audio : boutons PDF et audio */}
-                    {creation.type === 'audio' && (creation.content || creation.data?.content) && (
+                    {(creation.type === 'audio' || creation.type === 'histoire') && (creation.content || creation.data?.content) && (
                       <>
                         <button
                           className="btn-pdf"
@@ -331,13 +346,13 @@ const History = ({ onClose, onSelect }) => {
                           📄 Télécharger le PDF
                         </button>
 
-                        {(creation.audio_path || creation.data?.audio_path) && (creation.audio_generated || creation.data?.audio_generated) && (
+                        {getAudioUrl(creation) && (creation.audio_generated || creation.data?.audio_generated) && (
                           <button
                             className="btn-audio"
                             onClick={async (e) => {
                               e.stopPropagation();
                               try {
-                                const audioUrl = `${API_BASE_URL}/${creation.audio_path || creation.data?.audio_path}`;
+                                const audioUrl = getAudioUrl(creation);
                                 const response = await fetch(audioUrl);
                                 const blob = await response.blob();
                                 const blobUrl = URL.createObjectURL(blob);
@@ -377,10 +392,10 @@ const History = ({ onClose, onSelect }) => {
                     )}
                     
                     {/* Pour les autres types avec audio : bouton audio standard (sauf audio et rhyme qui ont leurs propres boutons) */}
-                    {(creation.audio_path || creation.data?.audio_path) && (creation.audio_generated || creation.data?.audio_generated) && creation.type !== 'rhyme' && creation.type !== 'audio' && (
+                    {getAudioUrl(creation) && (creation.audio_generated || creation.data?.audio_generated) && creation.type !== 'rhyme' && creation.type !== 'audio' && (
                       <a
                         className="btn-audio"
-                        href={`${API_BASE_URL}/${creation.audio_path || creation.data?.audio_path}`}
+                        href={getAudioUrl(creation)}
                         download
                         onClick={(e) => e.stopPropagation()}
                       >
