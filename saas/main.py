@@ -643,11 +643,11 @@ async def stream_audio(filename: str, download: bool = False):
 # Ancien modèle remplacé par ValidatedAudioStoryRequest dans validators.py
 
 @app.post("/generate_audio_story/")
-async def generate_audio_story(request: dict, req: Request = None):
+async def generate_audio_story(request: dict = Body(...), req: Request):
     try:
         # Extraire user_id depuis JWT - AUTHENTIFICATION REQUISE
         authorization = req.headers.get("authorization") if req else None
-        user_id = await extract_user_id_from_jwt(authorization, None)
+        user_id = await extract_user_id_from_jwt(authorization, req)
         if not user_id:
             raise HTTPException(
                 status_code=401,
