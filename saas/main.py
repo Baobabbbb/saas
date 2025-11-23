@@ -919,11 +919,7 @@ def get_coloring_generator():
 
 @app.post("/generate_coloring/")
 @app.post("/generate_coloring/{content_type_id}")
-async def generate_coloring(
-    request: dict,
-    content_type_id: int = None,
-    authorization: Optional[str] = Header(None)
-):
+async def generate_coloring(request: dict, content_type_id: int = None, req: Request = None):
     """
     Génère un coloriage basé sur un thème avec GPT-4o-mini + gpt-image-1-mini
     Supporte deux formats d'URL pour compatibilité frontend
@@ -931,6 +927,7 @@ async def generate_coloring(
     """
     try:
         # Extraire user_id depuis JWT - AUTHENTIFICATION REQUISE
+        authorization = req.headers.get("authorization") if req else None
         user_id = await extract_user_id_from_jwt(authorization, None)
         if not user_id:
             raise HTTPException(
