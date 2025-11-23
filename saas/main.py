@@ -1651,6 +1651,9 @@ async def generate_comic_task(task_id: str, theme: str, art_style: str, num_page
     try:
         print(f"🚀 Démarrage génération BD pour {task_id}")
         
+        # Récupérer user_id depuis le storage
+        user_id = comic_task_storage[task_id].get("user_id")
+        
         # Mettre à jour le statut
         comic_task_storage[task_id]["status"] = "generating"
         
@@ -1672,7 +1675,6 @@ async def generate_comic_task(task_id: str, theme: str, art_style: str, num_page
             # 🆕 Métadonnées d'unicité (non-bloquant)
             uniqueness_metadata = {}
             try:
-                user_id = comic_task_storage[task_id].get("user_id")
                 if supabase_client and user_id:
                     synopsis = result.get("synopsis", "")
                     uniqueness_check = await uniqueness_service.ensure_unique_content(
