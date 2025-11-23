@@ -22,10 +22,8 @@ class SupabaseStorageService:
     - /{user_id}/audio/{audio_id}.mp3
     """
     
-    BUCKET_NAME = "creations"
-    
-    # Mapping des types de créations vers leurs dossiers
-    CONTENT_TYPE_FOLDERS = {
+    # Mapping des types de créations vers leurs buckets publics
+    CONTENT_TYPE_BUCKETS = {
         "comic": "comics",
         "bd": "comics",
         "coloring": "coloring",
@@ -34,6 +32,20 @@ class SupabaseStorageService:
         "rhyme": "audio",
         "comptine": "audio",
         "audio": "audio",
+        "story": "audio",  # Les histoires audio vont dans le bucket audio
+        "histoire": "audio"  # Les histoires audio vont dans le bucket audio
+    }
+    
+    # Mapping des types de créations vers leurs dossiers (pour organisation dans le bucket)
+    CONTENT_TYPE_FOLDERS = {
+        "comic": "comics",
+        "bd": "comics",
+        "coloring": "coloring",
+        "coloriage": "coloring",
+        "animation": "animations",
+        "rhyme": "rhymes",
+        "comptine": "rhymes",
+        "audio": "stories",
         "story": "stories",
         "histoire": "stories"
     }
@@ -48,9 +60,12 @@ class SupabaseStorageService:
         """
         self.client = supabase_client
         self.supabase_url = supabase_url.rstrip('/')
-        self.bucket = self.client.storage.from_(self.BUCKET_NAME)
         
-        print(f"✅ SupabaseStorageService initialisé (bucket: {self.BUCKET_NAME})")
+        print(f"✅ SupabaseStorageService initialisé (buckets dynamiques: audio, coloring, comics, animations)")
+    
+    def _get_bucket_for_type(self, content_type: str) -> str:
+        """Retourne le bucket correspondant au type de contenu"""
+        return self.CONTENT_TYPE_BUCKETS.get(content_type, "audio")  # Par défaut: audio
     
     def _get_folder_for_type(self, content_type: str) -> str:
         """Retourne le dossier correspondant au type de contenu"""
@@ -144,13 +159,19 @@ class SupabaseStorageService:
                 file_data = f.read()
             
             file_size = len(file_data)
+            
+            # Déterminer le bucket selon le type de contenu
+            bucket_name = self._get_bucket_for_type(content_type)
+            bucket = self.client.storage.from_(bucket_name)
+            
             print(f"📤 Upload vers Supabase Storage:")
+            print(f"   - Bucket: {bucket_name}")
             print(f"   - Chemin: {storage_path}")
             print(f"   - Taille: {file_size / 1024:.2f} KB")
             print(f"   - Type MIME: {mime_type}")
             
             # Upload vers Supabase Storage
-            response = self.bucket.upload(
+            response = bucket.upload(
                 path=storage_path,
                 file=file_data,
                 file_options={
@@ -159,18 +180,18 @@ class SupabaseStorageService:
                 }
             )
             
-            # Générer l'URL publique (nécessite une URL signée pour accès)
-            public_url = f"{self.supabase_url}/storage/v1/object/public/{self.BUCKET_NAME}/{storage_path}"
+            # Générer l'URL publique (bucket public)
+            public_url = f"{self.supabase_url}/storage/v1/object/public/{bucket_name}/{storage_path}"
             
-            # Générer une URL signée (valide 1 an)
-            signed_url_response = self.bucket.create_signed_url(
+            # Générer une URL signée (valide 1 an) - utile pour les buckets privés
+            signed_url_response = bucket.create_signed_url(
                 path=storage_path,
                 expires_in=31536000  # 1 an en secondes
             )
             
-            signed_url = signed_url_response.get('signedURL') if signed_url_response else None
+            signed_url = signed_url_response.get('signedURL') if signed_url_response else public_url
             
-            print(f"✅ Upload réussi: {storage_path}")
+            print(f"✅ Upload réussi vers bucket '{bucket_name}': {storage_path}")
             
             return {
                 "success": True,
