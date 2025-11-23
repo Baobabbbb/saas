@@ -4,6 +4,110 @@ import { getUserCreations, deleteCreation } from '../services/creations';
 import './History.css';
 import { jsPDF } from 'jspdf';
 import { downloadColoringAsPDF } from '../utils/coloringPdfUtils';
+
+// Fonction helper pour obtenir l'URL d'image correcte pour les BD
+const getComicImageUrl = (imagePath, baseUrl) => {
+  if (!imagePath) return null;
+  
+  // Si c'est déjà une URL complète (Supabase Storage), l'utiliser directement
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  
+  // Sinon, construire l'URL avec baseUrl (ancien format local)
+  return `${baseUrl}${imagePath}`;
+};
+
+// Fonction pour télécharger une bande dessinée en PDF
+const downloadComicAsPDF = async (comic, baseUrl) => {
+  const pages = comic.pages || comic.data?.pages || comic.comic_data?.pages || [];
+  
+  if (!pages || pages.length === 0) {
+    alert('Aucune page disponible pour cette bande dessinée.');
+    return;
+  }
+
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'px',
+    format: 'a4',
+  });
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 40;
+  const imageWidth = pageWidth - 2 * margin;
+  const imageHeight = pageHeight - 2 * margin;
+
+  // Fonction pour charger une image et obtenir son dataURL
+  const fetchImageInfo = (url) => {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = function () {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = canvas.toDataURL('image/png');
+        resolve({ width: img.width, height: img.height, dataUrl });
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  };
+
+  // Précharger toutes les images
+  const imgInfos = await Promise.all(
+    pages.map(async (page) => {
+      try {
+        const imageUrl = getComicImageUrl(page.image_url || page, baseUrl);
+        if (!imageUrl) return null;
+        return await fetchImageInfo(imageUrl);
+      } catch (e) {
+        console.warn("Erreur chargement image BD pour le PDF :", page, e);
+        return null;
+      }
+    })
+  );
+
+  let isFirstPage = true;
+  
+  for (let i = 0; i < imgInfos.length; i++) {
+    if (!imgInfos[i]) continue;
+    
+    if (!isFirstPage) {
+      pdf.addPage();
+    }
+    isFirstPage = false;
+
+    const { dataUrl, width, height } = imgInfos[i];
+    
+    // Calcul des dimensions pour garder les proportions
+    const aspectRatio = width / height;
+    let finalWidth = imageWidth;
+    let finalHeight = imageWidth / aspectRatio;
+    
+    if (finalHeight > imageHeight) {
+      finalHeight = imageHeight;
+      finalWidth = imageHeight * aspectRatio;
+    }
+    
+    // Centrage de l'image
+    const x = (pageWidth - finalWidth) / 2;
+    const y = (pageHeight - finalHeight) / 2;
+
+    pdf.addImage(dataUrl, 'PNG', x, y, finalWidth, finalHeight);
+  }
+
+  // Nom de fichier safe
+  const safeTitle = (comic.title || 'bande_dessinee')
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+
+  pdf.save(`${safeTitle}.pdf`);
+};
 import useSupabaseUser from '../hooks/useSupabaseUser';
 import useUserCreations from '../hooks/useUserCreations';
 import { API_BASE_URL } from '../config/api';
@@ -441,6 +545,24 @@ const History = ({ onClose, onSelect }) => {
                         }}
                       >
                         📄 Télécharger le coloriage
+                      </button>
+                    )}
+
+                    {/* Pour les bandes dessinées : bouton PDF */}
+                    {(creation.type === 'comic' || creation.type === 'bd' || creation.type === 'story') && (creation.pages || creation.data?.pages || creation.comic_data?.pages) && (
+                      <button
+                        className="btn-pdf"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            await downloadComicAsPDF(creation, API_BASE_URL);
+                          } catch (error) {
+                            console.error('Erreur lors du téléchargement de la BD:', error);
+                            alert('Erreur lors du téléchargement. Veuillez réessayer.');
+                          }
+                        }}
+                      >
+                        📄 Télécharger le PDF
                       </button>
                     )}
 
