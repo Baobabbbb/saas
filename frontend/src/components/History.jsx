@@ -348,7 +348,7 @@ const History = ({ onClose, onSelect }) => {
 
                         {getAudioUrl(creation) && (creation.audio_generated || creation.data?.audio_generated) && (
                           <button
-                            className="btn-audio"
+                            className="btn-pdf"
                             onClick={async (e) => {
                               e.stopPropagation();
                               try {
@@ -391,8 +391,8 @@ const History = ({ onClose, onSelect }) => {
                       </>
                     )}
                     
-                    {/* Pour les autres types avec audio : bouton audio standard (sauf audio et rhyme qui ont leurs propres boutons) */}
-                    {getAudioUrl(creation) && (creation.audio_generated || creation.data?.audio_generated) && creation.type !== 'rhyme' && creation.type !== 'audio' && (
+                    {/* Pour les autres types avec audio : bouton audio standard (sauf audio, histoire et rhyme qui ont leurs propres boutons) */}
+                    {getAudioUrl(creation) && (creation.audio_generated || creation.data?.audio_generated) && creation.type !== 'rhyme' && creation.type !== 'audio' && creation.type !== 'histoire' && (
                       <a
                         className="btn-audio"
                         href={getAudioUrl(creation)}
