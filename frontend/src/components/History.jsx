@@ -48,6 +48,15 @@ const History = ({ onClose, onSelect }) => {
   // Gère les URLs Supabase Storage complètes (https://) et ignore les chemins locaux obsolètes
   const getAudioUrl = (creation) => {
     const audioPath = creation.audio_path || creation.data?.audio_path;
+    
+    // Pour les comptines, utiliser suno_url comme fallback si audio_path n'est pas disponible
+    if (!audioPath && (creation.type === 'rhyme' || creation.type === 'comptine')) {
+      const sunoUrl = creation.suno_url || creation.data?.suno_url;
+      if (sunoUrl) {
+        return sunoUrl; // URL Suno directe
+      }
+    }
+    
     if (!audioPath) return null;
     
     // Si c'est déjà une URL complète (Supabase Storage), l'utiliser directement
