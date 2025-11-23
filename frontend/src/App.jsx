@@ -112,6 +112,26 @@ const getSafeFilename = (title) => {
     .replace(/[^a-z0-9_]/g, ""); // caractères spéciaux supprimés
 };
 
+// Fonction helper pour obtenir l'URL audio correcte
+// Gère les URLs Supabase Storage complètes (https://) et les chemins relatifs
+const getAudioUrl = (audioPath) => {
+  if (!audioPath) return null;
+  
+  // Si c'est déjà une URL complète (Supabase Storage), l'utiliser directement
+  if (audioPath.startsWith('http://') || audioPath.startsWith('https://')) {
+    return audioPath;
+  }
+  
+  // Sinon, construire l'URL avec API_BASE_URL (ancien format local)
+  // Si c'est un chemin relatif comme "static/fichier.mp3", utiliser tel quel
+  if (audioPath.startsWith('static/')) {
+    return `${API_BASE_URL}/${audioPath}`;
+  }
+  
+  // Sinon, supposer que c'est juste un nom de fichier
+  return `${API_BASE_URL}/audio/${audioPath.split('/').pop()}`;
+};
+
 function App() {
   const [contentType, setContentTypeRaw] = useState('animation'); // 'rhyme', 'audio', 'coloring', 'animation' - Dessin animé sélectionné par défaut
   const [refreshBonusTrigger, setRefreshBonusTrigger] = useState(0); // Trigger pour forcer la revérification du bonus
@@ -1781,7 +1801,7 @@ const downloadPDF = async (title, content) => {
                 height: '40px',
                 outline: 'none'
               }}
-              src={`${API_BASE_URL}/audio/${generatedResult.audio_path.split('/').pop()}`}
+              src={getAudioUrl(generatedResult.audio_path)}
             >
               Votre navigateur ne supporte pas l'élément audio.
             </audio>
@@ -1830,11 +1850,22 @@ const downloadPDF = async (title, content) => {
             <button
               onClick={async () => {
                 try {
-                  const filename = generatedResult.audio_path.split('/').pop();
-                  const audioUrl = `${API_BASE_URL}/audio/${filename}?download=true`;
+                  const audioUrl = getAudioUrl(generatedResult.audio_path);
                   const safeTitle = (generatedResult.title || 'Histoire').replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-                  // Utiliser fetch pour récupérer le fichier et créer un blob
+                  // Si c'est une URL Supabase Storage, télécharger directement
+                  if (generatedResult.audio_path.startsWith('http://') || generatedResult.audio_path.startsWith('https://')) {
+                    const link = document.createElement('a');
+                    link.href = audioUrl;
+                    link.download = `${safeTitle}.mp3`;
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    return;
+                  }
+
+                  // Sinon, utiliser fetch pour récupérer le fichier et créer un blob (ancien format local)
                   const response = await fetch(audioUrl);
                   if (!response.ok) {
                     throw new Error(`Erreur HTTP: ${response.status}`);
@@ -1863,8 +1894,7 @@ const downloadPDF = async (title, content) => {
                 } catch (error) {
                   // Fallback : ouvrir dans un nouvel onglet
                   try {
-                    const filename = generatedResult.audio_path.split('/').pop();
-                    const audioUrl = `${API_BASE_URL}/audio/${filename}?download=true`;
+                    const audioUrl = getAudioUrl(generatedResult.audio_path);
                     window.open(audioUrl, '_blank');
                   } catch (fallbackError) {
                     alert('Erreur lors du téléchargement. Veuillez réessayer.');
