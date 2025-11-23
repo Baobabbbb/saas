@@ -100,16 +100,20 @@ const History = ({ onClose, onSelect }) => {
 
   const getContentTypeLabel = (type) => {
     switch (type) {
+      case 'comic':
+      case 'bd':
       case 'story':
         return 'Bande dessinée';
       case 'rhyme':
+      case 'comptine':
         return 'Comptine';
       case 'audio':
+      case 'histoire':
         return 'Histoire';
       case 'coloring':
+      case 'coloriage':
         return 'Coloriage';
       case 'crewai_animation':
-        return 'Dessin animé';
       case 'animation':
         return 'Dessin animé';
       default:
