@@ -10,6 +10,20 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
     return null;
   }
 
+  // Fonction helper pour obtenir l'URL d'image correcte
+  // Gère les URLs Supabase Storage complètes (https://) et les chemins relatifs
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    
+    // Si c'est déjà une URL complète (Supabase Storage), l'utiliser directement
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    
+    // Sinon, construire l'URL avec baseUrl (ancien format local)
+    return `${baseUrl}${imagePath}`;
+  };
+
   const currentPageData = comic.pages[currentPage];
   const totalPages = comic.pages.length;
 
@@ -26,7 +40,8 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
   };
 
   const downloadPage = () => {
-    const imageUrl = `${baseUrl}${currentPageData.image_url}`;
+    const imageUrl = getImageUrl(currentPageData.image_url);
+    if (!imageUrl) return;
     const link = document.createElement('a');
     link.href = imageUrl;
     const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
@@ -39,7 +54,8 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
   const downloadAllPages = () => {
     comic.pages.forEach((page, index) => {
       setTimeout(() => {
-        const imageUrl = `${baseUrl}${page.image_url}`;
+        const imageUrl = getImageUrl(page.image_url);
+        if (!imageUrl) return;
         const link = document.createElement('a');
         link.href = imageUrl;
         const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
@@ -108,7 +124,7 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
                 transition={{ duration: 0.3 }}
               >
                 <img
-                  src={`${baseUrl}${currentPageData.image_url}`}
+                  src={getImageUrl(currentPageData.image_url)}
                   alt={`Planche ${currentPage + 1}`}
                   className="page-image"
                   onClick={toggleFullscreen}
@@ -186,7 +202,7 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
                     onClick={() => setCurrentPage(index)}
                   >
                     <img
-                      src={`${baseUrl}${page.image_url}`}
+                      src={getImageUrl(page.image_url)}
                       alt={`Miniature planche ${index + 1}`}
                     />
                     <div className="thumbnail-label">

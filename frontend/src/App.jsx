@@ -1084,6 +1084,21 @@ const handleSelectCreation = (creation) => {
       });
       setShowColoringPopup(true);
       // On ne ferme PAS l'historique, juste on affiche la popup
+    } else if (creation.action === 'showComic') {
+      // Pour les BD, récupérer les données depuis creation.data ou creation directement
+      const comicData = creation.comic_data || creation.data?.comic_data || creation.data || {};
+      const pages = creation.pages || creation.data?.pages || comicData.pages || [];
+      
+      // Construire l'objet comicsResult avec la structure attendue par ComicsPopup
+      setComicsResult({
+        title: creation.title || comicData.title || 'Ma Bande Dessinée',
+        synopsis: comicData.synopsis || comicData.description || '',
+        art_style: comicData.art_style || comicData.style || 'cartoon',
+        pages: pages,
+        total_pages: pages.length || comicData.total_pages || 0
+      });
+      setShowComicsPopup(true);
+      // On ne ferme PAS l'historique, juste on affiche la popup
     } else {
       // Pour les autres actions, on ferme l'historique
       setShowHistory(false);
