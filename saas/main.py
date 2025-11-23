@@ -239,9 +239,6 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
         message = error["msg"]
         errors.append(f"{field}: {message}")
     
-    # Log pour debug
-    print(f"[DEBUG ValidationError] URL: {request.url}, Method: {request.method}, Errors: {errors}")
-    
     return HTTPException(
         status_code=422,
         detail={
@@ -652,13 +649,10 @@ async def generate_audio_story(req: Request, authorization: Optional[str] = Head
         # Parser le body JSON - essayer req.json() d'abord (plus simple)
         try:
             request_dict = await req.json()
-            print(f"[DEBUG generate_audio_story] JSON parsé avec succès via req.json(). Clés: {list(request_dict.keys())}")
         except Exception as json_error:
             # Fallback: parser manuellement
-            print(f"[DEBUG] req.json() a échoué: {json_error}, tentative parsing manuel...")
             try:
                 body_bytes = await req.body()
-                print(f"[DEBUG] Body reçu: {len(body_bytes)} bytes")
                 if not body_bytes:
                     raise HTTPException(
                         status_code=422,
@@ -666,21 +660,14 @@ async def generate_audio_story(req: Request, authorization: Optional[str] = Head
                     )
                 
                 body_str = body_bytes.decode('utf-8')
-                print(f"[DEBUG] Body string (premiers 200 chars): {body_str[:200]}")
-                
                 request_dict = json.loads(body_str)
-                print(f"[DEBUG] JSON parsé avec succès manuellement. Clés: {list(request_dict.keys())}")
                 
             except json.JSONDecodeError as e:
-                print(f"[DEBUG] Erreur JSON: {e}")
                 raise HTTPException(
                     status_code=422,
                     detail=f"JSON invalide: {str(e)}"
                 )
             except Exception as e:
-                print(f"[DEBUG] Erreur inattendue: {e}")
-                import traceback
-                print(f"[DEBUG] Traceback: {traceback.format_exc()}")
                 raise HTTPException(
                     status_code=422,
                     detail=f"Erreur parsing body: {str(e)}"
@@ -688,7 +675,6 @@ async def generate_audio_story(req: Request, authorization: Optional[str] = Head
         
         # Validation précoce des données d'entrée
         if not request_dict or not isinstance(request_dict, dict):
-            print(f"[DEBUG] request_dict invalide: type={type(request_dict)}, valeur={request_dict}")
             raise HTTPException(
                 status_code=422,
                 detail="Données d'entrée invalides: doit être un objet JSON"
