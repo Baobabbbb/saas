@@ -113,7 +113,7 @@ const getSafeFilename = (title) => {
 };
 
 // Fonction helper pour obtenir l'URL audio correcte
-// Gère les URLs Supabase Storage complètes (https://) et les chemins relatifs
+// Gère les URLs Supabase Storage complètes (https://) et ignore les chemins locaux obsolètes
 const getAudioUrl = (audioPath) => {
   if (!audioPath) return null;
   
@@ -122,13 +122,15 @@ const getAudioUrl = (audioPath) => {
     return audioPath;
   }
   
-  // Sinon, construire l'URL avec API_BASE_URL (ancien format local)
-  // Si c'est un chemin relatif comme "static/fichier.mp3", utiliser tel quel
+  // Si c'est un chemin local (commence par static/), ignorer car les fichiers locaux ont été supprimés
+  // Les fichiers sont maintenant uniquement dans Supabase Storage
   if (audioPath.startsWith('static/')) {
-    return `${API_BASE_URL}/${audioPath}`;
+    console.warn(`[App] Chemin audio local obsolète ignoré: ${audioPath}`);
+    return null; // Ne pas essayer de charger les anciens fichiers locaux
   }
   
-  // Sinon, supposer que c'est juste un nom de fichier
+  // Pour les autres chemins relatifs (non-static), supposer que c'est juste un nom de fichier
+  // (format de fallback pour compatibilité)
   return `${API_BASE_URL}/audio/${audioPath.split('/').pop()}`;
 };
 

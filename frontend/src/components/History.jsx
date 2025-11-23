@@ -45,7 +45,7 @@ const History = ({ onClose, onSelect }) => {
   };
 
   // Fonction helper pour obtenir l'URL audio correcte
-  // Gère les URLs Supabase Storage complètes (https://) et les chemins relatifs
+  // Gère les URLs Supabase Storage complètes (https://) et ignore les chemins locaux obsolètes
   const getAudioUrl = (creation) => {
     const audioPath = creation.audio_path || creation.data?.audio_path;
     if (!audioPath) return null;
@@ -55,7 +55,15 @@ const History = ({ onClose, onSelect }) => {
       return audioPath;
     }
     
-    // Sinon, construire l'URL avec API_BASE_URL (ancien format local)
+    // Si c'est un chemin local (commence par static/), ignorer car les fichiers locaux ont été supprimés
+    // Les fichiers sont maintenant uniquement dans Supabase Storage
+    if (audioPath.startsWith('static/')) {
+      console.warn(`[History] Chemin audio local obsolète ignoré: ${audioPath}`);
+      return null; // Ne pas essayer de charger les anciens fichiers locaux
+    }
+    
+    // Pour les autres chemins relatifs (non-static), construire l'URL avec API_BASE_URL
+    // (au cas où il y aurait d'autres formats)
     return `${API_BASE_URL}/${audioPath}`;
   };
   const getContentTypeIcon = (type) => {
