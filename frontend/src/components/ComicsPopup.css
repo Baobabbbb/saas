@@ -40,64 +40,11 @@
   border-radius: 0;
 }
 
-/* En-tête */
-.comics-popup-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 28px;
-  padding: 24px;
-  background: linear-gradient(135deg, rgba(107, 78, 255, 0.05) 0%, rgba(107, 78, 255, 0.08) 100%);
-  border-radius: 16px;
-  border: 1px solid rgba(107, 78, 255, 0.08);
-}
-
-.comic-title-section {
-  flex: 1;
-}
-
-.comic-title {
-  font-size: 1.8rem;
-  color: #f5f0ff;
-  margin: 0 0 8px 0;
-  font-weight: 800;
-  font-family: 'Baloo 2', cursive;
-}
-
-.comic-synopsis {
-  font-size: 1rem;
-  color: #666666;
-  margin: 0 0 16px 0;
-  line-height: 1.5;
-  font-style: italic;
-}
-
-.comic-meta {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: linear-gradient(135deg, #E9E5FF 0%, #F0F4FF 100%);
-  border: 1px solid rgba(107, 78, 255, 0.15);
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #333333;
-  box-shadow: 0 2px 8px rgba(107, 78, 255, 0.08);
-}
-
-.meta-icon {
-  font-size: 1.1rem;
-  opacity: 0.8;
-}
-
+/* Bouton de fermeture */
 .close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
   background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
   color: white;
   border: none;
@@ -112,6 +59,7 @@
   transition: all 0.2s ease;
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+  z-index: 10;
 }
 
 .close-btn:hover {
@@ -123,6 +71,7 @@
 /* Visionneuse */
 .comics-viewer {
   margin-bottom: 32px;
+  margin-top: 20px;
   position: relative;
 }
 
@@ -266,30 +215,13 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: 'Nunito', sans-serif;
-  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.15);
-}
-
-.action-btn.primary-btn {
-  background: linear-gradient(135deg, #f5f0ff 0%, #8B5CF6 100%);
+  background: var(--primary, #6B4EFF);
   color: white;
-  border: 1px solid rgba(107, 78, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.3);
 }
 
-.action-btn.primary-btn:hover {
-  background: linear-gradient(135deg, #5939cc 0%, #7c3aed 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(107, 78, 255, 0.4);
-}
-
-.action-btn.secondary-btn {
-  background: linear-gradient(135deg, #E9E5FF 0%, #F0F4FF 100%);
-  color: #f5f0ff;
-  border: 2px solid rgba(107, 78, 255, 0.2);
-}
-
-.action-btn.secondary-btn:hover {
-  background: linear-gradient(135deg, #f5f0ff 0%, #8B5CF6 100%);
-  color: white;
+.action-btn:hover {
+  background: #5840d4;
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(107, 78, 255, 0.4);
 }
@@ -399,13 +331,6 @@
     max-width: 95vw;
   }
 
-  .comics-popup-header {
-    flex-direction: column;
-    gap: 16px;
-    margin-bottom: 20px;
-    padding: 20px;
-  }
-
   .close-btn {
     position: absolute;
     top: 16px;
@@ -414,25 +339,6 @@
     height: 40px;
     font-size: 1.3rem;
     border-radius: 10px;
-  }
-
-  .comic-title {
-    font-size: 1.6rem;
-    padding-right: 50px;
-  }
-
-  .comic-synopsis {
-    font-size: 0.95rem;
-  }
-
-  .comic-meta {
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .meta-item {
-    padding: 8px 12px;
-    font-size: 0.8rem;
   }
 
   .page-image {

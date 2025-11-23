@@ -87,30 +87,10 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
           exit={{ scale: 0.9, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* En-tête */}
-          <div className="comics-popup-header">
-            <div className="comic-title-section">
-              <h2 className="comic-title">{comic.title}</h2>
-              <p className="comic-synopsis">{comic.synopsis}</p>
-              <div className="comic-meta">
-                <span className="meta-item">
-                  <span className="meta-icon">🎨</span>
-                  {comic.art_style}
-                </span>
-                <span className="meta-item">
-                  <span className="meta-icon">📄</span>
-                  {totalPages} {totalPages === 1 ? 'planche' : 'planches'}
-                </span>
-                <span className="meta-item">
-                  <span className="meta-icon">🎯</span>
-                  {totalPages * 4} cases
-                </span>
-              </div>
-            </div>
-            <button className="close-btn" onClick={onClose}>
-              ✕
-            </button>
-          </div>
+          {/* Bouton de fermeture */}
+          <button className="close-btn" onClick={onClose}>
+            ✕
+          </button>
 
           {/* Visionneuse de planche */}
           <div className="comics-viewer">
@@ -170,18 +150,18 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
 
           {/* Actions */}
           <div className="comics-actions">
-            <button className="action-btn secondary-btn" onClick={toggleFullscreen}>
+            <button className="action-btn" onClick={toggleFullscreen}>
               <span className="btn-icon">{isFullscreen ? '🔲' : '🔳'}</span>
               {isFullscreen ? 'Réduire' : 'Plein écran'}
             </button>
 
-            <button className="action-btn primary-btn" onClick={downloadPage}>
+            <button className="action-btn" onClick={downloadPage}>
               <span className="btn-icon">💾</span>
               Télécharger cette planche
             </button>
 
             {totalPages > 1 && (
-              <button className="action-btn primary-btn" onClick={downloadAllPages}>
+              <button className="action-btn" onClick={downloadAllPages}>
                 <span className="btn-icon">📥</span>
                 Télécharger toutes les planches
               </button>
