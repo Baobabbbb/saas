@@ -77,16 +77,20 @@ const History = ({ onClose, onSelect }) => {
   };
   const getContentTypeIcon = (type) => {
     switch (type) {
+      case 'comic':
+      case 'bd':
       case 'story':
-        return '📚';
+        return '💬';
       case 'rhyme':
+      case 'comptine':
         return '🎵';
       case 'audio':
+      case 'histoire':
         return '📖';
       case 'coloring':
+      case 'coloriage':
         return '🎨';
       case 'crewai_animation':
-        return '🎬';
       case 'animation':
         return '🎬';
       default:
