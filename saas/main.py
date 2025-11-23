@@ -824,12 +824,12 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
                         asyncio.get_event_loop().run_in_executor(None, generate_speech, story_content, voice, title, user_id),
                         timeout=60  # 60 secondes maximum pour la génération audio
                     )
-            except asyncio.TimeoutError:
-                # Timeout dépassé, continuer sans audio
-                audio_path = None
-            except Exception as audio_error:
-                # Erreur lors de la génération audio, continuer sans audio
-                audio_path = None
+                except asyncio.TimeoutError:
+                    # Timeout dépassé, continuer sans audio
+                    audio_path = None
+                except Exception as audio_error:
+                    # Erreur lors de la génération audio, continuer sans audio
+                    audio_path = None
         elif voice and voice not in ["male", "female"]:
             # Voix invalide, ignorer l'audio
             voice = None
