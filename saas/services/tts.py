@@ -55,6 +55,7 @@ def generate_speech(text, voice=None, filename=None, user_id=None):
                 f.write(response.content)
 
             # Upload vers Supabase Storage si user_id fourni
+            print(f"🔍 [TTS] user_id reçu: {user_id} (type: {type(user_id)})")
             if user_id:
                 storage_service = get_storage_service()
                 if storage_service:

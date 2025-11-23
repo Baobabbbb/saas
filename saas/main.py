@@ -444,7 +444,14 @@ async def test_features(authorization: Optional[str] = Header(None)):
 @app.post("/tts")
 async def tts_endpoint(request: dict):
     try:
-        path = generate_speech(request["text"])
+        # Pour l'endpoint TTS public, utiliser un user_id de test ou anonymous
+        user_id = request.get("user_id", "anonymous_tts")
+        path = generate_speech(
+            text=request["text"],
+            voice=request.get("voice"),
+            filename=request.get("filename"),
+            user_id=user_id
+        )
         return {"audio_path": path}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -804,13 +811,19 @@ N'ajoute aucun titre dans le texte de l'histoire lui-même, juste dans la partie
 
         # Validation de la voix
         if voice and isinstance(voice, str) and voice in ["male", "female"]:
-            try:
-                # Timeout pour éviter les erreurs 520 lors de la génération audio
-                import asyncio
-                audio_path = await asyncio.wait_for(
-                    asyncio.get_event_loop().run_in_executor(None, generate_speech, story_content, voice, title),
-                    timeout=60  # 60 secondes maximum pour la génération audio
-                )
+            # Vérifier que user_id est bien défini avant de générer l'audio
+            if not user_id:
+                print(f"⚠️ user_id manquant pour la génération audio (user_id={user_id})")
+                audio_path = None
+            else:
+                try:
+                    print(f"🎵 Génération audio avec user_id={user_id[:8]}... (voix={voice})")
+                    # Timeout pour éviter les erreurs 520 lors de la génération audio
+                    import asyncio
+                    audio_path = await asyncio.wait_for(
+                        asyncio.get_event_loop().run_in_executor(None, generate_speech, story_content, voice, title, user_id),
+                        timeout=60  # 60 secondes maximum pour la génération audio
+                    )
             except asyncio.TimeoutError:
                 # Timeout dépassé, continuer sans audio
                 audio_path = None
