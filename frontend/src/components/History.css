@@ -106,6 +106,7 @@
   min-height: 100%;
   overflow-x: hidden;
   width: 100%;
+  align-items: center;
 }
 
 .creation-item {
@@ -118,12 +119,14 @@
   box-shadow: 0 2px 8px rgba(107, 78, 255, 0.1);
   transition: all 0.2s ease;
   width: 100%;
+  max-width: 700px;
   min-height: 150px;
   flex-grow: 0;
   align-items: flex-start;
   gap: 1rem;
   overflow: hidden;
   box-sizing: border-box;
+  margin: 0 auto;
 }
 
 /* Adaptation selon le type de création */
