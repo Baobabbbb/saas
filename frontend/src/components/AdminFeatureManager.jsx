@@ -312,8 +312,12 @@ const FeatureManager = () => {
                         <td>{userName}</td>
                         <td>{user.email || 'N/A'}</td>
                         <td>
-                          <span className={`user-role ${user.role === 'admin' ? 'admin' : 'user'}`}>
-                            {user.role === 'admin' ? '👑 Admin' : '👤 Utilisateur'}
+                          <span className={`user-role ${user.role === 'admin' ? 'admin' : user.role === 'free' ? 'free' : 'user'}`}>
+                            {user.role === 'admin' 
+                              ? '👑 Admin' 
+                              : user.role === 'free' 
+                              ? '🆓 Gratuit' 
+                              : '👤 Utilisateur'}
                           </span>
                         </td>
                         <td>

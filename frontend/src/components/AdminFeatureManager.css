@@ -508,6 +508,11 @@
   color: #3730a3;
 }
 
+.user-role.free {
+  background: #f0fdf4;
+  color: #166534;
+}
+
 .user-column-actions {
   text-align: right;
 }
