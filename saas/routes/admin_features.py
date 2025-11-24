@@ -291,3 +291,138 @@ async def get_feature(feature_key: str):
     except Exception as e:
         print(f"Erreur lors de la récupération de la fonctionnalité {feature_key}: {e}")
         raise HTTPException(status_code=500, detail="Erreur interne du serveur")
+
+@router.get("/users")
+async def list_users(
+    request: Request,
+    authorization: Optional[str] = Header(None)
+):
+    """Lister tous les utilisateurs (requiert admin)"""
+    # Vérifier que l'utilisateur est admin
+    await verify_admin_for_features(authorization=authorization, request=request)
+    
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Configuration Supabase manquante"
+        )
+    
+    try:
+        # Utiliser httpx pour interroger l'API REST Supabase directement
+        headers = {
+            "apikey": SUPABASE_SERVICE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            # Récupérer les profils depuis la table profiles
+            response = await client.get(
+                f"{SUPABASE_URL}/rest/v1/profiles",
+                headers=headers,
+                params={"select": "id,name,full_name,email,role,created_at"}
+            )
+            
+            if response.status_code == 200:
+                users = response.json()
+                # Trier par date de création (plus récent en premier)
+                users.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+                return users
+            else:
+                print(f"Erreur Supabase lors de la récupération des utilisateurs: {response.status_code} - {response.text}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Erreur interne du serveur lors de la récupération des utilisateurs"
+                )
+    except httpx.HTTPError as e:
+        print(f"Erreur HTTP lors de la récupération des utilisateurs: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur interne du serveur lors de la récupération des utilisateurs"
+        )
+    except Exception as e:
+        print(f"Erreur lors de la récupération des utilisateurs: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur interne du serveur lors de la récupération des utilisateurs"
+        )
+
+@router.delete("/users/{user_id}")
+async def delete_user(
+    user_id: str,
+    request: Request,
+    authorization: Optional[str] = Header(None)
+):
+    """Supprimer un utilisateur et toutes ses créations (requiert admin)"""
+    # Vérifier que l'utilisateur est admin
+    await verify_admin_for_features(authorization=authorization, request=request)
+    
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Configuration Supabase manquante"
+        )
+    
+    try:
+        supabase_client = await get_supabase_client()
+        if not supabase_client:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Service Supabase non disponible"
+            )
+        
+        # 1. Supprimer toutes les créations de l'utilisateur
+        # Supprimer les dessins animés
+        try:
+            supabase_client.table('creations').delete().eq('user_id', user_id).execute()
+        except Exception as e:
+            print(f"Erreur lors de la suppression des créations: {e}")
+        
+        # Supprimer les abonnements
+        try:
+            supabase_client.table('subscriptions').delete().eq('user_id', user_id).execute()
+        except Exception as e:
+            print(f"Erreur lors de la suppression des abonnements: {e}")
+        
+        # Supprimer les tokens
+        try:
+            supabase_client.table('tokens').delete().eq('user_id', user_id).execute()
+        except Exception as e:
+            print(f"Erreur lors de la suppression des tokens: {e}")
+        
+        # 2. Supprimer le profil
+        try:
+            supabase_client.table('profiles').delete().eq('id', user_id).execute()
+        except Exception as e:
+            print(f"Erreur lors de la suppression du profil: {e}")
+        
+        # 3. Supprimer l'utilisateur de Supabase Auth via l'API Admin
+        headers = {
+            "apikey": SUPABASE_SERVICE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.delete(
+                f"{SUPABASE_URL}/auth/v1/admin/users/{user_id}",
+                headers=headers
+            )
+            
+            if response.status_code not in [200, 204]:
+                print(f"Erreur lors de la suppression de l'utilisateur Auth: {response.status_code} - {response.text}")
+                # On continue quand même car les données sont déjà supprimées
+        
+        return {
+            "message": f"Utilisateur {user_id} et toutes ses créations ont été supprimés",
+            "user_id": user_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Erreur lors de la suppression de l'utilisateur: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur interne du serveur lors de la suppression de l'utilisateur"
+        )

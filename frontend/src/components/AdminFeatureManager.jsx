@@ -1,16 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { getFeatures, updateFeature, resetFeatures } from '../services/adminFeatures';
+import { getUsers, deleteUser } from '../services/adminUsers';
 import './AdminFeatureManager.css';
 
 const FeatureManager = () => {
   const [features, setFeatures] = useState({});
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
+  const [selectedTab, setSelectedTab] = useState('features');
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersError, setUsersError] = useState(null);
 
   useEffect(() => {
     loadFeatures();
   }, []);
+
+  const loadUsers = useCallback(async () => {
+    try {
+      setUsersLoading(true);
+      setUsersError(null);
+      const usersData = await getUsers();
+      setUsers(usersData);
+    } catch (error) {
+      console.error('Erreur lors du chargement des utilisateurs:', error);
+      setUsersError('Erreur lors du chargement des utilisateurs');
+      showNotification('Erreur lors du chargement des utilisateurs', 'error');
+    } finally {
+      setUsersLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedTab === 'users') {
+      loadUsers();
+    }
+  }, [selectedTab, loadUsers]);
+
+  const handleDeleteUser = async (userId, userName) => {
+    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${userName}" et toutes ses créations ? Cette action est irréversible.`)) {
+      return;
+    }
+
+    try {
+      await deleteUser(userId);
+      showNotification(`Utilisateur "${userName}" et toutes ses créations ont été supprimés`, 'success');
+      // Recharger la liste des utilisateurs
+      await loadUsers();
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      showNotification('Erreur lors de la suppression de l\'utilisateur', 'error');
+    }
+  };
 
   const loadFeatures = async () => {
     try {
@@ -102,7 +144,26 @@ const FeatureManager = () => {
         </motion.div>
       )}
 
-      {/* Header avec statistiques */}
+      {/* Onglets */}
+      <div className="admin-tab-bar">
+        <button
+          className={`admin-tab ${selectedTab === 'features' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('features')}
+        >
+          Fonctionnalités
+        </button>
+        <button
+          className={`admin-tab ${selectedTab === 'users' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('users')}
+        >
+          Utilisateurs
+        </button>
+      </div>
+
+      {/* Contenu de l'onglet Fonctionnalités */}
+      {selectedTab === 'features' && (
+        <>
+          {/* Header avec statistiques */}
       <div className="feature-manager-header">
         <div className="feature-manager-stats">
           <div className="feature-stat">
@@ -192,6 +253,98 @@ const FeatureManager = () => {
           </div>
         </div>
       </div>
+        </>
+      )}
+
+      {/* Contenu de l'onglet Utilisateurs */}
+      {selectedTab === 'users' && (
+        <div className="admin-users-panel">
+          <div className="admin-users-header">
+            <h2>Gestion des utilisateurs</h2>
+            <button 
+              className="admin-btn admin-btn-secondary"
+              onClick={loadUsers}
+              disabled={usersLoading}
+            >
+              🔄 Actualiser
+            </button>
+          </div>
+
+          {usersLoading && (
+            <div className="admin-users-loading">
+              <div className="admin-loading-spinner"></div>
+              <span>Chargement des utilisateurs...</span>
+            </div>
+          )}
+
+          {usersError && (
+            <div className="admin-users-error">
+              {usersError}
+            </div>
+          )}
+
+          {!usersLoading && !usersError && users.length === 0 && (
+            <div className="admin-users-empty">
+              Aucun utilisateur trouvé.
+            </div>
+          )}
+
+          {!usersLoading && !usersError && users.length > 0 && (
+            <div className="admin-users-table-wrapper">
+              <table className="admin-users-table">
+                <thead>
+                  <tr>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Date de création</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user.id}>
+                      <td>{user.name || user.full_name || 'N/A'}</td>
+                      <td>{user.email || 'N/A'}</td>
+                      <td>
+                        <span className={`user-role ${user.role === 'admin' ? 'admin' : 'user'}`}>
+                          {user.role === 'admin' ? '👑 Admin' : '👤 Utilisateur'}
+                        </span>
+                      </td>
+                      <td>
+                        {user.created_at 
+                          ? new Date(user.created_at).toLocaleDateString('fr-FR', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })
+                          : 'N/A'}
+                      </td>
+                      <td className="user-column-actions">
+                        <button
+                          className="delete-user-btn"
+                          onClick={() => handleDeleteUser(user.id, user.name || user.email || 'cet utilisateur')}
+                          title="Supprimer l'utilisateur et toutes ses créations"
+                        >
+                          🗑️ Supprimer
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <div className="admin-users-note">
+            <p>
+              ⚠️ <strong>Attention :</strong> La suppression d'un utilisateur supprime également toutes ses créations (dessins animés, bandes dessinées, coloriages, histoires, comptines) de manière définitive.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
