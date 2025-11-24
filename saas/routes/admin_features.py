@@ -320,7 +320,7 @@ async def list_users(
             response = await client.get(
                 f"{SUPABASE_URL}/rest/v1/profiles",
                 headers=headers,
-                params={"select": "id,name,full_name,email,role,created_at"}
+                params={"select": "id,prenom,nom,email,role,created_at"}
             )
             
             if response.status_code == 200:

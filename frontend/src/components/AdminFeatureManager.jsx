@@ -303,37 +303,42 @@ const FeatureManager = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
-                    <tr key={user.id}>
-                      <td>{user.name || user.full_name || 'N/A'}</td>
-                      <td>{user.email || 'N/A'}</td>
-                      <td>
-                        <span className={`user-role ${user.role === 'admin' ? 'admin' : 'user'}`}>
-                          {user.role === 'admin' ? '👑 Admin' : '👤 Utilisateur'}
-                        </span>
-                      </td>
-                      <td>
-                        {user.created_at 
-                          ? new Date(user.created_at).toLocaleDateString('fr-FR', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })
-                          : 'N/A'}
-                      </td>
-                      <td className="user-column-actions">
-                        <button
-                          className="delete-user-btn"
-                          onClick={() => handleDeleteUser(user.id, user.name || user.email || 'cet utilisateur')}
-                          title="Supprimer l'utilisateur et toutes ses créations"
-                        >
-                          🗑️ Supprimer
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {users.map((user) => {
+                    const userName = user.prenom && user.nom 
+                      ? `${user.prenom} ${user.nom}` 
+                      : user.prenom || user.nom || user.email || 'N/A';
+                    return (
+                      <tr key={user.id}>
+                        <td>{userName}</td>
+                        <td>{user.email || 'N/A'}</td>
+                        <td>
+                          <span className={`user-role ${user.role === 'admin' ? 'admin' : 'user'}`}>
+                            {user.role === 'admin' ? '👑 Admin' : '👤 Utilisateur'}
+                          </span>
+                        </td>
+                        <td>
+                          {user.created_at 
+                            ? new Date(user.created_at).toLocaleDateString('fr-FR', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })
+                            : 'N/A'}
+                        </td>
+                        <td className="user-column-actions">
+                          <button
+                            className="delete-user-btn"
+                            onClick={() => handleDeleteUser(user.id, userName)}
+                            title="Supprimer l'utilisateur et toutes ses créations"
+                          >
+                            🗑️ Supprimer
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
