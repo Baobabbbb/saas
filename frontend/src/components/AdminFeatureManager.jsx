@@ -13,9 +13,23 @@ const FeatureManager = () => {
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState(null);
 
-  useEffect(() => {
-    loadFeatures();
-  }, []);
+  const showNotification = (message, type = 'info') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  const loadFeatures = async () => {
+    try {
+      setLoading(true);
+      const featuresData = await getFeatures();
+      setFeatures(featuresData);
+    } catch (error) {
+      console.error('Erreur lors du chargement des fonctionnalités:', error);
+      showNotification('Erreur lors du chargement des fonctionnalités', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadUsers = useCallback(async () => {
     try {
@@ -30,6 +44,11 @@ const FeatureManager = () => {
     } finally {
       setUsersLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    loadFeatures();
   }, []);
 
   useEffect(() => {
@@ -51,19 +70,6 @@ const FeatureManager = () => {
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
       showNotification('Erreur lors de la suppression de l\'utilisateur', 'error');
-    }
-  };
-
-  const loadFeatures = async () => {
-    try {
-      setLoading(true);
-      const featuresData = await getFeatures();
-      setFeatures(featuresData);
-    } catch (error) {
-      console.error('Erreur lors du chargement des fonctionnalités:', error);
-      showNotification('Erreur lors du chargement des fonctionnalités', 'error');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -106,11 +112,6 @@ const FeatureManager = () => {
       console.error('Erreur lors de la réinitialisation:', error);
       showNotification('Erreur lors de la réinitialisation', 'error');
     }
-  };
-
-  const showNotification = (message, type = 'info') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
   };
 
   const getEnabledCount = () => {
