@@ -81,7 +81,7 @@ const FeatureManager = () => {
       if (updatedFeatures) {
         setFeatures(updatedFeatures);
         
-        // Déclencher un événement pour mettre à jour Herbbie
+        // Déclencher un événement pour mettre à jour HERBBIE
         window.dispatchEvent(new CustomEvent('featuresUpdated', { detail: updatedFeatures }));
         
         const status = !currentEnabled ? 'activée' : 'désactivée';
@@ -101,7 +101,7 @@ const FeatureManager = () => {
       if (resetFeaturesData) {
         setFeatures(resetFeaturesData);
         
-        // Déclencher un événement pour mettre à jour Herbbie
+        // Déclencher un événement pour mettre à jour HERBBIE
         window.dispatchEvent(new CustomEvent('featuresUpdated', { detail: resetFeaturesData }));
         
         showNotification('Toutes les fonctionnalités ont été réinitialisées', 'success');

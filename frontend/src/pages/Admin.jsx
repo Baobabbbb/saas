@@ -92,7 +92,7 @@ const AdminContent = () => {
           fontSize: '2.5em',
           fontWeight: '700'
         }}>
-          ⚙️ Gestion des Fonctionnalités Herbbie
+          ⚙️ Gestion des Fonctionnalités HERBBIE
         </h1>
         
         <AdminFeatureManager />
@@ -135,7 +135,7 @@ const AdminContent = () => {
               e.target.style.color = '#6B4EFF';
             }}
           >
-            ← Retour à Herbbie
+            ← Retour à HERBBIE
           </a>
           <button
             onClick={async () => {
