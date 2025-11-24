@@ -60,8 +60,8 @@ const AdminContent = () => {
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white'
+        background: '#F9F4FF',
+        color: '#333333'
       }}>
         <div>Chargement...</div>
       </div>
@@ -79,17 +79,18 @@ const AdminContent = () => {
 
   // Si connecté, afficher le panneau d'administration
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '40px 20px'
-    }}>
+      <div style={{ 
+        minHeight: '100vh', 
+        background: '#F9F4FF',
+        padding: '40px 20px'
+      }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <h1 style={{ 
-          color: 'white', 
+          color: '#333333', 
           textAlign: 'center', 
           marginBottom: '40px',
-          fontSize: '2.5em'
+          fontSize: '2.5em',
+          fontWeight: '700'
         }}>
           ⚙️ Gestion des Fonctionnalités Herbbie
         </h1>
@@ -113,14 +114,25 @@ const AdminContent = () => {
               window.location.href = '/';
             }}
             style={{ 
-              color: 'white', 
+              color: '#6B4EFF', 
               textDecoration: 'none',
               padding: '12px 30px',
-              background: 'rgba(255,255,255,0.2)',
-              borderRadius: '25px',
+              background: '#ffffff',
+              border: '1px solid rgba(107, 78, 255, 0.2)',
+              borderRadius: '12px',
               display: 'inline-block',
               transition: 'all 0.3s ease',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontWeight: '500',
+              boxShadow: '0 2px 8px rgba(107, 78, 255, 0.1)'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = '#6B4EFF';
+              e.target.style.color = '#ffffff';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = '#ffffff';
+              e.target.style.color = '#6B4EFF';
             }}
           >
             ← Retour à Herbbie
@@ -133,15 +145,24 @@ const AdminContent = () => {
               navigate('/ilmysv6iepwepoa4tj2k');
             }}
             style={{ 
-              color: 'white', 
-              border: 'none',
+              color: '#FF85A1', 
+              border: '1px solid rgba(255, 133, 161, 0.3)',
               padding: '12px 30px',
-              background: 'rgba(255,0,0,0.3)',
-              borderRadius: '25px',
+              background: '#ffffff',
+              borderRadius: '12px',
               cursor: 'pointer',
               fontSize: '16px',
               fontWeight: '500',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
+              boxShadow: '0 2px 8px rgba(255, 133, 161, 0.1)'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = '#FF85A1';
+              e.target.style.color = '#ffffff';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = '#ffffff';
+              e.target.style.color = '#FF85A1';
             }}
           >
             🚪 Déconnexion
