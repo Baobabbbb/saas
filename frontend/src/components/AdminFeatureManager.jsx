@@ -144,7 +144,7 @@ const FeatureManager = () => {
         </motion.div>
       )}
 
-      {/* Onglets */}
+      {/* Onglets de navigation */}
       <div className="admin-tab-bar">
         <button
           className={`admin-tab ${selectedTab === 'features' ? 'active' : ''}`}
