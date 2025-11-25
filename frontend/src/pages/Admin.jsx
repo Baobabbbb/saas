@@ -79,17 +79,18 @@ const AdminContent = () => {
 
   // Si connecté, afficher le panneau d'administration
   return (
-      <div style={{ 
-        minHeight: '100vh', 
-        background: '#F9F4FF',
-        padding: '40px 20px'
-      }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      background: '#F9F4FF',
+      padding: '40px 20px'
+    }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <h1 style={{ 
           color: '#333333', 
           textAlign: 'center', 
           marginBottom: '40px',
           fontSize: '2.5em',
+          fontFamily: "'Baloo 2', cursive",
           fontWeight: '700'
         }}>
           ⚙️ Gestion des Fonctionnalités HERBBIE
@@ -109,29 +110,28 @@ const AdminContent = () => {
             href="/" 
             onClick={(e) => {
               e.preventDefault();
-              // Nettoyer la session avant de partir
-              localStorage.removeItem('herbbie_admin_session');
               window.location.href = '/';
             }}
             style={{ 
               color: '#6B4EFF', 
               textDecoration: 'none',
               padding: '12px 30px',
-              background: '#ffffff',
-              border: '1px solid rgba(107, 78, 255, 0.2)',
+              background: '#FFFFFF',
+              border: '2px solid #6B4EFF',
               borderRadius: '12px',
               display: 'inline-block',
               transition: 'all 0.3s ease',
               cursor: 'pointer',
-              fontWeight: '500',
-              boxShadow: '0 2px 8px rgba(107, 78, 255, 0.1)'
+              fontFamily: "'Baloo 2', cursive",
+              fontWeight: '600',
+              fontSize: '16px'
             }}
             onMouseEnter={(e) => {
               e.target.style.background = '#6B4EFF';
-              e.target.style.color = '#ffffff';
+              e.target.style.color = '#FFFFFF';
             }}
             onMouseLeave={(e) => {
-              e.target.style.background = '#ffffff';
+              e.target.style.background = '#FFFFFF';
               e.target.style.color = '#6B4EFF';
             }}
           >
@@ -140,29 +140,28 @@ const AdminContent = () => {
           <button
             onClick={async () => {
               await signOut();
-              // Nettoyer complètement la session
               localStorage.removeItem('herbbie_admin_session');
               navigate('/ilmysv6iepwepoa4tj2k');
             }}
             style={{ 
-              color: '#FF85A1', 
-              border: '1px solid rgba(255, 133, 161, 0.3)',
+              color: '#FFFFFF', 
+              border: 'none',
               padding: '12px 30px',
-              background: '#ffffff',
+              background: '#FF85A1',
               borderRadius: '12px',
               cursor: 'pointer',
               fontSize: '16px',
-              fontWeight: '500',
+              fontWeight: '600',
               transition: 'all 0.3s ease',
-              boxShadow: '0 2px 8px rgba(255, 133, 161, 0.1)'
+              fontFamily: "'Baloo 2', cursive"
             }}
             onMouseEnter={(e) => {
-              e.target.style.background = '#FF85A1';
-              e.target.style.color = '#ffffff';
+              e.target.style.background = '#ff6b8a';
+              e.target.style.transform = 'translateY(-2px)';
             }}
             onMouseLeave={(e) => {
-              e.target.style.background = '#ffffff';
-              e.target.style.color = '#FF85A1';
+              e.target.style.background = '#FF85A1';
+              e.target.style.transform = 'translateY(0)';
             }}
           >
             🚪 Déconnexion
