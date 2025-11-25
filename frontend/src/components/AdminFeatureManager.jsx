@@ -18,18 +18,9 @@ const FeatureManager = () => {
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const loadFeatures = async () => {
-    try {
-      setLoading(true);
-      const featuresData = await getFeatures();
-      setFeatures(featuresData);
-    } catch (error) {
-      console.error('Erreur lors du chargement des fonctionnalités:', error);
-      showNotification('Erreur lors du chargement des fonctionnalités', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    loadFeatures();
+  }, []);
 
   const loadUsers = useCallback(async () => {
     try {
@@ -44,11 +35,6 @@ const FeatureManager = () => {
     } finally {
       setUsersLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    loadFeatures();
   }, []);
 
   useEffect(() => {
@@ -57,19 +43,32 @@ const FeatureManager = () => {
     }
   }, [selectedTab, loadUsers]);
 
-  const handleDeleteUser = async (userId, userName) => {
-    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${userName}" et toutes ses créations ? Cette action est irréversible.`)) {
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur et toutes ses créations ? Cette action est irréversible.')) {
       return;
     }
 
     try {
       await deleteUser(userId);
-      showNotification(`Utilisateur "${userName}" et toutes ses créations ont été supprimés`, 'success');
+      showNotification('Utilisateur et toutes ses créations supprimés avec succès', 'success');
       // Recharger la liste des utilisateurs
       await loadUsers();
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
       showNotification('Erreur lors de la suppression de l\'utilisateur', 'error');
+    }
+  };
+
+  const loadFeatures = async () => {
+    try {
+      setLoading(true);
+      const featuresData = await getFeatures();
+      setFeatures(featuresData);
+    } catch (error) {
+      console.error('Erreur lors du chargement des fonctionnalités:', error);
+      showNotification('Erreur lors du chargement des fonctionnalités', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -81,7 +80,7 @@ const FeatureManager = () => {
       if (updatedFeatures) {
         setFeatures(updatedFeatures);
         
-        // Déclencher un événement pour mettre à jour HERBBIE
+        // Déclencher un événement pour mettre à jour Herbbie
         window.dispatchEvent(new CustomEvent('featuresUpdated', { detail: updatedFeatures }));
         
         const status = !currentEnabled ? 'activée' : 'désactivée';
@@ -101,7 +100,7 @@ const FeatureManager = () => {
       if (resetFeaturesData) {
         setFeatures(resetFeaturesData);
         
-        // Déclencher un événement pour mettre à jour HERBBIE
+        // Déclencher un événement pour mettre à jour Herbbie
         window.dispatchEvent(new CustomEvent('featuresUpdated', { detail: resetFeaturesData }));
         
         showNotification('Toutes les fonctionnalités ont été réinitialisées', 'success');
@@ -165,7 +164,7 @@ const FeatureManager = () => {
       {selectedTab === 'features' && (
         <>
           {/* Header avec statistiques */}
-      <div className="feature-manager-header">
+          <div className="feature-manager-header">
         <div className="feature-manager-stats">
           <div className="feature-stat">
             <span className="feature-stat-number">{getEnabledCount()}</span>
@@ -233,27 +232,27 @@ const FeatureManager = () => {
         ))}
       </div>
 
-      {/* Informations supplémentaires */}
-      <div className="feature-manager-info">
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h3>📋 Informations</h3>
+          {/* Informations supplémentaires */}
+          <div className="feature-manager-info">
+            <div className="admin-card">
+              <div className="admin-card-header">
+                <h3>📋 Informations</h3>
+              </div>
+              <div className="admin-card-body">
+                <p>
+                  Les fonctionnalités activées sont visibles pour tous les utilisateurs de HERBBIE. 
+                  Les modifications sont appliquées immédiatement.
+                </p>
+                <ul className="feature-info-list">
+                  <li>🎬 <strong>Dessin animé</strong> : Génération de vidéos animées</li>
+                  <li>💬 <strong>Bande dessinée</strong> : Création de BD avec bulles</li>
+                  <li>🎨 <strong>Coloriage</strong> : Pages de coloriage à imprimer</li>
+                  <li>📖 <strong>Histoire</strong> : Contes audio avec narration</li>
+                  <li>🎵 <strong>Comptine</strong> : Chansons avec musique générée</li>
+                </ul>
+              </div>
+            </div>
           </div>
-          <div className="admin-card-body">
-            <p>
-              Les fonctionnalités activées sont visibles pour tous les utilisateurs de HERBBIE. 
-              Les modifications sont appliquées immédiatement.
-            </p>
-            <ul className="feature-info-list">
-              <li>🎬 <strong>Dessin animé</strong> : Génération de vidéos animées</li>
-              <li>💬 <strong>Bande dessinée</strong> : Création de BD avec bulles</li>
-              <li>🎨 <strong>Coloriage</strong> : Pages de coloriage à imprimer</li>
-              <li>📖 <strong>Histoire</strong> : Contes audio avec narration</li>
-              <li>🎵 <strong>Comptine</strong> : Chansons avec musique générée</li>
-            </ul>
-          </div>
-        </div>
-      </div>
         </>
       )}
 
@@ -261,98 +260,73 @@ const FeatureManager = () => {
       {selectedTab === 'users' && (
         <div className="admin-users-panel">
           <div className="admin-users-header">
-            <h2>Gestion des utilisateurs</h2>
-            <button 
-              className="admin-btn admin-btn-secondary"
-              onClick={loadUsers}
-              disabled={usersLoading}
-            >
-              🔄 Actualiser
-            </button>
+            <h2>👥 Gestion des utilisateurs</h2>
+            <p>Liste de tous les utilisateurs enregistrés dans HERBBIE</p>
           </div>
 
-          {usersLoading && (
-            <div className="admin-users-loading">
+          {usersLoading ? (
+            <div className="admin-loading">
               <div className="admin-loading-spinner"></div>
               <span>Chargement des utilisateurs...</span>
             </div>
-          )}
-
-          {usersError && (
-            <div className="admin-users-error">
-              {usersError}
+          ) : usersError ? (
+            <div className="admin-error">
+              <p>{usersError}</p>
             </div>
-          )}
-
-          {!usersLoading && !usersError && users.length === 0 && (
-            <div className="admin-users-empty">
-              Aucun utilisateur trouvé.
+          ) : users.length === 0 ? (
+            <div className="admin-empty">
+              <p>Aucun utilisateur trouvé</p>
             </div>
-          )}
-
-          {!usersLoading && !usersError && users.length > 0 && (
-            <div className="admin-users-table-wrapper">
+          ) : (
+            <div className="admin-users-table-container">
               <table className="admin-users-table">
                 <thead>
                   <tr>
                     <th>Nom</th>
                     <th>Email</th>
                     <th>Rôle</th>
-                    <th>Date de création</th>
+                    <th>Date d'inscription</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => {
-                    const userName = user.prenom && user.nom 
-                      ? `${user.prenom} ${user.nom}` 
-                      : user.prenom || user.nom || user.email || 'N/A';
-                    return (
-                      <tr key={user.id}>
-                        <td>{userName}</td>
-                        <td>{user.email || 'N/A'}</td>
-                        <td>
-                          <span className={`user-role ${user.role === 'admin' ? 'admin' : user.role === 'free' ? 'free' : 'user'}`}>
-                            {user.role === 'admin' 
-                              ? '👑 Admin' 
-                              : user.role === 'free' 
-                              ? '🆓 Gratuit' 
-                              : '👤 Utilisateur'}
-                          </span>
-                        </td>
-                        <td>
-                          {user.created_at 
-                            ? new Date(user.created_at).toLocaleDateString('fr-FR', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })
-                            : 'N/A'}
-                        </td>
-                        <td className="user-column-actions">
-                          <button
-                            className="delete-user-btn"
-                            onClick={() => handleDeleteUser(user.id, userName)}
-                            title="Supprimer l'utilisateur et toutes ses créations"
-                          >
-                            🗑️ Supprimer
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {users.map((user) => (
+                    <tr key={user.id}>
+                      <td>
+                        {user.prenom || user.nom 
+                          ? `${user.prenom || ''} ${user.nom || ''}`.trim() 
+                          : 'Non renseigné'}
+                      </td>
+                      <td>{user.email || 'N/A'}</td>
+                      <td>
+                        <span className={`user-role ${user.role === 'admin' ? 'admin' : user.role === 'free' ? 'free' : 'user'}`}>
+                          {user.role === 'admin' ? '👑 Admin' : user.role === 'free' ? '🆓 Gratuit' : '👤 Utilisateur'}
+                        </span>
+                      </td>
+                      <td>
+                        {user.created_at 
+                          ? new Date(user.created_at).toLocaleDateString('fr-FR', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })
+                          : 'N/A'}
+                      </td>
+                      <td>
+                        <button
+                          className="delete-user-btn"
+                          onClick={() => handleDeleteUser(user.id)}
+                          title="Supprimer l'utilisateur et toutes ses créations"
+                        >
+                          🗑️ Supprimer
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           )}
-
-          <div className="admin-users-note">
-            <p>
-              ⚠️ <strong>Attention :</strong> La suppression d'un utilisateur supprime également toutes ses créations (dessins animés, bandes dessinées, coloriages, histoires, comptines) de manière définitive.
-            </p>
-          </div>
         </div>
       )}
     </div>
