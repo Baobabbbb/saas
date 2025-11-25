@@ -5,6 +5,7 @@ from copy import deepcopy
 import json
 import os
 import httpx
+import traceback
 from datetime import datetime
 from fastapi import status
 
@@ -336,7 +337,6 @@ async def list_users(
         )
     except Exception as exc:
         print(f"[admin_users] erreur inattendue lors de la liste des utilisateurs: {exc}")
-        import traceback
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -376,7 +376,7 @@ async def delete_user_and_creations(
                 print(f"[admin_users] Créations de l'utilisateur {user_id} supprimées.")
             except httpx.HTTPStatusError as e:
                 if e.response.status_code != 404:
-                    print(f"[admin_users] Avertissement: Erreur lors de la suppression des créations: {e.response.status_code}")
+                    print(f"[admin_users] Avertissement: Erreur lors de la suppression des créations: {e.response.status_code} - {e.response.text}")
                 else:
                     print(f"[admin_users] Aucune création trouvée pour l'utilisateur {user_id}.")
 
@@ -390,7 +390,7 @@ async def delete_user_and_creations(
                 print(f"[admin_users] Abonnements de l'utilisateur {user_id} supprimés.")
             except httpx.HTTPStatusError as e:
                 if e.response.status_code != 404:
-                    print(f"[admin_users] Avertissement: Erreur lors de la suppression des abonnements: {e.response.status_code}")
+                    print(f"[admin_users] Avertissement: Erreur lors de la suppression des abonnements: {e.response.status_code} - {e.response.text}")
                 else:
                     print(f"[admin_users] Aucun abonnement trouvé pour l'utilisateur {user_id}.")
 
@@ -404,7 +404,7 @@ async def delete_user_and_creations(
                 print(f"[admin_users] Tokens de l'utilisateur {user_id} supprimés.")
             except httpx.HTTPStatusError as e:
                 if e.response.status_code != 404:
-                    print(f"[admin_users] Avertissement: Erreur lors de la suppression des tokens: {e.response.status_code}")
+                    print(f"[admin_users] Avertissement: Erreur lors de la suppression des tokens: {e.response.status_code} - {e.response.text}")
                 else:
                     print(f"[admin_users] Aucun token trouvé pour l'utilisateur {user_id}.")
 
@@ -418,12 +418,14 @@ async def delete_user_and_creations(
                 print(f"[admin_users] Profil de l'utilisateur {user_id} supprimé.")
             except httpx.HTTPStatusError as e:
                 if e.response.status_code != 404:
-                    print(f"[admin_users] Avertissement: Erreur lors de la suppression du profil: {e.response.status_code}")
+                    print(f"[admin_users] Avertissement: Erreur lors de la suppression du profil: {e.response.status_code} - {e.response.text}")
                 else:
                     print(f"[admin_users] Aucun profil trouvé pour l'utilisateur {user_id}.")
 
-            # 5. Supprimer l'utilisateur de Supabase Auth (nécessite l'API admin)
+            # 5. Supprimer l'utilisateur de Supabase Auth (nécessite l'API admin - doit être fait en dernier)
+            # IMPORTANT: Doit être fait en dernier car la suppression du profil peut déclencher des cascades
             auth_headers = {
+                "apikey": SUPABASE_SERVICE_KEY,
                 "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
                 "Content-Type": "application/json"
             }
@@ -435,25 +437,36 @@ async def delete_user_and_creations(
                 auth_response.raise_for_status()
                 print(f"[admin_users] Utilisateur {user_id} supprimé de Supabase Auth.")
             except httpx.HTTPStatusError as e:
+                error_text = e.response.text if hasattr(e.response, 'text') else str(e.response)
                 if e.response.status_code == 404:
                     print(f"[admin_users] Avertissement: Utilisateur {user_id} non trouvé dans Supabase Auth (peut-être déjà supprimé).")
                 else:
-                    print(f"[admin_users] Erreur lors de la suppression de Supabase Auth: {e.response.status_code} - {e.response.text}")
-                    raise  # Relever l'erreur pour Supabase Auth car c'est critique
+                    print(f"[admin_users] Erreur lors de la suppression de Supabase Auth: {e.response.status_code} - {error_text}")
+                    # Ne pas relever l'erreur si l'utilisateur n'existe pas déjà dans Auth
+                    if e.response.status_code != 404:
+                        raise  # Relever l'erreur pour Supabase Auth car c'est critique
 
         return {"message": f"Utilisateur {user_id} et toutes ses données supprimés avec succès."}
 
     except httpx.HTTPStatusError as exc:
-        print(f"[admin_users] Erreur Supabase lors de la suppression: {exc.response.status_code} - {exc.response.text}")
+        error_text = exc.response.text if hasattr(exc.response, 'text') else str(exc.response)
+        print(f"[admin_users] Erreur Supabase lors de la suppression: {exc.response.status_code} - {error_text}")
+        traceback.print_exc()
         raise HTTPException(
             status_code=exc.response.status_code,
-            detail=f"Erreur lors de la suppression de l'utilisateur ({exc.response.status_code})"
+            detail=f"Erreur lors de la suppression de l'utilisateur ({exc.response.status_code}): {error_text[:200]}"
         )
-    except Exception as exc:
-        print(f"[admin_users] Erreur inattendue lors de la suppression de l'utilisateur: {exc}")
-        import traceback
+    except httpx.RequestError as exc:
+        print(f"[admin_users] Erreur de requête HTTP lors de la suppression: {exc}")
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erreur interne du serveur lors de la suppression de l'utilisateur"
+            detail=f"Erreur de connexion lors de la suppression de l'utilisateur: {str(exc)}"
+        )
+    except Exception as exc:
+        print(f"[admin_users] Erreur inattendue lors de la suppression de l'utilisateur: {exc}")
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur interne du serveur lors de la suppression de l'utilisateur: {str(exc)}"
         )
