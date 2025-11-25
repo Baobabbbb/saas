@@ -366,49 +366,80 @@ async def delete_user_and_creations(
         }
 
         async with httpx.AsyncClient(timeout=15.0) as client:
-            # 1. Supprimer les créations de l'utilisateur
-            await client.delete(
-                f"{SUPABASE_URL}/rest/v1/creations",
-                headers=headers,
-                params={"user_id": f"eq.{user_id}"}
-            ).raise_for_status()
-            print(f"[admin_users] Créations de l'utilisateur {user_id} supprimées.")
+            # 1. Supprimer les créations de l'utilisateur (non-bloquant)
+            try:
+                await client.delete(
+                    f"{SUPABASE_URL}/rest/v1/creations",
+                    headers=headers,
+                    params={"user_id": f"eq.{user_id}"}
+                ).raise_for_status()
+                print(f"[admin_users] Créations de l'utilisateur {user_id} supprimées.")
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code != 404:
+                    print(f"[admin_users] Avertissement: Erreur lors de la suppression des créations: {e.response.status_code}")
+                else:
+                    print(f"[admin_users] Aucune création trouvée pour l'utilisateur {user_id}.")
 
-            # 2. Supprimer les abonnements de l'utilisateur
-            await client.delete(
-                f"{SUPABASE_URL}/rest/v1/subscriptions",
-                headers=headers,
-                params={"user_id": f"eq.{user_id}"}
-            ).raise_for_status()
-            print(f"[admin_users] Abonnements de l'utilisateur {user_id} supprimés.")
+            # 2. Supprimer les abonnements de l'utilisateur (non-bloquant)
+            try:
+                await client.delete(
+                    f"{SUPABASE_URL}/rest/v1/subscriptions",
+                    headers=headers,
+                    params={"user_id": f"eq.{user_id}"}
+                ).raise_for_status()
+                print(f"[admin_users] Abonnements de l'utilisateur {user_id} supprimés.")
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code != 404:
+                    print(f"[admin_users] Avertissement: Erreur lors de la suppression des abonnements: {e.response.status_code}")
+                else:
+                    print(f"[admin_users] Aucun abonnement trouvé pour l'utilisateur {user_id}.")
 
-            # 3. Supprimer les tokens de l'utilisateur
-            await client.delete(
-                f"{SUPABASE_URL}/rest/v1/user_tokens",
-                headers=headers,
-                params={"user_id": f"eq.{user_id}"}
-            ).raise_for_status()
-            print(f"[admin_users] Tokens de l'utilisateur {user_id} supprimés.")
+            # 3. Supprimer les tokens de l'utilisateur (non-bloquant)
+            try:
+                await client.delete(
+                    f"{SUPABASE_URL}/rest/v1/user_tokens",
+                    headers=headers,
+                    params={"user_id": f"eq.{user_id}"}
+                ).raise_for_status()
+                print(f"[admin_users] Tokens de l'utilisateur {user_id} supprimés.")
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code != 404:
+                    print(f"[admin_users] Avertissement: Erreur lors de la suppression des tokens: {e.response.status_code}")
+                else:
+                    print(f"[admin_users] Aucun token trouvé pour l'utilisateur {user_id}.")
 
-            # 4. Supprimer le profil de l'utilisateur
-            await client.delete(
-                f"{SUPABASE_URL}/rest/v1/profiles",
-                headers=headers,
-                params={"id": f"eq.{user_id}"}
-            ).raise_for_status()
-            print(f"[admin_users] Profil de l'utilisateur {user_id} supprimé.")
+            # 4. Supprimer le profil de l'utilisateur (non-bloquant)
+            try:
+                await client.delete(
+                    f"{SUPABASE_URL}/rest/v1/profiles",
+                    headers=headers,
+                    params={"id": f"eq.{user_id}"}
+                ).raise_for_status()
+                print(f"[admin_users] Profil de l'utilisateur {user_id} supprimé.")
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code != 404:
+                    print(f"[admin_users] Avertissement: Erreur lors de la suppression du profil: {e.response.status_code}")
+                else:
+                    print(f"[admin_users] Aucun profil trouvé pour l'utilisateur {user_id}.")
 
             # 5. Supprimer l'utilisateur de Supabase Auth (nécessite l'API admin)
             auth_headers = {
                 "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
                 "Content-Type": "application/json"
             }
-            auth_response = await client.delete(
-                f"{SUPABASE_URL}/auth/v1/admin/users/{user_id}",
-                headers=auth_headers
-            )
-            auth_response.raise_for_status()
-            print(f"[admin_users] Utilisateur {user_id} supprimé de Supabase Auth.")
+            try:
+                auth_response = await client.delete(
+                    f"{SUPABASE_URL}/auth/v1/admin/users/{user_id}",
+                    headers=auth_headers
+                )
+                auth_response.raise_for_status()
+                print(f"[admin_users] Utilisateur {user_id} supprimé de Supabase Auth.")
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 404:
+                    print(f"[admin_users] Avertissement: Utilisateur {user_id} non trouvé dans Supabase Auth (peut-être déjà supprimé).")
+                else:
+                    print(f"[admin_users] Erreur lors de la suppression de Supabase Auth: {e.response.status_code} - {e.response.text}")
+                    raise  # Relever l'erreur pour Supabase Auth car c'est critique
 
         return {"message": f"Utilisateur {user_id} et toutes ses données supprimés avec succès."}
 
