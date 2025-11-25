@@ -368,11 +368,12 @@ async def delete_user_and_creations(
         async with httpx.AsyncClient(timeout=15.0) as client:
             # 1. Supprimer les créations de l'utilisateur (non-bloquant)
             try:
-                await client.delete(
+                response = await client.delete(
                     f"{SUPABASE_URL}/rest/v1/creations",
                     headers=headers,
                     params={"user_id": f"eq.{user_id}"}
-                ).raise_for_status()
+                )
+                response.raise_for_status()
                 print(f"[admin_users] Créations de l'utilisateur {user_id} supprimées.")
             except httpx.HTTPStatusError as e:
                 if e.response.status_code != 404:
@@ -382,11 +383,12 @@ async def delete_user_and_creations(
 
             # 2. Supprimer les abonnements de l'utilisateur (non-bloquant)
             try:
-                await client.delete(
+                response = await client.delete(
                     f"{SUPABASE_URL}/rest/v1/subscriptions",
                     headers=headers,
                     params={"user_id": f"eq.{user_id}"}
-                ).raise_for_status()
+                )
+                response.raise_for_status()
                 print(f"[admin_users] Abonnements de l'utilisateur {user_id} supprimés.")
             except httpx.HTTPStatusError as e:
                 if e.response.status_code != 404:
@@ -396,11 +398,12 @@ async def delete_user_and_creations(
 
             # 3. Supprimer les tokens de l'utilisateur (non-bloquant)
             try:
-                await client.delete(
+                response = await client.delete(
                     f"{SUPABASE_URL}/rest/v1/user_tokens",
                     headers=headers,
                     params={"user_id": f"eq.{user_id}"}
-                ).raise_for_status()
+                )
+                response.raise_for_status()
                 print(f"[admin_users] Tokens de l'utilisateur {user_id} supprimés.")
             except httpx.HTTPStatusError as e:
                 if e.response.status_code != 404:
@@ -410,11 +413,12 @@ async def delete_user_and_creations(
 
             # 4. Supprimer le profil de l'utilisateur (non-bloquant)
             try:
-                await client.delete(
+                response = await client.delete(
                     f"{SUPABASE_URL}/rest/v1/profiles",
                     headers=headers,
                     params={"id": f"eq.{user_id}"}
-                ).raise_for_status()
+                )
+                response.raise_for_status()
                 print(f"[admin_users] Profil de l'utilisateur {user_id} supprimé.")
             except httpx.HTTPStatusError as e:
                 if e.response.status_code != 404:
