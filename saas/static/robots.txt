@@ -76,14 +76,3 @@ Disallow: /
 
 User-agent: BLEXBot
 Disallow: /
-
-# ========== INFORMATIONS SUPPLÉMENTAIRES ==========
-
-# Délai de crawl recommandé (en secondes)
-# Crawl-delay: 1
-
-# Politique de confidentialité
-# Privacy-Policy: https://herbbie.com/#politique-confidentialite
-
-# Contact
-# Contact: contact@herbbie.com
