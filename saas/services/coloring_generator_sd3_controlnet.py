@@ -456,24 +456,26 @@ no text, no logos, no watermarks, no realistic textures, no gradients, no shadow
                 # Post-traiter
                 final_path = await self._post_process_coloring(output_path)
                 
-                # 📤 Upload vers Supabase Storage si user_id fourni
+                # 📤 Upload OBLIGATOIRE vers Supabase Storage
                 storage_service = get_storage_service()
-                if storage_service and user_id:
-                    upload_result = await storage_service.upload_file(
-                        file_path=str(final_path),
-                        user_id=user_id,
-                        content_type="coloring",
-                        custom_filename=final_path.name
-                    )
-                    
-                    if upload_result["success"]:
-                        image_url = upload_result["signed_url"]
-                        print(f"✅ Image uploadée vers Supabase Storage")
-                    else:
-                        image_url = f"{self.base_url}/static/coloring/{final_path.name}"
-                        print(f"⚠️ Upload Supabase échoué, utilisation chemin local")
-                else:
-                    image_url = f"{self.base_url}/static/coloring/{final_path.name}"
+                if not storage_service:
+                    raise Exception("Service Supabase Storage non disponible")
+
+                if not user_id:
+                    raise Exception("user_id requis pour l'upload Supabase Storage")
+
+                upload_result = await storage_service.upload_file(
+                    file_path=str(final_path),
+                    user_id=user_id,
+                    content_type="coloring",
+                    custom_filename=final_path.name
+                )
+
+                if not upload_result["success"]:
+                    raise Exception(f"Échec upload Supabase Storage: {upload_result.get('error', 'Erreur inconnue')}")
+
+                image_url = upload_result["signed_url"]
+                print(f"✅ Image uploadée vers Supabase Storage: {image_url[:50]}...")
                 
                 return {
                     "success": True,

@@ -60,7 +60,8 @@ async def migrate_audio_files():
                     new_audio_url = await generate_speech(
                         text=content[:4000],  # Limiter la taille
                         voice="female",  # Voix par défaut
-                        filename=filename
+                        filename=filename,
+                        user_id=creation.get('user_id')  # Utiliser le user_id de la création
                     )
 
                     if new_audio_url and new_audio_url.startswith('http'):

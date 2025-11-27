@@ -400,28 +400,28 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
                     character_photo_path  # Passer la photo
                 )
                 
-                # 📤 Upload vers Supabase Storage si user_id fourni
+                # 📤 Upload OBLIGATOIRE vers Supabase Storage
                 storage_service = get_storage_service()
-                if storage_service and user_id:
-                    upload_result = await storage_service.upload_file(
-                        file_path=str(image_path),
-                        user_id=user_id,
-                        content_type="comic",
-                        creation_id=comic_id,
-                        custom_filename=f"page_{page_num}.png"
-                    )
-                    
-                    if upload_result["success"]:
-                        # Utiliser l'URL signée Supabase (valide 1 an)
-                        image_url = upload_result["signed_url"]
-                        print(f"✅ Image uploadée vers Supabase Storage")
-                    else:
-                        # Fallback sur chemin local si upload échoue
-                        image_url = f"/static/cache/comics/{comic_id}/page_{page_num}.png"
-                        print(f"⚠️ Upload Supabase échoué, utilisation chemin local")
-                else:
-                    # Pas de Storage configuré, utiliser chemin local
-                    image_url = f"/static/cache/comics/{comic_id}/page_{page_num}.png"
+                if not storage_service:
+                    raise Exception("Service Supabase Storage non disponible")
+
+                if not user_id:
+                    raise Exception("user_id requis pour l'upload Supabase Storage")
+
+                upload_result = await storage_service.upload_file(
+                    file_path=str(image_path),
+                    user_id=user_id,
+                    content_type="comic",
+                    creation_id=comic_id,
+                    custom_filename=f"page_{page_num}.png"
+                )
+
+                if not upload_result["success"]:
+                    raise Exception(f"Échec upload Supabase Storage: {upload_result.get('error', 'Erreur inconnue')}")
+
+                # Utiliser l'URL signée Supabase (valide 1 an)
+                image_url = upload_result["signed_url"]
+                print(f"✅ Image uploadée vers Supabase Storage: {image_url[:50]}...")
                 
                 # Construire la réponse (format compatible avec le reste de l'app)
                 page_info = {

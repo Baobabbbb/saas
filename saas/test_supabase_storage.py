@@ -60,7 +60,8 @@ async def test_tts_upload():
         audio_url = await generate_speech(
             text="Bonjour, ceci est un test d'upload vers Supabase Storage.",
             voice="male",
-            filename="test_audio.mp3"
+            filename="test_audio.mp3",
+            user_id="test_user"
         )
 
         print(f"🎵 Résultat TTS: {audio_url}")
