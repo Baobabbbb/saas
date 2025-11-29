@@ -93,10 +93,10 @@ export const getContentPrice = (contentType, options = {}) => {
     'comptine': { amount: 70, name: 'Comptine Musicale', currency: 'EUR', display: '0,70€' },
     'histoire': { amount: 50, name: 'Histoire', currency: 'EUR', display: '0,50€' },
     'audio': { amount: 50, name: 'Histoire', currency: 'EUR', display: '0,50€' },
-    'coloriage': { amount: 70, name: 'Coloriage Personnalisé', currency: 'EUR', display: '0,70€' },
-    'coloring': { amount: 70, name: 'Coloriage personnalisé', currency: 'EUR', display: '0,70€' },
-    'bd': { amount: 70, name: 'Page de Bande Dessinée', currency: 'EUR', display: '0,70€' },
-    'comic': { amount: 70, name: 'Page de Bande Dessinée', currency: 'EUR', display: '0,70€' },
+    'coloriage': { amount: 50, name: 'Coloriage Personnalisé', currency: 'EUR', display: '0,50€' },
+    'coloring': { amount: 50, name: 'Coloriage personnalisé', currency: 'EUR', display: '0,50€' },
+    'bd': { amount: 50, name: 'Page de Bande Dessinée', currency: 'EUR', display: '0,50€' },
+    'comic': { amount: 50, name: 'Page de Bande Dessinée', currency: 'EUR', display: '0,50€' },
     'story': { amount: 50, name: 'Histoire', currency: 'EUR', display: '0,50€' },
     'rhyme': { amount: 70, name: 'Comptine musicale', currency: 'EUR', display: '0,70€' },
 
@@ -367,9 +367,9 @@ export const calculateTokenCost = (contentType, options = {}, subscription = nul
   if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio') {
     tokensRequired = 4; // 0,042€ → 4 tokens
   } else if (contentType === 'coloriage') {
-    tokensRequired = 16; // 0,16€ → 16 tokens
+    tokensRequired = 13; // 0,13€ → 13 tokens
   } else if (contentType === 'bd' || contentType === 'comic') {
-    tokensRequired = 16; // 0,16€ par page → 16 tokens
+    tokensRequired = 13; // 0,13€ par page → 13 tokens
     // Multiplier par le nombre de pages
     if (options.pages && options.pages > 0) {
       tokensRequired = tokensRequired * options.pages;
