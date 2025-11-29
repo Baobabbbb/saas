@@ -253,19 +253,22 @@ Subject: {subject}"""
             
             print(f"[RESPONSE] Reponse recue de gemini-3-pro-image-preview")
             
-            # Gemini retourne les images dans response.parts
+            # Gemini retourne les images dans response.candidates[0].content.parts
             image_data = None
-            for part in response.parts:
-                if part.inline_data is not None:
-                    # Récupérer l'image depuis inline_data
-                    generated_img = part.as_image()
-                    # Convertir PIL Image en bytes
-                    img_byte_arr = io.BytesIO()
-                    generated_img.save(img_byte_arr, format='PNG')
-                    image_data = img_byte_arr.getvalue()
-                    break
-                elif hasattr(part, 'text') and part.text:
-                    print(f"[TEXT] {part.text[:100]}...")
+            if hasattr(response, 'candidates') and len(response.candidates) > 0:
+                candidate = response.candidates[0]
+                if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
+                    for part in candidate.content.parts:
+                        if hasattr(part, 'inline_data') and part.inline_data is not None:
+                            # Récupérer l'image depuis inline_data
+                            generated_img = part.as_image()
+                            # Convertir PIL Image en bytes
+                            img_byte_arr = io.BytesIO()
+                            generated_img.save(img_byte_arr, format='PNG')
+                            image_data = img_byte_arr.getvalue()
+                            break
+                        elif hasattr(part, 'text') and part.text:
+                            print(f"[TEXT] {part.text[:100]}...")
             
             if image_data:
                 # Charger l'image générée
@@ -370,19 +373,22 @@ Subject: {subject}"""
             
             print(f"[RESPONSE] Reponse recue de gemini-3-pro-image-preview")
             
-            # Gemini retourne les images dans response.parts
+            # Gemini retourne les images dans response.candidates[0].content.parts
             image_data = None
-            for part in response.parts:
-                if part.inline_data is not None:
-                    # Récupérer l'image depuis inline_data
-                    generated_img = part.as_image()
-                    # Convertir PIL Image en bytes
-                    img_byte_arr = io.BytesIO()
-                    generated_img.save(img_byte_arr, format='PNG')
-                    image_data = img_byte_arr.getvalue()
-                    break
-                elif hasattr(part, 'text') and part.text:
-                    print(f"[TEXT] {part.text[:100]}...")
+            if hasattr(response, 'candidates') and len(response.candidates) > 0:
+                candidate = response.candidates[0]
+                if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
+                    for part in candidate.content.parts:
+                        if hasattr(part, 'inline_data') and part.inline_data is not None:
+                            # Récupérer l'image depuis inline_data
+                            generated_img = part.as_image()
+                            # Convertir PIL Image en bytes
+                            img_byte_arr = io.BytesIO()
+                            generated_img.save(img_byte_arr, format='PNG')
+                            image_data = img_byte_arr.getvalue()
+                            break
+                        elif hasattr(part, 'text') and part.text:
+                            print(f"[TEXT] {part.text[:100]}...")
             
             if image_data:
                 # Charger l'image générée
