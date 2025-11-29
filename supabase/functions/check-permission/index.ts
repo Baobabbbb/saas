@@ -225,9 +225,9 @@ serve(async (req) => {
       if (contentType === 'histoire' || contentType === 'story' || contentType === 'audio') {
         tokensRequired = 4; // 0,042€ → 4 tokens
       } else if (contentType === 'coloriage') {
-        tokensRequired = 16; // 0,16€ → 16 tokens
+        tokensRequired = 13; // 0,13€ → 13 tokens
       } else if (contentType === 'bd' || contentType === 'comic') {
-        tokensRequired = 16; // 0,16€ par page → 16 tokens
+        tokensRequired = 13; // 0,13€ par page → 13 tokens
         // Multiplier par le nombre de pages
         if (numPages && numPages > 0) {
           tokensRequired = tokensRequired * numPages;
