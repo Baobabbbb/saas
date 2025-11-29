@@ -584,11 +584,47 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
                 if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
                     for part in candidate.content.parts:
                         if hasattr(part, 'inline_data') and part.inline_data is not None:
-                            # Récupérer l'image depuis inline_data.data (base64)
+                            # Debug: afficher la structure
+                            print(f"   [DEBUG] inline_data type: {type(part.inline_data)}")
+                            inline_attrs = [attr for attr in dir(part.inline_data) if not attr.startswith('_')]
+                            print(f"   [DEBUG] inline_data attributes: {inline_attrs}")
+                            
+                            # Essayer différentes méthodes d'accès aux données
                             if hasattr(part.inline_data, 'data'):
-                                # Décoder le base64
-                                image_data = base64.b64decode(part.inline_data.data)
-                                break
+                                data = part.inline_data.data
+                                print(f"   [DEBUG] data type: {type(data)}, length: {len(data) if isinstance(data, (str, bytes)) else 'N/A'}")
+                                
+                                # Si c'est une string, c'est probablement du base64
+                                if isinstance(data, str):
+                                    try:
+                                        image_data = base64.b64decode(data)
+                                        print(f"   [DEBUG] Decode base64 string: {len(image_data)} bytes")
+                                    except Exception as e:
+                                        print(f"   [ERROR] Erreur decode base64: {e}")
+                                        continue
+                                elif isinstance(data, bytes):
+                                    image_data = data
+                                    print(f"   [DEBUG] Data already bytes: {len(image_data)} bytes")
+                                else:
+                                    # Essayer de convertir en string puis décoder
+                                    try:
+                                        data_str = str(data)
+                                        image_data = base64.b64decode(data_str)
+                                        print(f"   [DEBUG] Converted to string then decoded: {len(image_data)} bytes")
+                                    except Exception as e:
+                                        print(f"   [ERROR] Impossible de decoder les donnees: {e}")
+                                        continue
+                                
+                                # Vérifier que les données sont valides
+                                if image_data:
+                                    try:
+                                        test_img = Image.open(io.BytesIO(image_data))
+                                        print(f"   [DEBUG] Image valide: {test_img.size}")
+                                        break
+                                    except Exception as e:
+                                        print(f"   [ERROR] Donnees decodees ne sont pas une image valide: {e}")
+                                        image_data = None
+                                        continue
                         elif hasattr(part, 'text') and part.text:
                             print(f"   [TEXT] {part.text[:100]}...")
             
