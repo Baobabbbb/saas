@@ -62,13 +62,36 @@ const RhymePopup = ({ title, audioUrls, onClose }) => {
                       </audio>
                       
                       <div className="audio-controls">
-                        <a 
-                          href={song.audio_url} 
-                          download={`${title.replace(/[^a-z0-9]/gi, '_')}_v${index + 1}.mp3`}
+                        <button 
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              const response = await fetch(song.audio_url);
+                              if (!response.ok) throw new Error('Erreur lors du téléchargement');
+                              
+                              const blob = await response.blob();
+                              const blobUrl = URL.createObjectURL(blob);
+                              
+                              const safeTitle = `${title.replace(/[^a-z0-9]/gi, '_')}_v${index + 1}.mp3`;
+                              const link = document.createElement('a');
+                              link.href = blobUrl;
+                              link.download = safeTitle;
+                              link.style.display = 'none';
+                              
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                              
+                              URL.revokeObjectURL(blobUrl);
+                            } catch (error) {
+                              console.error('Erreur lors du téléchargement:', error);
+                              alert('Erreur lors du téléchargement. Veuillez réessayer.');
+                            }
+                          }}
                           className="download-audio-btn"
                         >
                           💾 Télécharger
-                        </a>
+                        </button>
                         {song.video_url && (
                           <a 
                             href={song.video_url} 

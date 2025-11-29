@@ -6,14 +6,38 @@ const ColoringViewer = ({ coloringResult, onDownloadAll, onOpenColoring, onColor
     return null;
   }
 
-  const handleDownloadImage = (imageUrl, index) => {
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    const baseName = (title || 'coloriage').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    link.download = `${baseName}_${index + 1}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownloadImage = async (imageUrl, index) => {
+    try {
+      // Récupérer l'image via fetch pour créer un blob
+      const response = await fetch(imageUrl);
+      if (!response.ok) throw new Error('Erreur lors du téléchargement');
+      
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      const baseName = (coloringResult?.title || 'coloriage').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      link.download = `${baseName}_${index + 1}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Nettoyer l'URL blob après un court délai
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+    } catch (error) {
+      console.error('Erreur lors du téléchargement:', error);
+      // Fallback: essayer le téléchargement direct
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      const baseName = (coloringResult?.title || 'coloriage').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      link.download = `${baseName}_${index + 1}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
   return (
     <div className="coloring-viewer">

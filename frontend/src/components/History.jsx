@@ -523,14 +523,37 @@ const History = ({ onClose, onSelect }) => {
                     
                     {/* Pour les autres types avec audio : bouton audio standard (sauf audio, histoire et rhyme qui ont leurs propres boutons) */}
                     {getAudioUrl(creation) && (creation.audio_generated || creation.data?.audio_generated) && creation.type !== 'rhyme' && creation.type !== 'audio' && creation.type !== 'histoire' && (
-                      <a
+                      <button
                         className="btn-audio"
-                        href={getAudioUrl(creation)}
-                        download
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const audioUrl = getAudioUrl(creation);
+                            const response = await fetch(audioUrl);
+                            if (!response.ok) throw new Error('Erreur lors du téléchargement');
+                            
+                            const blob = await response.blob();
+                            const blobUrl = URL.createObjectURL(blob);
+                            
+                            const safeTitle = (creation.title || 'audio').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                            const link = document.createElement('a');
+                            link.href = blobUrl;
+                            link.download = `${safeTitle}.mp3`;
+                            link.style.display = 'none';
+                            
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            
+                            URL.revokeObjectURL(blobUrl);
+                          } catch (error) {
+                            console.error('Erreur lors du téléchargement audio:', error);
+                            alert('Erreur lors du téléchargement. Veuillez réessayer.');
+                          }
+                        }}
                       >
                         🔊 Télécharger l'audio
-                      </a>
+                      </button>
                     )}
 
                     {creation.type === 'coloring' && (creation.images || creation.data?.images) && (creation.images?.length > 0 || creation.data?.images?.length > 0) && (

@@ -1880,15 +1880,22 @@ const downloadPDF = async (title, content) => {
                   const audioUrl = getAudioUrl(generatedResult.audio_path);
                   const safeTitle = (generatedResult.title || 'Histoire').replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-                  // Si c'est une URL Supabase Storage, télécharger directement
+                  // Si c'est une URL Supabase Storage, utiliser fetch pour créer un blob
                   if (generatedResult.audio_path.startsWith('http://') || generatedResult.audio_path.startsWith('https://')) {
+                    const response = await fetch(audioUrl);
+                    if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+                    
+                    const blob = await response.blob();
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    
                     const link = document.createElement('a');
-                    link.href = audioUrl;
+                    link.href = blobUrl;
                     link.download = `${safeTitle}.mp3`;
-                    link.target = '_blank';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+                    
+                    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
                     return;
                   }
 
