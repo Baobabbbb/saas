@@ -247,6 +247,21 @@ class ComicsGeneratorGPT4o:
                 "name": "Voyage dans le temps",
                 "description": "Aventures temporelles et voyages dans le passé/futur",
                 "keywords": "time travel, past, future, history, adventure, discovery, timeline"
+            },
+            "zoo": {
+                "name": "Zoo",
+                "description": "Aventures au zoo avec tous les animaux",
+                "keywords": "zoo, animals, lions, elephants, giraffes, monkeys, penguins, adventure, visit"
+            },
+            "fete": {
+                "name": "Fête",
+                "description": "Anniversaires et célébrations joyeuses",
+                "keywords": "party, birthday, celebration, cake, balloons, presents, fun, friends, joy"
+            },
+            "party": {
+                "name": "Fête",
+                "description": "Anniversaires et célébrations joyeuses",
+                "keywords": "party, birthday, celebration, cake, balloons, presents, fun, friends, joy"
             }
         }
     
