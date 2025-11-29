@@ -1,10 +1,12 @@
 """
-Générateur de bandes dessinées avec gpt-4o-mini + gpt-image-1-mini
-Architecture: gpt-4o-mini crée le scénario détaillé, gpt-image-1-mini génère les planches
+Générateur de bandes dessinées avec gpt-4o-mini + gemini-3-pro-image-preview
+Architecture: gpt-4o-mini crée le scénario détaillé, gemini-3-pro-image-preview génère les planches
 """
 
 import openai
 from openai import AsyncOpenAI
+from google import genai
+from google.genai import types
 import json
 import os
 import uuid
@@ -21,7 +23,7 @@ load_dotenv()
 
 
 class ComicsGeneratorGPT4o:
-    """Générateur de bandes dessinées avec GPT-4o-mini (scénario) + gpt-image-1-mini (images)"""
+    """Générateur de bandes dessinées avec GPT-4o-mini (scénario) + gemini-3-pro-image-preview (images)"""
     
     def __init__(self):
         self.openai_key = os.getenv("OPENAI_API_KEY")
@@ -29,6 +31,13 @@ class ComicsGeneratorGPT4o:
             raise ValueError("OPENAI_API_KEY manquante dans les variables d'environnement")
         
         self.client = AsyncOpenAI(api_key=self.openai_key)
+        
+        # Client Gemini pour la génération d'images
+        self.gemini_api_key = os.getenv("GEMINI_API_KEY")
+        if not self.gemini_api_key:
+            raise ValueError("GEMINI_API_KEY manquante dans les variables d'environnement")
+        
+        self.gemini_client = genai.Client(api_key=self.gemini_api_key)
         self.cache_dir = Path("static/cache/comics")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         
@@ -524,23 +533,23 @@ STYLE REQUIREMENTS:
         page_num: int,
         character_photo_path: Optional[str] = None
     ) -> Path:
-        """Génère une planche de BD avec gpt-image-1-mini (avec ou sans photo de référence)"""
+        """Génère une planche de BD avec gemini-3-pro-image-preview (avec ou sans photo de référence)"""
         
         try:
-            print(f"   🎨 Appel gpt-image-1-mini...")
+            print(f"   🎨 Appel gemini-3-pro-image-preview...")
             
-            # Si une photo de personnage est fournie, utiliser images.edit() pour plus de fidélité
+            # Si une photo de personnage est fournie, utiliser image-to-image pour plus de fidélité
             if character_photo_path:
                 print(f"   📸 Utilisation de la photo de référence: {character_photo_path}")
                 
-                # Ouvrir l'image en mode binaire
-                photo_path_obj = Path(character_photo_path)
-                filename = photo_path_obj.name
-                
+                # Ouvrir l'image
                 with open(character_photo_path, "rb") as image_file:
                     image_data = image_file.read()
                 
-                # Adapter le prompt pour images.edit() : être ULTRA-EXPLICITE sur l'utilisation du personnage
+                # Charger l'image avec PIL pour la passer à Gemini
+                input_image = Image.open(io.BytesIO(image_data))
+                
+                # Adapter le prompt pour image-to-image : être ULTRA-EXPLICITE sur l'utilisation du personnage
                 edit_prompt = f"""CREATE A COMIC BOOK PAGE where the person shown in this photo is the MAIN CHARACTER and HERO of the story.
 
 CRITICAL REQUIREMENTS:
@@ -554,33 +563,36 @@ CRITICAL REQUIREMENTS:
 
 REMINDER: The person in the uploaded photo is the HERO. They must be in ALL panels as the main character."""
                 
-                # Utiliser images.edit() pour intégrer le personnage de la photo
-                response = await self.client.images.edit(
-                    model="gpt-image-1-mini",
-                    image=(filename, image_data),
-                    prompt=edit_prompt,
-                    size="1024x1024",
-                    n=1
+                # Utiliser Gemini pour image-to-image (texte et image vers image)
+                response = self.gemini_client.models.generate_content(
+                    model="gemini-3-pro-image-preview",
+                    contents=[edit_prompt, input_image]
                 )
             else:
-                # Générer l'image normalement sans photo de référence
-                response = await self.client.images.generate(
-                    model="gpt-image-1-mini",
-                    prompt=prompt,
-                    size="1024x1024",  # Format carré pour une planche BD 2x2 avec cases bien espacées
-                    quality="high",  # Haute qualité pour les BD
-                    n=1
+                # Générer l'image normalement sans photo de référence (text-to-image)
+                response = self.gemini_client.models.generate_content(
+                    model="gemini-3-pro-image-preview",
+                    contents=[prompt]
                 )
             
-            print(f"   [RESPONSE] Réponse reçue de gpt-image-1-mini")
+            print(f"   [RESPONSE] Réponse reçue de gemini-3-pro-image-preview")
             
-            # gpt-image-1-mini retourne base64 directement (comme pour les coloriages)
-            if hasattr(response, 'data') and len(response.data) > 0:
-                image_b64 = response.data[0].b64_json
-                print(f"   [OK] Image reçue (base64: {len(image_b64)} caractères)")
-                
-                # Décoder l'image
-                image_data = base64.b64decode(image_b64)
+            # Gemini retourne les images dans response.parts
+            image_data = None
+            for part in response.parts:
+                if part.inline_data is not None:
+                    # Récupérer l'image depuis inline_data
+                    image = part.as_image()
+                    # Convertir PIL Image en bytes
+                    img_byte_arr = io.BytesIO()
+                    image.save(img_byte_arr, format='PNG')
+                    image_data = img_byte_arr.getvalue()
+                    break
+                elif hasattr(part, 'text') and part.text:
+                    print(f"   [TEXT] {part.text[:100]}...")
+            
+            if image_data:
+                print(f"   [OK] Image reçue ({len(image_data)} bytes)")
                 
                 # Vérifier les dimensions réelles de l'image générée
                 img = Image.open(io.BytesIO(image_data))
@@ -595,11 +607,11 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
                 print(f"   ✅ Planche sauvegardée: {output_path.name} ({len(image_data)} bytes, {actual_width}x{actual_height})")
                 return output_path
             else:
-                print(f"   [ERROR] Format de réponse inattendu")
-                raise Exception("Format de réponse gpt-image-1-mini inattendu")
+                print(f"   [ERROR] Aucune image trouvée dans la réponse")
+                raise Exception("Format de réponse gemini-3-pro-image-preview inattendu - aucune image trouvée")
             
         except Exception as e:
-            print(f"   ❌ Erreur gpt-image-1-mini: {e}")
+            print(f"   ❌ Erreur gemini-3-pro-image-preview: {e}")
             import traceback
             traceback.print_exc()
             raise Exception(f"Erreur génération image: {e}")
