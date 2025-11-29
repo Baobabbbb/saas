@@ -39,32 +39,86 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
     }
   };
 
-  const downloadPage = () => {
+  const downloadPage = async () => {
     const imageUrl = getImageUrl(currentPageData.image_url);
     if (!imageUrl) return;
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    link.download = `${safeTitle}_page_${currentPage + 1}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    
+    try {
+      // Récupérer l'image via fetch pour créer un blob
+      const response = await fetch(imageUrl);
+      if (!response.ok) throw new Error('Erreur lors du téléchargement');
+      
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      link.download = `${safeTitle}_page_${currentPage + 1}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Nettoyer l'URL blob après un court délai
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+    } catch (error) {
+      console.error('Erreur lors du téléchargement:', error);
+      // Fallback: essayer le téléchargement direct
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      link.download = `${safeTitle}_page_${currentPage + 1}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
-  const downloadAllPages = () => {
-    comic.pages.forEach((page, index) => {
-      setTimeout(() => {
-        const imageUrl = getImageUrl(page.image_url);
-        if (!imageUrl) return;
+  const downloadAllPages = async () => {
+    for (let index = 0; index < comic.pages.length; index++) {
+      const page = comic.pages[index];
+      const imageUrl = getImageUrl(page.image_url);
+      if (!imageUrl) continue;
+      
+      try {
+        // Récupérer l'image via fetch pour créer un blob
+        const response = await fetch(imageUrl);
+        if (!response.ok) throw new Error('Erreur lors du téléchargement');
+        
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        
         const link = document.createElement('a');
-        link.href = imageUrl;
+        link.href = blobUrl;
         const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
         link.download = `${safeTitle}_page_${index + 1}.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-      }, index * 500); // Délai entre chaque téléchargement
-    });
+        
+        // Nettoyer l'URL blob après un court délai
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+      } catch (error) {
+        console.error(`Erreur lors du téléchargement de la page ${index + 1}:`, error);
+        // Fallback: essayer le téléchargement direct
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        link.download = `${safeTitle}_page_${index + 1}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      
+      // Délai entre chaque téléchargement
+      if (index < comic.pages.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
   };
 
   const toggleFullscreen = () => {
