@@ -27,7 +27,17 @@ const ComicsSelector = ({
     { id: 'animaux', name: 'Animaux', icon: '🐾', description: 'Animaux mignons' },
     { id: 'superheros', name: 'Super-héros', icon: '🦸', description: 'Pouvoirs incroyables' },
     { id: 'foret', name: 'Forêt Magique', icon: '🌲', description: 'Forêt enchantée' },
-    { id: 'ecole', name: 'École', icon: '🎒', description: 'Aventures scolaires' }
+    { id: 'ecole', name: 'École', icon: '🎒', description: 'Aventures scolaires' },
+    { id: 'robots', name: 'Robots', icon: '🤖', description: 'Robots et technologie' },
+    { id: 'chevaliers', name: 'Chevaliers', icon: '⚔️', description: 'Châteaux et chevaliers' },
+    { id: 'sports', name: 'Sports', icon: '⚽', description: 'Aventures sportives' },
+    { id: 'musique', name: 'Musique', icon: '🎵', description: 'Concerts et instruments' },
+    { id: 'cirque', name: 'Cirque', icon: '🎪', description: 'Spectacles et acrobaties' },
+    { id: 'licornes', name: 'Licornes', icon: '🦄', description: 'Licornes magiques' },
+    { id: 'vehicules', name: 'Véhicules', icon: '🚗', description: 'Voitures et transports' },
+    { id: 'cuisine', name: 'Cuisine', icon: '🍰', description: 'Recettes et pâtisseries' },
+    { id: 'jardin', name: 'Jardin', icon: '🌻', description: 'Plantes et fleurs' },
+    { id: 'voyage_temps', name: 'Voyage dans le temps', icon: '⏰', description: 'Aventures temporelles' }
   ];
 
   // Styles artistiques disponibles

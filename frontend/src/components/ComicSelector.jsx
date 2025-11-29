@@ -14,7 +14,17 @@ const comicThemes = [
   { id: 'pirates', name: 'Pirates', description: 'Aventures de pirates', emoji: '🏴‍☠️' },
   { id: 'dinosaurs', name: 'Dinosaures', description: 'L\'époque des dinosaures', emoji: '🦕' },
   { id: 'fairy_tale', name: 'Conte de fées', description: 'Contes classiques revisités', emoji: '🏰' },
-  { id: 'superhero', name: 'Super-héros', description: 'Aventures héroïques', emoji: '🦸' }
+  { id: 'superhero', name: 'Super-héros', description: 'Aventures héroïques', emoji: '🦸' },
+  { id: 'robots', name: 'Robots', description: 'Robots et technologie', emoji: '🤖' },
+  { id: 'knights', name: 'Chevaliers', description: 'Châteaux et chevaliers', emoji: '⚔️' },
+  { id: 'sports', name: 'Sports', description: 'Aventures sportives', emoji: '⚽' },
+  { id: 'music', name: 'Musique', description: 'Concerts et instruments', emoji: '🎵' },
+  { id: 'circus', name: 'Cirque', description: 'Spectacles et acrobaties', emoji: '🎪' },
+  { id: 'unicorns', name: 'Licornes', description: 'Licornes magiques', emoji: '🦄' },
+  { id: 'vehicles', name: 'Véhicules', description: 'Voitures et transports', emoji: '🚗' },
+  { id: 'cooking', name: 'Cuisine', description: 'Recettes et pâtisseries', emoji: '🍰' },
+  { id: 'garden', name: 'Jardin', description: 'Plantes et fleurs', emoji: '🌻' },
+  { id: 'time_travel', name: 'Voyage dans le temps', description: 'Aventures temporelles', emoji: '⏰' }
 ];
 
 const artStyles = [

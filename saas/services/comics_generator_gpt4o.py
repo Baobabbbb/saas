@@ -116,6 +116,137 @@ class ComicsGeneratorGPT4o:
                 "name": "École",
                 "description": "Aventures à l'école",
                 "keywords": "school, friends, classroom, learning, fun"
+            },
+            "robots": {
+                "name": "Robots",
+                "description": "Aventures avec des robots et la technologie",
+                "keywords": "robots, technology, futuristic, AI, machines, sci-fi"
+            },
+            "chevaliers": {
+                "name": "Chevaliers",
+                "description": "Aventures de chevaliers et châteaux",
+                "keywords": "knights, castles, medieval, dragons, swords, armor, quest"
+            },
+            "sports": {
+                "name": "Sports",
+                "description": "Aventures sportives et compétitions",
+                "keywords": "sports, football, basketball, competition, team, victory, games"
+            },
+            "musique": {
+                "name": "Musique",
+                "description": "Concerts et aventures musicales",
+                "keywords": "music, concerts, instruments, band, songs, rhythm, melody"
+            },
+            "cirque": {
+                "name": "Cirque",
+                "description": "Spectacles de cirque et acrobaties",
+                "keywords": "circus, acrobats, clowns, trapeze, juggling, entertainment, show"
+            },
+            "licornes": {
+                "name": "Licornes",
+                "description": "Aventures avec des licornes magiques",
+                "keywords": "unicorns, magic, rainbow, sparkles, fantasy, mystical creatures"
+            },
+            "vehicules": {
+                "name": "Véhicules",
+                "description": "Aventures avec voitures et transports",
+                "keywords": "cars, vehicles, transportation, race, trucks, bikes, adventure"
+            },
+            "cuisine": {
+                "name": "Cuisine",
+                "description": "Recettes et aventures culinaires",
+                "keywords": "cooking, recipes, kitchen, food, baking, chef, delicious"
+            },
+            "jardin": {
+                "name": "Jardin",
+                "description": "Aventures dans le jardin avec plantes et fleurs",
+                "keywords": "garden, plants, flowers, nature, butterflies, bees, growing"
+            },
+            "voyage_temps": {
+                "name": "Voyage dans le temps",
+                "description": "Aventures temporelles et voyages dans le passé/futur",
+                "keywords": "time travel, past, future, history, adventure, discovery, timeline"
+            },
+            # Thèmes avec noms anglais pour compatibilité
+            "space": {
+                "name": "Espace",
+                "description": "Aventures spatiales avec fusées et planètes",
+                "keywords": "space, planets, rockets, astronauts, stars, galaxy"
+            },
+            "ocean": {
+                "name": "Océan",
+                "description": "Aventures sous-marines",
+                "keywords": "ocean, underwater, sea creatures, coral reef, diving, marine life"
+            },
+            "adventure": {
+                "name": "Aventure",
+                "description": "Exploration et découvertes",
+                "keywords": "adventure, exploration, discovery, journey, quest, exciting"
+            },
+            "animals": {
+                "name": "Animaux",
+                "description": "Histoires avec des animaux mignons",
+                "keywords": "cute animals, forest, friendship, nature"
+            },
+            "magic": {
+                "name": "Magie",
+                "description": "Monde magique et sortilèges",
+                "keywords": "magic, spells, wizards, enchanted, mystical, fantasy"
+            },
+            "friendship": {
+                "name": "Amitié",
+                "description": "Histoires d'amitié",
+                "keywords": "friendship, friends, together, support, bond, caring"
+            },
+            "forest": {
+                "name": "Forêt",
+                "description": "Mystères de la forêt",
+                "keywords": "forest, trees, nature, wildlife, exploration, adventure"
+            },
+            "dinosaurs": {
+                "name": "Dinosaures",
+                "description": "L'époque des dinosaures",
+                "keywords": "dinosaurs, prehistoric, adventure, jungle, T-Rex, fossils"
+            },
+            "fairy_tale": {
+                "name": "Conte de fées",
+                "description": "Contes classiques revisités",
+                "keywords": "fairy tale, princess, castle, magic, storybook, classic"
+            },
+            "superhero": {
+                "name": "Super-héros",
+                "description": "Aventures héroïques",
+                "keywords": "superheroes, powers, action, city, rescue, hero"
+            },
+            "knights": {
+                "name": "Chevaliers",
+                "description": "Aventures de chevaliers et châteaux",
+                "keywords": "knights, castles, medieval, dragons, swords, armor, quest"
+            },
+            "unicorns": {
+                "name": "Licornes",
+                "description": "Aventures avec des licornes magiques",
+                "keywords": "unicorns, magic, rainbow, sparkles, fantasy, mystical creatures"
+            },
+            "vehicles": {
+                "name": "Véhicules",
+                "description": "Aventures avec voitures et transports",
+                "keywords": "cars, vehicles, transportation, race, trucks, bikes, adventure"
+            },
+            "cooking": {
+                "name": "Cuisine",
+                "description": "Recettes et aventures culinaires",
+                "keywords": "cooking, recipes, kitchen, food, baking, chef, delicious"
+            },
+            "garden": {
+                "name": "Jardin",
+                "description": "Aventures dans le jardin avec plantes et fleurs",
+                "keywords": "garden, plants, flowers, nature, butterflies, bees, growing"
+            },
+            "time_travel": {
+                "name": "Voyage dans le temps",
+                "description": "Aventures temporelles et voyages dans le passé/futur",
+                "keywords": "time travel, past, future, history, adventure, discovery, timeline"
             }
         }
     
