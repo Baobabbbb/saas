@@ -584,13 +584,11 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
                 if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
                     for part in candidate.content.parts:
                         if hasattr(part, 'inline_data') and part.inline_data is not None:
-                            # Récupérer l'image depuis inline_data
-                            image = part.as_image()
-                            # Convertir PIL Image en bytes
-                            img_byte_arr = io.BytesIO()
-                            image.save(img_byte_arr, format='PNG')
-                            image_data = img_byte_arr.getvalue()
-                            break
+                            # Récupérer l'image depuis inline_data.data (base64)
+                            if hasattr(part.inline_data, 'data'):
+                                # Décoder le base64
+                                image_data = base64.b64decode(part.inline_data.data)
+                                break
                         elif hasattr(part, 'text') and part.text:
                             print(f"   [TEXT] {part.text[:100]}...")
             
