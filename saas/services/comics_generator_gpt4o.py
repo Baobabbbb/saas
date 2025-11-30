@@ -519,14 +519,20 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
         user_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
-        Génère toutes les planches de BD avec gpt-image-1-mini
+        Génère toutes les planches de BD avec gemini-3-pro-image-preview
         Chaque planche est une image unique contenant 4 cases + bulles + texte
-        Si character_photo_path est fourni, utilise images.edit() pour intégrer le personnage
+        Si character_photo_path est fourni, analyse la photo et utilise la description dans le prompt
         """
         
-        print(f"🎨 Génération des planches avec gpt-image-1-mini...")
+        print(f"🎨 Génération des planches avec gemini-3-pro-image-preview...")
+        
+        # Analyser la photo du personnage si fournie pour obtenir une description textuelle
+        character_description = None
         if character_photo_path:
-            print(f"   📸 Photo de personnage fournie, utilisation de images.edit()")
+            print(f"   📸 Photo de personnage fournie, analyse pour description textuelle...")
+            character_description = await self._analyze_character_photo(character_photo_path)
+            if character_description:
+                print(f"   ✅ Description personnage obtenue: {character_description[:100]}...")
         
         style_info = self.art_styles.get(art_style, self.art_styles["cartoon"])
         comic_id = str(uuid.uuid4())
@@ -541,18 +547,19 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
             try:
                 print(f"📄 Génération planche {page_num}/{story_data['total_pages']}...")
                 
-                # Construire le prompt complet pour gpt-image-1-mini
+                # Construire le prompt complet pour gemini-3-pro-image-preview
                 # Ce prompt décrit UNE SEULE IMAGE contenant 4 cases de BD
-                page_prompt = self._build_page_prompt(page_data, style_info)
+                page_prompt = self._build_page_prompt(page_data, style_info, character_description)
                 
                 print(f"   Prompt: {page_prompt[:200]}...")
                 
-                # Générer l'image avec gpt-image-1-mini (avec photo si fournie)
+                # Générer l'image avec gemini-3-pro-image-preview (text-to-image uniquement)
+                # On n'utilise plus l'image-to-image car Gemini ne le supporte pas correctement
                 image_path = await self._generate_page_with_gpt_image_1(
                     page_prompt,
                     comic_dir,
                     page_num,
-                    character_photo_path  # Passer la photo
+                    character_photo_path=None  # Ne plus passer la photo, utiliser uniquement la description
                 )
                 
                 # 📤 Upload OBLIGATOIRE vers Supabase Storage
@@ -610,14 +617,25 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
         
         return generated_pages, comic_id
     
-    def _build_page_prompt(self, page_data: Dict, style_info: Dict) -> str:
-        """Construit le prompt pour gpt-image-1-mini pour générer UNE planche complète"""
+    def _build_page_prompt(self, page_data: Dict, style_info: Dict, character_description: Optional[str] = None) -> str:
+        """Construit le prompt pour gemini-3-pro-image-preview pour générer UNE planche complète"""
         
         panels = page_data["panels"]
+        
+        # Ajouter la description du personnage si disponible
+        character_prompt = ""
+        if character_description:
+            character_prompt = f"""
+CRITICAL CHARACTER REFERENCE:
+The main character in ALL panels MUST be: {character_description}
+This character description is ABSOLUTELY CRITICAL - the main character in every panel must match this description exactly.
+Every visual description below refers to THIS specific character as "the main character".
+"""
         
         # Construire la description de la planche complète
         prompt = f"""A professional comic book page in square format with 4 panels arranged in a 2x2 grid layout.
 {style_info['prompt_modifier']}.
+{character_prompt}
 
 LAYOUT:
 - Square format (1024x1024 pixels)
@@ -684,74 +702,13 @@ STYLE REQUIREMENTS:
         try:
             print(f"   🎨 Appel gemini-3-pro-image-preview...")
             
-            # Si une photo de personnage est fournie, utiliser image-to-image pour plus de fidélité
-            if character_photo_path:
-                print(f"   📸 Utilisation de la photo de référence: {character_photo_path}")
-                
-                # Ouvrir l'image
-                with open(character_photo_path, "rb") as image_file:
-                    image_data = image_file.read()
-                
-                # Déterminer le MIME type depuis l'extension
-                photo_path_lower = character_photo_path.lower()
-                if photo_path_lower.endswith('.jpg') or photo_path_lower.endswith('.jpeg'):
-                    mime_type = "image/jpeg"
-                elif photo_path_lower.endswith('.png'):
-                    mime_type = "image/png"
-                else:
-                    mime_type = "image/jpeg"  # Par défaut
-                
-                print(f"   [DEBUG] Image chargée: {len(image_data)} bytes, MIME type: {mime_type}")
-                
-                # Charger l'image avec PIL pour vérifier qu'elle est valide
-                input_image_pil = Image.open(io.BytesIO(image_data))
-                print(f"   [DEBUG] Image PIL valide: {input_image_pil.size}, mode: {input_image_pil.mode}")
-                
-                # Adapter le prompt pour image-to-image : être ULTRA-EXPLICITE sur l'utilisation du personnage
-                edit_prompt = f"""CREATE A COMIC BOOK PAGE where the person shown in this photo is the MAIN CHARACTER and HERO of the story.
-
-CRITICAL REQUIREMENTS:
-1. The person in this photo MUST appear as the central character in ALL 4 panels
-2. This person MUST be the protagonist doing the actions described
-3. Keep their EXACT physical appearance: face, hair, eyes, clothing, everything recognizable
-4. This person should be prominent and clearly visible in EVERY panel
-5. DO NOT create random other characters as the main character - USE THIS PERSON
-
-{prompt}
-
-REMINDER: The person in the uploaded photo is the HERO. They must be in ALL panels as the main character."""
-                
-                # Utiliser Gemini pour image-to-image (texte et image vers image)
-                # Essayer d'abord avec types.Part.from_bytes qui est la méthode recommandée
-                print(f"   [DEBUG] Appel Gemini avec image de référence (types.Part.from_bytes)...")
-                try:
-                    image_part = types.Part.from_bytes(image_data, mime_type=mime_type)
-                    response = self.gemini_client.models.generate_content(
-                        model="gemini-3-pro-image-preview",
-                        contents=[edit_prompt, image_part]
-                    )
-                    print(f"   [DEBUG] Réponse Gemini reçue avec types.Part.from_bytes")
-                except Exception as e:
-                    print(f"   [DEBUG] Erreur avec types.Part.from_bytes, essai avec PIL Image: {e}")
-                    # Si ça ne marche pas, essayer avec PIL Image
-                    try:
-                        response = self.gemini_client.models.generate_content(
-                            model="gemini-3-pro-image-preview",
-                            contents=[edit_prompt, input_image_pil]
-                        )
-                        print(f"   [DEBUG] Réponse Gemini reçue avec PIL Image")
-                    except Exception as e2:
-                        print(f"   [ERROR] Erreur avec PIL Image aussi: {e2}")
-                        raise Exception(f"Impossible de passer l'image à Gemini: {e2}")
-                
-                print(f"   [DEBUG] Réponse Gemini reçue, type: {type(response)}")
-                print(f"   [DEBUG] Response attributes: {[attr for attr in dir(response) if not attr.startswith('_')]}")
-            else:
-                # Générer l'image normalement sans photo de référence (text-to-image)
-                response = self.gemini_client.models.generate_content(
-                    model="gemini-3-pro-image-preview",
-                    contents=[prompt]
-                )
+            # Utiliser uniquement text-to-image (Gemini ne supporte pas bien l'image-to-image)
+            # La description du personnage est déjà incluse dans le prompt via _build_page_prompt
+            print(f"   [INFO] Génération text-to-image avec description du personnage dans le prompt...")
+            response = self.gemini_client.models.generate_content(
+                model="gemini-3-pro-image-preview",
+                contents=[prompt]
+            )
             
             print(f"   [RESPONSE] Réponse reçue de gemini-3-pro-image-preview")
             
@@ -762,6 +719,18 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
                 print(f"   [DEBUG] Candidates is None: {response.candidates is None}")
                 if response.candidates is not None:
                     print(f"   [DEBUG] Number of candidates: {len(response.candidates)}")
+            
+            # Vérifier prompt_feedback pour voir s'il y a des erreurs
+            if hasattr(response, 'prompt_feedback'):
+                print(f"   [DEBUG] prompt_feedback: {response.prompt_feedback}")
+            
+            # Vérifier parsed pour voir ce qui a été parsé
+            if hasattr(response, 'parsed'):
+                print(f"   [DEBUG] parsed: {response.parsed}")
+            
+            # Vérifier text pour voir s'il y a du texte
+            if hasattr(response, 'text'):
+                print(f"   [DEBUG] text (first 500 chars): {response.text[:500] if response.text else 'None'}")
             
             # Gemini retourne les images dans response.candidates[0].content.parts
             image_data = None
@@ -842,14 +811,34 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
                 print(f"   [ERROR] Aucune image trouvée dans la réponse")
                 print(f"   [DEBUG] Tentative d'inspection complète de la réponse...")
                 try:
+                    # Vérifier prompt_feedback pour voir s'il y a des erreurs
+                    if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
+                        print(f"   [DEBUG] prompt_feedback: {response.prompt_feedback}")
+                        if hasattr(response.prompt_feedback, 'block_reason'):
+                            print(f"   [DEBUG] block_reason: {response.prompt_feedback.block_reason}")
+                        if hasattr(response.prompt_feedback, 'safety_ratings'):
+                            print(f"   [DEBUG] safety_ratings: {response.prompt_feedback.safety_ratings}")
+                    
+                    # Vérifier parsed pour voir ce qui a été parsé
+                    if hasattr(response, 'parsed') and response.parsed:
+                        print(f"   [DEBUG] parsed: {response.parsed}")
+                    
+                    # Vérifier text pour voir s'il y a du texte
+                    if hasattr(response, 'text') and response.text:
+                        print(f"   [DEBUG] text (first 500 chars): {response.text[:500]}")
+                    
                     # Essayer de convertir la réponse en dict pour inspection
                     if hasattr(response, 'model_dump'):
                         response_dict = response.model_dump()
                         print(f"   [DEBUG] Response dict keys: {list(response_dict.keys()) if isinstance(response_dict, dict) else 'N/A'}")
+                        if isinstance(response_dict, dict) and 'candidates' in response_dict:
+                            print(f"   [DEBUG] candidates value: {response_dict['candidates']}")
                     elif hasattr(response, '__dict__'):
                         print(f"   [DEBUG] Response __dict__ keys: {list(response.__dict__.keys())}")
                 except Exception as e:
                     print(f"   [DEBUG] Impossible d'inspecter la réponse: {e}")
+                    import traceback
+                    traceback.print_exc()
             
             if image_data:
                 print(f"   [OK] Image reçue ({len(image_data)} bytes)")
