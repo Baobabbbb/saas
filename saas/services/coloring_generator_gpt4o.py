@@ -1,8 +1,7 @@
 """
 Service de génération de coloriages
-- GPT-4o analyse + Gemini text-to-image pour les photos uploadées (Gemini bloque image-to-image)
-- gemini-2.5-flash-image pour les thèmes prédéfinis
-- gpt-image-1-mini pour les photos uploadées (image-to-image)
+- gpt-image-1-mini (image-to-image) pour les photos uploadées
+- gemini-3-pro-image-preview (text-to-image) pour les thèmes prédéfinis
 """
 import os
 import uuid
@@ -26,7 +25,7 @@ class ColoringGeneratorGPT4o:
     """
     Générateur de coloriages
     - gpt-image-1-mini (image-to-image) pour photos uploadées
-    - gemini-2.5-flash-image (text-to-image) pour thèmes
+    - gemini-3-pro-image-preview (text-to-image) pour thèmes
     """
     
     def __init__(self):
@@ -792,7 +791,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
         with_colored_model: bool = True
     ) -> Optional[str]:
         """
-        Génère un coloriage avec gemini-2.5-flash-image (TEXT-TO-IMAGE)
+        Génère un coloriage avec gemini-3-pro-image-preview (TEXT-TO-IMAGE)
         Utilisé pour la génération par thème
         
         Args:
@@ -814,13 +813,13 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             print(f"[PROMPT TEXT-TO-IMAGE] {final_prompt[:150]}...")
             
             # Appeler Gemini avec text-to-image
-            print(f"[API] Appel Gemini gemini-2.5-flash-image...")
+            print(f"[API] Appel Gemini gemini-3-pro-image-preview...")
             response = self.gemini_client.models.generate_content(
-                model="gemini-2.5-flash-image",
+                model="gemini-3-pro-image-preview",
                 contents=[final_prompt]
             )
             
-            print(f"[RESPONSE] Reponse recue de gemini-2.5-flash-image")
+            print(f"[RESPONSE] Reponse recue de gemini-3-pro-image-preview")
             
             # Gemini retourne les images dans response.candidates[0].content.parts
             image_data = None
