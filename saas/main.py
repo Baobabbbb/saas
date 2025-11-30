@@ -1079,11 +1079,20 @@ async def upload_photo_for_coloring(file: UploadFile = File(...)):
 
 
 @app.post("/convert_photo_to_coloring/")
-async def convert_photo_to_coloring(request: dict):
+async def convert_photo_to_coloring(request: dict, req: Request = None):
     """
     Convertit une photo uploadée en coloriage avec GPT-4o-mini + gpt-image-1-mini
     """
     try:
+        # Extraire user_id depuis JWT - AUTHENTIFICATION REQUISE
+        authorization = req.headers.get("authorization") if req else None
+        user_id = await extract_user_id_from_jwt(authorization, None)
+        if not user_id:
+            raise HTTPException(
+                status_code=401,
+                detail="Authentification requise pour convertir une photo en coloriage"
+            )
+        
         # Récupérer les paramètres
         photo_path = request.get("photo_path")
         custom_prompt = request.get("custom_prompt")
@@ -1120,7 +1129,7 @@ async def convert_photo_to_coloring(request: dict):
             photo_path=photo_path,
             custom_prompt=custom_prompt,
             with_colored_model=with_colored_model,
-            user_id=request.get("user_id")  # Passer user_id pour Supabase Storage
+            user_id=user_id  # Passer user_id extrait du JWT pour Supabase Storage
         )
         
         if result.get("success") == True:
