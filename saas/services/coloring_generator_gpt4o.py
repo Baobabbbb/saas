@@ -1,7 +1,8 @@
 """
-Service de génération de coloriages avec gemini-3-pro-image-preview
+Service de génération de coloriages
 - GPT-4o analyse + Gemini text-to-image pour les photos uploadées (Gemini bloque image-to-image)
-- Text-to-image pour les thèmes prédéfinis
+- gemini-2.5-flash-image pour les thèmes prédéfinis
+- gpt-image-1-mini pour les photos uploadées (image-to-image)
 """
 import os
 import uuid
@@ -23,9 +24,9 @@ load_dotenv()
 
 class ColoringGeneratorGPT4o:
     """
-    Générateur de coloriages avec gemini-3-pro-image-preview
-    - GPT-4o analyse + Gemini text-to-image pour photos uploadées
-    - Text-to-image pour thèmes
+    Générateur de coloriages
+    - gpt-image-1-mini (image-to-image) pour photos uploadées
+    - gemini-2.5-flash-image (text-to-image) pour thèmes
     """
     
     def __init__(self):
@@ -648,7 +649,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 return str(output_path)
             else:
                 print(f"[ERROR] Aucune image trouvée dans la réponse")
-                raise Exception("Format de reponse gemini-3-pro-image-preview inattendu - aucune image trouvée")
+                raise Exception("Format de reponse gemini-2.5-flash-image inattendu - aucune image trouvée")
             
         except Exception as e:
             print(f"[ERROR] Erreur edition image-to-image: {e}")
@@ -664,7 +665,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
         with_colored_model: bool = True
     ) -> Optional[str]:
         """
-        Génère un coloriage avec gemini-3-pro-image-preview (TEXT-TO-IMAGE)
+        Génère un coloriage avec gemini-2.5-flash-image (TEXT-TO-IMAGE)
         Utilisé pour la génération par thème
         
         Args:
@@ -686,13 +687,13 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             print(f"[PROMPT TEXT-TO-IMAGE] {final_prompt[:150]}...")
             
             # Appeler Gemini avec text-to-image
-            print(f"[API] Appel Gemini gemini-3-pro-image-preview...")
+            print(f"[API] Appel Gemini gemini-2.5-flash-image...")
             response = self.gemini_client.models.generate_content(
-                model="gemini-3-pro-image-preview",
+                model="gemini-2.5-flash-image",
                 contents=[final_prompt]
             )
             
-            print(f"[RESPONSE] Reponse recue de gemini-3-pro-image-preview")
+            print(f"[RESPONSE] Reponse recue de gemini-2.5-flash-image")
             
             # Gemini retourne les images dans response.candidates[0].content.parts
             image_data = None
@@ -755,7 +756,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                     print(f"[DEBUG] Candidates is None: {response.candidates is None}")
                 if hasattr(response, 'prompt_feedback'):
                     print(f"[DEBUG] Prompt feedback: {response.prompt_feedback}")
-                raise Exception("Format de reponse gemini-3-pro-image-preview inattendu - aucune image trouvée")
+                raise Exception("Format de reponse gemini-2.5-flash-image inattendu - aucune image trouvée")
             
             if image_data:
                 # Charger l'image générée
@@ -771,7 +772,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 return str(output_path)
             else:
                 print(f"[ERROR] Aucune image trouvée dans la réponse")
-                raise Exception("Format de reponse gemini-3-pro-image-preview inattendu - aucune image trouvée")
+                raise Exception("Format de reponse gemini-2.5-flash-image inattendu - aucune image trouvée")
             
         except Exception as e:
             print(f"[ERROR] Erreur generation text-to-image: {e}")
