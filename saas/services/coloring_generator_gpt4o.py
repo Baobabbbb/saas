@@ -503,14 +503,32 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             
             # Charger l'image générée
             generated_img = Image.open(io.BytesIO(image_data))
+            print(f"[DEBUG] Image générée: {generated_img.size}")
             
-            # Redimensionner aux dimensions originales si nécessaire
-            if generated_img.size != (original_width, original_height):
-                generated_img = generated_img.resize((original_width, original_height), Image.Resampling.LANCZOS)
+            # L'image générée est en 1024x1024 (carré)
+            # Il faut extraire la partie centrale correspondant à l'image originale
+            # puis la redimensionner aux dimensions originales pour garder les proportions
+            
+            # Calculer les coordonnées de la zone à extraire (même zone que celle où on a collé l'image originale)
+            # Ces coordonnées correspondent à x_offset, y_offset, new_width, new_height calculés plus haut
+            crop_x = x_offset
+            crop_y = y_offset
+            crop_width = new_width
+            crop_height = new_height
+            
+            print(f"[DEBUG] Extraction zone: ({crop_x}, {crop_y}, {crop_x + crop_width}, {crop_y + crop_height})")
+            
+            # Extraire la partie centrale de l'image générée
+            cropped_img = generated_img.crop((crop_x, crop_y, crop_x + crop_width, crop_y + crop_height))
+            print(f"[DEBUG] Image recadrée: {cropped_img.size}")
+            
+            # Redimensionner aux dimensions originales pour restaurer la taille exacte
+            final_img = cropped_img.resize((original_width, original_height), Image.Resampling.LANCZOS)
+            print(f"[DEBUG] Image finale: {final_img.size}")
             
             # Sauvegarder
             output_path = self.output_dir / f"coloring_photo_gpt_image_1_{uuid.uuid4().hex[:8]}.png"
-            generated_img.save(output_path, 'PNG', optimize=True)
+            final_img.save(output_path, 'PNG', optimize=True)
             print(f"[OK] Coloriage photo sauvegardé ({original_width}x{original_height}): {output_path.name}")
             
             # Nettoyer les fichiers temporaires
