@@ -1,6 +1,6 @@
 """
 Service de génération de coloriages
-- gpt-image-1 (image-to-image) pour les photos uploadées
+- gpt-image-1-mini (image-to-image) pour les photos uploadées
 - gemini-3-pro-image-preview (text-to-image) pour les thèmes prédéfinis
 """
 import os
@@ -466,7 +466,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                     prompt=edit_prompt,
                     n=1,
                     size=f"{size}x{size}",
-                    model="gpt-image-1"
+                    model="gpt-image-1-mini"
                 )
             
             # Vérifier la structure de la réponse
@@ -474,7 +474,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             print(f"[DEBUG] Response data: {response.data if hasattr(response, 'data') else 'No data'}")
             
             if not response.data or len(response.data) == 0:
-                raise Exception("Aucune image générée par gpt-image-1")
+                raise Exception("Aucune image générée par gpt-image-1-mini")
             
             image_result = response.data[0]
             print(f"[DEBUG] Image result: {image_result}")
@@ -496,7 +496,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 print(f"[DEBUG] Décodage depuis base64")
                 image_data = base64.b64decode(image_result.b64_json)
             else:
-                raise Exception(f"Format de réponse gpt-image-1 inattendu: pas d'URL ni de b64_json. Response: {image_result}")
+                raise Exception(f"Format de réponse gpt-image-1-mini inattendu: pas d'URL ni de b64_json. Response: {image_result}")
             
             if not image_data:
                 raise Exception("Impossible de récupérer l'image générée")
@@ -506,39 +506,25 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             print(f"[DEBUG] Image générée: {generated_img.size}")
             
             # L'image générée est en 1024x1024 (carré)
-            # Pour préserver toute l'image générée (même les éléments qui dépassent), on va :
-            # 1. Redimensionner l'image générée pour qu'elle ait les mêmes proportions que l'originale
-            # 2. Puis recadrer au centre si nécessaire pour avoir exactement les dimensions originales
+            # Il faut extraire la partie centrale correspondant à l'image originale
+            # puis la redimensionner aux dimensions originales pour garder les proportions exactes
             
-            # Calculer les proportions de l'image originale
-            original_ratio = original_width / original_height
-            print(f"[DEBUG] Ratio original: {original_ratio} ({original_width}/{original_height})")
+            # Calculer les coordonnées de la zone à extraire (même zone que celle où on a collé l'image originale)
+            # Ces coordonnées correspondent à x_offset, y_offset, new_width, new_height calculés plus haut
+            crop_x = x_offset
+            crop_y = y_offset
+            crop_width = new_width
+            crop_height = new_height
             
-            # Redimensionner l'image générée (1024x1024) pour qu'elle ait les mêmes proportions que l'originale
-            # On garde la dimension la plus grande à 1024 et on ajuste l'autre
-            if original_ratio > 1:  # Largeur > hauteur (paysage)
-                new_gen_width = 1024
-                new_gen_height = int(1024 / original_ratio)
-            else:  # Hauteur >= largeur (portrait ou carré)
-                new_gen_height = 1024
-                new_gen_width = int(1024 * original_ratio)
+            print(f"[DEBUG] Extraction zone: ({crop_x}, {crop_y}, {crop_x + crop_width}, {crop_y + crop_height})")
             
-            print(f"[DEBUG] Redimensionnement généré: {new_gen_width}x{new_gen_height}")
-            resized_gen = generated_img.resize((new_gen_width, new_gen_height), Image.Resampling.LANCZOS)
+            # Extraire la partie centrale de l'image générée (zone où se trouve l'image originale)
+            cropped_img = generated_img.crop((crop_x, crop_y, crop_x + crop_width, crop_y + crop_height))
+            print(f"[DEBUG] Image recadrée: {cropped_img.size}")
             
-            # Maintenant, recadrer au centre pour avoir exactement les dimensions originales
-            # Si l'image redimensionnée est plus grande que l'originale, on recadre
-            # Sinon, on redimensionne directement
-            if new_gen_width >= original_width and new_gen_height >= original_height:
-                # Recadrer au centre
-                crop_x = (new_gen_width - original_width) // 2
-                crop_y = (new_gen_height - original_height) // 2
-                final_img = resized_gen.crop((crop_x, crop_y, crop_x + original_width, crop_y + original_height))
-                print(f"[DEBUG] Image recadrée au centre: {final_img.size}")
-            else:
-                # Redimensionner directement (cas rare où l'image générée est plus petite)
-                final_img = resized_gen.resize((original_width, original_height), Image.Resampling.LANCZOS)
-                print(f"[DEBUG] Image redimensionnée directement: {final_img.size}")
+            # Redimensionner aux dimensions originales pour restaurer la taille exacte (sans déformation)
+            final_img = cropped_img.resize((original_width, original_height), Image.Resampling.LANCZOS)
+            print(f"[DEBUG] Image finale redimensionnée: {final_img.size} (original: {original_width}x{original_height})")
             
             # Sauvegarder
             output_path = self.output_dir / f"coloring_photo_gpt_image_1_{uuid.uuid4().hex[:8]}.png"
@@ -552,7 +538,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             return str(output_path)
             
         except Exception as e:
-            print(f"[ERROR] Erreur conversion photo avec gpt-image-1: {e}")
+            print(f"[ERROR] Erreur conversion photo avec gpt-image-1-mini: {e}")
             import traceback
             traceback.print_exc()
             raise
