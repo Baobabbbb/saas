@@ -1,6 +1,6 @@
 """
 Service de génération de coloriages avec gemini-3-pro-image-preview
-- Image-to-image direct pour les photos uploadées (meilleure ressemblance)
+- GPT-4o analyse + Gemini text-to-image pour les photos uploadées (Gemini bloque image-to-image)
 - Text-to-image pour les thèmes prédéfinis
 """
 import os
@@ -24,7 +24,7 @@ load_dotenv()
 class ColoringGeneratorGPT4o:
     """
     Générateur de coloriages avec gemini-3-pro-image-preview
-    - Image-to-image pour photos uploadées
+    - GPT-4o analyse + Gemini text-to-image pour photos uploadées
     - Text-to-image pour thèmes
     """
     
@@ -108,9 +108,11 @@ Subject: {subject}"""
                 '.webp': 'image/webp'
             }.get(ext, 'image/jpeg')
             
-            # Analyser avec gpt-4o-mini (vision) - Description ULTRA DÉTAILLÉE et EXHAUSTIVE
+            # Analyser avec gpt-4o (vision) - Description ULTRA DÉTAILLÉE et EXHAUSTIVE
+            # Utilisation de gpt-4o au lieu de gpt-4o-mini car moins de restrictions
+            print(f"   🤖 Utilisation gpt-4o (au lieu de gpt-4o-mini) pour éviter les blocages...")
             response = await self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4o",
                 messages=[
                     {
                         "role": "user",
@@ -396,8 +398,9 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
         user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Convertit une photo en coloriage avec Gemini image-to-image direct
-        Cette méthode utilise directement l'image uploadée avec Gemini pour créer un coloriage
+        Convertit une photo en coloriage avec GPT-4o analyse + Gemini text-to-image
+        Gemini bloque l'image-to-image pour les photos de personnes, donc on utilise
+        GPT-4o pour analyser la photo et créer une description, puis Gemini text-to-image
         
         Args:
             photo_path: Chemin vers la photo
@@ -408,18 +411,22 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             Dict avec le résultat
         """
         try:
-            print(f"[COLORING PHOTO] Conversion IMAGE-TO-IMAGE direct avec Gemini: {photo_path}")
+            print(f"[COLORING PHOTO] Conversion avec GPT-4o analyse + Gemini text-to-image: {photo_path}")
             
-            # Utiliser l'édition d'image DIRECTE avec Gemini (IMAGE-TO-IMAGE)
-            print(f"[IMAGE-TO-IMAGE] Transformation directe avec gemini-3-pro-image-preview...")
-            coloring_path_str = await self._edit_photo_to_coloring_direct(
-                photo_path, 
+            # Analyser la photo avec GPT-4o pour obtenir une description ultra détaillée
+            photo_description = await self._analyze_photo_for_coloring(photo_path)
+            
+            # Utiliser la description dans un prompt text-to-image pour Gemini
+            print(f"[COLORING] Génération coloriage avec description détaillée...")
+            coloring_path_str = await self._generate_coloring_from_description(
+                photo_description, 
                 custom_prompt, 
-                with_colored_model
+                with_colored_model,
+                photo_path  # Pour préserver les dimensions originales
             )
             
             if not coloring_path_str:
-                raise Exception("Échec de la génération Gemini (image-to-image)")
+                raise Exception("Échec de la génération Gemini (text-to-image avec description)")
             
             # Convertir en Path
             coloring_path = Path(coloring_path_str)
@@ -451,19 +458,19 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 "source_photo": photo_path,
                 "images": [{
                     "image_url": image_url,
-                    "source": "Gemini image-to-image direct"
+                    "source": "GPT-4o (analyse) + Gemini text-to-image"
                 }],
                 "total_images": 1,
                 "metadata": {
                     "source_photo": photo_path,
-                    "method": "Gemini image-to-image direct editing",
+                    "method": "GPT-4o analysis + Gemini text-to-image",
                     "created_at": datetime.now().isoformat(),
                     "model": "gpt-image-1-mini",
                     "with_colored_model": with_colored_model
                 }
             }
             
-            print(f"[OK] Coloriage photo généré avec succès (Gemini image-to-image): {coloring_path.name}")
+            print(f"[OK] Coloriage photo généré avec succès (GPT-4o analyse + Gemini text-to-image): {coloring_path.name}")
             return result
             
         except Exception as e:
