@@ -665,12 +665,12 @@ Génère maintenant le scénario complet en JSON:"""
         return generated_pages, comic_id
     
     def _build_page_prompt(self, page_data: Dict, style_info: Dict, character_description: Optional[str] = None) -> str:
-        """Construit le prompt ULTRA DÉTAILLÉ pour gemini-3-pro-image-preview pour générer UNE planche complète
+        """Construit le prompt détaillé pour gemini-3-pro-image-preview pour générer UNE planche complète
         
         Args:
             page_data: Données de la planche (panels, dialogues, etc.)
             style_info: Informations sur le style artistique
-            character_description: Description très détaillée du personnage (si photo fournie)
+            character_description: Non utilisé (conservé pour compatibilité, on utilise l'illustration directement)
         """
         
         panels = page_data["panels"]
