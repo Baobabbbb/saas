@@ -466,11 +466,23 @@ Génère maintenant le scénario complet en JSON:"""
             print(f"📸 Analyse approfondie de la photo personnage: {photo_path}")
             
             # Charger et encoder l'image en base64
+            print(f"   📁 Lecture fichier photo: {photo_path}")
             with open(photo_path, "rb") as image_file:
                 image_data = image_file.read()
             
+            print(f"   ✅ Fichier lu: {len(image_data)} bytes")
+            
+            # Vérifier que c'est bien une image valide
+            try:
+                test_img = Image.open(io.BytesIO(image_data))
+                print(f"   ✅ Image valide: {test_img.size}, mode: {test_img.mode}")
+            except Exception as e:
+                print(f"   ⚠️ ERREUR: Fichier n'est pas une image valide: {e}")
+                raise Exception(f"Fichier photo invalide: {e}")
+            
             # Convertir en base64
             base64_image = base64.b64encode(image_data).decode('utf-8')
+            print(f"   ✅ Image encodée en base64: {len(base64_image)} caractères")
             
             # Déterminer le type MIME
             image_path_obj = Path(photo_path)
@@ -484,6 +496,10 @@ Génère maintenant le scénario complet en JSON:"""
             }.get(ext, 'image/jpeg')
             
             # Analyser avec gpt-4o-mini (vision) - Description ULTRA DÉTAILLÉE et EXHAUSTIVE
+            print(f"   🤖 Envoi image à GPT-4o-mini pour analyse...")
+            print(f"   📊 Taille image base64: {len(base64_image)} caractères")
+            print(f"   📊 Type MIME: {mime_type}")
+            
             response = await self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -643,6 +659,17 @@ CRITICAL REQUIREMENTS:
                 ],
                 max_tokens=8000  # Limite maximale pour une description ultra détaillée et exhaustive
             )
+            
+            print(f"   ✅ Réponse reçue de GPT-4o-mini")
+            print(f"   📊 Tokens utilisés: {response.usage.total_tokens if hasattr(response, 'usage') else 'N/A'}")
+            
+            if not response.choices or len(response.choices) == 0:
+                print(f"   ⚠️ ERREUR: Aucune réponse dans les choices")
+                raise Exception("GPT-4o-mini n'a retourné aucune réponse")
+            
+            if not response.choices[0].message or not response.choices[0].message.content:
+                print(f"   ⚠️ ERREUR: Contenu de réponse vide")
+                raise Exception("GPT-4o-mini a retourné une réponse vide")
             
             description = response.choices[0].message.content.strip()
             
