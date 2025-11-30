@@ -768,8 +768,17 @@ STYLE REQUIREMENTS:
                 character_img = Image.open(character_photo_path)
                 print(f"   📏 Illustration: {character_img.size}, mode: {character_img.mode}")
                 
-                # Créer un prompt simple pour image-to-image
-                simple_prompt = f"""Transform this character illustration into a comic book page with 4 panels in a 2x2 grid layout. Create a scene based on this prompt: {prompt[:500]}. Use the character from the provided image as the main character in all 4 panels, maintaining their recognizable appearance."""
+                # Utiliser le prompt complet pour image-to-image
+                # Le prompt contient toute l'histoire avec les descriptions détaillées de chaque case
+                full_prompt = f"""Transform this character illustration into a comic book page with 4 panels in a 2x2 grid layout. 
+
+Use the character from the provided image as the main character in all 4 panels, maintaining their recognizable appearance.
+
+IMPORTANT: Follow this complete story and scene description exactly:
+
+{prompt}
+
+The character from the provided image must be the main character performing all the actions described above in all 4 panels."""
                 
                 # Convertir l'image en bytes pour Gemini
                 import io
@@ -786,7 +795,7 @@ STYLE REQUIREMENTS:
                             img_bytes.read(),
                             mime_type="image/png"
                         ),
-                        simple_prompt
+                        full_prompt
                     ]
                 )
             else:
