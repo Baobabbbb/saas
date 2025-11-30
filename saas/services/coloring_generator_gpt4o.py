@@ -292,7 +292,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             
             # Extraire l'image de la réponse
             image_data = None
-            if hasattr(response, 'candidates') and len(response.candidates) > 0:
+            if hasattr(response, 'candidates') and response.candidates is not None and len(response.candidates) > 0:
                 candidate = response.candidates[0]
                 if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
                     for part in candidate.content.parts:
@@ -689,7 +689,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             
             # Gemini retourne les images dans response.candidates[0].content.parts
             image_data = None
-            if hasattr(response, 'candidates') and len(response.candidates) > 0:
+            if hasattr(response, 'candidates') and response.candidates is not None and len(response.candidates) > 0:
                 candidate = response.candidates[0]
                 if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
                     for part in candidate.content.parts:
@@ -737,6 +737,18 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                                         continue
                         elif hasattr(part, 'text') and part.text:
                             print(f"[TEXT] {part.text[:100]}...")
+            
+            if not image_data:
+                # Debug: inspecter la réponse complète
+                print(f"[ERROR] Aucune image trouvée dans la réponse")
+                print(f"[DEBUG] Response type: {type(response)}")
+                print(f"[DEBUG] Response has candidates: {hasattr(response, 'candidates')}")
+                if hasattr(response, 'candidates'):
+                    print(f"[DEBUG] Candidates value: {response.candidates}")
+                    print(f"[DEBUG] Candidates is None: {response.candidates is None}")
+                if hasattr(response, 'prompt_feedback'):
+                    print(f"[DEBUG] Prompt feedback: {response.prompt_feedback}")
+                raise Exception("Format de reponse gemini-3-pro-image-preview inattendu - aucune image trouvée")
             
             if image_data:
                 # Charger l'image générée
