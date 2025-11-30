@@ -775,7 +775,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 return str(output_path)
             else:
                 print(f"[ERROR] Aucune image trouvée dans la réponse")
-                raise Exception("Format de reponse gemini-2.5-flash-image inattendu - aucune image trouvée")
+                raise Exception("Format de reponse gemini-3-pro-image-preview inattendu - aucune image trouvée")
             
         except Exception as e:
             print(f"[ERROR] Erreur edition image-to-image: {e}")
@@ -882,7 +882,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                     print(f"[DEBUG] Candidates is None: {response.candidates is None}")
                 if hasattr(response, 'prompt_feedback'):
                     print(f"[DEBUG] Prompt feedback: {response.prompt_feedback}")
-                raise Exception("Format de reponse gemini-2.5-flash-image inattendu - aucune image trouvée")
+                raise Exception("Format de reponse gemini-3-pro-image-preview inattendu - aucune image trouvée")
             
             if image_data:
                 # Charger l'image générée
@@ -898,7 +898,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 return str(output_path)
             else:
                 print(f"[ERROR] Aucune image trouvée dans la réponse")
-                raise Exception("Format de reponse gemini-2.5-flash-image inattendu - aucune image trouvée")
+                raise Exception("Format de reponse gemini-3-pro-image-preview inattendu - aucune image trouvée")
             
         except Exception as e:
             print(f"[ERROR] Erreur generation text-to-image: {e}")
