@@ -472,7 +472,7 @@ Génère maintenant le scénario complet en JSON:"""
                 '.webp': 'image/webp'
             }.get(ext, 'image/jpeg')
             
-            # Analyser avec gpt-4o-mini (vision) - Description ULTRA DÉTAILLÉE sans limite
+            # Analyser avec gpt-4o-mini (vision) - Description ULTRA DÉTAILLÉE et EXHAUSTIVE
             response = await self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -481,87 +481,145 @@ Génère maintenant le scénario complet en JSON:"""
                         "content": [
                             {
                                 "type": "text",
-                                "text": """Analyse cette photo de personnage et crée une description ULTRA DÉTAILLÉE et EXHAUSTIVE en anglais pour qu'un modèle de génération d'images puisse recréer ce personnage de manière PARFAITEMENT RECONNAISSABLE dans une bande dessinée pour enfants.
+                                "text": """You are an expert visual analyst. Analyze this character photo and create an EXTREMELY DETAILED, EXHAUSTIVE, and PRECISE description in English that will allow an image generation model to recreate this character with MAXIMUM FIDELITY and RECOGNIZABILITY in a children's comic book.
 
-CRITÈRES D'ANALYSE (décris TOUT en détail, sans limite de longueur):
+CRITICAL: Your description must be so detailed that someone reading it could draw or generate an image that looks EXACTLY like the person in the photo. Every single visible detail matters.
 
-1. ÂGE ET GÉNÉRALITÉS:
-   - Âge approximatif précis (ex: "approximately 8 years old", "teenager around 14 years old")
-   - Genre
-   - Taille apparente (petit, moyen, grand pour l'âge)
-   - Corpulence générale
+ANALYSIS CRITERIA (describe EVERYTHING in extreme detail, NO length limit):
 
-2. VISAGE (description très précise):
-   - Forme du visage (rond, ovale, carré, rectangulaire, triangulaire)
-   - Teint de peau (couleur précise: fair, light, medium, olive, tan, dark, etc.)
-   - Traits faciaux distinctifs
-   - Expression générale (souriant, sérieux, joyeux, etc.)
+1. AGE AND GENERAL CHARACTERISTICS:
+   - Exact approximate age (e.g., "approximately 7-8 years old", "teenager around 13-14 years old")
+   - Gender
+   - Apparent height relative to age (short, average, tall for age)
+   - Body build and frame (slim, average, stocky, etc.)
+   - Overall body proportions
 
-3. CHEVEUX (détails complets):
-   - Couleur exacte (blond, brun, noir, roux, etc. avec nuances)
-   - Longueur précise (très court, court, mi-long, long, très long)
-   - Style (raides, bouclés, ondulés, frisés, etc.)
-   - Texture et volume
-   - Coupe de cheveux précise (frange, raie, etc.)
-   - Détails particuliers (mèches, etc.)
+2. FACE SHAPE AND STRUCTURE (EXTREME DETAIL):
+   - Face shape: round, oval, square, rectangular, triangular, heart-shaped, diamond-shaped
+   - Face width relative to length (wide, narrow, proportional)
+   - Forehead: high, low, average; width; shape
+   - Cheekbones: prominent, flat, average; position
+   - Jawline: sharp, rounded, square, soft, defined
+   - Chin: pointed, rounded, square, cleft, dimpled
+   - Overall facial symmetry and proportions
 
-4. YEUX (description précise):
-   - Couleur exacte (bleu, vert, marron, noisette, gris, etc.)
-   - Forme (ronds, ovales, en amande, etc.)
-   - Taille (petits, moyens, grands)
-   - Expression et regard
+3. SKIN TONE AND COMPLEXION (PRECISE COLOR DESCRIPTION):
+   - Exact skin tone: very fair, fair, light, light-medium, medium, medium-tan, tan, olive, dark, very dark
+   - Undertones: warm (yellow/golden), cool (pink/blue), neutral
+   - Skin texture: smooth, freckled, clear, etc.
+   - Any visible skin markings, blemishes, or distinctive features
 
-5. NEZ:
-   - Forme (petit, moyen, grand, pointu, arrondi, etc.)
-   - Taille par rapport au visage
+4. HAIR (COMPLETE DETAILED DESCRIPTION):
+   - Exact hair color: light blonde, dark blonde, light brown, medium brown, dark brown, black, auburn, red, strawberry blonde, etc. (be VERY specific)
+   - Hair length: very short (buzz cut), short, medium-short, medium, medium-long, long, very long
+   - Hair texture: straight, wavy, curly, very curly, kinky, coily
+   - Hair thickness: thin, medium, thick, very thick
+   - Hair volume: flat, average, voluminous
+   - Haircut style: bangs (fringe), side part, center part, no part, layers, one length, etc.
+   - Hair direction: how it falls, any specific styling
+   - Hairline: straight, rounded, widow's peak, receding, etc.
+   - Any highlights, lowlights, or color variations
+   - Hair accessories: clips, bands, headbands, etc.
 
-6. BOUCHE:
-   - Forme et taille
-   - Expression (sourire, lèvres fermées, etc.)
+5. EYES (EXTREMELY PRECISE DESCRIPTION):
+   - Exact eye color: bright blue, light blue, dark blue, blue-gray, green, hazel, light brown, medium brown, dark brown, black, gray, etc.
+   - Eye shape: round, almond-shaped, oval, wide-set, close-set, upturned, downturned
+   - Eye size: small, medium, large relative to face
+   - Eyelid type: single, double, hooded, monolid
+   - Eye spacing: close together, average, wide apart
+   - Eye depth: deep-set, average, prominent
+   - Eyelashes: short, medium, long; sparse, average, thick; color
+   - Eyebrows: color (match hair or different), shape (straight, arched, rounded), thickness (thin, medium, thick), spacing
+   - Eye expression: bright, sleepy, alert, kind, serious, etc.
 
-7. AUTRES TRAITS FACIAUX:
-   - Sourcils (couleur, forme, épaisseur)
-   - Cils (longs, courts, etc.)
-   - Joues (pleines, creuses, fossettes, etc.)
-   - Menton (pointu, arrondi, etc.)
+6. NOSE (DETAILED DESCRIPTION):
+   - Nose shape: small, medium, large relative to face
+   - Nose bridge: high, low, average; straight, curved
+   - Nose tip: pointed, rounded, bulbous, upturned, downturned
+   - Nostril size and shape
+   - Overall nose width: narrow, average, wide
 
-8. VÊTEMENTS (description complète):
-   - Type de vêtements (t-shirt, chemise, robe, etc.)
-   - Couleurs précises de chaque élément
-   - Style et coupe
-   - Motifs, imprimés, logos si visibles
-   - Détails (manches, col, etc.)
+7. MOUTH AND LIPS (PRECISE DESCRIPTION):
+   - Mouth size: small, medium, large relative to face
+   - Lip fullness: thin, medium, full
+   - Upper lip shape: curved, straight, defined cupid's bow, etc.
+   - Lower lip shape: rounded, straight, etc.
+   - Lip color: natural, pale, rosy, etc.
+   - Expression: smiling (how wide), neutral, serious, etc.
+   - Any distinctive features: dimples, etc.
 
-9. ACCESSOIRES:
-   - Lunettes (forme, couleur, style)
-   - Bijoux (boucles d'oreilles, collier, etc.)
-   - Chapeau, casquette, etc.
-   - Tout autre accessoire visible
+8. EARS (IF VISIBLE):
+   - Size: small, medium, large
+   - Position: close to head, protruding
+   - Shape: round, oval, pointed
+   - Any distinctive features
 
-10. TRAITS DISTINCTIFS:
-    - Taches de rousseur (nombre, localisation)
-    - Grains de beauté (localisation, taille)
-    - Fossettes
-    - Cicatrices ou marques particulières
-    - Tout autre trait unique
+9. CLOTHING (COMPLETE DETAILED DESCRIPTION):
+   - Top: exact type (t-shirt, polo shirt, button-down shirt, sweater, hoodie, dress, etc.)
+   - Top color: exact shade and color name (e.g., "bright red", "navy blue", "light gray")
+   - Top style: fitted, loose, oversized, etc.
+   - Sleeves: short, long, sleeveless; length if short
+   - Collar: round neck, V-neck, crew neck, collar type, etc.
+   - Patterns: solid, stripes (direction, width, colors), prints (describe pattern), logos (describe), graphics (describe)
+   - Bottom: exact type (jeans, pants, shorts, skirt, etc.)
+   - Bottom color: exact shade
+   - Bottom style: fitted, loose, etc.
+   - Length if shorts or skirt
+   - Any visible pockets, zippers, buttons, etc.
+   - Shoes: type, color, style
+   - Socks: if visible, color and style
 
-11. POSTURE ET EXPRESSION:
-    - Position du corps
-    - Expression générale
-    - Attitude
+10. ACCESSORIES (ALL VISIBLE ITEMS):
+    - Glasses: frame shape (round, square, rectangular, cat-eye, etc.), frame color, lens type
+    - Jewelry: earrings (type, color, size), necklace (type, color), bracelets, rings
+    - Hat or cap: type, color, style, any logos or text
+    - Watch: type, color, style
+    - Bag or backpack: type, color, style
+    - Any other visible accessories
 
-12. CONTEXTE VISIBLE:
-    - Arrière-plan si pertinent
-    - Éclairage
-    - Angle de la photo
+11. DISTINCTIVE FEATURES (CRITICAL FOR RECOGNIZABILITY):
+    - Freckles: number (many, few, scattered), location (cheeks, nose, all over face), color, size
+    - Moles or beauty marks: exact location (e.g., "small mole on left cheek near nose"), size, color
+    - Dimples: location (cheeks, chin), depth, visibility
+    - Scars: location, size, appearance
+    - Birthmarks: location, size, color, shape
+    - Any unique facial features that make this person distinctive
 
-IMPORTANT: 
-- Sois TRÈS DÉTAILLÉ et EXHAUSTIF - aucune limite de longueur
-- Décris TOUS les éléments visibles
-- Utilise des termes précis et descriptifs
-- La description doit permettre de recréer le personnage de manière reconnaissable
-- Écris en anglais, de manière factuelle et précise
-- Commence par "A [age] year old [gender] with..." et continue avec tous les détails"""
+12. POSTURE AND BODY LANGUAGE:
+    - Body position: standing, sitting, leaning, etc.
+    - Shoulder position: straight, slouched, one higher than other
+    - Head position: straight, tilted, turned
+    - Overall posture: confident, relaxed, tense, etc.
+
+13. EXPRESSION AND EMOTION:
+    - Facial expression: happy, serious, neutral, playful, etc.
+    - Smile: wide, slight, none; showing teeth or not
+    - Eye expression: bright, serious, kind, etc.
+    - Overall demeanor and energy
+
+14. LIGHTING AND PHOTO CONTEXT:
+    - Lighting direction: front, side, top
+    - Lighting quality: bright, soft, harsh, natural
+    - Any shadows on face and where they fall
+    - Photo angle: front view, slight angle, profile
+
+15. PROPORTIONS AND RELATIONSHIPS:
+    - Head size relative to body
+    - Face proportions: where features are positioned relative to each other
+    - Any distinctive proportions that make this person unique
+
+OUTPUT FORMAT:
+Start with: "A [exact age] year old [gender] with..."
+Then continue with an EXTREMELY DETAILED paragraph-by-paragraph description covering ALL the above points.
+
+CRITICAL REQUIREMENTS:
+- Be EXTREMELY SPECIFIC about colors (don't just say "brown hair" - say "medium brown hair with warm golden undertones")
+- Describe EXACT proportions and relationships between features
+- Mention EVERY visible detail, no matter how small
+- Use precise descriptive language
+- Write in English, factual and precise style
+- NO length limit - the more detail, the better
+- The goal is MAXIMUM FIDELITY - someone should be able to recreate this person exactly from your description"""
                             },
                             {
                                 "type": "image_url",
@@ -572,7 +630,7 @@ IMPORTANT:
                         ]
                     }
                 ],
-                max_tokens=4000  # Limite maximale pour une description très détaillée
+                max_tokens=8000  # Limite maximale pour une description ultra détaillée et exhaustive
             )
             
             description = response.choices[0].message.content.strip()
@@ -703,16 +761,37 @@ IMPORTANT:
         
         panels = page_data["panels"]
         
-        # Section description du personnage principal (si disponible)
+        # Section description du personnage principal (si disponible) - ULTRA DÉTAILLÉE
         character_section = ""
         if character_description:
             character_section = f"""
-CRITICAL CHARACTER REFERENCE - MAIN CHARACTER DESCRIPTION:
+═══════════════════════════════════════════════════════════════════════════════
+CRITICAL CHARACTER REFERENCE - MAIN CHARACTER DESCRIPTION (MAXIMUM FIDELITY REQUIRED)
+═══════════════════════════════════════════════════════════════════════════════
+
 {character_description}
 
-ABSOLUTE REQUIREMENT: The main character in ALL 4 panels MUST match this description exactly. Every visual element described above (age, gender, face shape, skin tone, hair color and style, eye color, clothing, accessories, distinctive features) MUST be accurately represented in every panel. This character is the HERO and PROTAGONIST of the story - they appear in all 4 panels as the central figure performing the actions described below.
+═══════════════════════════════════════════════════════════════════════════════
+ABSOLUTE REQUIREMENTS FOR CHARACTER RENDERING:
+═══════════════════════════════════════════════════════════════════════════════
 
-When describing each panel below, always refer to "the main character" (the person described above) to ensure consistency.
+1. FIDELITY: The main character in ALL 4 panels MUST match the description above with MAXIMUM FIDELITY. Every single detail mentioned (age, gender, face shape, skin tone, hair color/style/length, eye color/shape, nose shape, mouth shape, clothing colors/styles, accessories, distinctive features like freckles, moles, dimples) MUST be accurately represented in EVERY panel.
+
+2. CONSISTENCY: The character must look IDENTICAL across all 4 panels. Same face, same hair, same clothing, same distinctive features. No variations allowed.
+
+3. RECOGNIZABILITY: The character must be INSTANTLY RECOGNIZABLE as the person described above. If someone saw the original photo and then saw the comic, they should immediately recognize it's the same person.
+
+4. DETAIL PRESERVATION: 
+   - Exact hair color and style must match
+   - Exact eye color and shape must match
+   - Exact skin tone must match
+   - Exact clothing colors and styles must match
+   - All distinctive features (freckles, moles, dimples, etc.) must be present
+   - Facial proportions and structure must match
+
+5. CHARACTER AS HERO: This character is the HERO and PROTAGONIST of the story. They appear in ALL 4 panels as the central figure performing the actions described below.
+
+6. REFERENCE IN PANELS: When describing each panel below, always refer to "the main character" (the person described in detail above) to ensure consistency. The visual descriptions in each panel should incorporate the character's specific appearance from the description above.
 
 """
         
