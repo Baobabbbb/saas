@@ -455,17 +455,17 @@ Génère maintenant le scénario complet en JSON:"""
             print(f"❌ Erreur génération scénario: {e}")
             raise Exception(f"Erreur lors de la génération du scénario: {e}")
     
-    async def _analyze_character_photo(self, photo_path: str) -> str:
-        """Analyse une photo de personnage avec gpt-4o pour créer une description ULTRA DÉTAILLÉE
+    async def _transform_photo_to_comic_character(self, photo_path: str) -> str:
+        """Transforme une photo en illustration de personnage de BD avec gpt-image-1
         
-        Cette description sera utilisée dans le prompt pour Gemini afin de créer un personnage
-        reconnaissable dans la bande dessinée sans utiliser l'image directement.
+        Utilise images.edit pour transformer la photo en illustration de personnage de BD,
+        similaire à l'approche utilisée pour les coloriages.
         
         Args:
             photo_path: Chemin vers la photo du personnage
             
         Returns:
-            Description très détaillée du personnage en anglais
+            Chemin vers l'illustration de personnage générée
         """
         try:
             print(f"📸 Transformation photo en personnage BD avec gpt-image-1: {photo_path}")
