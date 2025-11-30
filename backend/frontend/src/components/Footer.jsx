@@ -7,6 +7,7 @@ const Footer = ({ onLegalClick }) => {
       <div className="footer-content">
         <div className="ai-notice">
           <p>Les créations sont générées par IA et peuvent contenir des erreurs.</p>
+          <p>Pour toute question, recommandation ou demande, n'hésitez pas à nous contacter.</p>
         </div>
         <div className="footer-links">
           <button 
