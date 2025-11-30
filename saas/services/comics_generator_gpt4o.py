@@ -437,8 +437,18 @@ Génère maintenant le scénario complet en JSON:"""
             print(f"❌ Erreur génération scénario: {e}")
             raise Exception(f"Erreur lors de la génération du scénario: {e}")
     
-    async def _transform_photo_to_avatar(self, photo_path: str) -> Optional[str]:
-        """Transforme une photo en avatar cartoon avec OpenAI images.edit pour éviter les blocages Gemini"""
+    async def _transform_photo_to_avatar(self, photo_path: str) -> str:
+        """Transforme une photo en avatar cartoon avec OpenAI images.edit pour éviter les blocages Gemini
+        
+        Args:
+            photo_path: Chemin vers la photo originale
+            
+        Returns:
+            Chemin vers l'avatar créé
+            
+        Raises:
+            Exception: Si la transformation échoue
+        """
         try:
             print(f"   🎨 Transformation photo en avatar cartoon avec OpenAI...")
             
@@ -446,9 +456,13 @@ Génère maintenant le scénario complet en JSON:"""
             input_image = Image.open(photo_path)
             width, height = input_image.size
             
+            # Convertir en RGBA (requis par images.edit)
+            if input_image.mode != 'RGBA':
+                input_image = input_image.convert('RGBA')
+            
             # Redimensionner en carré 1024x1024 (requis pour images.edit)
             size = 1024
-            square_image = Image.new('RGB', (size, size), 'white')
+            square_image = Image.new('RGBA', (size, size), (255, 255, 255, 255))
             
             # Calculer le ratio pour garder les proportions
             ratio = min(size / width, size / height)
@@ -459,14 +473,14 @@ Génère maintenant le scénario complet en JSON:"""
             # Centrer l'image
             x_offset = (size - new_width) // 2
             y_offset = (size - new_height) // 2
-            square_image.paste(resized_image, (x_offset, y_offset))
+            square_image.paste(resized_image, (x_offset, y_offset), resized_image)
             
-            # Sauvegarder temporairement
+            # Sauvegarder temporairement en PNG (RGBA)
             temp_input_path = self.cache_dir / f"temp_input_{uuid.uuid4().hex[:8]}.png"
             square_image.save(temp_input_path, 'PNG')
             
-            # Créer un masque blanc (tout l'image sera modifiée)
-            mask_image = Image.new('RGB', (size, size), 'white')
+            # Créer un masque blanc en RGBA (tout l'image sera modifiée)
+            mask_image = Image.new('RGBA', (size, size), (255, 255, 255, 255))
             temp_mask_path = self.cache_dir / f"temp_mask_{uuid.uuid4().hex[:8]}.png"
             mask_image.save(temp_mask_path, 'PNG')
             
@@ -490,6 +504,7 @@ Génère maintenant le scénario complet en JSON:"""
             import httpx
             async with httpx.AsyncClient() as client:
                 avatar_response = await client.get(avatar_url)
+                avatar_response.raise_for_status()
                 avatar_data = avatar_response.content
             
             # Sauvegarder l'avatar
@@ -505,10 +520,10 @@ Génère maintenant le scénario complet en JSON:"""
             return str(avatar_path)
             
         except Exception as e:
-            print(f"   ⚠️ Erreur création avatar: {e}")
+            print(f"   ❌ Erreur création avatar: {e}")
             import traceback
             traceback.print_exc()
-            return None
+            raise Exception(f"Échec transformation photo en avatar: {e}")
     
     async def _analyze_character_photo(self, photo_path: str) -> str:
         """Analyse une photo de personnage avec gpt-4o-mini pour l'intégrer dans l'histoire"""
@@ -770,20 +785,16 @@ STYLE REQUIREMENTS:
             # Si une photo de personnage est fournie, transformer d'abord en avatar avec OpenAI
             # puis utiliser l'avatar avec Gemini pour éviter les blocages
             if character_photo_path:
-                print(f"   📸 Photo de personnage fournie, transformation en avatar cartoon...")
+                print(f"   📸 Photo de personnage fournie, transformation en avatar cartoon avec OpenAI...")
                 
-                # Transformer la photo en avatar cartoon avec OpenAI
+                # Transformer la photo en avatar cartoon avec OpenAI (OBLIGATOIRE, pas de fallback)
                 avatar_path = await self._transform_photo_to_avatar(character_photo_path)
                 
-                if not avatar_path:
-                    print(f"   ⚠️ Échec transformation en avatar, utilisation de la photo originale")
-                    avatar_path = character_photo_path
-                else:
-                    print(f"   ✅ Avatar créé, utilisation avec Gemini: {avatar_path}")
+                print(f"   ✅ Avatar créé, utilisation avec Gemini: {avatar_path}")
                 
-                # Charger l'avatar (ou la photo originale si échec)
+                # Charger l'avatar
                 input_image = Image.open(avatar_path)
-                print(f"   [DEBUG] Image chargée: {input_image.size}, mode: {input_image.mode}")
+                print(f"   [DEBUG] Avatar chargé: {input_image.size}, mode: {input_image.mode}")
                 
                 # Créer un prompt très court et simple pour l'image-to-image
                 # Le prompt complet de la BD est trop long et peut déclencher des filtres
