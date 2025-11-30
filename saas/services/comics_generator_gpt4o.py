@@ -294,7 +294,18 @@ class ComicsGeneratorGPT4o:
         character_description = None
         if character_photo_path:
             print(f"📸 Analyse approfondie de la photo personnage pour le scénario...")
+            print(f"   📁 Chemin photo: {character_photo_path}")
+            # Vérifier que le fichier existe
+            if not Path(character_photo_path).exists():
+                print(f"   ⚠️ ERREUR: Le fichier photo n'existe pas: {character_photo_path}")
+                raise Exception(f"Photo introuvable: {character_photo_path}")
             character_description = await self._analyze_character_photo(character_photo_path)
+            if character_description:
+                print(f"   ✅ Description obtenue: {len(character_description)} caractères")
+                print(f"   📝 Aperçu description: {character_description[:200]}...")
+            else:
+                print(f"   ⚠️ ERREUR: Aucune description obtenue de l'analyse")
+                raise Exception("Échec analyse photo: description vide")
         
         # Construire le prompt pour gpt-4o-mini
         prompt = f"""Tu es un scénariste expert en bandes dessinées pour enfants de 6-10 ans. Tu écris en français impeccable sans aucune faute d'orthographe.
@@ -634,7 +645,16 @@ CRITICAL REQUIREMENTS:
             )
             
             description = response.choices[0].message.content.strip()
-            print(f"✅ Personnage analysé en détail ({len(description)} caractères): {description[:150]}...")
+            
+            # Vérifier que la description n'est pas vide
+            if not description or len(description) < 50:
+                print(f"   ⚠️ ERREUR: Description trop courte ou vide ({len(description) if description else 0} caractères)")
+                print(f"   📄 Contenu reçu: {description[:500] if description else 'VIDE'}")
+                raise Exception(f"Description invalide: trop courte ou vide ({len(description) if description else 0} caractères)")
+            
+            print(f"✅ Personnage analysé en détail ({len(description)} caractères)")
+            print(f"   📝 Début description: {description[:200]}...")
+            print(f"   📝 Fin description: ...{description[-200:]}")
             
             return description
             
@@ -681,9 +701,20 @@ CRITICAL REQUIREMENTS:
                 # Construire le prompt complet pour gemini-3-pro-image-preview
                 # Ce prompt décrit UNE SEULE IMAGE contenant 4 cases de BD
                 # Inclure la description du personnage si disponible
+                if character_description:
+                    print(f"   📋 Utilisation description personnage pour planche {page_num} ({len(character_description)} caractères)")
+                else:
+                    print(f"   ⚠️ Aucune description personnage disponible pour planche {page_num}")
                 page_prompt = self._build_page_prompt(page_data, style_info, character_description)
                 
-                print(f"   Prompt: {page_prompt[:200]}...")
+                print(f"   📝 Prompt complet ({len(page_prompt)} caractères): {page_prompt[:200]}...")
+                if character_description:
+                    # Vérifier que la description est bien dans le prompt
+                    if character_description[:100] in page_prompt:
+                        print(f"   ✅ Description personnage trouvée dans le prompt")
+                    else:
+                        print(f"   ⚠️ ERREUR: Description personnage NON trouvée dans le prompt!")
+                        print(f"   🔍 Recherche: {character_description[:50]}...")
                 
                 # Générer l'image avec gemini-3-pro-image-preview (text-to-image uniquement)
                 # La description du personnage est incluse dans le prompt
@@ -764,6 +795,7 @@ CRITICAL REQUIREMENTS:
         # Section description du personnage principal (si disponible) - ULTRA DÉTAILLÉE
         character_section = ""
         if character_description:
+            print(f"   📋 Intégration description personnage dans prompt ({len(character_description)} caractères)")
             character_section = f"""
 ═══════════════════════════════════════════════════════════════════════════════
 CRITICAL CHARACTER REFERENCE - MAIN CHARACTER DESCRIPTION (MAXIMUM FIDELITY REQUIRED)
