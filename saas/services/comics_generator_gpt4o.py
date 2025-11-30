@@ -767,12 +767,22 @@ STYLE REQUIREMENTS:
         try:
             print(f"   🎨 Appel gemini-3-pro-image-preview...")
             
-            # Si une photo de personnage est fournie, utiliser image-to-image selon la doc officielle
+            # Si une photo de personnage est fournie, transformer d'abord en avatar avec OpenAI
+            # puis utiliser l'avatar avec Gemini pour éviter les blocages
             if character_photo_path:
-                print(f"   📸 Utilisation de la photo de référence pour image-to-image: {character_photo_path}")
+                print(f"   📸 Photo de personnage fournie, transformation en avatar cartoon...")
                 
-                # Charger l'image avec PIL (même méthode que les coloriages qui fonctionnent)
-                input_image = Image.open(character_photo_path)
+                # Transformer la photo en avatar cartoon avec OpenAI
+                avatar_path = await self._transform_photo_to_avatar(character_photo_path)
+                
+                if not avatar_path:
+                    print(f"   ⚠️ Échec transformation en avatar, utilisation de la photo originale")
+                    avatar_path = character_photo_path
+                else:
+                    print(f"   ✅ Avatar créé, utilisation avec Gemini: {avatar_path}")
+                
+                # Charger l'avatar (ou la photo originale si échec)
+                input_image = Image.open(avatar_path)
                 print(f"   [DEBUG] Image chargée: {input_image.size}, mode: {input_image.mode}")
                 
                 # Créer un prompt très court et simple pour l'image-to-image
