@@ -326,16 +326,18 @@ STYLE ARTISTIQUE: {style_info['name']}
 
 {"DEMANDE PERSONNALISÉE: " + custom_prompt if custom_prompt else ""}
 
+{"⚠️ PERSONNAGE PRINCIPAL PERSONNALISÉ: Un personnage personnalisé (basé sur une photo uploadée) sera le HÉROS PRINCIPAL de cette histoire. Ce personnage doit apparaître dans TOUTES les cases de TOUTES les planches et être le protagoniste de l'histoire. L'histoire doit être centrée sur ce personnage et ses aventures selon le thème choisi." if character_photo_path else ""}
+
 CONSIGNES IMPORTANTES:
 1. Chaque planche contient EXACTEMENT 4 CASES disposées en grille 2×2
 2. L'histoire doit être cohérente, captivante et adaptée aux enfants
-# Plus besoin de description textuelle, on utilise l'illustration directement
-3. Chaque case doit avoir:
+3. {"CRITIQUE: Le personnage personnalisé uploadé DOIT être le HÉROS PRINCIPAL et apparaître dans LES 4 CASES de chaque planche. C'est LUI qui fait les actions, c'est LUI le protagoniste. Dans CHAQUE case, commence la description par: 'The main character (the personalized character from the uploaded photo) is...' pour que le modèle d'image sache que c'est ce personnage précis qui doit apparaître." if character_photo_path else ""}
+4. Chaque case doit avoir:
    - Une description visuelle ULTRA DÉTAILLÉE (pour gpt-image-1-mini)
    - Des dialogues dans des bulles (maximum 2 bulles par case)
    - Une indication de l'action ou l'émotion
 
-4. CRITIQUE pour les BULLES DE DIALOGUE:
+5. CRITIQUE pour les BULLES DE DIALOGUE:
    - TOUS les textes doivent être en FRANÇAIS PARFAIT sans faute d'orthographe
    - Les bulles doivent contenir le texte EXACT à afficher dans l'image finale
    - Le texte doit être COURT (maximum 8-10 mots par bulle pour tenir dans la bulle)
@@ -345,7 +347,7 @@ CONSIGNES IMPORTANTES:
    - Les bulles doivent être positionnées pour ne pas cacher les personnages
    - Précise la position suggérée de chaque bulle (haut-gauche, haut-droite, bas-gauche, bas-droite)
 
-5. DESCRIPTIONS VISUELLES ULTRA DÉTAILLÉES:
+6. DESCRIPTIONS VISUELLES ULTRA DÉTAILLÉES:
    Pour chaque case, décris TOUT en détail pour que gpt-image-1-mini puisse générer l'image parfaite:
    - Les personnages: âge, vêtements, couleurs, positions, expressions faciales
    - Le décor: lieu précis, objets visibles, couleurs, ambiance
