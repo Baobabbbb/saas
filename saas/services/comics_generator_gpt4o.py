@@ -813,8 +813,8 @@ STYLE REQUIREMENTS:
                         desc = desc.replace('person', 'character')
                         panel_descs.append(desc)
                     
-                    # Prompt très simple pour avatar cartoon (pas "photo")
-                    simple_prompt = f"""Create a comic book page with 4 panels in a 2x2 grid. Use the cartoon character from this image as the main character in all panels.
+                    # Prompt très simple pour avatar cartoon - utiliser le même style que les coloriages
+                    simple_prompt = f"""Transform this image into a comic book page with 4 panels in a 2x2 grid layout. Use the character shown in this image as the main character in all 4 panels, maintaining their recognizable appearance.
 
 Panel 1: {panel_descs[0] if len(panel_descs) > 0 else 'First scene'}
 Panel 2: {panel_descs[1] if len(panel_descs) > 1 else 'Second scene'}
@@ -823,8 +823,8 @@ Panel 4: {panel_descs[3] if len(panel_descs) > 3 else 'Fourth scene'}
 
 Style: cartoon, colorful, child-friendly."""
                 else:
-                    # Si pas de page_data, utiliser un prompt très simple
-                    simple_prompt = "Create a comic book page with 4 panels in a 2x2 grid. Use the cartoon character from this image as the main character. Cartoon style, colorful, child-friendly."
+                    # Si pas de page_data, utiliser un prompt similaire aux coloriages
+                    simple_prompt = "Transform this image into a comic book page with 4 panels in a 2x2 grid. Use the character shown in this image as the main character. Cartoon style, colorful, child-friendly."
                 
                 print(f"   [DEBUG] Prompt image-to-image simplifié ({len(simple_prompt)} chars): {simple_prompt[:200]}...")
                 
