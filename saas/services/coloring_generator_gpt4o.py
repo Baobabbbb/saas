@@ -506,25 +506,39 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             print(f"[DEBUG] Image générée: {generated_img.size}")
             
             # L'image générée est en 1024x1024 (carré)
-            # Il faut extraire la partie centrale correspondant à l'image originale
-            # puis la redimensionner aux dimensions originales pour garder les proportions
+            # Pour préserver toute l'image générée (même les éléments qui dépassent), on va :
+            # 1. Redimensionner l'image générée pour qu'elle ait les mêmes proportions que l'originale
+            # 2. Puis recadrer au centre si nécessaire pour avoir exactement les dimensions originales
             
-            # Calculer les coordonnées de la zone à extraire (même zone que celle où on a collé l'image originale)
-            # Ces coordonnées correspondent à x_offset, y_offset, new_width, new_height calculés plus haut
-            crop_x = x_offset
-            crop_y = y_offset
-            crop_width = new_width
-            crop_height = new_height
+            # Calculer les proportions de l'image originale
+            original_ratio = original_width / original_height
+            print(f"[DEBUG] Ratio original: {original_ratio} ({original_width}/{original_height})")
             
-            print(f"[DEBUG] Extraction zone: ({crop_x}, {crop_y}, {crop_x + crop_width}, {crop_y + crop_height})")
+            # Redimensionner l'image générée (1024x1024) pour qu'elle ait les mêmes proportions que l'originale
+            # On garde la dimension la plus grande à 1024 et on ajuste l'autre
+            if original_ratio > 1:  # Largeur > hauteur (paysage)
+                new_gen_width = 1024
+                new_gen_height = int(1024 / original_ratio)
+            else:  # Hauteur >= largeur (portrait ou carré)
+                new_gen_height = 1024
+                new_gen_width = int(1024 * original_ratio)
             
-            # Extraire la partie centrale de l'image générée
-            cropped_img = generated_img.crop((crop_x, crop_y, crop_x + crop_width, crop_y + crop_height))
-            print(f"[DEBUG] Image recadrée: {cropped_img.size}")
+            print(f"[DEBUG] Redimensionnement généré: {new_gen_width}x{new_gen_height}")
+            resized_gen = generated_img.resize((new_gen_width, new_gen_height), Image.Resampling.LANCZOS)
             
-            # Redimensionner aux dimensions originales pour restaurer la taille exacte
-            final_img = cropped_img.resize((original_width, original_height), Image.Resampling.LANCZOS)
-            print(f"[DEBUG] Image finale: {final_img.size}")
+            # Maintenant, recadrer au centre pour avoir exactement les dimensions originales
+            # Si l'image redimensionnée est plus grande que l'originale, on recadre
+            # Sinon, on redimensionne directement
+            if new_gen_width >= original_width and new_gen_height >= original_height:
+                # Recadrer au centre
+                crop_x = (new_gen_width - original_width) // 2
+                crop_y = (new_gen_height - original_height) // 2
+                final_img = resized_gen.crop((crop_x, crop_y, crop_x + original_width, crop_y + original_height))
+                print(f"[DEBUG] Image recadrée au centre: {final_img.size}")
+            else:
+                # Redimensionner directement (cas rare où l'image générée est plus petite)
+                final_img = resized_gen.resize((original_width, original_height), Image.Resampling.LANCZOS)
+                print(f"[DEBUG] Image redimensionnée directement: {final_img.size}")
             
             # Sauvegarder
             output_path = self.output_dir / f"coloring_photo_gpt_image_1_{uuid.uuid4().hex[:8]}.png"
