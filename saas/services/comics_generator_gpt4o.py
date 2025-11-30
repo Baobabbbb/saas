@@ -272,10 +272,10 @@ class ComicsGeneratorGPT4o:
         art_style: str,
         custom_prompt: Optional[str] = None,
         character_photo_path: Optional[str] = None
-    ) -> Dict[str, Any]:
+    ) -> tuple[Dict[str, Any], Optional[str]]:
         """
         Génère le scénario complet de la BD avec gpt-4o-mini
-        Retourne un JSON avec les détails de chaque planche
+        Retourne un tuple (JSON avec les détails de chaque planche, description du personnage)
         """
         
         print(f"📝 Génération scénario BD: thème={theme}, pages={num_pages}, style={art_style}")
@@ -290,9 +290,10 @@ class ComicsGeneratorGPT4o:
         # Récupérer le style artistique
         style_info = self.art_styles.get(art_style, self.art_styles["cartoon"])
         
-        # Analyser la photo du personnage si fournie
+        # Analyser la photo du personnage si fournie (analyse ULTRA DÉTAILLÉE)
         character_description = None
         if character_photo_path:
+            print(f"📸 Analyse approfondie de la photo personnage pour le scénario...")
             character_description = await self._analyze_character_photo(character_photo_path)
         
         # Construire le prompt pour gpt-4o-mini
@@ -427,7 +428,8 @@ Génère maintenant le scénario complet en JSON:"""
             
             print(f"✅ Scénario généré: '{story_data['title']}' - {len(story_data['pages'])} planches")
             
-            return story_data
+            # Retourner le scénario ET la description du personnage pour réutilisation
+            return story_data, character_description
             
         except json.JSONDecodeError as e:
             print(f"❌ Erreur parsing JSON: {e}")
@@ -437,98 +439,20 @@ Génère maintenant le scénario complet en JSON:"""
             print(f"❌ Erreur génération scénario: {e}")
             raise Exception(f"Erreur lors de la génération du scénario: {e}")
     
-    async def _transform_photo_to_avatar(self, photo_path: str) -> str:
-        """Transforme une photo en avatar cartoon avec OpenAI images.edit pour éviter les blocages Gemini
+    async def _analyze_character_photo(self, photo_path: str) -> str:
+        """Analyse une photo de personnage avec gpt-4o-mini pour créer une description ULTRA DÉTAILLÉE
+        
+        Cette description sera utilisée dans le prompt pour Gemini afin de créer un personnage
+        reconnaissable dans la bande dessinée sans utiliser l'image directement.
         
         Args:
-            photo_path: Chemin vers la photo originale
+            photo_path: Chemin vers la photo du personnage
             
         Returns:
-            Chemin vers l'avatar créé
-            
-        Raises:
-            Exception: Si la transformation échoue
+            Description très détaillée du personnage en anglais
         """
         try:
-            print(f"   🎨 Transformation photo en avatar cartoon avec OpenAI...")
-            
-            # Charger l'image
-            input_image = Image.open(photo_path)
-            width, height = input_image.size
-            
-            # Convertir en RGBA (requis par images.edit)
-            if input_image.mode != 'RGBA':
-                input_image = input_image.convert('RGBA')
-            
-            # Redimensionner en carré 1024x1024 (requis pour images.edit)
-            size = 1024
-            square_image = Image.new('RGBA', (size, size), (255, 255, 255, 255))
-            
-            # Calculer le ratio pour garder les proportions
-            ratio = min(size / width, size / height)
-            new_width = int(width * ratio)
-            new_height = int(height * ratio)
-            resized_image = input_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
-            
-            # Centrer l'image
-            x_offset = (size - new_width) // 2
-            y_offset = (size - new_height) // 2
-            square_image.paste(resized_image, (x_offset, y_offset), resized_image)
-            
-            # Sauvegarder temporairement en PNG (RGBA)
-            temp_input_path = self.cache_dir / f"temp_input_{uuid.uuid4().hex[:8]}.png"
-            square_image.save(temp_input_path, 'PNG')
-            
-            # Créer un masque blanc en RGBA (tout l'image sera modifiée)
-            mask_image = Image.new('RGBA', (size, size), (255, 255, 255, 255))
-            temp_mask_path = self.cache_dir / f"temp_mask_{uuid.uuid4().hex[:8]}.png"
-            mask_image.save(temp_mask_path, 'PNG')
-            
-            # Prompt pour transformer en avatar cartoon
-            avatar_prompt = "Transform this into a friendly cartoon-style avatar character suitable for a children's comic book. Make it clearly a cartoon illustration with recognizable features preserved."
-            
-            # Utiliser images.edit pour transformer en avatar
-            with open(temp_input_path, "rb") as input_file, open(temp_mask_path, "rb") as mask_file:
-                response = await self.client.images.edit(
-                    image=input_file,
-                    mask=mask_file,
-                    prompt=avatar_prompt,
-                    n=1,
-                    size=f"{size}x{size}"
-                )
-            
-            # Récupérer l'URL de l'image générée
-            avatar_url = response.data[0].url
-            
-            # Télécharger l'image
-            import httpx
-            async with httpx.AsyncClient() as client:
-                avatar_response = await client.get(avatar_url)
-                avatar_response.raise_for_status()
-                avatar_data = avatar_response.content
-            
-            # Sauvegarder l'avatar
-            avatar_path = self.cache_dir / f"avatar_{uuid.uuid4().hex[:8]}.png"
-            with open(avatar_path, 'wb') as f:
-                f.write(avatar_data)
-            
-            # Nettoyer les fichiers temporaires
-            temp_input_path.unlink(missing_ok=True)
-            temp_mask_path.unlink(missing_ok=True)
-            
-            print(f"   ✅ Avatar cartoon créé: {avatar_path.name}")
-            return str(avatar_path)
-            
-        except Exception as e:
-            print(f"   ❌ Erreur création avatar: {e}")
-            import traceback
-            traceback.print_exc()
-            raise Exception(f"Échec transformation photo en avatar: {e}")
-    
-    async def _analyze_character_photo(self, photo_path: str) -> str:
-        """Analyse une photo de personnage avec gpt-4o-mini pour l'intégrer dans l'histoire"""
-        try:
-            print(f"📸 Analyse de la photo personnage: {photo_path}")
+            print(f"📸 Analyse approfondie de la photo personnage: {photo_path}")
             
             # Charger et encoder l'image en base64
             with open(photo_path, "rb") as image_file:
@@ -548,7 +472,7 @@ Génère maintenant le scénario complet en JSON:"""
                 '.webp': 'image/webp'
             }.get(ext, 'image/jpeg')
             
-            # Analyser avec gpt-4o-mini (vision)
+            # Analyser avec gpt-4o-mini (vision) - Description ULTRA DÉTAILLÉE sans limite
             response = await self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -557,26 +481,87 @@ Génère maintenant le scénario complet en JSON:"""
                         "content": [
                             {
                                 "type": "text",
-                                "text": """Analyse cette photo et décris le personnage de manière ULTRA DÉTAILLÉE pour que gpt-image-1-mini puisse le recréer EXACTEMENT dans une bande dessinée.
+                                "text": """Analyse cette photo de personnage et crée une description ULTRA DÉTAILLÉE et EXHAUSTIVE en anglais pour qu'un modèle de génération d'images puisse recréer ce personnage de manière PARFAITEMENT RECONNAISSABLE dans une bande dessinée pour enfants.
 
-IMPORTANT: La description doit être suffisamment précise pour que le personnage soit PARFAITEMENT RECONNAISSABLE dans la BD.
+CRITÈRES D'ANALYSE (décris TOUT en détail, sans limite de longueur):
 
-Décris EN DÉTAIL:
-- Âge approximatif (ex: "enfant d'environ 8 ans")
-- Genre
-- Visage: forme, teint de peau (couleur précise), traits faciaux distinctifs
-- Cheveux: couleur exacte, longueur, style, texture (raides/bouclés/ondulés)
-- Yeux: couleur exacte, forme, taille
-- Nez: forme, taille
-- Bouche: forme, expression
-- Oreilles: si visibles, forme
-- Morphologie: taille, corpulence
-- Vêtements: couleurs précises, style, motifs, détails
-- Accessoires: lunettes, bijoux, chapeau, etc.
-- Traits distinctifs: taches de rousseur, grain de beauté, fossettes, etc.
-- Expression générale et posture
+1. ÂGE ET GÉNÉRALITÉS:
+   - Âge approximatif précis (ex: "approximately 8 years old", "teenager around 14 years old")
+   - Genre
+   - Taille apparente (petit, moyen, grand pour l'âge)
+   - Corpulence générale
 
-Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), de manière factuelle et précise. Commence par "A [age] year old [gender] with..."."""
+2. VISAGE (description très précise):
+   - Forme du visage (rond, ovale, carré, rectangulaire, triangulaire)
+   - Teint de peau (couleur précise: fair, light, medium, olive, tan, dark, etc.)
+   - Traits faciaux distinctifs
+   - Expression générale (souriant, sérieux, joyeux, etc.)
+
+3. CHEVEUX (détails complets):
+   - Couleur exacte (blond, brun, noir, roux, etc. avec nuances)
+   - Longueur précise (très court, court, mi-long, long, très long)
+   - Style (raides, bouclés, ondulés, frisés, etc.)
+   - Texture et volume
+   - Coupe de cheveux précise (frange, raie, etc.)
+   - Détails particuliers (mèches, etc.)
+
+4. YEUX (description précise):
+   - Couleur exacte (bleu, vert, marron, noisette, gris, etc.)
+   - Forme (ronds, ovales, en amande, etc.)
+   - Taille (petits, moyens, grands)
+   - Expression et regard
+
+5. NEZ:
+   - Forme (petit, moyen, grand, pointu, arrondi, etc.)
+   - Taille par rapport au visage
+
+6. BOUCHE:
+   - Forme et taille
+   - Expression (sourire, lèvres fermées, etc.)
+
+7. AUTRES TRAITS FACIAUX:
+   - Sourcils (couleur, forme, épaisseur)
+   - Cils (longs, courts, etc.)
+   - Joues (pleines, creuses, fossettes, etc.)
+   - Menton (pointu, arrondi, etc.)
+
+8. VÊTEMENTS (description complète):
+   - Type de vêtements (t-shirt, chemise, robe, etc.)
+   - Couleurs précises de chaque élément
+   - Style et coupe
+   - Motifs, imprimés, logos si visibles
+   - Détails (manches, col, etc.)
+
+9. ACCESSOIRES:
+   - Lunettes (forme, couleur, style)
+   - Bijoux (boucles d'oreilles, collier, etc.)
+   - Chapeau, casquette, etc.
+   - Tout autre accessoire visible
+
+10. TRAITS DISTINCTIFS:
+    - Taches de rousseur (nombre, localisation)
+    - Grains de beauté (localisation, taille)
+    - Fossettes
+    - Cicatrices ou marques particulières
+    - Tout autre trait unique
+
+11. POSTURE ET EXPRESSION:
+    - Position du corps
+    - Expression générale
+    - Attitude
+
+12. CONTEXTE VISIBLE:
+    - Arrière-plan si pertinent
+    - Éclairage
+    - Angle de la photo
+
+IMPORTANT: 
+- Sois TRÈS DÉTAILLÉ et EXHAUSTIF - aucune limite de longueur
+- Décris TOUS les éléments visibles
+- Utilise des termes précis et descriptifs
+- La description doit permettre de recréer le personnage de manière reconnaissable
+- Écris en anglais, de manière factuelle et précise
+- Commence par "A [age] year old [gender] with..." et continue avec tous les détails"""
                             },
                             {
                                 "type": "image_url",
@@ -587,24 +572,27 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
                         ]
                     }
                 ],
-                max_tokens=500
+                max_tokens=4000  # Limite maximale pour une description très détaillée
             )
             
             description = response.choices[0].message.content.strip()
-            print(f"✅ Personnage analysé: {description[:100]}...")
+            print(f"✅ Personnage analysé en détail ({len(description)} caractères): {description[:150]}...")
             
             return description
             
         except Exception as e:
             print(f"⚠️ Erreur analyse photo: {e}")
-            return None
+            import traceback
+            traceback.print_exc()
+            raise Exception(f"Échec analyse photo personnage: {e}")
     
     async def generate_comic_pages(
         self,
         story_data: Dict[str, Any],
         art_style: str,
         character_photo_path: Optional[str] = None,
-        user_id: Optional[str] = None
+        user_id: Optional[str] = None,
+        character_description: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
         Génère toutes les planches de BD avec gemini-3-pro-image-preview
@@ -612,22 +600,17 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
         Si character_photo_path est fourni, analyse la photo et utilise la description dans le prompt
         """
         
-        print(f"🎨 Génération des planches avec gemini-3-pro-image-preview...")
-        
-        if character_photo_path:
-            print(f"   📸 Photo de personnage fournie, utilisation image-to-image pour fidélité maximale")
+        print(f"🎨 Génération des planches avec gemini-3-pro-image-preview (text-to-image uniquement)...")
         
         style_info = self.art_styles.get(art_style, self.art_styles["cartoon"])
         comic_id = str(uuid.uuid4())
         comic_dir = self.cache_dir / comic_id
         comic_dir.mkdir(parents=True, exist_ok=True)
         
-        # Si une photo de personnage est fournie, transformer d'abord en avatar AVANT de générer les planches
-        avatar_path = None
-        if character_photo_path:
-            print(f"   🎨 Transformation photo en avatar cartoon avec OpenAI (OBLIGATOIRE)...")
-            avatar_path = await self._transform_photo_to_avatar(character_photo_path)
-            print(f"   ✅ Avatar créé: {avatar_path}")
+        # La description du personnage est passée en paramètre (déjà analysée dans generate_comic_story)
+        # On l'utilise directement dans le prompt sans transformation d'image
+        if character_description:
+            print(f"   ✅ Description du personnage disponible ({len(character_description)} caractères)")
         
         generated_pages = []
         
@@ -639,18 +622,19 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
                 
                 # Construire le prompt complet pour gemini-3-pro-image-preview
                 # Ce prompt décrit UNE SEULE IMAGE contenant 4 cases de BD
-                page_prompt = self._build_page_prompt(page_data, style_info)
+                # Inclure la description du personnage si disponible
+                page_prompt = self._build_page_prompt(page_data, style_info, character_description)
                 
                 print(f"   Prompt: {page_prompt[:200]}...")
                 
-                # Générer l'image avec gemini-3-pro-image-preview
-                # Si avatar_path est fourni, utilise l'avatar (pas la photo originale)
+                # Générer l'image avec gemini-3-pro-image-preview (text-to-image uniquement)
+                # La description du personnage est incluse dans le prompt
                 image_path = await self._generate_page_with_gpt_image_1(
                     page_prompt,
                     comic_dir,
                     page_num,
-                    character_photo_path=avatar_path if avatar_path else None,  # Passer l'avatar, pas la photo originale
-                    page_data=page_data  # Passer page_data pour extraire les panels
+                    character_photo_path=None,  # Plus d'image-to-image, uniquement text-to-image
+                    page_data=None  # Plus besoin de page_data ici
                 )
                 
                 # 📤 Upload OBLIGATOIRE vers Supabase Storage
@@ -708,15 +692,34 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
         
         return generated_pages, comic_id
     
-    def _build_page_prompt(self, page_data: Dict, style_info: Dict) -> str:
-        """Construit le prompt pour gemini-3-pro-image-preview pour générer UNE planche complète"""
+    def _build_page_prompt(self, page_data: Dict, style_info: Dict, character_description: Optional[str] = None) -> str:
+        """Construit le prompt ULTRA DÉTAILLÉ pour gemini-3-pro-image-preview pour générer UNE planche complète
+        
+        Args:
+            page_data: Données de la planche (panels, dialogues, etc.)
+            style_info: Informations sur le style artistique
+            character_description: Description très détaillée du personnage (si photo fournie)
+        """
         
         panels = page_data["panels"]
         
-        # Construire la description de la planche complète
+        # Section description du personnage principal (si disponible)
+        character_section = ""
+        if character_description:
+            character_section = f"""
+CRITICAL CHARACTER REFERENCE - MAIN CHARACTER DESCRIPTION:
+{character_description}
+
+ABSOLUTE REQUIREMENT: The main character in ALL 4 panels MUST match this description exactly. Every visual element described above (age, gender, face shape, skin tone, hair color and style, eye color, clothing, accessories, distinctive features) MUST be accurately represented in every panel. This character is the HERO and PROTAGONIST of the story - they appear in all 4 panels as the central figure performing the actions described below.
+
+When describing each panel below, always refer to "the main character" (the person described above) to ensure consistency.
+
+"""
+        
+        # Construire la description de la planche complète avec TOUS les détails
         prompt = f"""A professional comic book page in square format with 4 panels arranged in a 2x2 grid layout.
 {style_info['prompt_modifier']}.
-
+{character_section}
 LAYOUT:
 - Square format (1024x1024 pixels)
 - 4 equally-sized panels in a clean 2x2 grid
@@ -778,78 +781,30 @@ STYLE REQUIREMENTS:
         character_photo_path: Optional[str] = None,
         page_data: Optional[Dict] = None
     ) -> Path:
-        """Génère une planche de BD avec gemini-3-pro-image-preview (avec ou sans photo de référence)
+        """Génère une planche de BD avec gemini-3-pro-image-preview (text-to-image uniquement)
         
-        Selon la documentation officielle Gemini:
-        - Text-to-image: contents=[prompt]
-        - Image-to-image: contents=[prompt, image] où image est un objet PIL Image
-        - Réponse: response.parts avec part.as_image() pour obtenir l'image
+        Le prompt contient déjà toute la description détaillée du personnage (si photo fournie)
+        obtenue via l'analyse GPT-4o-mini. On utilise uniquement text-to-image pour éviter
+        les blocages de sécurité de Gemini.
+        
+        Args:
+            prompt: Prompt ULTRA DÉTAILLÉ incluant la description du personnage
+            output_dir: Répertoire de sortie
+            page_num: Numéro de la planche
+            character_photo_path: Non utilisé (conservé pour compatibilité)
+            page_data: Non utilisé (conservé pour compatibilité)
         """
         
         try:
-            print(f"   🎨 Appel gemini-3-pro-image-preview...")
+            print(f"   🎨 Appel gemini-3-pro-image-preview (text-to-image uniquement)...")
+            print(f"   📝 Prompt détaillé ({len(prompt)} caractères)")
             
-            # Si un avatar est fourni (déjà transformé dans generate_comic_pages), l'utiliser avec Gemini
-            if character_photo_path:
-                print(f"   📸 Avatar cartoon fourni, utilisation avec Gemini: {character_photo_path}")
-                
-                # Charger l'avatar (déjà transformé en cartoon avec OpenAI)
-                input_image = Image.open(character_photo_path)
-                print(f"   [DEBUG] Avatar chargé: {input_image.size}, mode: {input_image.mode}")
-                
-                # Créer un prompt très court et simple pour l'image-to-image
-                # Le prompt complet de la BD est trop long et peut déclencher des filtres
-                # Utiliser une approche similaire aux coloriages : prompt court et direct
-                if page_data and 'panels' in page_data:
-                    panels = page_data['panels']
-                    # Extraire les descriptions courtes des panels
-                    panel_descs = []
-                    for i, panel in enumerate(panels[:4]):
-                        desc = panel.get('visual_description', '')[:60]  # Limiter à 60 caractères
-                        # Nettoyer la description : remplacer les références à "person" ou "main character"
-                        desc = desc.replace('main character', 'character')
-                        desc = desc.replace('the person', 'the character')
-                        desc = desc.replace('this person', 'this character')
-                        desc = desc.replace('person', 'character')
-                        panel_descs.append(desc)
-                    
-                    # Prompt relâché : s'inspirer du style sans dupliquer les traits faciaux exacts
-                    # Cela évite les blocages de sécurité de Gemini
-                    simple_prompt = f"""Create a comic book page with 4 panels in a 2x2 grid layout. Create a character inspired by the provided image (hair color, clothes style, general appearance), but do not attempt to duplicate the exact facial features. Create a generic hero character suitable for a children's comic book.
-
-Panel 1: {panel_descs[0] if len(panel_descs) > 0 else 'First scene'}
-Panel 2: {panel_descs[1] if len(panel_descs) > 1 else 'Second scene'}
-Panel 3: {panel_descs[2] if len(panel_descs) > 2 else 'Third scene'}
-Panel 4: {panel_descs[3] if len(panel_descs) > 3 else 'Fourth scene'}
-
-Style: cartoon, colorful, child-friendly."""
-                else:
-                    # Si pas de page_data, utiliser un prompt relâché
-                    simple_prompt = "Create a comic book page with 4 panels in a 2x2 grid. Create a character inspired by the provided image (hair color, clothes style), but do not attempt to duplicate the exact facial features. Create a generic hero character. Cartoon style, colorful, child-friendly."
-                
-                print(f"   [DEBUG] Prompt image-to-image simplifié ({len(simple_prompt)} chars): {simple_prompt[:200]}...")
-                
-                # Utiliser exactement la même méthode que les coloriages qui fonctionnent
-                response = self.gemini_client.models.generate_content(
-                    model="gemini-3-pro-image-preview",
-                    contents=[simple_prompt, input_image]  # Prompt d'abord, puis image (comme les coloriages)
-                )
-                print(f"   [DEBUG] Réponse image-to-image reçue")
-                
-                # Vérifier prompt_feedback pour voir s'il y a un blocage
-                if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
-                    print(f"   [DEBUG] prompt_feedback: {response.prompt_feedback}")
-                    if hasattr(response.prompt_feedback, 'block_reason') and response.prompt_feedback.block_reason:
-                        print(f"   [WARNING] Block reason: {response.prompt_feedback.block_reason}")
-                        if hasattr(response.prompt_feedback, 'block_reason_message') and response.prompt_feedback.block_reason_message:
-                            print(f"   [WARNING] Block message: {response.prompt_feedback.block_reason_message}")
-            else:
-                # Générer l'image normalement sans photo de référence (text-to-image)
-                response = self.gemini_client.models.generate_content(
-                    model="gemini-3-pro-image-preview",
-                    contents=[prompt]
-                )
-                print(f"   [DEBUG] Réponse text-to-image reçue")
+            # Générer l'image avec text-to-image uniquement
+            # Le prompt contient déjà toute la description du personnage si une photo a été fournie
+            response = self.gemini_client.models.generate_content(
+                model="gemini-3-pro-image-preview",
+                contents=[prompt]
+            )
             
             print(f"   [RESPONSE] Réponse reçue de gemini-3-pro-image-preview")
             
@@ -990,9 +945,9 @@ Style: cartoon, colorful, child-friendly."""
         start_time = datetime.now()
         
         try:
-            # 1. Générer le scénario
+            # 1. Générer le scénario (avec analyse de la photo si fournie)
             print("📝 Étape 1: Génération du scénario...")
-            story_data = await self.generate_comic_story(
+            story_data, character_description = await self.generate_comic_story(
                 theme=theme,
                 num_pages=num_pages,
                 art_style=art_style,
@@ -1000,13 +955,14 @@ Style: cartoon, colorful, child-friendly."""
                 character_photo_path=character_photo_path
             )
             
-            # 2. Générer les images
+            # 2. Générer les images (avec description du personnage pour le prompt détaillé)
             print("🎨 Étape 2: Génération des planches...")
             pages, comic_id = await self.generate_comic_pages(
                 story_data=story_data,
                 art_style=art_style,
-                character_photo_path=character_photo_path,  # Passer la photo pour images.edit()
-                user_id=user_id  # Passer user_id pour upload Supabase Storage
+                character_photo_path=None,  # Plus besoin de la photo, on utilise la description
+                user_id=user_id,  # Passer user_id pour upload Supabase Storage
+                character_description=character_description  # Passer la description détaillée
             )
             
             generation_time = (datetime.now() - start_time).total_seconds()
