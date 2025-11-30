@@ -23,7 +23,10 @@ load_dotenv()
 
 
 class ComicsGeneratorGPT4o:
-    """Générateur de bandes dessinées avec GPT-4o-mini (scénario) + gemini-3-pro-image-preview (images)"""
+    """Générateur de bandes dessinées avec:
+    - gpt-4o-mini (scénario)
+    - gemini-3-pro-image-preview (images BD normales)
+    - gpt-4o (analyse photos) + gemini-3-pro-image-preview (images BD avec photo)"""
     
     def __init__(self):
         self.openai_key = os.getenv("OPENAI_API_KEY")
@@ -451,7 +454,7 @@ Génère maintenant le scénario complet en JSON:"""
             raise Exception(f"Erreur lors de la génération du scénario: {e}")
     
     async def _analyze_character_photo(self, photo_path: str) -> str:
-        """Analyse une photo de personnage avec gpt-4o-mini pour créer une description ULTRA DÉTAILLÉE
+        """Analyse une photo de personnage avec gpt-4o pour créer une description ULTRA DÉTAILLÉE
         
         Cette description sera utilisée dans le prompt pour Gemini afin de créer un personnage
         reconnaissable dans la bande dessinée sans utiliser l'image directement.
@@ -688,7 +691,7 @@ CRITICAL REQUIREMENTS:
                 print(f"   🔄 Tentative avec prompt alternatif...")
                 try:
                     alternative_response = await self.client.chat.completions.create(
-                        model="gpt-4o-mini",
+                        model="gpt-4o",
                         messages=[
                             {
                                 "role": "system",
@@ -984,8 +987,7 @@ STYLE REQUIREMENTS:
         """Génère une planche de BD avec gemini-3-pro-image-preview (text-to-image uniquement)
         
         Le prompt contient déjà toute la description détaillée du personnage (si photo fournie)
-        obtenue via l'analyse GPT-4o-mini. On utilise uniquement text-to-image pour éviter
-        les blocages de sécurité de Gemini.
+        obtenue via l'analyse GPT-4o. On utilise uniquement text-to-image avec gemini-3-pro-image-preview.
         
         Args:
             prompt: Prompt ULTRA DÉTAILLÉ incluant la description du personnage
