@@ -789,11 +789,11 @@ STYLE REQUIREMENTS:
         try:
             print(f"   🎨 Appel gemini-3-pro-image-preview...")
             
-            # Si un avatar est fourni (déjà transformé), l'utiliser avec Gemini
+            # Si un avatar est fourni (déjà transformé dans generate_comic_pages), l'utiliser avec Gemini
             if character_photo_path:
                 print(f"   📸 Avatar cartoon fourni, utilisation avec Gemini: {character_photo_path}")
                 
-                # Charger l'avatar (déjà transformé en cartoon)
+                # Charger l'avatar (déjà transformé en cartoon avec OpenAI)
                 input_image = Image.open(character_photo_path)
                 print(f"   [DEBUG] Avatar chargé: {input_image.size}, mode: {input_image.mode}")
                 
