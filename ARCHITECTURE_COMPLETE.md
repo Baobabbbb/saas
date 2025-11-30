@@ -15,7 +15,7 @@
 - **Authentification** : Supabase Auth
 - **Paiements** : Stripe
 - **Déploiement** : Railway
-- **APIs IA** : OpenAI (GPT-4o-mini, TTS, gpt-image-1), Runway ML (Veo 3.1), Suno AI
+- **APIs IA** : OpenAI (GPT-4o-mini, GPT-4o, TTS, gpt-image-1), Google Gemini (gemini-3-pro-image-preview), Runway ML (Veo 3.1), Suno AI
 
 ---
 
@@ -144,19 +144,25 @@ projet/
 #### 2. Génération de Coloriages
 **Fichier** : `services/coloring_generator_gpt4o.py`
 
-**Modèle** : gpt-image-1-mini (OpenAI)
-- Analyse via GPT-4o-mini
-- Génération via gpt-image-1-mini
-- Support photo upload → coloriage
+**Modèles utilisés** :
+- **Thèmes prédéfinis** : gemini-3-pro-image-preview (text-to-image)
+- **Photos uploadées** : gpt-image-1 (image-to-image)
+- Support avec/sans modèle coloré (version colorée en référence)
 
 #### 3. Génération de Bandes Dessinées
 **Fichier** : `services/comics_generator_gpt4o.py`
 
 **Pipeline** :
-- Génération synopsis (GPT-4o-mini)
-- Découpage en pages
-- Génération images par page (gpt-image-1)
-- Ajout bulles de dialogue
+- **BD par thème** :
+  - Génération scénario (GPT-4o-mini)
+  - Découpage en pages
+  - Génération images par page (gemini-3-pro-image-preview)
+  - Ajout bulles de dialogue
+- **BD avec photos personnalisées** :
+  - Analyse photo détaillée (GPT-4o vision)
+  - Génération scénario personnalisé (GPT-4o-mini)
+  - Génération images avec personnage personnalisé (gemini-3-pro-image-preview)
+  - Ajout bulles de dialogue
 
 #### 4. Comptines Musicales
 **Fichier** : `services/suno_service.py`
@@ -331,7 +337,8 @@ web: uvicorn main:app --host 0.0.0.0 --port $PORT --timeout-keep-alive 300 --tim
 ### Variables d'Environnement Requises
 
 #### APIs IA
-- `OPENAI_API_KEY` - OpenAI (GPT-4o-mini, TTS, gpt-image-1)
+- `OPENAI_API_KEY` - OpenAI (GPT-4o-mini, GPT-4o, TTS, gpt-image-1)
+- `GEMINI_API_KEY` - Google Gemini (gemini-3-pro-image-preview)
 - `RUNWAY_API_KEY` - Runway ML (Veo 3.1 Fast)
 - `SUNO_API_KEY` - Suno AI (comptines)
 - `FAL_API_KEY` - FAL AI (optionnel)
@@ -408,9 +415,11 @@ git push origin main
 
 #### PAY-PER-USE
 - Histoire : 0,50€
-- Coloriage : 0,99€
-- BD (par page) : 0,99€
-- Comptine : 0,99€
+- Coloriage (thème) : 0,50€
+- Coloriage (photo) : 0,50€
+- BD (par page, thème) : 0,50€
+- BD (par page, photo) : 0,50€
+- Comptine : 0,70€
 - Animation 30s : 5,99€
 - Animation 1min : 9,99€
 - Animation 2min : 18,99€
@@ -427,7 +436,14 @@ git push origin main
 **Système de tokens** :
 - 1 token = 0,01€ de coût API
 - Tokens utilisables pour n'importe quel contenu
-- Exemples : Histoire = 4 tokens, Coloriage = 16 tokens, Animation 30s = 420 tokens
+- Exemples : 
+  - Histoire = 4 tokens
+  - Coloriage (thème) = 13 tokens
+  - Coloriage (photo) = 4 tokens
+  - BD (thème) = 13 tokens
+  - BD (photo) = 15 tokens
+  - Comptine = 15 tokens
+  - Animation 30s = 420 tokens
 
 ### Flow de Paiement
 
@@ -452,15 +468,20 @@ git push origin main
 
 2. **💬 Bandes Dessinées**
    - Pages : 1-10 planches
-   - Styles : cartoon, manga, comics, réaliste
+   - Styles : cartoon, manga, comics, réaliste, 3D
    - Bulles de dialogue automatiques
-   - Modèle : GPT-4o-mini + gpt-image-1
+   - Personnages personnalisables (upload de photo)
+   - Modèles : 
+     - Thèmes : GPT-4o-mini (scénario) + gemini-3-pro-image-preview (images)
+     - Photos : GPT-4o (analyse) + GPT-4o-mini (scénario) + gemini-3-pro-image-preview (images)
 
 3. **🎨 Coloriages**
-   - Thèmes prédéfinis (licorne, dinosaures, animaux, etc.)
-   - Option avec/sans modèle coloré
-   - Upload photo → coloriage
-   - Modèle : gpt-image-1-mini
+   - Thèmes prédéfinis (licorne, dinosaures, animaux, espace, etc.)
+   - Option avec/sans modèle coloré (version colorée en référence)
+   - Upload photo → coloriage personnalisé
+   - Modèles :
+     - Thèmes : gemini-3-pro-image-preview (text-to-image)
+     - Photos : gpt-image-1 (image-to-image)
 
 4. **📖 Histoires Audio**
    - Histoires écrites (GPT-4o-mini)
