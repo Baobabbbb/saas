@@ -554,7 +554,8 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
                     page_prompt,
                     comic_dir,
                     page_num,
-                    character_photo_path=character_photo_path  # Passer la photo pour image-to-image
+                    character_photo_path=character_photo_path,  # Passer la photo pour image-to-image
+                    page_data=page_data  # Passer page_data pour extraire les panels
                 )
                 
                 # 📤 Upload OBLIGATOIRE vers Supabase Storage
@@ -679,7 +680,8 @@ STYLE REQUIREMENTS:
         prompt: str,
         output_dir: Path,
         page_num: int,
-        character_photo_path: Optional[str] = None
+        character_photo_path: Optional[str] = None,
+        page_data: Optional[Dict] = None
     ) -> Path:
         """Génère une planche de BD avec gemini-3-pro-image-preview (avec ou sans photo de référence)
         
@@ -700,27 +702,36 @@ STYLE REQUIREMENTS:
                 input_image = Image.open(character_photo_path)
                 print(f"   [DEBUG] Image chargée: {input_image.size}, mode: {input_image.mode}")
                 
-                # Utiliser un prompt très simple pour éviter les blocages
-                # Inverser l'ordre : image d'abord, puis prompt (comme dans certains exemples Gemini)
-                # Utiliser uniquement le prompt original sans modification pour éviter les filtres
-                print(f"   [DEBUG] Prompt image-to-image (utilisant prompt original): {prompt[:200]}...")
+                # Créer un prompt très court et simple pour l'image-to-image
+                # Le prompt complet de la BD est trop long et peut déclencher des filtres
+                # Utiliser une approche similaire aux coloriages : prompt court et direct
+                if page_data and 'panels' in page_data:
+                    panels = page_data['panels']
+                    # Extraire les descriptions courtes des panels
+                    panel_descs = []
+                    for i, panel in enumerate(panels[:4]):
+                        desc = panel.get('visual_description', '')[:120]  # Limiter à 120 caractères
+                        panel_descs.append(desc)
+                    
+                    simple_prompt = f"""Create a comic book page with 4 panels in a 2x2 grid. Use the person in this image as the main character in all panels.
+
+Panel 1: {panel_descs[0] if len(panel_descs) > 0 else 'First scene'}
+Panel 2: {panel_descs[1] if len(panel_descs) > 1 else 'Second scene'}
+Panel 3: {panel_descs[2] if len(panel_descs) > 2 else 'Third scene'}
+Panel 4: {panel_descs[3] if len(panel_descs) > 3 else 'Fourth scene'}
+
+Style: cartoon, colorful, child-friendly."""
+                else:
+                    # Si pas de page_data, utiliser un prompt très court
+                    simple_prompt = "Create a comic book page with 4 panels in a 2x2 grid. Use the person in this image as the main character. Cartoon style, colorful, child-friendly."
                 
-                # Essayer avec l'image en premier, puis le prompt
-                # Cela peut aider Gemini à mieux comprendre le contexte
-                try:
-                    response = self.gemini_client.models.generate_content(
-                        model="gemini-3-pro-image-preview",
-                        contents=[input_image, prompt]  # Image d'abord, puis prompt
-                    )
-                    print(f"   [DEBUG] Réponse image-to-image reçue (image d'abord)")
-                except Exception as e:
-                    print(f"   [DEBUG] Erreur avec image d'abord, essai avec prompt d'abord: {e}")
-                    # Fallback: prompt d'abord, puis image
-                    response = self.gemini_client.models.generate_content(
-                        model="gemini-3-pro-image-preview",
-                        contents=[prompt, input_image]  # Prompt d'abord, puis image
-                    )
-                    print(f"   [DEBUG] Réponse image-to-image reçue (prompt d'abord)")
+                print(f"   [DEBUG] Prompt image-to-image simplifié ({len(simple_prompt)} chars): {simple_prompt[:200]}...")
+                
+                # Utiliser exactement la même méthode que les coloriages qui fonctionnent
+                response = self.gemini_client.models.generate_content(
+                    model="gemini-3-pro-image-preview",
+                    contents=[simple_prompt, input_image]  # Prompt d'abord, puis image (comme les coloriages)
+                )
                 print(f"   [DEBUG] Réponse image-to-image reçue")
                 
                 # Vérifier prompt_feedback pour voir s'il y a un blocage
