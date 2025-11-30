@@ -181,38 +181,6 @@ function App() {
   const [comicsResult, setComicsResult] = useState(null);
   const [showComicsPopup, setShowComicsPopup] = useState(false);
 
-  // Réinitialiser les sélections comics quand on change d'onglet
-  useEffect(() => {
-    if (contentType === 'comic') {
-      setSelectedComicsStyle(null);
-      setNumPages(null);
-    }
-  }, [contentType]);
-
-  // Réinitialiser les résultats quand on change de thème de coloriage
-  useEffect(() => {
-    if (contentType === 'coloring') {
-      setColoringResult(null);
-      setShowColoringPopup(false);
-      setShowColoringCanvas(false);
-    }
-  }, [selectedTheme, contentType]);
-
-  // Réinitialiser les résultats quand on change de thème de BD
-  useEffect(() => {
-    if (contentType === 'comic') {
-      setComicsResult(null);
-      setShowComicsPopup(false);
-    }
-  }, [selectedComicsTheme, contentType]);
-
-  // Réinitialiser les résultats quand on change de thème d'animation
-  useEffect(() => {
-    if (contentType === 'animation') {
-      setAnimationResult(null);
-    }
-  }, [selectedAnimationTheme, contentType]);
-  
   // Animation states
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null); // Aucun thème par défaut
   const [selectedDuration, setSelectedDuration] = useState(30); // Valeur par défaut de 30 secondes
@@ -224,6 +192,11 @@ function App() {
   const [selectedStory, setSelectedStory] = useState(null);
   const [animationResult, setAnimationResult] = useState(null);
   const [showAnimationViewer, setShowAnimationViewer] = useState(false);
+
+  // Refs pour suivre les thèmes précédents (éviter réinitialisation première sélection)
+  const prevColoringThemeRef = useRef(null);
+  const prevComicsThemeRef = useRef(null);
+  const prevAnimationThemeRef = useRef(null);
 
   // États pour le système de paiement
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -449,7 +422,6 @@ function App() {
   }, [contentType, selectedAnimationTheme]);
 
   // Réinitialiser les résultats quand on change de thème de coloriage
-  const prevColoringThemeRef = useRef(null);
   useEffect(() => {
     if (contentType === 'coloring' && selectedTheme !== null && prevColoringThemeRef.current !== null && prevColoringThemeRef.current !== selectedTheme) {
       setColoringResult(null);
@@ -460,7 +432,6 @@ function App() {
   }, [selectedTheme, contentType]);
 
   // Réinitialiser les résultats quand on change de thème de BD
-  const prevComicsThemeRef = useRef(null);
   useEffect(() => {
     if (contentType === 'comic' && selectedComicsTheme !== null && prevComicsThemeRef.current !== null && prevComicsThemeRef.current !== selectedComicsTheme) {
       setComicsResult(null);
@@ -470,7 +441,6 @@ function App() {
   }, [selectedComicsTheme, contentType]);
 
   // Réinitialiser les résultats quand on change de thème d'animation
-  const prevAnimationThemeRef = useRef(null);
   useEffect(() => {
     if (contentType === 'animation' && selectedAnimationTheme !== null && prevAnimationThemeRef.current !== null && prevAnimationThemeRef.current !== selectedAnimationTheme) {
       setAnimationResult(null);
