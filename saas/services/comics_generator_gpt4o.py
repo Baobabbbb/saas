@@ -692,8 +692,20 @@ STYLE REQUIREMENTS:
                 with open(character_photo_path, "rb") as image_file:
                     image_data = image_file.read()
                 
+                # Déterminer le MIME type depuis l'extension
+                photo_path_lower = character_photo_path.lower()
+                if photo_path_lower.endswith('.jpg') or photo_path_lower.endswith('.jpeg'):
+                    mime_type = "image/jpeg"
+                elif photo_path_lower.endswith('.png'):
+                    mime_type = "image/png"
+                else:
+                    mime_type = "image/jpeg"  # Par défaut
+                
+                print(f"   [DEBUG] Image chargée: {len(image_data)} bytes, MIME type: {mime_type}")
+                
                 # Charger l'image avec PIL pour vérifier qu'elle est valide
                 input_image_pil = Image.open(io.BytesIO(image_data))
+                print(f"   [DEBUG] Image PIL valide: {input_image_pil.size}, mode: {input_image_pil.mode}")
                 
                 # Adapter le prompt pour image-to-image : être ULTRA-EXPLICITE sur l'utilisation du personnage
                 edit_prompt = f"""CREATE A COMIC BOOK PAGE where the person shown in this photo is the MAIN CHARACTER and HERO of the story.
@@ -710,21 +722,28 @@ CRITICAL REQUIREMENTS:
 REMINDER: The person in the uploaded photo is the HERO. They must be in ALL panels as the main character."""
                 
                 # Utiliser Gemini pour image-to-image (texte et image vers image)
-                # Essayer avec l'objet PIL Image directement
-                print(f"   [DEBUG] Appel Gemini avec image de référence (PIL Image)...")
+                # Essayer d'abord avec types.Part.from_bytes qui est la méthode recommandée
+                print(f"   [DEBUG] Appel Gemini avec image de référence (types.Part.from_bytes)...")
                 try:
-                    response = self.gemini_client.models.generate_content(
-                        model="gemini-3-pro-image-preview",
-                        contents=[edit_prompt, input_image_pil]
-                    )
-                except Exception as e:
-                    print(f"   [DEBUG] Erreur avec PIL Image, essai avec bytes: {e}")
-                    # Si ça ne marche pas avec PIL, essayer avec bytes
-                    image_part = types.Part.from_bytes(image_data, mime_type="image/png")
+                    image_part = types.Part.from_bytes(image_data, mime_type=mime_type)
                     response = self.gemini_client.models.generate_content(
                         model="gemini-3-pro-image-preview",
                         contents=[edit_prompt, image_part]
                     )
+                    print(f"   [DEBUG] Réponse Gemini reçue avec types.Part.from_bytes")
+                except Exception as e:
+                    print(f"   [DEBUG] Erreur avec types.Part.from_bytes, essai avec PIL Image: {e}")
+                    # Si ça ne marche pas, essayer avec PIL Image
+                    try:
+                        response = self.gemini_client.models.generate_content(
+                            model="gemini-3-pro-image-preview",
+                            contents=[edit_prompt, input_image_pil]
+                        )
+                        print(f"   [DEBUG] Réponse Gemini reçue avec PIL Image")
+                    except Exception as e2:
+                        print(f"   [ERROR] Erreur avec PIL Image aussi: {e2}")
+                        raise Exception(f"Impossible de passer l'image à Gemini: {e2}")
+                
                 print(f"   [DEBUG] Réponse Gemini reçue, type: {type(response)}")
                 print(f"   [DEBUG] Response attributes: {[attr for attr in dir(response) if not attr.startswith('_')]}")
             else:
@@ -736,10 +755,32 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
             
             print(f"   [RESPONSE] Réponse reçue de gemini-3-pro-image-preview")
             
+            # Logs détaillés pour comprendre la structure de la réponse
+            print(f"   [DEBUG] Response type: {type(response)}")
+            print(f"   [DEBUG] Response has candidates: {hasattr(response, 'candidates')}")
+            if hasattr(response, 'candidates'):
+                print(f"   [DEBUG] Candidates is None: {response.candidates is None}")
+                if response.candidates is not None:
+                    print(f"   [DEBUG] Number of candidates: {len(response.candidates)}")
+            
             # Gemini retourne les images dans response.candidates[0].content.parts
             image_data = None
             if hasattr(response, 'candidates') and response.candidates is not None and len(response.candidates) > 0:
                 candidate = response.candidates[0]
+                print(f"   [DEBUG] Candidate type: {type(candidate)}")
+                print(f"   [DEBUG] Candidate has content: {hasattr(candidate, 'content')}")
+                if hasattr(candidate, 'content'):
+                    print(f"   [DEBUG] Content type: {type(candidate.content)}")
+                    print(f"   [DEBUG] Content has parts: {hasattr(candidate.content, 'parts')}")
+                    if hasattr(candidate.content, 'parts'):
+                        print(f"   [DEBUG] Number of parts: {len(candidate.content.parts)}")
+                        for idx, part in enumerate(candidate.content.parts):
+                            print(f"   [DEBUG] Part {idx} type: {type(part)}")
+                            print(f"   [DEBUG] Part {idx} has inline_data: {hasattr(part, 'inline_data')}")
+                            print(f"   [DEBUG] Part {idx} has text: {hasattr(part, 'text')}")
+                            if hasattr(part, 'text') and part.text:
+                                print(f"   [DEBUG] Part {idx} text (first 200 chars): {part.text[:200]}")
+                    
                 if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
                     for part in candidate.content.parts:
                         if hasattr(part, 'inline_data') and part.inline_data is not None:
@@ -791,7 +832,24 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
                                         image_data = None
                                         continue
                         elif hasattr(part, 'text') and part.text:
-                            print(f"   [TEXT] {part.text[:100]}...")
+                            print(f"   [TEXT] {part.text[:200]}...")
+                            # Si on a du texte au lieu d'une image, c'est peut-être une erreur
+                            if "error" in part.text.lower() or "cannot" in part.text.lower():
+                                print(f"   [WARNING] Réponse contient du texte d'erreur au lieu d'une image")
+            
+            # Si aucune image n'a été trouvée, essayer d'afficher toute la structure
+            if not image_data:
+                print(f"   [ERROR] Aucune image trouvée dans la réponse")
+                print(f"   [DEBUG] Tentative d'inspection complète de la réponse...")
+                try:
+                    # Essayer de convertir la réponse en dict pour inspection
+                    if hasattr(response, 'model_dump'):
+                        response_dict = response.model_dump()
+                        print(f"   [DEBUG] Response dict keys: {list(response_dict.keys()) if isinstance(response_dict, dict) else 'N/A'}")
+                    elif hasattr(response, '__dict__'):
+                        print(f"   [DEBUG] Response __dict__ keys: {list(response.__dict__.keys())}")
+                except Exception as e:
+                    print(f"   [DEBUG] Impossible d'inspecter la réponse: {e}")
             
             if image_data:
                 print(f"   [OK] Image reçue ({len(image_data)} bytes)")
