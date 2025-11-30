@@ -330,8 +330,8 @@ STYLE ARTISTIQUE: {style_info['name']}
 
 CONSIGNES IMPORTANTES:
 1. Chaque planche contient EXACTEMENT 4 CASES disposées en grille 2×2
-2. L'histoire doit être cohérente, captivante et adaptée aux enfants
-3. {"CRITIQUE: Le personnage personnalisé uploadé DOIT être le HÉROS PRINCIPAL et apparaître dans LES 4 CASES de chaque planche. C'est LUI qui fait les actions, c'est LUI le protagoniste. Dans CHAQUE case, commence la description par: 'The main character (the personalized character from the uploaded photo) is...' pour que le modèle d'image sache que c'est ce personnage précis qui doit apparaître." if character_photo_path else ""}
+2. L'histoire doit être cohérente, captivante et adaptée aux enfants. {"CRITIQUE: L'histoire DOIT être centrée sur le personnage personnalisé uploadé qui est le HÉROS PRINCIPAL. Crée une vraie histoire selon le thème choisi avec ce personnage comme protagoniste." if character_photo_path else ""}
+{"3. CRITIQUE: Le personnage personnalisé uploadé DOIT être le HÉROS PRINCIPAL et apparaître dans LES 4 CASES de chaque planche. C'est LUI qui fait les actions, c'est LUI le protagoniste. Dans CHAQUE case, commence la description par: 'The main character (the personalized character from the uploaded photo) is...' pour que le modèle d'image sache que c'est ce personnage précis qui doit apparaître." if character_photo_path else ""}
 4. Chaque case doit avoir:
    - Une description visuelle ULTRA DÉTAILLÉE (pour gpt-image-1-mini)
    - Des dialogues dans des bulles (maximum 2 bulles par case)
