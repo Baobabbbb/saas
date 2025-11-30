@@ -451,7 +451,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 "source_photo": photo_path,
                 "images": [{
                     "image_url": image_url,
-                    "source": "GPT-4o-mini (analyse) + Gemini text-to-image"
+                    "source": "Gemini image-to-image direct"
                 }],
                 "total_images": 1,
                 "metadata": {
