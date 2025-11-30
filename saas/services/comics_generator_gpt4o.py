@@ -782,29 +782,59 @@ STYLE REQUIREMENTS:
         character_photo_path: Optional[str] = None,
         page_data: Optional[Dict] = None
     ) -> Path:
-        """Génère une planche de BD avec gemini-3-pro-image-preview (text-to-image uniquement)
+        """Génère une planche de BD avec gemini-3-pro-image-preview
         
-        Le prompt contient déjà toute la description détaillée du personnage (si photo fournie)
-        obtenue via l'analyse GPT-4o. On utilise uniquement text-to-image avec gemini-3-pro-image-preview.
+        Si character_photo_path est fourni, utilise image-to-image avec l'illustration transformée.
+        Sinon, utilise text-to-image uniquement.
         
         Args:
-            prompt: Prompt ULTRA DÉTAILLÉ incluant la description du personnage
+            prompt: Prompt détaillé pour la planche
             output_dir: Répertoire de sortie
             page_num: Numéro de la planche
-            character_photo_path: Non utilisé (conservé pour compatibilité)
+            character_photo_path: Chemin vers l'illustration du personnage (si fourni)
             page_data: Non utilisé (conservé pour compatibilité)
         """
         
         try:
-            print(f"   🎨 Appel gemini-3-pro-image-preview (text-to-image uniquement)...")
-            print(f"   📝 Prompt détaillé ({len(prompt)} caractères)")
-            
-            # Générer l'image avec text-to-image uniquement
-            # Le prompt contient déjà toute la description du personnage si une photo a été fournie
-            response = self.gemini_client.models.generate_content(
-                model="gemini-3-pro-image-preview",
-                contents=[prompt]
-            )
+            # Si une illustration de personnage est fournie, utiliser image-to-image
+            if character_photo_path and Path(character_photo_path).exists():
+                print(f"   🎨 Appel gemini-3-pro-image-preview (image-to-image avec illustration)...")
+                print(f"   📸 Utilisation illustration personnage: {character_photo_path}")
+                
+                # Charger l'illustration
+                character_img = Image.open(character_photo_path)
+                print(f"   📏 Illustration: {character_img.size}, mode: {character_img.mode}")
+                
+                # Créer un prompt simple pour image-to-image
+                simple_prompt = f"""Transform this character illustration into a comic book page with 4 panels in a 2x2 grid layout. Create a scene based on this prompt: {prompt[:500]}. Use the character from the provided image as the main character in all 4 panels, maintaining their recognizable appearance."""
+                
+                # Convertir l'image en bytes pour Gemini
+                import io
+                img_bytes = io.BytesIO()
+                character_img.save(img_bytes, format='PNG')
+                img_bytes.seek(0)
+                
+                # Utiliser image-to-image avec Gemini
+                import google.genai.types as types
+                response = self.gemini_client.models.generate_content(
+                    model="gemini-3-pro-image-preview",
+                    contents=[
+                        types.Part.from_bytes(
+                            img_bytes.read(),
+                            mime_type="image/png"
+                        ),
+                        simple_prompt
+                    ]
+                )
+            else:
+                print(f"   🎨 Appel gemini-3-pro-image-preview (text-to-image uniquement)...")
+                print(f"   📝 Prompt détaillé ({len(prompt)} caractères)")
+                
+                # Générer l'image avec text-to-image uniquement
+                response = self.gemini_client.models.generate_content(
+                    model="gemini-3-pro-image-preview",
+                    contents=[prompt]
+                )
             
             print(f"   [RESPONSE] Réponse reçue de gemini-3-pro-image-preview")
             
@@ -947,7 +977,7 @@ STYLE REQUIREMENTS:
         try:
             # 1. Générer le scénario (avec analyse de la photo si fournie)
             print("📝 Étape 1: Génération du scénario...")
-            story_data, character_description = await self.generate_comic_story(
+            story_data, character_illustration_path = await self.generate_comic_story(
                 theme=theme,
                 num_pages=num_pages,
                 art_style=art_style,
@@ -955,14 +985,13 @@ STYLE REQUIREMENTS:
                 character_photo_path=character_photo_path
             )
             
-            # 2. Générer les images (avec description du personnage pour le prompt détaillé)
+            # 2. Générer les images (avec illustration du personnage pour référence)
             print("🎨 Étape 2: Génération des planches...")
             pages, comic_id = await self.generate_comic_pages(
                 story_data=story_data,
                 art_style=art_style,
-                character_photo_path=None,  # Plus besoin de la photo, on utilise la description
-                user_id=user_id,  # Passer user_id pour upload Supabase Storage
-                character_description=character_description  # Passer la description détaillée
+                character_photo_path=character_illustration_path,  # Utiliser l'illustration transformée
+                user_id=user_id  # Passer user_id pour upload Supabase Storage
             )
             
             generation_time = (datetime.now() - start_time).total_seconds()
