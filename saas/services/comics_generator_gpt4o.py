@@ -437,6 +437,79 @@ Génère maintenant le scénario complet en JSON:"""
             print(f"❌ Erreur génération scénario: {e}")
             raise Exception(f"Erreur lors de la génération du scénario: {e}")
     
+    async def _transform_photo_to_avatar(self, photo_path: str) -> Optional[str]:
+        """Transforme une photo en avatar cartoon avec OpenAI images.edit pour éviter les blocages Gemini"""
+        try:
+            print(f"   🎨 Transformation photo en avatar cartoon avec OpenAI...")
+            
+            # Charger l'image
+            input_image = Image.open(photo_path)
+            width, height = input_image.size
+            
+            # Redimensionner en carré 1024x1024 (requis pour images.edit)
+            size = 1024
+            square_image = Image.new('RGB', (size, size), 'white')
+            
+            # Calculer le ratio pour garder les proportions
+            ratio = min(size / width, size / height)
+            new_width = int(width * ratio)
+            new_height = int(height * ratio)
+            resized_image = input_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            
+            # Centrer l'image
+            x_offset = (size - new_width) // 2
+            y_offset = (size - new_height) // 2
+            square_image.paste(resized_image, (x_offset, y_offset))
+            
+            # Sauvegarder temporairement
+            temp_input_path = self.cache_dir / f"temp_input_{uuid.uuid4().hex[:8]}.png"
+            square_image.save(temp_input_path, 'PNG')
+            
+            # Créer un masque blanc (tout l'image sera modifiée)
+            mask_image = Image.new('RGB', (size, size), 'white')
+            temp_mask_path = self.cache_dir / f"temp_mask_{uuid.uuid4().hex[:8]}.png"
+            mask_image.save(temp_mask_path, 'PNG')
+            
+            # Prompt pour transformer en avatar cartoon
+            avatar_prompt = "Transform this into a friendly cartoon-style avatar character suitable for a children's comic book. Make it clearly a cartoon illustration with recognizable features preserved."
+            
+            # Utiliser images.edit pour transformer en avatar
+            with open(temp_input_path, "rb") as input_file, open(temp_mask_path, "rb") as mask_file:
+                response = await self.client.images.edit(
+                    image=input_file,
+                    mask=mask_file,
+                    prompt=avatar_prompt,
+                    n=1,
+                    size=f"{size}x{size}"
+                )
+            
+            # Récupérer l'URL de l'image générée
+            avatar_url = response.data[0].url
+            
+            # Télécharger l'image
+            import httpx
+            async with httpx.AsyncClient() as client:
+                avatar_response = await client.get(avatar_url)
+                avatar_data = avatar_response.content
+            
+            # Sauvegarder l'avatar
+            avatar_path = self.cache_dir / f"avatar_{uuid.uuid4().hex[:8]}.png"
+            with open(avatar_path, 'wb') as f:
+                f.write(avatar_data)
+            
+            # Nettoyer les fichiers temporaires
+            temp_input_path.unlink(missing_ok=True)
+            temp_mask_path.unlink(missing_ok=True)
+            
+            print(f"   ✅ Avatar cartoon créé: {avatar_path.name}")
+            return str(avatar_path)
+            
+        except Exception as e:
+            print(f"   ⚠️ Erreur création avatar: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+    
     async def _analyze_character_photo(self, photo_path: str) -> str:
         """Analyse une photo de personnage avec gpt-4o-mini pour l'intégrer dans l'histoire"""
         try:
