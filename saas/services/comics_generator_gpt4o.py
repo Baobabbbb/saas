@@ -622,6 +622,13 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
         comic_dir = self.cache_dir / comic_id
         comic_dir.mkdir(parents=True, exist_ok=True)
         
+        # Si une photo de personnage est fournie, transformer d'abord en avatar AVANT de générer les planches
+        avatar_path = None
+        if character_photo_path:
+            print(f"   🎨 Transformation photo en avatar cartoon avec OpenAI (OBLIGATOIRE)...")
+            avatar_path = await self._transform_photo_to_avatar(character_photo_path)
+            print(f"   ✅ Avatar créé: {avatar_path}")
+        
         generated_pages = []
         
         for page_data in story_data["pages"]:
@@ -637,12 +644,12 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
                 print(f"   Prompt: {page_prompt[:200]}...")
                 
                 # Générer l'image avec gemini-3-pro-image-preview
-                # Si character_photo_path est fourni, utilise image-to-image pour fidélité maximale
+                # Si avatar_path est fourni, utilise l'avatar (pas la photo originale)
                 image_path = await self._generate_page_with_gpt_image_1(
                     page_prompt,
                     comic_dir,
                     page_num,
-                    character_photo_path=character_photo_path,  # Passer la photo pour image-to-image
+                    character_photo_path=avatar_path if avatar_path else None,  # Passer l'avatar, pas la photo originale
                     page_data=page_data  # Passer page_data pour extraire les panels
                 )
                 
@@ -782,18 +789,12 @@ STYLE REQUIREMENTS:
         try:
             print(f"   🎨 Appel gemini-3-pro-image-preview...")
             
-            # Si une photo de personnage est fournie, transformer d'abord en avatar avec OpenAI
-            # puis utiliser l'avatar avec Gemini pour éviter les blocages
+            # Si un avatar est fourni (déjà transformé), l'utiliser avec Gemini
             if character_photo_path:
-                print(f"   📸 Photo de personnage fournie, transformation en avatar cartoon avec OpenAI...")
+                print(f"   📸 Avatar cartoon fourni, utilisation avec Gemini: {character_photo_path}")
                 
-                # Transformer la photo en avatar cartoon avec OpenAI (OBLIGATOIRE, pas de fallback)
-                avatar_path = await self._transform_photo_to_avatar(character_photo_path)
-                
-                print(f"   ✅ Avatar créé, utilisation avec Gemini: {avatar_path}")
-                
-                # Charger l'avatar
-                input_image = Image.open(avatar_path)
+                # Charger l'avatar (déjà transformé en cartoon)
+                input_image = Image.open(character_photo_path)
                 print(f"   [DEBUG] Avatar chargé: {input_image.size}, mode: {input_image.mode}")
                 
                 # Créer un prompt très court et simple pour l'image-to-image
@@ -804,26 +805,26 @@ STYLE REQUIREMENTS:
                     # Extraire les descriptions courtes des panels
                     panel_descs = []
                     for i, panel in enumerate(panels[:4]):
-                        desc = panel.get('visual_description', '')[:80]  # Limiter encore plus
+                        desc = panel.get('visual_description', '')[:60]  # Limiter à 60 caractères
                         # Nettoyer la description : remplacer les références à "person" ou "main character"
                         desc = desc.replace('main character', 'character')
                         desc = desc.replace('the person', 'the character')
                         desc = desc.replace('this person', 'this character')
+                        desc = desc.replace('person', 'character')
                         panel_descs.append(desc)
                     
-                    # Utiliser exactement le même style que les coloriages qui fonctionnent
-                    # "Transform this photo" au lieu de "Create" ou "Use the person"
-                    simple_prompt = f"""Transform this photo into a comic book page with 4 panels in a 2x2 grid layout. Preserve the recognizable features and appearance of the main subject from the photo, using them as the central character in all 4 panels.
+                    # Prompt très simple pour avatar cartoon (pas "photo")
+                    simple_prompt = f"""Create a comic book page with 4 panels in a 2x2 grid. Use the cartoon character from this image as the main character in all panels.
 
 Panel 1: {panel_descs[0] if len(panel_descs) > 0 else 'First scene'}
 Panel 2: {panel_descs[1] if len(panel_descs) > 1 else 'Second scene'}
 Panel 3: {panel_descs[2] if len(panel_descs) > 2 else 'Third scene'}
 Panel 4: {panel_descs[3] if len(panel_descs) > 3 else 'Fourth scene'}
 
-STYLE: Cartoon style, colorful, child-friendly, simple lines, bright colors, rounded shapes."""
+Style: cartoon, colorful, child-friendly."""
                 else:
-                    # Si pas de page_data, utiliser un prompt similaire aux coloriages
-                    simple_prompt = "Transform this photo into a comic book page with 4 panels in a 2x2 grid. Preserve recognizable features of the main subject. Cartoon style, colorful, child-friendly."
+                    # Si pas de page_data, utiliser un prompt très simple
+                    simple_prompt = "Create a comic book page with 4 panels in a 2x2 grid. Use the cartoon character from this image as the main character. Cartoon style, colorful, child-friendly."
                 
                 print(f"   [DEBUG] Prompt image-to-image simplifié ({len(simple_prompt)} chars): {simple_prompt[:200]}...")
                 
