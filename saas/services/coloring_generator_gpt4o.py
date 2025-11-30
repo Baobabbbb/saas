@@ -1,6 +1,6 @@
 """
 Service de génération de coloriages
-- gpt-image-1-mini (image-to-image) pour les photos uploadées
+- gpt-image-1 (image-to-image) pour les photos uploadées
 - gemini-3-pro-image-preview (text-to-image) pour les thèmes prédéfinis
 """
 import os
@@ -24,7 +24,7 @@ load_dotenv()
 class ColoringGeneratorGPT4o:
     """
     Générateur de coloriages
-    - gpt-image-1-mini (image-to-image) pour photos uploadées
+    - gpt-image-1 (image-to-image) pour photos uploadées
     - gemini-3-pro-image-preview (text-to-image) pour thèmes
     """
     
@@ -406,7 +406,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
         with_colored_model: bool = True
     ) -> Optional[str]:
         """
-        Convertit une photo en coloriage avec gpt-image-1-mini images.edit
+        Convertit une photo en coloriage avec gpt-image-1 images.edit
         
         Args:
             photo_path: Chemin vers la photo
@@ -416,7 +416,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             Chemin local de l'image générée
         """
         try:
-            print(f"[COLORING PHOTO] Conversion avec gpt-image-1-mini images.edit: {photo_path}")
+            print(f"[COLORING PHOTO] Conversion avec gpt-image-1 images.edit: {photo_path}")
             
             # Charger l'image
             input_image = Image.open(photo_path)
@@ -466,7 +466,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                     prompt=edit_prompt,
                     n=1,
                     size=f"{size}x{size}",
-                    model="gpt-image-1-mini"
+                    model="gpt-image-1"
                 )
             
             # Vérifier la structure de la réponse
@@ -474,7 +474,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             print(f"[DEBUG] Response data: {response.data if hasattr(response, 'data') else 'No data'}")
             
             if not response.data or len(response.data) == 0:
-                raise Exception("Aucune image générée par gpt-image-1-mini")
+                raise Exception("Aucune image générée par gpt-image-1")
             
             image_result = response.data[0]
             print(f"[DEBUG] Image result: {image_result}")
@@ -496,7 +496,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 print(f"[DEBUG] Décodage depuis base64")
                 image_data = base64.b64decode(image_result.b64_json)
             else:
-                raise Exception(f"Format de réponse gpt-image-1-mini inattendu: pas d'URL ni de b64_json. Response: {image_result}")
+                raise Exception(f"Format de réponse gpt-image-1 inattendu: pas d'URL ni de b64_json. Response: {image_result}")
             
             if not image_data:
                 raise Exception("Impossible de récupérer l'image générée")
@@ -506,25 +506,37 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             print(f"[DEBUG] Image générée: {generated_img.size}")
             
             # L'image générée est en 1024x1024 (carré)
-            # Il faut extraire la partie centrale correspondant à l'image originale
-            # puis la redimensionner aux dimensions originales pour garder les proportions exactes
+            # Pour éviter les coupures, on va redimensionner l'image générée entière
+            # selon les proportions de l'originale, puis recadrer au centre si nécessaire
             
-            # Calculer les coordonnées de la zone à extraire (même zone que celle où on a collé l'image originale)
-            # Ces coordonnées correspondent à x_offset, y_offset, new_width, new_height calculés plus haut
-            crop_x = x_offset
-            crop_y = y_offset
-            crop_width = new_width
-            crop_height = new_height
+            # Calculer les proportions de l'image originale
+            original_ratio = original_width / original_height
+            print(f"[DEBUG] Ratio original: {original_ratio} ({original_width}/{original_height})")
             
-            print(f"[DEBUG] Extraction zone: ({crop_x}, {crop_y}, {crop_x + crop_width}, {crop_y + crop_height})")
+            # Redimensionner l'image générée (1024x1024) pour qu'elle ait les mêmes proportions que l'originale
+            # On garde la dimension la plus grande à 1024 et on ajuste l'autre
+            if original_ratio > 1:  # Largeur > hauteur (paysage)
+                new_gen_width = 1024
+                new_gen_height = int(1024 / original_ratio)
+            else:  # Hauteur >= largeur (portrait ou carré)
+                new_gen_height = 1024
+                new_gen_width = int(1024 * original_ratio)
             
-            # Extraire la partie centrale de l'image générée (zone où se trouve l'image originale)
-            cropped_img = generated_img.crop((crop_x, crop_y, crop_x + crop_width, crop_y + crop_height))
-            print(f"[DEBUG] Image recadrée: {cropped_img.size}")
+            print(f"[DEBUG] Redimensionnement généré: {new_gen_width}x{new_gen_height}")
+            resized_gen = generated_img.resize((new_gen_width, new_gen_height), Image.Resampling.LANCZOS)
             
-            # Redimensionner aux dimensions originales pour restaurer la taille exacte (sans déformation)
-            final_img = cropped_img.resize((original_width, original_height), Image.Resampling.LANCZOS)
-            print(f"[DEBUG] Image finale redimensionnée: {final_img.size} (original: {original_width}x{original_height})")
+            # Maintenant, recadrer au centre pour avoir exactement les dimensions originales
+            # Cela préserve toute l'image générée tout en gardant les bonnes proportions
+            if new_gen_width >= original_width and new_gen_height >= original_height:
+                # Recadrer au centre
+                crop_x = (new_gen_width - original_width) // 2
+                crop_y = (new_gen_height - original_height) // 2
+                final_img = resized_gen.crop((crop_x, crop_y, crop_x + original_width, crop_y + original_height))
+                print(f"[DEBUG] Image recadrée au centre: {final_img.size}")
+            else:
+                # Redimensionner directement (cas rare où l'image générée est plus petite)
+                final_img = resized_gen.resize((original_width, original_height), Image.Resampling.LANCZOS)
+                print(f"[DEBUG] Image redimensionnée directement: {final_img.size}")
             
             # Sauvegarder
             output_path = self.output_dir / f"coloring_photo_gpt_image_1_{uuid.uuid4().hex[:8]}.png"
@@ -538,7 +550,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             return str(output_path)
             
         except Exception as e:
-            print(f"[ERROR] Erreur conversion photo avec gpt-image-1-mini: {e}")
+            print(f"[ERROR] Erreur conversion photo avec gpt-image-1: {e}")
             import traceback
             traceback.print_exc()
             raise
@@ -551,7 +563,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
         user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Convertit une photo en coloriage avec gpt-image-1-mini images.edit
+        Convertit une photo en coloriage avec gpt-image-1 images.edit
         
         Args:
             photo_path: Chemin vers la photo
@@ -562,16 +574,16 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             Dict avec le résultat
         """
         try:
-            print(f"[COLORING PHOTO] Conversion avec gpt-image-1-mini images.edit: {photo_path}")
+            print(f"[COLORING PHOTO] Conversion avec gpt-image-1 images.edit: {photo_path}")
             
-            # Utiliser gpt-image-1-mini images.edit pour transformer la photo en coloriage
+            # Utiliser gpt-image-1 images.edit pour transformer la photo en coloriage
             coloring_path_str = await self._convert_photo_to_coloring_with_gpt_image_1(
                 photo_path,
                 with_colored_model
             )
             
             if not coloring_path_str:
-                raise Exception("Échec de la génération gpt-image-1-mini")
+                raise Exception("Échec de la génération gpt-image-1")
             
             # Convertir en Path
             coloring_path = Path(coloring_path_str)
@@ -603,19 +615,19 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 "source_photo": photo_path,
                 "images": [{
                     "image_url": image_url,
-                    "source": "gpt-image-1-mini (images.edit)"
+                    "source": "gpt-image-1 (images.edit)"
                 }],
                 "total_images": 1,
                 "metadata": {
                     "source_photo": photo_path,
-                    "method": "gpt-image-1-mini images.edit",
+                    "method": "gpt-image-1 images.edit",
                     "created_at": datetime.now().isoformat(),
-                    "model": "gpt-image-1-mini",
+                    "model": "gpt-image-1",
                     "with_colored_model": with_colored_model
                 }
             }
             
-            print(f"[OK] Coloriage photo généré avec succès (gpt-image-1-mini images.edit): {coloring_path.name}")
+            print(f"[OK] Coloriage photo généré avec succès (gpt-image-1 images.edit): {coloring_path.name}")
             return result
             
         except Exception as e:
@@ -1010,13 +1022,13 @@ The illustration should be:
                 description = theme_descriptions.get(theme.lower(), f"A {theme} scene suitable for children coloring")
                 print(f"[DESCRIPTION] {description}")
                 
-                # Générer avec gpt-image-1-mini (text-to-image)
+                # Générer avec gpt-image-1 (text-to-image)
                 coloring_path_str = await self._generate_coloring_with_gpt_image_1(description, None, with_colored_model)
             
             if not coloring_path_str:
-                raise Exception("Echec de la generation gpt-image-1-mini - chemin vide")
+                raise Exception("Echec de la generation gpt-image-1 - chemin vide")
             
-            print(f"[OK] Chemin gpt-image-1-mini recu: {coloring_path_str}")
+            print(f"[OK] Chemin gpt-image-1 recu: {coloring_path_str}")
             
             # Convertir en Path
             coloring_path = Path(coloring_path_str)
@@ -1049,14 +1061,14 @@ The illustration should be:
                 "images": [{
                     "image_url": image_url,
                     "theme": theme,
-                    "source": "gpt-image-1-mini (text-to-image)"
+                    "source": "gpt-image-1 (text-to-image)"
                 }],
                 "total_images": 1,
                 "metadata": {
                     "theme": theme,
                     "description": description,
                     "created_at": datetime.now().isoformat(),
-                    "model": "gpt-image-1-mini",
+                    "model": "gpt-image-1",
                     "method": "text-to-image",
                     "with_colored_model": with_colored_model
                 }
