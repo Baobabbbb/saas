@@ -296,22 +296,21 @@ class ComicsGeneratorGPT4o:
         # Récupérer le style artistique
         style_info = self.art_styles.get(art_style, self.art_styles["cartoon"])
         
-        # Analyser la photo du personnage si fournie (analyse ULTRA DÉTAILLÉE)
-        character_description = None
+        # Transformer la photo du personnage en illustration de BD si fournie
+        character_illustration_path = None
         if character_photo_path:
-            print(f"📸 Analyse approfondie de la photo personnage pour le scénario...")
+            print(f"📸 Transformation photo en personnage BD...")
             print(f"   📁 Chemin photo: {character_photo_path}")
             # Vérifier que le fichier existe
             if not Path(character_photo_path).exists():
                 print(f"   ⚠️ ERREUR: Le fichier photo n'existe pas: {character_photo_path}")
                 raise Exception(f"Photo introuvable: {character_photo_path}")
-            character_description = await self._analyze_character_photo(character_photo_path)
-            if character_description:
-                print(f"   ✅ Description obtenue: {len(character_description)} caractères")
-                print(f"   📝 Aperçu description: {character_description[:200]}...")
+            character_illustration_path = await self._transform_photo_to_comic_character(character_photo_path)
+            if character_illustration_path:
+                print(f"   ✅ Illustration personnage créée: {character_illustration_path}")
             else:
-                print(f"   ⚠️ ERREUR: Aucune description obtenue de l'analyse")
-                raise Exception("Échec analyse photo: description vide")
+                print(f"   ⚠️ ERREUR: Aucune illustration obtenue")
+                raise Exception("Échec transformation photo: illustration vide")
         
         # Construire le prompt pour gpt-4o-mini
         prompt = f"""Tu es un scénariste expert en bandes dessinées pour enfants de 6-10 ans. Tu écris en français impeccable sans aucune faute d'orthographe.
@@ -332,7 +331,7 @@ STYLE ARTISTIQUE: {style_info['name']}
 CONSIGNES IMPORTANTES:
 1. Chaque planche contient EXACTEMENT 4 CASES disposées en grille 2×2
 2. L'histoire doit être cohérente, captivante et adaptée aux enfants
-{("3. CRITIQUE ABSOLU: Le personnage décrit ci-dessus DOIT être le HÉROS PRINCIPAL et apparaître dans LES 4 CASES de chaque planche. C'est LUI qui fait les actions, c'est LUI le protagoniste. Dans CHAQUE case, commence la description par: 'The main character (the person described above) is...' pour que gpt-image-1-mini sache que c'est ce personnage précis qui doit apparaître: " + character_description) if character_description else ""}
+# Plus besoin de description textuelle, on utilise l'illustration directement
 3. Chaque case doit avoir:
    - Une description visuelle ULTRA DÉTAILLÉE (pour gpt-image-1-mini)
    - Des dialogues dans des bulles (maximum 2 bulles par case)
@@ -446,7 +445,7 @@ Génère maintenant le scénario complet en JSON:"""
             print(f"✅ Scénario généré: '{story_data['title']}' - {len(story_data['pages'])} planches")
             
             # Retourner le scénario ET la description du personnage pour réutilisation
-            return story_data, character_description
+            return story_data, character_illustration_path
             
         except json.JSONDecodeError as e:
             print(f"❌ Erreur parsing JSON: {e}")
@@ -469,299 +468,94 @@ Génère maintenant le scénario complet en JSON:"""
             Description très détaillée du personnage en anglais
         """
         try:
-            print(f"📸 Analyse approfondie de la photo personnage: {photo_path}")
+            print(f"📸 Transformation photo en personnage BD avec gpt-image-1: {photo_path}")
             
-            # Charger et encoder l'image en base64
-            print(f"   📁 Lecture fichier photo: {photo_path}")
-            with open(photo_path, "rb") as image_file:
-                image_data = image_file.read()
+            # Charger l'image
+            input_image = Image.open(photo_path)
+            original_width, original_height = input_image.size
+            print(f"   📏 Image originale: {original_width}x{original_height}")
             
-            print(f"   ✅ Fichier lu: {len(image_data)} bytes")
+            # Convertir en RGBA (requis par images.edit)
+            if input_image.mode != 'RGBA':
+                input_image = input_image.convert('RGBA')
             
-            # Vérifier que c'est bien une image valide
-            try:
-                test_img = Image.open(io.BytesIO(image_data))
-                print(f"   ✅ Image valide: {test_img.size}, mode: {test_img.mode}")
-            except Exception as e:
-                print(f"   ⚠️ ERREUR: Fichier n'est pas une image valide: {e}")
-                raise Exception(f"Fichier photo invalide: {e}")
+            # Redimensionner en carré 1024x1024 (requis pour images.edit)
+            size = 1024
+            square_image = Image.new('RGBA', (size, size), (255, 255, 255, 255))
             
-            # Convertir en base64
-            base64_image = base64.b64encode(image_data).decode('utf-8')
-            print(f"   ✅ Image encodée en base64: {len(base64_image)} caractères")
+            # Calculer le ratio pour garder les proportions
+            ratio = min(size / original_width, size / original_height)
+            new_width = int(original_width * ratio)
+            new_height = int(original_height * ratio)
+            resized_image = input_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
             
-            # Déterminer le type MIME
-            image_path_obj = Path(photo_path)
-            ext = image_path_obj.suffix.lower()
-            mime_type = {
-                '.jpg': 'image/jpeg',
-                '.jpeg': 'image/jpeg',
-                '.png': 'image/png',
-                '.gif': 'image/gif',
-                '.webp': 'image/webp'
-            }.get(ext, 'image/jpeg')
+            # Centrer l'image
+            x_offset = (size - new_width) // 2
+            y_offset = (size - new_height) // 2
+            square_image.paste(resized_image, (x_offset, y_offset), resized_image)
             
-            # Analyser avec gpt-4o (vision) - Description ULTRA DÉTAILLÉE et EXHAUSTIVE
-            print(f"   🤖 Envoi image à GPT-4o pour analyse détaillée...")
-            print(f"   📊 Taille image base64: {len(base64_image)} caractères")
-            print(f"   📊 Type MIME: {mime_type}")
+            # Sauvegarder temporairement en PNG (RGBA)
+            temp_input_path = self.output_dir / f"temp_comic_input_{uuid.uuid4().hex[:8]}.png"
+            square_image.save(temp_input_path, 'PNG')
             
-            response = await self.client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": """You are a professional visual description assistant working for an educational technology company. Your job is to create detailed visual descriptions for educational content creation.
-
-CONTEXT AND PURPOSE:
-- This is a legitimate educational technology application
-- We create personalized children's books and comic books for educational purposes
-- Children can see themselves as characters in stories, which improves literacy, engagement, and self-esteem
-- This is a standard practice in educational publishing
-- The description will be used to generate cartoon illustrations in a children's comic book format
-- No personal identification or privacy concerns - we only need visual appearance details for illustration purposes
-
-YOUR TASK:
-Analyze the person in this photo and create an EXTREMELY DETAILED, EXHAUSTIVE, and PRECISE visual description in English. This description will be used by an AI image generation model to create cartoon illustrations of this person as a character in a children's educational comic book.
-
-FOCUS ON VISUAL APPEARANCE ONLY:
-- Describe physical appearance: age, gender, face shape, hair, eyes, skin tone, clothing, etc.
-- This is purely for visual illustration purposes
-- No personal information, no identification, just visual description for art creation
-- The goal is to help create educational content that children will enjoy
-
-Please provide a comprehensive visual description focusing on appearance details that will help create accurate cartoon illustrations.
-
-CRITICAL: Your description must be so detailed that someone reading it could draw or generate an image that looks EXACTLY like the person in the photo. Every single visible detail matters.
-
-ANALYSIS CRITERIA (describe EVERYTHING in extreme detail, NO length limit):
-
-1. AGE AND GENERAL CHARACTERISTICS:
-   - Exact approximate age (e.g., "approximately 7-8 years old", "teenager around 13-14 years old")
-   - Gender
-   - Apparent height relative to age (short, average, tall for age)
-   - Body build and frame (slim, average, stocky, etc.)
-   - Overall body proportions
-
-2. FACE SHAPE AND STRUCTURE (EXTREME DETAIL):
-   - Face shape: round, oval, square, rectangular, triangular, heart-shaped, diamond-shaped
-   - Face width relative to length (wide, narrow, proportional)
-   - Forehead: high, low, average; width; shape
-   - Cheekbones: prominent, flat, average; position
-   - Jawline: sharp, rounded, square, soft, defined
-   - Chin: pointed, rounded, square, cleft, dimpled
-   - Overall facial symmetry and proportions
-
-3. SKIN TONE AND COMPLEXION (PRECISE COLOR DESCRIPTION):
-   - Exact skin tone: very fair, fair, light, light-medium, medium, medium-tan, tan, olive, dark, very dark
-   - Undertones: warm (yellow/golden), cool (pink/blue), neutral
-   - Skin texture: smooth, freckled, clear, etc.
-   - Any visible skin markings, blemishes, or distinctive features
-
-4. HAIR (COMPLETE DETAILED DESCRIPTION):
-   - Exact hair color: light blonde, dark blonde, light brown, medium brown, dark brown, black, auburn, red, strawberry blonde, etc. (be VERY specific)
-   - Hair length: very short (buzz cut), short, medium-short, medium, medium-long, long, very long
-   - Hair texture: straight, wavy, curly, very curly, kinky, coily
-   - Hair thickness: thin, medium, thick, very thick
-   - Hair volume: flat, average, voluminous
-   - Haircut style: bangs (fringe), side part, center part, no part, layers, one length, etc.
-   - Hair direction: how it falls, any specific styling
-   - Hairline: straight, rounded, widow's peak, receding, etc.
-   - Any highlights, lowlights, or color variations
-   - Hair accessories: clips, bands, headbands, etc.
-
-5. EYES (EXTREMELY PRECISE DESCRIPTION):
-   - Exact eye color: bright blue, light blue, dark blue, blue-gray, green, hazel, light brown, medium brown, dark brown, black, gray, etc.
-   - Eye shape: round, almond-shaped, oval, wide-set, close-set, upturned, downturned
-   - Eye size: small, medium, large relative to face
-   - Eyelid type: single, double, hooded, monolid
-   - Eye spacing: close together, average, wide apart
-   - Eye depth: deep-set, average, prominent
-   - Eyelashes: short, medium, long; sparse, average, thick; color
-   - Eyebrows: color (match hair or different), shape (straight, arched, rounded), thickness (thin, medium, thick), spacing
-   - Eye expression: bright, sleepy, alert, kind, serious, etc.
-
-6. NOSE (DETAILED DESCRIPTION):
-   - Nose shape: small, medium, large relative to face
-   - Nose bridge: high, low, average; straight, curved
-   - Nose tip: pointed, rounded, bulbous, upturned, downturned
-   - Nostril size and shape
-   - Overall nose width: narrow, average, wide
-
-7. MOUTH AND LIPS (PRECISE DESCRIPTION):
-   - Mouth size: small, medium, large relative to face
-   - Lip fullness: thin, medium, full
-   - Upper lip shape: curved, straight, defined cupid's bow, etc.
-   - Lower lip shape: rounded, straight, etc.
-   - Lip color: natural, pale, rosy, etc.
-   - Expression: smiling (how wide), neutral, serious, etc.
-   - Any distinctive features: dimples, etc.
-
-8. EARS (IF VISIBLE):
-   - Size: small, medium, large
-   - Position: close to head, protruding
-   - Shape: round, oval, pointed
-   - Any distinctive features
-
-9. CLOTHING (COMPLETE DETAILED DESCRIPTION):
-   - Top: exact type (t-shirt, polo shirt, button-down shirt, sweater, hoodie, dress, etc.)
-   - Top color: exact shade and color name (e.g., "bright red", "navy blue", "light gray")
-   - Top style: fitted, loose, oversized, etc.
-   - Sleeves: short, long, sleeveless; length if short
-   - Collar: round neck, V-neck, crew neck, collar type, etc.
-   - Patterns: solid, stripes (direction, width, colors), prints (describe pattern), logos (describe), graphics (describe)
-   - Bottom: exact type (jeans, pants, shorts, skirt, etc.)
-   - Bottom color: exact shade
-   - Bottom style: fitted, loose, etc.
-   - Length if shorts or skirt
-   - Any visible pockets, zippers, buttons, etc.
-   - Shoes: type, color, style
-   - Socks: if visible, color and style
-
-10. ACCESSORIES (ALL VISIBLE ITEMS):
-    - Glasses: frame shape (round, square, rectangular, cat-eye, etc.), frame color, lens type
-    - Jewelry: earrings (type, color, size), necklace (type, color), bracelets, rings
-    - Hat or cap: type, color, style, any logos or text
-    - Watch: type, color, style
-    - Bag or backpack: type, color, style
-    - Any other visible accessories
-
-11. DISTINCTIVE FEATURES (CRITICAL FOR RECOGNIZABILITY):
-    - Freckles: number (many, few, scattered), location (cheeks, nose, all over face), color, size
-    - Moles or beauty marks: exact location (e.g., "small mole on left cheek near nose"), size, color
-    - Dimples: location (cheeks, chin), depth, visibility
-    - Scars: location, size, appearance
-    - Birthmarks: location, size, color, shape
-    - Any unique facial features that make this person distinctive
-
-12. POSTURE AND BODY LANGUAGE:
-    - Body position: standing, sitting, leaning, etc.
-    - Shoulder position: straight, slouched, one higher than other
-    - Head position: straight, tilted, turned
-    - Overall posture: confident, relaxed, tense, etc.
-
-13. EXPRESSION AND EMOTION:
-    - Facial expression: happy, serious, neutral, playful, etc.
-    - Smile: wide, slight, none; showing teeth or not
-    - Eye expression: bright, serious, kind, etc.
-    - Overall demeanor and energy
-
-14. LIGHTING AND PHOTO CONTEXT:
-    - Lighting direction: front, side, top
-    - Lighting quality: bright, soft, harsh, natural
-    - Any shadows on face and where they fall
-    - Photo angle: front view, slight angle, profile
-
-15. PROPORTIONS AND RELATIONSHIPS:
-    - Head size relative to body
-    - Face proportions: where features are positioned relative to each other
-    - Any distinctive proportions that make this person unique
-
-OUTPUT FORMAT:
-Start with: "A [exact age] year old [gender] with..."
-Then continue with an EXTREMELY DETAILED paragraph-by-paragraph description covering ALL the above points.
-
-CRITICAL REQUIREMENTS:
-- Be EXTREMELY SPECIFIC about colors (don't just say "brown hair" - say "medium brown hair with warm golden undertones")
-- Describe EXACT proportions and relationships between features
-- Mention EVERY visible detail, no matter how small
-- Use precise descriptive language
-- Write in English, factual and precise style
-- NO length limit - the more detail, the better
-- The goal is MAXIMUM FIDELITY - someone should be able to recreate this person exactly from your description"""
-                            },
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:{mime_type};base64,{base64_image}"
-                                }
-                            }
-                        ]
-                    }
-                ],
-                max_tokens=8000  # Limite maximale pour une description ultra détaillée et exhaustive
-            )
+            # Créer un masque blanc en RGBA (tout l'image sera modifiée)
+            mask_image = Image.new('RGBA', (size, size), (255, 255, 255, 255))
+            temp_mask_path = self.output_dir / f"temp_comic_mask_{uuid.uuid4().hex[:8]}.png"
+            mask_image.save(temp_mask_path, 'PNG')
             
-            print(f"   ✅ Réponse reçue de GPT-4o-mini")
-            print(f"   📊 Tokens utilisés: {response.usage.total_tokens if hasattr(response, 'usage') else 'N/A'}")
+            # Prompt pour transformer en personnage de BD
+            edit_prompt = """Transform this photo into a friendly cartoon-style character illustration suitable for a children's comic book. Make it clearly a cartoon illustration with recognizable features preserved. The character should look like a hero character ready for comic book adventures. Preserve the person's distinctive features like hair color, clothing style, and general appearance, but make it clearly a cartoon illustration."""
             
-            if not response.choices or len(response.choices) == 0:
-                print(f"   ⚠️ ERREUR: Aucune réponse dans les choices")
-                raise Exception("GPT-4o n'a retourné aucune réponse")
+            print(f"   🎨 Transformation avec gpt-image-1...")
             
-            if not response.choices[0].message or not response.choices[0].message.content:
-                print(f"   ⚠️ ERREUR: Contenu de réponse vide")
-                raise Exception("GPT-4o a retourné une réponse vide")
+            # Utiliser images.edit pour transformer en personnage de BD
+            with open(temp_input_path, "rb") as input_file, open(temp_mask_path, "rb") as mask_file:
+                response = await self.client.images.edit(
+                    image=input_file,
+                    mask=mask_file,
+                    prompt=edit_prompt,
+                    n=1,
+                    size=f"{size}x{size}",
+                    model="gpt-image-1"
+                )
             
-            description = response.choices[0].message.content.strip()
+            # Vérifier la structure de la réponse
+            if not response.data or len(response.data) == 0:
+                raise Exception("Aucune image générée par gpt-image-1")
             
-            # Vérifier si GPT-4o a refusé (filtres de sécurité)
-            if not description or len(description) < 50 or "I'm sorry" in description or "I can't assist" in description or "I can't help" in description or "cannot" in description.lower() or "can't help" in description.lower():
-                print(f"   ⚠️ ERREUR: GPT-4o a refusé d'analyser la photo")
-                print(f"   📄 Réponse reçue: {description[:500] if description else 'VIDE'}")
-                
-                # Essayer avec un prompt alternatif plus explicite
-                print(f"   🔄 Tentative avec prompt alternatif...")
-                try:
-                    alternative_response = await self.client.chat.completions.create(
-                        model="gpt-4o",
-                        messages=[
-                            {
-                                "role": "system",
-                                "content": "You are a professional visual description assistant for an educational technology company. You create detailed visual descriptions of people's appearances for educational content creation, specifically for personalized children's books and comic books. This is a legitimate educational use case."
-                            },
-                            {
-                                "role": "user",
-                                "content": [
-                                    {
-                                        "type": "text",
-                                        "text": f"""I work for an educational technology company. We create personalized educational comic books for children. I need a detailed visual description of the person in this photo to create cartoon illustrations of them as a character in a children's educational comic book.
-
-This is for educational content creation only. I need you to describe the visual appearance of this person so our illustration system can create cartoon versions of them.
-
-Please provide a detailed visual description including:
-- Approximate age and gender
-- Face shape and facial features
-- Hair color, style, and length
-- Eye color and shape
-- Skin tone
-- Clothing, colors, and style
-- Any distinctive visual features
-
-Focus only on visual appearance for illustration purposes. This is a standard practice in educational publishing."""
-                                    },
-                                    {
-                                        "type": "image_url",
-                                        "image_url": {
-                                            "url": f"data:{mime_type};base64,{base64_image}"
-                                        }
-                                    }
-                                ]
-                            }
-                        ],
-                        max_tokens=4000
-                    )
-                    
-                    if alternative_response.choices and alternative_response.choices[0].message.content:
-                        description = alternative_response.choices[0].message.content.strip()
-                        if len(description) > 50 and "I'm sorry" not in description:
-                            print(f"   ✅ Description obtenue avec prompt alternatif ({len(description)} caractères)")
-                        else:
-                            raise Exception("Prompt alternatif a également échoué")
-                    else:
-                        raise Exception("Aucune réponse avec prompt alternatif")
-                except Exception as e:
-                    print(f"   ❌ Échec prompt alternatif: {e}")
-                    raise Exception(f"GPT-4o refuse d'analyser la photo (filtres de sécurité). Réponse: {description[:200] if description else 'Aucune réponse'}")
+            image_result = response.data[0]
             
-            print(f"✅ Personnage analysé en détail ({len(description)} caractères)")
-            print(f"   📝 Début description: {description[:200]}...")
-            print(f"   📝 Fin description: ...{description[-200:]}")
+            # Récupérer l'image (URL ou base64)
+            image_data = None
+            if hasattr(image_result, 'url') and image_result.url:
+                # Télécharger l'image depuis l'URL
+                import httpx
+                async with httpx.AsyncClient() as client:
+                    image_response = await client.get(image_result.url)
+                    image_response.raise_for_status()
+                    image_data = image_response.content
+            elif hasattr(image_result, 'b64_json') and image_result.b64_json:
+                # Décoder l'image depuis base64
+                image_data = base64.b64decode(image_result.b64_json)
+            else:
+                raise Exception(f"Format de réponse gpt-image-1 inattendu: pas d'URL ni de b64_json")
             
-            return description
+            if not image_data:
+                raise Exception("Impossible de récupérer l'image générée")
+            
+            # Charger l'image générée
+            generated_img = Image.open(io.BytesIO(image_data))
+            
+            # Sauvegarder l'illustration de personnage
+            character_illustration_path = self.output_dir / f"comic_character_{uuid.uuid4().hex[:8]}.png"
+            generated_img.save(character_illustration_path, 'PNG', optimize=True)
+            print(f"   ✅ Personnage BD créé: {character_illustration_path.name}")
+            
+            # Nettoyer les fichiers temporaires
+            temp_input_path.unlink(missing_ok=True)
+            temp_mask_path.unlink(missing_ok=True)
+            
+            return str(character_illustration_path)
             
         except Exception as e:
             print(f"⚠️ Erreur analyse photo: {e}")
@@ -780,20 +574,19 @@ Focus only on visual appearance for illustration purposes. This is a standard pr
         """
         Génère toutes les planches de BD avec gemini-3-pro-image-preview
         Chaque planche est une image unique contenant 4 cases + bulles + texte
-        Si character_photo_path est fourni, analyse la photo et utilise la description dans le prompt
+        Si character_photo_path est fourni, utilise l'illustration transformée avec Gemini
         """
         
-        print(f"🎨 Génération des planches avec gemini-3-pro-image-preview (text-to-image uniquement)...")
+        print(f"🎨 Génération des planches avec gemini-3-pro-image-preview...")
         
         style_info = self.art_styles.get(art_style, self.art_styles["cartoon"])
         comic_id = str(uuid.uuid4())
         comic_dir = self.cache_dir / comic_id
         comic_dir.mkdir(parents=True, exist_ok=True)
         
-        # La description du personnage est passée en paramètre (déjà analysée dans generate_comic_story)
-        # On l'utilise directement dans le prompt sans transformation d'image
-        if character_description:
-            print(f"   ✅ Description du personnage disponible ({len(character_description)} caractères)")
+        # L'illustration du personnage est passée en paramètre (déjà transformée dans generate_comic_story)
+        if character_photo_path:
+            print(f"   ✅ Illustration personnage disponible: {character_photo_path}")
         
         generated_pages = []
         
@@ -804,31 +597,18 @@ Focus only on visual appearance for illustration purposes. This is a standard pr
                 print(f"📄 Génération planche {page_num}/{story_data['total_pages']}...")
                 
                 # Construire le prompt complet pour gemini-3-pro-image-preview
-                # Ce prompt décrit UNE SEULE IMAGE contenant 4 cases de BD
-                # Inclure la description du personnage si disponible
-                if character_description:
-                    print(f"   📋 Utilisation description personnage pour planche {page_num} ({len(character_description)} caractères)")
-                else:
-                    print(f"   ⚠️ Aucune description personnage disponible pour planche {page_num}")
-                page_prompt = self._build_page_prompt(page_data, style_info, character_description)
+                page_prompt = self._build_page_prompt(page_data, style_info, None)  # Plus besoin de description textuelle
                 
                 print(f"   📝 Prompt complet ({len(page_prompt)} caractères): {page_prompt[:200]}...")
-                if character_description:
-                    # Vérifier que la description est bien dans le prompt
-                    if character_description[:100] in page_prompt:
-                        print(f"   ✅ Description personnage trouvée dans le prompt")
-                    else:
-                        print(f"   ⚠️ ERREUR: Description personnage NON trouvée dans le prompt!")
-                        print(f"   🔍 Recherche: {character_description[:50]}...")
                 
-                # Générer l'image avec gemini-3-pro-image-preview (text-to-image uniquement)
-                # La description du personnage est incluse dans le prompt
+                # Générer l'image avec gemini-3-pro-image-preview
+                # Si character_photo_path est fourni, utiliser image-to-image avec l'illustration transformée
                 image_path = await self._generate_page_with_gpt_image_1(
                     page_prompt,
                     comic_dir,
                     page_num,
-                    character_photo_path=None,  # Plus d'image-to-image, uniquement text-to-image
-                    page_data=None  # Plus besoin de page_data ici
+                    character_photo_path=character_photo_path,  # Utiliser l'illustration transformée
+                    page_data=None
                 )
                 
                 # 📤 Upload OBLIGATOIRE vers Supabase Storage
