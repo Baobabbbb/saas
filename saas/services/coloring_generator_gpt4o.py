@@ -1,6 +1,6 @@
 """
 Service de génération de coloriages
-- gpt-image-1-mini-mini (image-to-image) pour les photos uploadées
+- gpt-image-1-mini (image-to-image) pour les photos uploadées
 - gemini-3-pro-image-preview (text-to-image) pour les thèmes prédéfinis
 """
 import os
@@ -466,7 +466,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                     prompt=edit_prompt,
                     n=1,
                     size=f"{size}x{size}",
-                    model="gpt-image-1-mini-mini"
+                    model="gpt-image-1-mini"
                 )
             
             # Vérifier la structure de la réponse
@@ -474,7 +474,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             print(f"[DEBUG] Response data: {response.data if hasattr(response, 'data') else 'No data'}")
             
             if not response.data or len(response.data) == 0:
-                raise Exception("Aucune image générée par gpt-image-1-mini-mini")
+                raise Exception("Aucune image générée par gpt-image-1-mini")
             
             image_result = response.data[0]
             print(f"[DEBUG] Image result: {image_result}")
@@ -496,7 +496,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 print(f"[DEBUG] Décodage depuis base64")
                 image_data = base64.b64decode(image_result.b64_json)
             else:
-                raise Exception(f"Format de réponse gpt-image-1-mini-mini inattendu: pas d'URL ni de b64_json. Response: {image_result}")
+                raise Exception(f"Format de réponse gpt-image-1-mini inattendu: pas d'URL ni de b64_json. Response: {image_result}")
             
             if not image_data:
                 raise Exception("Impossible de récupérer l'image générée")
@@ -538,7 +538,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             return str(output_path)
             
         except Exception as e:
-            print(f"[ERROR] Erreur conversion photo avec gpt-image-1-mini-mini: {e}")
+            print(f"[ERROR] Erreur conversion photo avec gpt-image-1-mini: {e}")
             import traceback
             traceback.print_exc()
             raise
