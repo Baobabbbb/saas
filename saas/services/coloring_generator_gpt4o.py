@@ -391,6 +391,109 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             traceback.print_exc()
             raise
     
+    async def _convert_photo_to_coloring_with_gpt_image_1(
+        self,
+        photo_path: str,
+        with_colored_model: bool = True
+    ) -> Optional[str]:
+        """
+        Convertit une photo en coloriage avec gpt-image-1-mini images.edit
+        
+        Args:
+            photo_path: Chemin vers la photo
+            with_colored_model: Si True, inclut un modèle coloré en coin
+        
+        Returns:
+            Chemin local de l'image générée
+        """
+        try:
+            print(f"[COLORING PHOTO] Conversion avec gpt-image-1-mini images.edit: {photo_path}")
+            
+            # Charger l'image
+            input_image = Image.open(photo_path)
+            original_width, original_height = input_image.size
+            
+            # Convertir en RGBA (requis par images.edit)
+            if input_image.mode != 'RGBA':
+                input_image = input_image.convert('RGBA')
+            
+            # Redimensionner en carré 1024x1024 (requis pour images.edit)
+            size = 1024
+            square_image = Image.new('RGBA', (size, size), (255, 255, 255, 255))
+            
+            # Calculer le ratio pour garder les proportions
+            ratio = min(size / original_width, size / original_height)
+            new_width = int(original_width * ratio)
+            new_height = int(original_height * ratio)
+            resized_image = input_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            
+            # Centrer l'image
+            x_offset = (size - new_width) // 2
+            y_offset = (size - new_height) // 2
+            square_image.paste(resized_image, (x_offset, y_offset), resized_image)
+            
+            # Sauvegarder temporairement en PNG (RGBA)
+            temp_input_path = self.output_dir / f"temp_input_{uuid.uuid4().hex[:8]}.png"
+            square_image.save(temp_input_path, 'PNG')
+            
+            # Créer un masque blanc en RGBA (tout l'image sera modifiée)
+            mask_image = Image.new('RGBA', (size, size), (255, 255, 255, 255))
+            temp_mask_path = self.output_dir / f"temp_mask_{uuid.uuid4().hex[:8]}.png"
+            mask_image.save(temp_mask_path, 'PNG')
+            
+            # Prompt pour transformer en coloriage pour enfants
+            if with_colored_model:
+                edit_prompt = """Transform this image into a black and white line drawing coloring page for children. Use the uploaded image as reference and transform it into a coloring page with thick black outlines only, no shadows, no grayscale, pure white background. Make it suitable for children to color. At the same time, generate a complete colored version in the lower right corner as a small image for reference."""
+            else:
+                edit_prompt = """Transform this image into a black and white line drawing coloring page for children. Use the uploaded image as reference and transform it into a coloring page with thick black outlines only, no shadows, no grayscale, pure white background. Make it suitable for children to color. NO colored reference image."""
+            
+            print(f"[PROMPT] {edit_prompt[:100]}...")
+            
+            # Utiliser images.edit pour transformer en coloriage
+            with open(temp_input_path, "rb") as input_file, open(temp_mask_path, "rb") as mask_file:
+                response = await self.client.images.edit(
+                    image=input_file,
+                    mask=mask_file,
+                    prompt=edit_prompt,
+                    n=1,
+                    size=f"{size}x{size}",
+                    model="gpt-image-1-mini"
+                )
+            
+            # Récupérer l'URL de l'image générée
+            image_url = response.data[0].url
+            
+            # Télécharger l'image
+            import httpx
+            async with httpx.AsyncClient() as client:
+                image_response = await client.get(image_url)
+                image_response.raise_for_status()
+                image_data = image_response.content
+            
+            # Charger l'image générée
+            generated_img = Image.open(io.BytesIO(image_data))
+            
+            # Redimensionner aux dimensions originales si nécessaire
+            if generated_img.size != (original_width, original_height):
+                generated_img = generated_img.resize((original_width, original_height), Image.Resampling.LANCZOS)
+            
+            # Sauvegarder
+            output_path = self.output_dir / f"coloring_photo_gpt_image_1_{uuid.uuid4().hex[:8]}.png"
+            generated_img.save(output_path, 'PNG', optimize=True)
+            print(f"[OK] Coloriage photo sauvegardé ({original_width}x{original_height}): {output_path.name}")
+            
+            # Nettoyer les fichiers temporaires
+            temp_input_path.unlink(missing_ok=True)
+            temp_mask_path.unlink(missing_ok=True)
+            
+            return str(output_path)
+            
+        except Exception as e:
+            print(f"[ERROR] Erreur conversion photo avec gpt-image-1-mini: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
+    
     async def generate_coloring_from_photo(
         self, 
         photo_path: str,
@@ -399,35 +502,27 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
         user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Convertit une photo en coloriage avec GPT-4o analyse + Gemini text-to-image
-        Gemini bloque l'image-to-image pour les photos de personnes, donc on utilise
-        GPT-4o pour analyser la photo et créer une description, puis Gemini text-to-image
+        Convertit une photo en coloriage avec gpt-image-1-mini images.edit
         
         Args:
             photo_path: Chemin vers la photo
-            custom_prompt: Prompt personnalisé optionnel
+            custom_prompt: Prompt personnalisé optionnel (non utilisé pour l'instant)
             with_colored_model: Si True, inclut un modèle coloré en coin
         
         Returns:
             Dict avec le résultat
         """
         try:
-            print(f"[COLORING PHOTO] Conversion avec GPT-4o analyse + Gemini text-to-image: {photo_path}")
+            print(f"[COLORING PHOTO] Conversion avec gpt-image-1-mini images.edit: {photo_path}")
             
-            # Analyser la photo avec GPT-4o pour obtenir une description ultra détaillée
-            photo_description = await self._analyze_photo_for_coloring(photo_path)
-            
-            # Utiliser la description dans un prompt text-to-image pour Gemini
-            print(f"[COLORING] Génération coloriage avec description détaillée...")
-            coloring_path_str = await self._generate_coloring_from_description(
-                photo_description, 
-                custom_prompt, 
-                with_colored_model,
-                photo_path  # Pour préserver les dimensions originales
+            # Utiliser gpt-image-1-mini images.edit pour transformer la photo en coloriage
+            coloring_path_str = await self._convert_photo_to_coloring_with_gpt_image_1(
+                photo_path,
+                with_colored_model
             )
             
             if not coloring_path_str:
-                raise Exception("Échec de la génération Gemini (text-to-image avec description)")
+                raise Exception("Échec de la génération gpt-image-1-mini")
             
             # Convertir en Path
             coloring_path = Path(coloring_path_str)
@@ -459,19 +554,19 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 "source_photo": photo_path,
                 "images": [{
                     "image_url": image_url,
-                    "source": "GPT-4o (analyse) + Gemini text-to-image"
+                    "source": "gpt-image-1-mini (images.edit)"
                 }],
                 "total_images": 1,
                 "metadata": {
                     "source_photo": photo_path,
-                    "method": "GPT-4o analysis + Gemini text-to-image",
+                    "method": "gpt-image-1-mini images.edit",
                     "created_at": datetime.now().isoformat(),
                     "model": "gpt-image-1-mini",
                     "with_colored_model": with_colored_model
                 }
             }
             
-            print(f"[OK] Coloriage photo généré avec succès (GPT-4o analyse + Gemini text-to-image): {coloring_path.name}")
+            print(f"[OK] Coloriage photo généré avec succès (gpt-image-1-mini images.edit): {coloring_path.name}")
             return result
             
         except Exception as e:
