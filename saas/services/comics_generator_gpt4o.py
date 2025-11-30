@@ -495,12 +495,12 @@ Génère maintenant le scénario complet en JSON:"""
             square_image.paste(resized_image, (x_offset, y_offset), resized_image)
             
             # Sauvegarder temporairement en PNG (RGBA)
-            temp_input_path = self.output_dir / f"temp_comic_input_{uuid.uuid4().hex[:8]}.png"
+            temp_input_path = self.cache_dir / f"temp_comic_input_{uuid.uuid4().hex[:8]}.png"
             square_image.save(temp_input_path, 'PNG')
             
             # Créer un masque blanc en RGBA (tout l'image sera modifiée)
             mask_image = Image.new('RGBA', (size, size), (255, 255, 255, 255))
-            temp_mask_path = self.output_dir / f"temp_comic_mask_{uuid.uuid4().hex[:8]}.png"
+            temp_mask_path = self.cache_dir / f"temp_comic_mask_{uuid.uuid4().hex[:8]}.png"
             mask_image.save(temp_mask_path, 'PNG')
             
             # Prompt pour transformer en personnage de BD
@@ -547,7 +547,7 @@ Génère maintenant le scénario complet en JSON:"""
             generated_img = Image.open(io.BytesIO(image_data))
             
             # Sauvegarder l'illustration de personnage
-            character_illustration_path = self.output_dir / f"comic_character_{uuid.uuid4().hex[:8]}.png"
+            character_illustration_path = self.cache_dir / f"comic_character_{uuid.uuid4().hex[:8]}.png"
             generated_img.save(character_illustration_path, 'PNG', optimize=True)
             print(f"   ✅ Personnage BD créé: {character_illustration_path.name}")
             
