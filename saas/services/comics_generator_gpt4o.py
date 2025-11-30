@@ -692,8 +692,8 @@ STYLE REQUIREMENTS:
                 with open(character_photo_path, "rb") as image_file:
                     image_data = image_file.read()
                 
-                # Charger l'image avec PIL pour la passer à Gemini
-                input_image = Image.open(io.BytesIO(image_data))
+                # Charger l'image avec PIL pour vérifier qu'elle est valide
+                input_image_pil = Image.open(io.BytesIO(image_data))
                 
                 # Adapter le prompt pour image-to-image : être ULTRA-EXPLICITE sur l'utilisation du personnage
                 edit_prompt = f"""CREATE A COMIC BOOK PAGE where the person shown in this photo is the MAIN CHARACTER and HERO of the story.
@@ -710,11 +710,21 @@ CRITICAL REQUIREMENTS:
 REMINDER: The person in the uploaded photo is the HERO. They must be in ALL panels as the main character."""
                 
                 # Utiliser Gemini pour image-to-image (texte et image vers image)
-                print(f"   [DEBUG] Appel Gemini avec image de référence...")
-                response = self.gemini_client.models.generate_content(
-                    model="gemini-3-pro-image-preview",
-                    contents=[edit_prompt, input_image]
-                )
+                # Essayer avec l'objet PIL Image directement
+                print(f"   [DEBUG] Appel Gemini avec image de référence (PIL Image)...")
+                try:
+                    response = self.gemini_client.models.generate_content(
+                        model="gemini-3-pro-image-preview",
+                        contents=[edit_prompt, input_image_pil]
+                    )
+                except Exception as e:
+                    print(f"   [DEBUG] Erreur avec PIL Image, essai avec bytes: {e}")
+                    # Si ça ne marche pas avec PIL, essayer avec bytes
+                    image_part = types.Part.from_bytes(image_data, mime_type="image/png")
+                    response = self.gemini_client.models.generate_content(
+                        model="gemini-3-pro-image-preview",
+                        contents=[edit_prompt, image_part]
+                    )
                 print(f"   [DEBUG] Réponse Gemini reçue, type: {type(response)}")
                 print(f"   [DEBUG] Response attributes: {[attr for attr in dir(response) if not attr.startswith('_')]}")
             else:
