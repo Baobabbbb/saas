@@ -525,9 +525,17 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             
             print(f"[RESPONSE] Reponse recue de gemini-3-pro-image-preview")
             
+            # Vérifier prompt_feedback pour voir s'il y a un blocage
+            if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
+                if hasattr(response.prompt_feedback, 'block_reason') and response.prompt_feedback.block_reason:
+                    block_reason = response.prompt_feedback.block_reason
+                    block_message = getattr(response.prompt_feedback, 'block_reason_message', None)
+                    print(f"[ERROR] Génération bloquée par Gemini! Reason: {block_reason}, Message: {block_message}")
+                    raise Exception(f"Génération bloquée par Gemini (sécurité): {block_reason}. Message: {block_message}")
+            
             # Gemini retourne les images dans response.candidates[0].content.parts
             image_data = None
-            if hasattr(response, 'candidates') and len(response.candidates) > 0:
+            if hasattr(response, 'candidates') and response.candidates is not None and len(response.candidates) > 0:
                 candidate = response.candidates[0]
                 if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
                     for part in candidate.content.parts:
