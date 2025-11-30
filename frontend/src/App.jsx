@@ -188,6 +188,30 @@ function App() {
       setNumPages(null);
     }
   }, [contentType]);
+
+  // Réinitialiser les résultats quand on change de thème de coloriage
+  useEffect(() => {
+    if (contentType === 'coloring') {
+      setColoringResult(null);
+      setShowColoringPopup(false);
+      setShowColoringCanvas(false);
+    }
+  }, [selectedTheme, contentType]);
+
+  // Réinitialiser les résultats quand on change de thème de BD
+  useEffect(() => {
+    if (contentType === 'comic') {
+      setComicsResult(null);
+      setShowComicsPopup(false);
+    }
+  }, [selectedComicsTheme, contentType]);
+
+  // Réinitialiser les résultats quand on change de thème d'animation
+  useEffect(() => {
+    if (contentType === 'animation') {
+      setAnimationResult(null);
+    }
+  }, [selectedAnimationTheme, contentType]);
   
   // Animation states
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null); // Aucun thème par défaut
@@ -423,6 +447,36 @@ function App() {
       setSelectedAnimationTheme(null); // Aucun thème par défaut
     }
   }, [contentType, selectedAnimationTheme]);
+
+  // Réinitialiser les résultats quand on change de thème de coloriage
+  const prevColoringThemeRef = useRef(null);
+  useEffect(() => {
+    if (contentType === 'coloring' && selectedTheme !== null && prevColoringThemeRef.current !== null && prevColoringThemeRef.current !== selectedTheme) {
+      setColoringResult(null);
+      setShowColoringPopup(false);
+      setShowColoringCanvas(false);
+    }
+    prevColoringThemeRef.current = selectedTheme;
+  }, [selectedTheme, contentType]);
+
+  // Réinitialiser les résultats quand on change de thème de BD
+  const prevComicsThemeRef = useRef(null);
+  useEffect(() => {
+    if (contentType === 'comic' && selectedComicsTheme !== null && prevComicsThemeRef.current !== null && prevComicsThemeRef.current !== selectedComicsTheme) {
+      setComicsResult(null);
+      setShowComicsPopup(false);
+    }
+    prevComicsThemeRef.current = selectedComicsTheme;
+  }, [selectedComicsTheme, contentType]);
+
+  // Réinitialiser les résultats quand on change de thème d'animation
+  const prevAnimationThemeRef = useRef(null);
+  useEffect(() => {
+    if (contentType === 'animation' && selectedAnimationTheme !== null && prevAnimationThemeRef.current !== null && prevAnimationThemeRef.current !== selectedAnimationTheme) {
+      setAnimationResult(null);
+    }
+    prevAnimationThemeRef.current = selectedAnimationTheme;
+  }, [selectedAnimationTheme, contentType]);
 
   // S'assurer que le thème est toujours défini
   const currentTheme = selectedAnimationTheme || 'space';
