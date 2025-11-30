@@ -710,10 +710,13 @@ CRITICAL REQUIREMENTS:
 REMINDER: The person in the uploaded photo is the HERO. They must be in ALL panels as the main character."""
                 
                 # Utiliser Gemini pour image-to-image (texte et image vers image)
+                print(f"   [DEBUG] Appel Gemini avec image de référence...")
                 response = self.gemini_client.models.generate_content(
                     model="gemini-3-pro-image-preview",
                     contents=[edit_prompt, input_image]
                 )
+                print(f"   [DEBUG] Réponse Gemini reçue, type: {type(response)}")
+                print(f"   [DEBUG] Response attributes: {[attr for attr in dir(response) if not attr.startswith('_')]}")
             else:
                 # Générer l'image normalement sans photo de référence (text-to-image)
                 response = self.gemini_client.models.generate_content(
@@ -725,7 +728,7 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
             
             # Gemini retourne les images dans response.candidates[0].content.parts
             image_data = None
-            if hasattr(response, 'candidates') and len(response.candidates) > 0:
+            if hasattr(response, 'candidates') and response.candidates is not None and len(response.candidates) > 0:
                 candidate = response.candidates[0]
                 if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
                     for part in candidate.content.parts:
@@ -738,6 +741,12 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
                             # Essayer différentes méthodes d'accès aux données
                             if hasattr(part.inline_data, 'data'):
                                 data = part.inline_data.data
+                                
+                                # Vérifier que data n'est pas None
+                                if data is None:
+                                    print(f"   [DEBUG] data is None, skipping...")
+                                    continue
+                                
                                 print(f"   [DEBUG] data type: {type(data)}, length: {len(data) if isinstance(data, (str, bytes)) else 'N/A'}")
                                 
                                 # Si c'est une string, c'est probablement du base64
