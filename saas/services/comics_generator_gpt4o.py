@@ -326,8 +326,6 @@ STYLE ARTISTIQUE: {style_info['name']}
 
 {"DEMANDE PERSONNALISÉE: " + custom_prompt if custom_prompt else ""}
 
-{"PERSONNAGE PRINCIPAL À INTÉGRER: " + character_description if character_description else ""}
-
 CONSIGNES IMPORTANTES:
 1. Chaque planche contient EXACTEMENT 4 CASES disposées en grille 2×2
 2. L'histoire doit être cohérente, captivante et adaptée aux enfants
@@ -677,45 +675,8 @@ Génère maintenant le scénario complet en JSON:"""
         
         panels = page_data["panels"]
         
-        # Section description du personnage principal (si disponible) - ULTRA DÉTAILLÉE
+        # Plus besoin d'intégrer la description textuelle, on utilise l'illustration directement avec image-to-image
         character_section = ""
-        if character_description:
-            print(f"   📋 Intégration description personnage dans prompt ({len(character_description)} caractères)")
-            # Extraire les éléments clés de la description pour les mettre en évidence
-            character_section = f"""
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  ⚠️  CRITICAL: MAIN CHARACTER DESCRIPTION - READ THIS FIRST AND FOLLOW EXACTLY  ⚠️  ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-
-THE FOLLOWING DESCRIPTION IS THE EXACT APPEARANCE OF THE MAIN CHARACTER. YOU MUST RECREATE THIS CHARACTER EXACTLY AS DESCRIBED IN ALL 4 PANELS:
-
-{character_description}
-
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  ⚠️  ABSOLUTE REQUIREMENTS - THESE ARE MANDATORY, NOT OPTIONAL  ⚠️  ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
-
-1. MAXIMUM FIDELITY REQUIRED: The main character in ALL 4 panels MUST match the description above with ABSOLUTE PRECISION. Every single detail mentioned (age, gender, face shape, skin tone, hair color/style/length/texture, eye color/shape/size, nose shape/size, mouth shape/size, clothing colors/styles/patterns, accessories, distinctive features like freckles, moles, dimples) MUST be accurately represented in EVERY panel. NO EXCEPTIONS.
-
-2. PERFECT CONSISTENCY: The character must look IDENTICAL across all 4 panels. Same face shape, same hair color and style, same eye color, same skin tone, same clothing, same distinctive features. NO variations, NO changes, NO approximations.
-
-3. INSTANT RECOGNIZABILITY: The character must be INSTANTLY RECOGNIZABLE as the person described above. If someone saw the original photo and then saw the comic, they should immediately recognize it's the same person without any doubt.
-
-4. DETAIL PRESERVATION (MANDATORY):
-   - Exact hair color and style must match (if description says "medium brown wavy hair", it MUST be medium brown and wavy)
-   - Exact eye color and shape must match (if description says "bright blue almond-shaped eyes", they MUST be bright blue and almond-shaped)
-   - Exact skin tone must match (if description says "fair skin with warm undertones", it MUST be fair with warm undertones)
-   - Exact clothing colors and styles must match (if description says "bright red t-shirt", it MUST be bright red)
-   - All distinctive features (freckles, moles, dimples, etc.) must be present and visible
-   - Facial proportions and structure must match exactly
-
-5. CHARACTER AS HERO: This character is the HERO and PROTAGONIST of the story. They appear in ALL 4 panels as the central figure performing the actions described below. The character described above IS the main character.
-
-6. REFERENCE IN PANELS: When describing each panel below, the "main character" refers EXCLUSIVELY to the person described in detail above. Use the specific appearance details from the description above (hair color, eye color, clothing, etc.) when rendering the character in each panel.
-
-7. NO CREATIVE LIBERTY: Do NOT change, modify, approximate, or "interpret" the character description. Follow it EXACTLY as written. Do NOT create a "similar" character - create THE EXACT character described above.
-
-"""
         
         # Construire la description de la planche complète avec TOUS les détails
         prompt = f"""A professional comic book page in square format with 4 panels arranged in a 2x2 grid layout.
