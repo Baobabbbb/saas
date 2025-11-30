@@ -470,15 +470,37 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                     model="gpt-image-1-mini"
                 )
             
-            # Récupérer l'URL de l'image générée
-            image_url = response.data[0].url
+            # Vérifier la structure de la réponse
+            print(f"[DEBUG] Response type: {type(response)}")
+            print(f"[DEBUG] Response data: {response.data if hasattr(response, 'data') else 'No data'}")
             
-            # Télécharger l'image
-            import httpx
-            async with httpx.AsyncClient() as client:
-                image_response = await client.get(image_url)
-                image_response.raise_for_status()
-                image_data = image_response.content
+            if not response.data or len(response.data) == 0:
+                raise Exception("Aucune image générée par gpt-image-1-mini")
+            
+            image_result = response.data[0]
+            print(f"[DEBUG] Image result: {image_result}")
+            print(f"[DEBUG] Image result has url: {hasattr(image_result, 'url')}")
+            print(f"[DEBUG] Image result has b64_json: {hasattr(image_result, 'b64_json')}")
+            
+            # Récupérer l'image (URL ou base64)
+            image_data = None
+            if hasattr(image_result, 'url') and image_result.url:
+                # Télécharger l'image depuis l'URL
+                print(f"[DEBUG] Téléchargement depuis URL: {image_result.url}")
+                import httpx
+                async with httpx.AsyncClient() as client:
+                    image_response = await client.get(image_result.url)
+                    image_response.raise_for_status()
+                    image_data = image_response.content
+            elif hasattr(image_result, 'b64_json') and image_result.b64_json:
+                # Décoder l'image depuis base64
+                print(f"[DEBUG] Décodage depuis base64")
+                image_data = base64.b64decode(image_result.b64_json)
+            else:
+                raise Exception(f"Format de réponse gpt-image-1-mini inattendu: pas d'URL ni de b64_json. Response: {image_result}")
+            
+            if not image_data:
+                raise Exception("Impossible de récupérer l'image générée")
             
             # Charger l'image générée
             generated_img = Image.open(io.BytesIO(image_data))
