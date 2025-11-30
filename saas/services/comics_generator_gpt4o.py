@@ -710,20 +710,26 @@ STYLE REQUIREMENTS:
                     # Extraire les descriptions courtes des panels
                     panel_descs = []
                     for i, panel in enumerate(panels[:4]):
-                        desc = panel.get('visual_description', '')[:120]  # Limiter à 120 caractères
+                        desc = panel.get('visual_description', '')[:80]  # Limiter encore plus
+                        # Nettoyer la description : remplacer les références à "person" ou "main character"
+                        desc = desc.replace('main character', 'character')
+                        desc = desc.replace('the person', 'the character')
+                        desc = desc.replace('this person', 'this character')
                         panel_descs.append(desc)
                     
-                    simple_prompt = f"""Create a comic book page with 4 panels in a 2x2 grid. Use the person in this image as the main character in all panels.
+                    # Utiliser exactement le même style que les coloriages qui fonctionnent
+                    # "Transform this photo" au lieu de "Create" ou "Use the person"
+                    simple_prompt = f"""Transform this photo into a comic book page with 4 panels in a 2x2 grid layout. Preserve the recognizable features and appearance of the main subject from the photo, using them as the central character in all 4 panels.
 
 Panel 1: {panel_descs[0] if len(panel_descs) > 0 else 'First scene'}
 Panel 2: {panel_descs[1] if len(panel_descs) > 1 else 'Second scene'}
 Panel 3: {panel_descs[2] if len(panel_descs) > 2 else 'Third scene'}
 Panel 4: {panel_descs[3] if len(panel_descs) > 3 else 'Fourth scene'}
 
-Style: cartoon, colorful, child-friendly."""
+STYLE: Cartoon style, colorful, child-friendly, simple lines, bright colors, rounded shapes."""
                 else:
-                    # Si pas de page_data, utiliser un prompt très court
-                    simple_prompt = "Create a comic book page with 4 panels in a 2x2 grid. Use the person in this image as the main character. Cartoon style, colorful, child-friendly."
+                    # Si pas de page_data, utiliser un prompt similaire aux coloriages
+                    simple_prompt = "Transform this photo into a comic book page with 4 panels in a 2x2 grid. Preserve recognizable features of the main subject. Cartoon style, colorful, child-friendly."
                 
                 print(f"   [DEBUG] Prompt image-to-image simplifié ({len(simple_prompt)} chars): {simple_prompt[:200]}...")
                 
