@@ -1,6 +1,6 @@
 """
 Service de génération de coloriages avec gemini-3-pro-image-preview
-- Image-to-image direct pour les photos uploadées (meilleure ressemblance)
+- Analyse photo avec GPT-4o-mini + text-to-image Gemini pour les photos uploadées (meilleure ressemblance)
 - Text-to-image pour les thèmes prédéfinis
 """
 import os
@@ -24,7 +24,7 @@ load_dotenv()
 class ColoringGeneratorGPT4o:
     """
     Générateur de coloriages avec gemini-3-pro-image-preview
-    - Image-to-image pour photos uploadées
+    - Analyse photo GPT-4o-mini + text-to-image Gemini pour photos uploadées
     - Text-to-image pour thèmes
     """
     
@@ -497,19 +497,19 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 "source_photo": photo_path,
                 "images": [{
                     "image_url": image_url,
-                    "source": "gpt-image-1-mini (image-to-image direct)"
+                    "source": "GPT-4o-mini (analyse) + Gemini text-to-image"
                 }],
                 "total_images": 1,
                 "metadata": {
                     "source_photo": photo_path,
-                    "method": "image-to-image direct editing",
+                    "method": "GPT-4o-mini analysis + Gemini text-to-image",
                     "created_at": datetime.now().isoformat(),
                     "model": "gpt-image-1-mini",
                     "with_colored_model": with_colored_model
                 }
             }
             
-            print(f"[OK] Coloriage photo genere avec succes (image-to-image): {coloring_path.name}")
+            print(f"[OK] Coloriage photo généré avec succès (GPT-4o-mini analyse + Gemini text-to-image): {coloring_path.name}")
             return result
             
         except Exception as e:
