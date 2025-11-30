@@ -526,13 +526,8 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
         
         print(f"🎨 Génération des planches avec gemini-3-pro-image-preview...")
         
-        # Analyser la photo du personnage si fournie pour obtenir une description textuelle
-        character_description = None
         if character_photo_path:
-            print(f"   📸 Photo de personnage fournie, analyse pour description textuelle...")
-            character_description = await self._analyze_character_photo(character_photo_path)
-            if character_description:
-                print(f"   ✅ Description personnage obtenue: {character_description[:100]}...")
+            print(f"   📸 Photo de personnage fournie, utilisation image-to-image pour fidélité maximale")
         
         style_info = self.art_styles.get(art_style, self.art_styles["cartoon"])
         comic_id = str(uuid.uuid4())
@@ -549,17 +544,17 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
                 
                 # Construire le prompt complet pour gemini-3-pro-image-preview
                 # Ce prompt décrit UNE SEULE IMAGE contenant 4 cases de BD
-                page_prompt = self._build_page_prompt(page_data, style_info, character_description)
+                page_prompt = self._build_page_prompt(page_data, style_info)
                 
                 print(f"   Prompt: {page_prompt[:200]}...")
                 
-                # Générer l'image avec gemini-3-pro-image-preview (text-to-image uniquement)
-                # On n'utilise plus l'image-to-image car Gemini ne le supporte pas correctement
+                # Générer l'image avec gemini-3-pro-image-preview
+                # Si character_photo_path est fourni, utilise image-to-image pour fidélité maximale
                 image_path = await self._generate_page_with_gpt_image_1(
                     page_prompt,
                     comic_dir,
                     page_num,
-                    character_photo_path=None  # Ne plus passer la photo, utiliser uniquement la description
+                    character_photo_path=character_photo_path  # Passer la photo pour image-to-image
                 )
                 
                 # 📤 Upload OBLIGATOIRE vers Supabase Storage
@@ -617,25 +612,14 @@ Réponds en 5-7 phrases TRÈS DÉTAILLÉES, en anglais (pour gpt-image-1-mini), 
         
         return generated_pages, comic_id
     
-    def _build_page_prompt(self, page_data: Dict, style_info: Dict, character_description: Optional[str] = None) -> str:
+    def _build_page_prompt(self, page_data: Dict, style_info: Dict) -> str:
         """Construit le prompt pour gemini-3-pro-image-preview pour générer UNE planche complète"""
         
         panels = page_data["panels"]
         
-        # Ajouter la description du personnage si disponible
-        character_prompt = ""
-        if character_description:
-            character_prompt = f"""
-CRITICAL CHARACTER REFERENCE:
-The main character in ALL panels MUST be: {character_description}
-This character description is ABSOLUTELY CRITICAL - the main character in every panel must match this description exactly.
-Every visual description below refers to THIS specific character as "the main character".
-"""
-        
         # Construire la description de la planche complète
         prompt = f"""A professional comic book page in square format with 4 panels arranged in a 2x2 grid layout.
 {style_info['prompt_modifier']}.
-{character_prompt}
 
 LAYOUT:
 - Square format (1024x1024 pixels)
@@ -697,148 +681,99 @@ STYLE REQUIREMENTS:
         page_num: int,
         character_photo_path: Optional[str] = None
     ) -> Path:
-        """Génère une planche de BD avec gemini-3-pro-image-preview (avec ou sans photo de référence)"""
+        """Génère une planche de BD avec gemini-3-pro-image-preview (avec ou sans photo de référence)
+        
+        Selon la documentation officielle Gemini:
+        - Text-to-image: contents=[prompt]
+        - Image-to-image: contents=[prompt, image] où image est un objet PIL Image
+        - Réponse: response.parts avec part.as_image() pour obtenir l'image
+        """
         
         try:
             print(f"   🎨 Appel gemini-3-pro-image-preview...")
             
-            # Utiliser uniquement text-to-image (Gemini ne supporte pas bien l'image-to-image)
-            # La description du personnage est déjà incluse dans le prompt via _build_page_prompt
-            print(f"   [INFO] Génération text-to-image avec description du personnage dans le prompt...")
-            response = self.gemini_client.models.generate_content(
-                model="gemini-3-pro-image-preview",
-                contents=[prompt]
-            )
+            # Si une photo de personnage est fournie, utiliser image-to-image selon la doc officielle
+            if character_photo_path:
+                print(f"   📸 Utilisation de la photo de référence pour image-to-image: {character_photo_path}")
+                
+                # Charger l'image avec PIL (selon la doc officielle)
+                input_image = Image.open(character_photo_path)
+                print(f"   [DEBUG] Image chargée: {input_image.size}, mode: {input_image.mode}")
+                
+                # Adapter le prompt pour image-to-image : être ULTRA-EXPLICITE sur l'utilisation du personnage
+                edit_prompt = f"""CREATE A COMIC BOOK PAGE where the person shown in this photo is the MAIN CHARACTER and HERO of the story.
+
+CRITICAL REQUIREMENTS:
+1. The person in this photo MUST appear as the central character in ALL 4 panels
+2. This person MUST be the protagonist doing the actions described
+3. Keep their EXACT physical appearance: face, hair, eyes, clothing, everything recognizable
+4. This person should be prominent and clearly visible in EVERY panel
+5. DO NOT create random other characters as the main character - USE THIS PERSON
+
+{prompt}
+
+REMINDER: The person in the uploaded photo is the HERO. They must be in ALL panels as the main character."""
+                
+                # Utiliser image-to-image selon la documentation officielle
+                # https://ai.google.dev/gemini-api/docs/image-generation?hl=fr
+                response = self.gemini_client.models.generate_content(
+                    model="gemini-3-pro-image-preview",
+                    contents=[edit_prompt, input_image]  # Passer prompt + image PIL directement
+                )
+                print(f"   [DEBUG] Réponse image-to-image reçue")
+            else:
+                # Générer l'image normalement sans photo de référence (text-to-image)
+                response = self.gemini_client.models.generate_content(
+                    model="gemini-3-pro-image-preview",
+                    contents=[prompt]
+                )
+                print(f"   [DEBUG] Réponse text-to-image reçue")
             
             print(f"   [RESPONSE] Réponse reçue de gemini-3-pro-image-preview")
             
-            # Logs détaillés pour comprendre la structure de la réponse
-            print(f"   [DEBUG] Response type: {type(response)}")
-            print(f"   [DEBUG] Response has candidates: {hasattr(response, 'candidates')}")
-            if hasattr(response, 'candidates'):
-                print(f"   [DEBUG] Candidates is None: {response.candidates is None}")
-                if response.candidates is not None:
-                    print(f"   [DEBUG] Number of candidates: {len(response.candidates)}")
-            
-            # Vérifier prompt_feedback pour voir s'il y a des erreurs
-            if hasattr(response, 'prompt_feedback'):
-                print(f"   [DEBUG] prompt_feedback: {response.prompt_feedback}")
-            
-            # Vérifier parsed pour voir ce qui a été parsé
-            if hasattr(response, 'parsed'):
-                print(f"   [DEBUG] parsed: {response.parsed}")
-            
-            # Vérifier text pour voir s'il y a du texte
-            if hasattr(response, 'text'):
-                print(f"   [DEBUG] text (first 500 chars): {response.text[:500] if response.text else 'None'}")
-            
-            # Gemini retourne les images dans response.candidates[0].content.parts
+            # Selon la documentation officielle, utiliser response.parts directement
+            # https://ai.google.dev/gemini-api/docs/image-generation?hl=fr
             image_data = None
-            if hasattr(response, 'candidates') and response.candidates is not None and len(response.candidates) > 0:
-                candidate = response.candidates[0]
-                print(f"   [DEBUG] Candidate type: {type(candidate)}")
-                print(f"   [DEBUG] Candidate has content: {hasattr(candidate, 'content')}")
-                if hasattr(candidate, 'content'):
-                    print(f"   [DEBUG] Content type: {type(candidate.content)}")
-                    print(f"   [DEBUG] Content has parts: {hasattr(candidate.content, 'parts')}")
-                    if hasattr(candidate.content, 'parts'):
-                        print(f"   [DEBUG] Number of parts: {len(candidate.content.parts)}")
-                        for idx, part in enumerate(candidate.content.parts):
-                            print(f"   [DEBUG] Part {idx} type: {type(part)}")
-                            print(f"   [DEBUG] Part {idx} has inline_data: {hasattr(part, 'inline_data')}")
-                            print(f"   [DEBUG] Part {idx} has text: {hasattr(part, 'text')}")
-                            if hasattr(part, 'text') and part.text:
-                                print(f"   [DEBUG] Part {idx} text (first 200 chars): {part.text[:200]}")
+            generated_image = None
+            
+            # Parcourir response.parts selon la doc officielle
+            if hasattr(response, 'parts'):
+                print(f"   [DEBUG] Response a {len(response.parts)} parts")
+                for idx, part in enumerate(response.parts):
+                    print(f"   [DEBUG] Part {idx} type: {type(part)}")
                     
-                if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
-                    for part in candidate.content.parts:
-                        if hasattr(part, 'inline_data') and part.inline_data is not None:
-                            # Debug: afficher la structure
-                            print(f"   [DEBUG] inline_data type: {type(part.inline_data)}")
-                            inline_attrs = [attr for attr in dir(part.inline_data) if not attr.startswith('_')]
-                            print(f"   [DEBUG] inline_data attributes: {inline_attrs}")
-                            
-                            # Essayer différentes méthodes d'accès aux données
+                    # Vérifier si c'est du texte
+                    if hasattr(part, 'text') and part.text is not None:
+                        print(f"   [TEXT] {part.text[:200]}...")
+                    
+                    # Vérifier si c'est une image (selon la doc: part.as_image())
+                    if hasattr(part, 'inline_data') and part.inline_data is not None:
+                        print(f"   [DEBUG] Part {idx} a inline_data")
+                        try:
+                            # Utiliser part.as_image() selon la documentation officielle
+                            generated_image = part.as_image()
+                            print(f"   [OK] Image obtenue via part.as_image(): {generated_image.size}")
+                            break
+                        except Exception as e:
+                            print(f"   [ERROR] Erreur avec part.as_image(): {e}")
+                            # Fallback: essayer d'extraire les données manuellement
                             if hasattr(part.inline_data, 'data'):
                                 data = part.inline_data.data
-                                
-                                # Vérifier que data n'est pas None
-                                if data is None:
-                                    print(f"   [DEBUG] data is None, skipping...")
-                                    continue
-                                
-                                print(f"   [DEBUG] data type: {type(data)}, length: {len(data) if isinstance(data, (str, bytes)) else 'N/A'}")
-                                
-                                # Si c'est une string, c'est probablement du base64
-                                if isinstance(data, str):
-                                    try:
+                                if data:
+                                    if isinstance(data, str):
                                         image_data = base64.b64decode(data)
-                                        print(f"   [DEBUG] Decode base64 string: {len(image_data)} bytes")
-                                    except Exception as e:
-                                        print(f"   [ERROR] Erreur decode base64: {e}")
-                                        continue
-                                elif isinstance(data, bytes):
-                                    image_data = data
-                                    print(f"   [DEBUG] Data already bytes: {len(image_data)} bytes")
-                                else:
-                                    # Essayer de convertir en string puis décoder
-                                    try:
-                                        data_str = str(data)
-                                        image_data = base64.b64decode(data_str)
-                                        print(f"   [DEBUG] Converted to string then decoded: {len(image_data)} bytes")
-                                    except Exception as e:
-                                        print(f"   [ERROR] Impossible de decoder les donnees: {e}")
-                                        continue
-                                
-                                # Vérifier que les données sont valides
-                                if image_data:
-                                    try:
-                                        test_img = Image.open(io.BytesIO(image_data))
-                                        print(f"   [DEBUG] Image valide: {test_img.size}")
-                                        break
-                                    except Exception as e:
-                                        print(f"   [ERROR] Donnees decodees ne sont pas une image valide: {e}")
-                                        image_data = None
-                                        continue
-                        elif hasattr(part, 'text') and part.text:
-                            print(f"   [TEXT] {part.text[:200]}...")
-                            # Si on a du texte au lieu d'une image, c'est peut-être une erreur
-                            if "error" in part.text.lower() or "cannot" in part.text.lower():
-                                print(f"   [WARNING] Réponse contient du texte d'erreur au lieu d'une image")
+                                    elif isinstance(data, bytes):
+                                        image_data = data
+                                    print(f"   [DEBUG] Image extraite manuellement: {len(image_data)} bytes")
+                                    break
             
-            # Si aucune image n'a été trouvée, essayer d'afficher toute la structure
-            if not image_data:
-                print(f"   [ERROR] Aucune image trouvée dans la réponse")
-                print(f"   [DEBUG] Tentative d'inspection complète de la réponse...")
-                try:
-                    # Vérifier prompt_feedback pour voir s'il y a des erreurs
-                    if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
-                        print(f"   [DEBUG] prompt_feedback: {response.prompt_feedback}")
-                        if hasattr(response.prompt_feedback, 'block_reason'):
-                            print(f"   [DEBUG] block_reason: {response.prompt_feedback.block_reason}")
-                        if hasattr(response.prompt_feedback, 'safety_ratings'):
-                            print(f"   [DEBUG] safety_ratings: {response.prompt_feedback.safety_ratings}")
-                    
-                    # Vérifier parsed pour voir ce qui a été parsé
-                    if hasattr(response, 'parsed') and response.parsed:
-                        print(f"   [DEBUG] parsed: {response.parsed}")
-                    
-                    # Vérifier text pour voir s'il y a du texte
-                    if hasattr(response, 'text') and response.text:
-                        print(f"   [DEBUG] text (first 500 chars): {response.text[:500]}")
-                    
-                    # Essayer de convertir la réponse en dict pour inspection
-                    if hasattr(response, 'model_dump'):
-                        response_dict = response.model_dump()
-                        print(f"   [DEBUG] Response dict keys: {list(response_dict.keys()) if isinstance(response_dict, dict) else 'N/A'}")
-                        if isinstance(response_dict, dict) and 'candidates' in response_dict:
-                            print(f"   [DEBUG] candidates value: {response_dict['candidates']}")
-                    elif hasattr(response, '__dict__'):
-                        print(f"   [DEBUG] Response __dict__ keys: {list(response.__dict__.keys())}")
-                except Exception as e:
-                    print(f"   [DEBUG] Impossible d'inspecter la réponse: {e}")
-                    import traceback
-                    traceback.print_exc()
+            # Si on a obtenu une image PIL via as_image(), la convertir en bytes
+            if generated_image:
+                # Convertir l'image PIL en bytes
+                img_bytes = io.BytesIO()
+                generated_image.save(img_bytes, format='PNG')
+                image_data = img_bytes.getvalue()
+                print(f"   [OK] Image convertie en bytes: {len(image_data)} bytes")
             
             if image_data:
                 print(f"   [OK] Image reçue ({len(image_data)} bytes)")
@@ -857,6 +792,11 @@ STYLE REQUIREMENTS:
                 return output_path
             else:
                 print(f"   [ERROR] Aucune image trouvée dans la réponse")
+                # Logs de debug supplémentaires
+                print(f"   [DEBUG] Response type: {type(response)}")
+                print(f"   [DEBUG] Response has parts: {hasattr(response, 'parts')}")
+                if hasattr(response, 'parts'):
+                    print(f"   [DEBUG] Number of parts: {len(response.parts)}")
                 raise Exception("Format de réponse gemini-3-pro-image-preview inattendu - aucune image trouvée")
             
         except Exception as e:
