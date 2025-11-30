@@ -63,13 +63,23 @@ class ColoringGeneratorGPT4o:
             self.edit_prompt_without_model = """Transform this image into a black and white line drawing coloring page. Use thick black outlines only, no shadows, no grayscale, pure white background. Make it suitable for children to color. NO colored reference image."""
             
             # Prompts pour la génération par thème (TEXT-TO-IMAGE)
-            self.coloring_prompt_with_model = """A black and white line drawing coloring illustration, suitable for direct printing on standard size (8.5x11 inch) paper, without paper borders. The overall illustration style is fresh and simple, using clear and smooth black outline lines, without shadows, grayscale, or color filling, with a pure white background for easy coloring. [At the same time, for the convenience of users who are not good at coloring, please generate a complete colored version in the lower right corner as a small image for reference] Suitable for: [6-9 year old children]
+            self.coloring_prompt_with_model = """A black and white line drawing coloring illustration, suitable for direct printing on standard size (8.5x11 inch) paper, without paper borders. The overall illustration style is fresh and simple, using clear and smooth black outline lines, without shadows, grayscale, or color filling, with a pure white background for easy coloring.
 
-Subject: {subject}"""
+[At the same time, for the convenience of users who are not good at coloring, please generate a complete colored version in the lower right corner as a small image for reference]
+
+Suitable for: [6-9 year old children]
+
+Scene description:
+
+[{subject}]"""
             
-            self.coloring_prompt_without_model = """A black and white line drawing coloring illustration, suitable for direct printing on standard size (8.5x11 inch) paper, without paper borders. The overall illustration style is fresh and simple, using clear and smooth black outline lines, without shadows, grayscale, or color filling, with a pure white background for easy coloring. NO colored reference image. Suitable for: [6-9 year old children]
+            self.coloring_prompt_without_model = """A black and white line drawing coloring illustration, suitable for direct printing on standard size (8.5x11 inch) paper, without paper borders. The overall illustration style is fresh and simple, using clear and smooth black outline lines, without shadows, grayscale, or color filling, with a pure white background for easy coloring.
 
-Subject: {subject}"""
+Suitable for: [6-9 year old children]
+
+Scene description:
+
+[{subject}]"""
             
             # Initialisation silencieuse
         except Exception as e:
