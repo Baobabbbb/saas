@@ -1,6 +1,9 @@
 """
-Générateur de bandes dessinées avec gpt-4o-mini + gemini-3-pro-image-preview
-Architecture: gpt-4o-mini crée le scénario détaillé, gemini-3-pro-image-preview génère les planches
+Générateur de bandes dessinées avec gpt-4o-mini (scénario) + gemini-3-pro-image-preview (images)
+Architecture: 
+- gpt-4o-mini crée le scénario détaillé
+- gemini-3-pro-image-preview génère les planches (BD normales)
+- gpt-4o analyse les photos uploadées, puis gemini-3-pro-image-preview génère les planches avec description intégrée (BD avec photo)
 """
 
 import openai
@@ -498,8 +501,8 @@ Génère maintenant le scénario complet en JSON:"""
                 '.webp': 'image/webp'
             }.get(ext, 'image/jpeg')
             
-            # Analyser avec gpt-4o-mini (vision) - Description ULTRA DÉTAILLÉE et EXHAUSTIVE
-            print(f"   🤖 Envoi image à GPT-4o-mini pour analyse...")
+            # Analyser avec gpt-4o (vision) - Description ULTRA DÉTAILLÉE et EXHAUSTIVE
+            print(f"   🤖 Envoi image à GPT-4o pour analyse détaillée...")
             print(f"   📊 Taille image base64: {len(base64_image)} caractères")
             print(f"   📊 Type MIME: {mime_type}")
             
