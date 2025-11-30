@@ -696,31 +696,32 @@ STYLE REQUIREMENTS:
             if character_photo_path:
                 print(f"   📸 Utilisation de la photo de référence pour image-to-image: {character_photo_path}")
                 
-                # Charger l'image avec PIL (selon la doc officielle)
+                # Charger l'image avec PIL (même méthode que les coloriages qui fonctionnent)
                 input_image = Image.open(character_photo_path)
                 print(f"   [DEBUG] Image chargée: {input_image.size}, mode: {input_image.mode}")
                 
-                # Adapter le prompt pour image-to-image : être ULTRA-EXPLICITE sur l'utilisation du personnage
-                edit_prompt = f"""CREATE A COMIC BOOK PAGE where the person shown in this photo is the MAIN CHARACTER and HERO of the story.
+                # Simplifier le prompt pour éviter les blocages de sécurité
+                # Utiliser un prompt plus court et direct comme pour les coloriages
+                edit_prompt = f"""Create a comic book page with 4 panels in a 2x2 grid. The person in the uploaded photo must be the main character in all 4 panels, doing the actions described below. Keep their appearance recognizable.
 
-CRITICAL REQUIREMENTS:
-1. The person in this photo MUST appear as the central character in ALL 4 panels
-2. This person MUST be the protagonist doing the actions described
-3. Keep their EXACT physical appearance: face, hair, eyes, clothing, everything recognizable
-4. This person should be prominent and clearly visible in EVERY panel
-5. DO NOT create random other characters as the main character - USE THIS PERSON
-
-{prompt}
-
-REMINDER: The person in the uploaded photo is the HERO. They must be in ALL panels as the main character."""
+{prompt}"""
                 
-                # Utiliser image-to-image selon la documentation officielle
-                # https://ai.google.dev/gemini-api/docs/image-generation?hl=fr
+                print(f"   [DEBUG] Prompt image-to-image: {edit_prompt[:200]}...")
+                
+                # Utiliser image-to-image (même méthode que les coloriages qui fonctionnent)
                 response = self.gemini_client.models.generate_content(
                     model="gemini-3-pro-image-preview",
                     contents=[edit_prompt, input_image]  # Passer prompt + image PIL directement
                 )
                 print(f"   [DEBUG] Réponse image-to-image reçue")
+                
+                # Vérifier prompt_feedback pour voir s'il y a un blocage
+                if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
+                    print(f"   [DEBUG] prompt_feedback: {response.prompt_feedback}")
+                    if hasattr(response.prompt_feedback, 'block_reason') and response.prompt_feedback.block_reason:
+                        print(f"   [WARNING] Block reason: {response.prompt_feedback.block_reason}")
+                        if hasattr(response.prompt_feedback, 'block_reason_message') and response.prompt_feedback.block_reason_message:
+                            print(f"   [WARNING] Block message: {response.prompt_feedback.block_reason_message}")
             else:
                 # Générer l'image normalement sans photo de référence (text-to-image)
                 response = self.gemini_client.models.generate_content(
@@ -731,83 +732,72 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
             
             print(f"   [RESPONSE] Réponse reçue de gemini-3-pro-image-preview")
             
+            # Vérifier prompt_feedback AVANT d'essayer d'extraire l'image
+            if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
+                print(f"   [DEBUG] prompt_feedback: {response.prompt_feedback}")
+                if hasattr(response.prompt_feedback, 'block_reason') and response.prompt_feedback.block_reason:
+                    block_reason = response.prompt_feedback.block_reason
+                    block_message = getattr(response.prompt_feedback, 'block_reason_message', None)
+                    print(f"   [ERROR] Génération bloquée par Gemini! Reason: {block_reason}, Message: {block_message}")
+                    raise Exception(f"Génération bloquée par Gemini (sécurité): {block_reason}. Message: {block_message}")
+            
             # Inspecter la structure complète de la réponse
             print(f"   [DEBUG] Response type: {type(response)}")
-            print(f"   [DEBUG] Response dir: {[attr for attr in dir(response) if not attr.startswith('_')]}")
             
             image_data = None
             generated_image = None
             
-            # Essayer différentes structures de réponse selon la documentation
-            # Méthode 1: response.parts (selon la doc Python)
-            if hasattr(response, 'parts'):
-                print(f"   [DEBUG] Méthode 1: Response a {len(response.parts)} parts")
-                for idx, part in enumerate(response.parts):
-                    print(f"   [DEBUG] Part {idx} type: {type(part)}")
-                    print(f"   [DEBUG] Part {idx} dir: {[attr for attr in dir(part) if not attr.startswith('_')]}")
-                    
-                    # Vérifier si c'est du texte
-                    if hasattr(part, 'text') and part.text is not None:
-                        print(f"   [TEXT] {part.text[:200]}...")
-                    
-                    # Vérifier si c'est une image (selon la doc: part.as_image())
-                    if hasattr(part, 'inline_data') and part.inline_data is not None:
-                        print(f"   [DEBUG] Part {idx} a inline_data")
-                        try:
-                            # Utiliser part.as_image() selon la documentation officielle
-                            generated_image = part.as_image()
-                            print(f"   [OK] Image obtenue via part.as_image(): {generated_image.size}")
-                            break
-                        except Exception as e:
-                            print(f"   [ERROR] Erreur avec part.as_image(): {e}")
-                            # Fallback: essayer d'extraire les données manuellement
+            # Utiliser la même méthode que les coloriages qui fonctionnent
+            # response.candidates[0].content.parts
+            if hasattr(response, 'candidates') and response.candidates is not None and len(response.candidates) > 0:
+                candidate = response.candidates[0]
+                if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
+                    for part in candidate.content.parts:
+                        if hasattr(part, 'inline_data') and part.inline_data is not None:
+                            # Essayer différentes méthodes d'accès aux données (comme les coloriages)
                             if hasattr(part.inline_data, 'data'):
                                 data = part.inline_data.data
-                                if data:
-                                    if isinstance(data, str):
-                                        image_data = base64.b64decode(data)
-                                    elif isinstance(data, bytes):
-                                        image_data = data
-                                    print(f"   [DEBUG] Image extraite manuellement: {len(image_data)} bytes")
-                                    break
-            
-            # Méthode 2: response.candidates[0].content.parts (structure alternative)
-            if not image_data and not generated_image:
-                print(f"   [DEBUG] Méthode 2: Essai avec candidates")
-                if hasattr(response, 'candidates') and response.candidates is not None and len(response.candidates) > 0:
-                    candidate = response.candidates[0]
-                    print(f"   [DEBUG] Candidate type: {type(candidate)}")
-                    if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
-                        print(f"   [DEBUG] Candidate a {len(candidate.content.parts)} parts")
-                        for idx, part in enumerate(candidate.content.parts):
-                            print(f"   [DEBUG] Part {idx} type: {type(part)}")
-                            
-                            # Vérifier si c'est du texte
-                            if hasattr(part, 'text') and part.text is not None:
-                                print(f"   [TEXT] {part.text[:200]}...")
-                            
-                            # Vérifier si c'est une image
-                            if hasattr(part, 'inline_data') and part.inline_data is not None:
-                                print(f"   [DEBUG] Part {idx} a inline_data")
-                                try:
-                                    # Essayer as_image() si disponible
-                                    if hasattr(part, 'as_image'):
-                                        generated_image = part.as_image()
-                                        print(f"   [OK] Image obtenue via part.as_image(): {generated_image.size}")
-                                        break
-                                except Exception as e:
-                                    print(f"   [ERROR] Erreur avec part.as_image(): {e}")
                                 
-                                # Fallback: extraire les données manuellement
-                                if hasattr(part.inline_data, 'data'):
-                                    data = part.inline_data.data
-                                    if data:
-                                        if isinstance(data, str):
-                                            image_data = base64.b64decode(data)
-                                        elif isinstance(data, bytes):
-                                            image_data = data
-                                        print(f"   [DEBUG] Image extraite manuellement: {len(image_data)} bytes")
+                                # Vérifier que data n'est pas None
+                                if data is None:
+                                    continue
+                                
+                                # Si c'est une string, c'est probablement du base64
+                                if isinstance(data, str):
+                                    try:
+                                        image_data = base64.b64decode(data)
+                                        print(f"   [OK] Image décodée depuis base64 string: {len(image_data)} bytes")
                                         break
+                                    except Exception as e:
+                                        print(f"   [ERROR] Erreur decode base64: {e}")
+                                        continue
+                                elif isinstance(data, bytes):
+                                    image_data = data
+                                    print(f"   [OK] Image déjà en bytes: {len(image_data)} bytes")
+                                    break
+                                else:
+                                    # Essayer de convertir en string puis décoder
+                                    try:
+                                        data_str = str(data)
+                                        image_data = base64.b64decode(data_str)
+                                        print(f"   [OK] Image convertie puis décodée: {len(image_data)} bytes")
+                                        break
+                                    except Exception as e:
+                                        print(f"   [ERROR] Impossible de decoder les donnees: {e}")
+                                        continue
+                                
+                                # Vérifier que les données sont valides
+                                if image_data:
+                                    try:
+                                        test_img = Image.open(io.BytesIO(image_data))
+                                        print(f"   [OK] Image valide: {test_img.size}")
+                                        break
+                                    except Exception as e:
+                                        print(f"   [ERROR] Donnees decodees ne sont pas une image valide: {e}")
+                                        image_data = None
+                                        continue
+                        elif hasattr(part, 'text') and part.text:
+                            print(f"   [TEXT] {part.text[:200]}...")
             
             # Si on a obtenu une image PIL via as_image(), la convertir en bytes
             if generated_image:
