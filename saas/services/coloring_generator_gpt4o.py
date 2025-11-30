@@ -116,6 +116,319 @@ Subject: {subject}"""
             # Erreur silencieuse lors de l'initialisation
             raise
     
+    async def _analyze_photo_for_coloring(self, photo_path: str) -> str:
+        """Analyse une photo avec gpt-4o-mini pour créer une description ULTRA DÉTAILLÉE pour coloriage
+        
+        Cette description sera utilisée dans le prompt pour Gemini afin de créer un coloriage
+        reconnaissable sans utiliser l'image directement.
+        
+        Args:
+            photo_path: Chemin vers la photo
+            
+        Returns:
+            Description très détaillée de la photo en anglais
+        """
+        try:
+            print(f"[COLORING] Analyse approfondie de la photo: {photo_path}")
+            
+            # Charger et encoder l'image en base64
+            with open(photo_path, "rb") as image_file:
+                image_data = image_file.read()
+            
+            # Convertir en base64
+            base64_image = base64.b64encode(image_data).decode('utf-8')
+            
+            # Déterminer le type MIME
+            photo_path_obj = Path(photo_path)
+            ext = photo_path_obj.suffix.lower()
+            mime_type = {
+                '.jpg': 'image/jpeg',
+                '.jpeg': 'image/jpeg',
+                '.png': 'image/png',
+                '.gif': 'image/gif',
+                '.webp': 'image/webp'
+            }.get(ext, 'image/jpeg')
+            
+            # Analyser avec gpt-4o-mini (vision) - Description ULTRA DÉTAILLÉE et EXHAUSTIVE
+            response = await self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": """You are an expert visual analyst. Analyze this photo and create an EXTREMELY DETAILED, EXHAUSTIVE, and PRECISE description in English that will allow an image generation model to recreate this exact scene as a black and white line drawing coloring page with MAXIMUM FIDELITY and RECOGNIZABILITY.
+
+CRITICAL: Your description must be so detailed that someone reading it could draw or generate a coloring page that looks EXACTLY like a line drawing version of this photo. Every single visible detail matters.
+
+ANALYSIS CRITERIA (describe EVERYTHING in extreme detail, NO length limit):
+
+1. MAIN SUBJECT(S) - PEOPLE (if present):
+   - Exact approximate age(s)
+   - Gender(s)
+   - Face shape(s): round, oval, square, rectangular, triangular, heart-shaped, diamond-shaped
+   - Face width relative to length
+   - Forehead: high, low, average; width; shape
+   - Cheekbones: prominent, flat, average; position
+   - Jawline: sharp, rounded, square, soft, defined
+   - Chin: pointed, rounded, square, cleft, dimpled
+   - Exact skin tone: very fair, fair, light, light-medium, medium, medium-tan, tan, olive, dark, very dark
+   - Undertones: warm (yellow/golden), cool (pink/blue), neutral
+   - Exact hair color: light blonde, dark blonde, light brown, medium brown, dark brown, black, auburn, red, strawberry blonde, etc. (be VERY specific)
+   - Hair length: very short, short, medium-short, medium, medium-long, long, very long
+   - Hair texture: straight, wavy, curly, very curly, kinky, coily
+   - Haircut style: bangs (fringe), side part, center part, no part, layers, one length, etc.
+   - Exact eye color: bright blue, light blue, dark blue, blue-gray, green, hazel, light brown, medium brown, dark brown, black, gray, etc.
+   - Eye shape: round, almond-shaped, oval, wide-set, close-set, upturned, downturned
+   - Eye size: small, medium, large relative to face
+   - Nose shape: small, medium, large relative to face; pointed, rounded, bulbous, upturned, downturned
+   - Mouth size: small, medium, large relative to face
+   - Lip fullness: thin, medium, full
+   - Expression: smiling (how wide), neutral, serious, etc.
+   - Distinctive features: freckles (number, location, color, size), moles (location, size, color), dimples, scars, birthmarks
+   - Body build: slim, average, stocky, etc.
+   - Apparent height: short, average, tall
+
+2. CLOTHING (COMPLETE DETAILED DESCRIPTION):
+   - Exact type of each garment (t-shirt, polo shirt, button-down shirt, sweater, hoodie, dress, jeans, pants, shorts, skirt, etc.)
+   - Exact color of each garment: exact shade and color name (e.g., "bright red", "navy blue", "light gray")
+   - Style: fitted, loose, oversized, etc.
+   - Patterns: solid, stripes (direction, width, colors), prints (describe pattern in detail), logos (describe), graphics (describe)
+   - Details: sleeves length, collar type, pockets, zippers, buttons, etc.
+   - Shoes: type, color, style
+   - Accessories: glasses (frame shape, color), jewelry (earrings, necklace, bracelets, rings - describe each), hat/cap (type, color, style, logos), watch, bag/backpack
+
+3. POSE AND POSITION:
+   - Body position: standing, sitting, leaning, lying down, etc.
+   - Pose: arms position, legs position, head position (straight, tilted, turned)
+   - Posture: confident, relaxed, tense, etc.
+   - Expression and emotion: happy, serious, neutral, playful, etc.
+
+4. BACKGROUND AND ENVIRONMENT:
+   - What is visible in the background: objects, furniture, nature, buildings, etc.
+   - Background colors and tones
+   - Lighting: direction (front, side, top), quality (bright, soft, harsh, natural)
+   - Any shadows and where they fall
+   - Overall composition and framing
+
+5. OBJECTS AND ELEMENTS:
+   - Any objects visible: describe each in detail (type, color, size, position)
+   - Animals if present: type, color, size, position, pose
+   - Plants if present: type, size, position
+   - Any other elements in the scene
+
+6. COMPOSITION AND LAYOUT:
+   - Overall composition: centered, off-center, etc.
+   - Main subject position in frame
+   - Proportions: how elements relate to each other
+   - Photo angle: front view, slight angle, profile, etc.
+
+7. DISTINCTIVE FEATURES:
+   - Any unique or distinctive elements that make this photo recognizable
+   - Any text visible (describe exactly)
+   - Any logos or brands visible (describe exactly)
+
+OUTPUT FORMAT:
+Start with a general overview, then provide EXTREMELY DETAILED paragraph-by-paragraph descriptions covering ALL the above points.
+
+CRITICAL REQUIREMENTS:
+- Be EXTREMELY SPECIFIC about colors (don't just say "red shirt" - say "bright red short-sleeved t-shirt with a round neckline")
+- Describe EXACT proportions and relationships between elements
+- Mention EVERY visible detail, no matter how small
+- Use precise descriptive language
+- Write in English, factual and precise style
+- NO length limit - the more detail, the better
+- The goal is MAXIMUM FIDELITY - someone should be able to recreate this exact scene as a coloring page from your description"""
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:{mime_type};base64,{base64_image}"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                max_tokens=8000  # Limite maximale pour une description ultra détaillée et exhaustive
+            )
+            
+            description = response.choices[0].message.content.strip()
+            print(f"[COLORING] Photo analysée en détail ({len(description)} caractères): {description[:150]}...")
+            
+            return description
+            
+        except Exception as e:
+            print(f"[ERROR] Erreur analyse photo: {e}")
+            import traceback
+            traceback.print_exc()
+            raise Exception(f"Échec analyse photo pour coloriage: {e}")
+    
+    async def _generate_coloring_from_description(
+        self,
+        photo_description: str,
+        custom_prompt: Optional[str] = None,
+        with_colored_model: bool = True,
+        original_photo_path: Optional[str] = None
+    ) -> Optional[str]:
+        """
+        Génère un coloriage avec Gemini text-to-image en utilisant une description ultra détaillée
+        
+        Args:
+            photo_description: Description très détaillée de la photo (obtenue via GPT-4o-mini)
+            custom_prompt: Prompt personnalisé optionnel
+            with_colored_model: Si True, inclut un modèle coloré en coin
+            original_photo_path: Chemin vers la photo originale (pour préserver les dimensions)
+        
+        Returns:
+            Chemin local de l'image générée
+        """
+        try:
+            # Construire le prompt final avec la description ultra détaillée
+            base_coloring_instructions = """A black and white line drawing coloring page with MAXIMUM FIDELITY to the following detailed description. The coloring page must be suitable for direct printing on standard size (8.5x11 inch) paper, without paper borders.
+
+REQUIREMENTS:
+- Clear, smooth black outline lines only
+- No shadows, grayscale, or color filling
+- Pure white background
+- Line weight should be consistent and appropriate for coloring
+- Suitable for 6-9 year old children
+- MAXIMUM FIDELITY: Every detail from the description below must be accurately represented in the line drawing
+
+"""
+            
+            if with_colored_model:
+                base_coloring_instructions += "[At the same time, for the convenience of users who are not good at coloring, please generate a complete colored version in the lower right corner as a small image for reference]\n\n"
+            
+            if custom_prompt:
+                final_prompt = f"{base_coloring_instructions}{custom_prompt}\n\nDETAILED DESCRIPTION OF THE SCENE TO RECREATE:\n{photo_description}"
+            else:
+                final_prompt = f"""{base_coloring_instructions}DETAILED DESCRIPTION OF THE SCENE TO RECREATE AS A COLORING PAGE:
+
+{photo_description}
+
+CRITICAL: Recreate this exact scene as a black and white line drawing coloring page. Every detail mentioned in the description above (people, clothing, poses, expressions, objects, background, composition) must be accurately represented. The coloring page should look like a line drawing version of the scene described above."""
+            
+            print(f"[PROMPT TEXT-TO-IMAGE] {final_prompt[:200]}...")
+            
+            # Détecter les dimensions originales si la photo est fournie
+            original_width, original_height = None, None
+            if original_photo_path:
+                try:
+                    input_img = Image.open(original_photo_path)
+                    original_width, original_height = input_img.size
+                    aspect_ratio = original_width / original_height
+                    print(f"[DIMENSIONS] Dimensions originales: {original_width}x{original_height} (ratio: {aspect_ratio:.2f})")
+                except Exception as e:
+                    print(f"[WARNING] Impossible de lire les dimensions originales: {e}")
+            
+            # Appeler Gemini avec text-to-image
+            print(f"[API] Appel Gemini gemini-3-pro-image-preview (text-to-image)...")
+            response = self.gemini_client.models.generate_content(
+                model="gemini-3-pro-image-preview",
+                contents=[final_prompt]
+            )
+            
+            print(f"[RESPONSE] Réponse reçue de gemini-3-pro-image-preview")
+            
+            # Extraire l'image de la réponse
+            image_data = None
+            if hasattr(response, 'candidates') and len(response.candidates) > 0:
+                candidate = response.candidates[0]
+                if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
+                    for part in candidate.content.parts:
+                        if hasattr(part, 'inline_data') and part.inline_data is not None:
+                            if hasattr(part.inline_data, 'data'):
+                                data = part.inline_data.data
+                                
+                                if isinstance(data, str):
+                                    try:
+                                        image_data = base64.b64decode(data)
+                                        print(f"[DEBUG] Image décodée depuis base64: {len(image_data)} bytes")
+                                    except Exception as e:
+                                        print(f"[ERROR] Erreur décodage base64: {e}")
+                                        continue
+                                elif isinstance(data, bytes):
+                                    image_data = data
+                                    print(f"[DEBUG] Données déjà en bytes: {len(image_data)} bytes")
+                                
+                                if image_data:
+                                    try:
+                                        test_img = Image.open(io.BytesIO(image_data))
+                                        print(f"[DEBUG] Image valide: {test_img.size}")
+                                        break
+                                    except Exception as e:
+                                        print(f"[ERROR] Données décodées ne sont pas une image valide: {e}")
+                                        image_data = None
+                                        continue
+            
+            if not image_data:
+                print(f"[ERROR] Aucune image trouvée dans la réponse")
+                raise Exception("Format de réponse gemini-3-pro-image-preview inattendu - aucune image trouvée")
+            
+            # Charger l'image générée
+            generated_img = Image.open(io.BytesIO(image_data))
+            generated_width, generated_height = generated_img.size
+            generated_ratio = generated_width / generated_height
+            
+            print(f"[GENERATED] Image générée: {generated_width}x{generated_height} (ratio: {generated_ratio:.2f})")
+            
+            # Déterminer la taille finale
+            min_size = 1536
+            if original_width and original_height:
+                if original_width < min_size or original_height < min_size:
+                    final_width = final_height = min_size
+                    print(f"[SMALL] Image originale petite ({original_width}x{original_height}), utilisation taille minimale {min_size}x{min_size}")
+                else:
+                    final_width, final_height = original_width, original_height
+                    print(f"[TARGET] Redimensionnement vers: {original_width}x{original_height}")
+            else:
+                # Si pas de dimensions originales, utiliser les dimensions générées ou minimum
+                final_width = max(generated_width, min_size)
+                final_height = max(generated_height, min_size)
+                print(f"[DEFAULT] Utilisation dimensions générées: {final_width}x{final_height}")
+            
+            # Redimensionner si nécessaire
+            if generated_width != final_width or generated_height != final_height:
+                target_ratio = final_width / final_height
+                ratio_diff = abs(generated_ratio - target_ratio) / target_ratio if target_ratio > 0 else 1
+                
+                if ratio_diff > 0.05:
+                    print(f"[WARNING] Différence de ratio détectée: {ratio_diff*100:.1f}%")
+                    # Adapter en préservant le ratio cible et en centrant
+                    if target_ratio > generated_ratio:
+                        new_width = final_width
+                        new_height = int(final_width / generated_ratio)
+                    else:
+                        new_height = final_height
+                        new_width = int(final_height * generated_ratio)
+                    
+                    temp_resized = generated_img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                    final_img = Image.new('RGB', (final_width, final_height), 'white')
+                    x_offset = (final_width - new_width) // 2
+                    y_offset = (final_height - new_height) // 2
+                    final_img.paste(temp_resized, (x_offset, y_offset))
+                    print(f"[ADJUSTED] Image centrée avec ratio préservé: {new_width}x{new_height} -> {final_width}x{final_height}")
+                else:
+                    final_img = generated_img.resize((final_width, final_height), Image.Resampling.LANCZOS)
+                    print(f"[RESIZED] Redimensionnement direct: {generated_width}x{generated_height} -> {final_width}x{final_height}")
+            else:
+                final_img = generated_img
+                print(f"[NO RESIZE] Dimensions déjà correctes: {final_width}x{final_height}")
+            
+            # Sauvegarder
+            output_path = self.output_dir / f"coloring_photo_direct_{uuid.uuid4().hex[:8]}.png"
+            final_img.save(output_path, 'PNG', optimize=True)
+            print(f"[OK] Coloriage photo sauvegardé ({final_width}x{final_height}): {output_path.name}")
+            
+            return str(output_path)
+            
+        except Exception as e:
+            print(f"[ERROR] Erreur génération coloriage depuis description: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
+    
     async def generate_coloring_from_photo(
         self, 
         photo_path: str,
@@ -124,8 +437,9 @@ Subject: {subject}"""
         user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Convertit une photo en coloriage avec gpt-image-1-mini IMAGE-TO-IMAGE DIRECT
-        Cette méthode utilise l'édition d'image directe pour maximiser la ressemblance
+        Convertit une photo en coloriage avec GPT-4o-mini analyse + Gemini text-to-image
+        Cette méthode analyse d'abord la photo avec GPT-4o-mini pour obtenir une description
+        ultra détaillée, puis utilise cette description dans un prompt text-to-image pour Gemini
         
         Args:
             photo_path: Chemin vers la photo
@@ -136,18 +450,22 @@ Subject: {subject}"""
             Dict avec le résultat
         """
         try:
-            print(f"[COLORING PHOTO] Conversion IMAGE-TO-IMAGE: {photo_path}")
+            print(f"[COLORING PHOTO] Conversion avec analyse GPT-4o-mini + Gemini text-to-image: {photo_path}")
             
-            # Utiliser l'édition d'image DIRECTE avec gpt-image-1-mini (IMAGE-TO-IMAGE)
-            print(f"[IMAGE-TO-IMAGE] Transformation directe avec gpt-image-1-mini edit...")
-            coloring_path_str = await self._edit_photo_to_coloring_direct(
-                photo_path, 
+            # Analyser la photo avec GPT-4o-mini pour obtenir une description ultra détaillée
+            photo_description = await self._analyze_photo_for_coloring(photo_path)
+            
+            # Utiliser la description dans un prompt text-to-image pour Gemini
+            print(f"[COLORING] Génération coloriage avec description détaillée...")
+            coloring_path_str = await self._generate_coloring_from_description(
+                photo_description, 
                 custom_prompt, 
-                with_colored_model
+                with_colored_model,
+                photo_path  # Pour préserver les dimensions originales
             )
             
             if not coloring_path_str:
-                raise Exception("Echec de la generation gpt-image-1-mini (image-to-image)")
+                raise Exception("Échec de la génération Gemini (text-to-image avec description)")
             
             # Convertir en Path
             coloring_path = Path(coloring_path_str)
