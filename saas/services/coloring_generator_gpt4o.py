@@ -1,6 +1,6 @@
 """
 Service de génération de coloriages avec gemini-3-pro-image-preview
-- Analyse photo avec GPT-4o-mini + text-to-image Gemini pour les photos uploadées (meilleure ressemblance)
+- Image-to-image direct pour les photos uploadées (meilleure ressemblance)
 - Text-to-image pour les thèmes prédéfinis
 """
 import os
@@ -24,7 +24,7 @@ load_dotenv()
 class ColoringGeneratorGPT4o:
     """
     Générateur de coloriages avec gemini-3-pro-image-preview
-    - Analyse photo GPT-4o-mini + text-to-image Gemini pour photos uploadées
+    - Image-to-image pour photos uploadées
     - Text-to-image pour thèmes
     """
     
@@ -56,51 +56,10 @@ class ColoringGeneratorGPT4o:
             self.base_url = os.getenv("BASE_URL", "https://herbbie.com")
             
             # Prompts pour l'édition d'image directe (IMAGE-TO-IMAGE pour photos)
-            self.edit_prompt_with_model = """Transform this photo into a black and white line drawing coloring page with MAXIMUM FIDELITY to the original image.
+            # Prompt simplifié et direct pour Gemini
+            self.edit_prompt_with_model = """Transform this image into a black and white line drawing coloring page. Use thick black outlines only, no shadows, no grayscale, pure white background. Make it suitable for children to color. [At the same time, for the convenience of users who are not good at coloring, please generate a complete colored version in the lower right corner as a small image for reference]"""
 
-CRITICAL REQUIREMENTS FOR HIGH RESEMBLANCE:
-- Preserve EXACTLY the same facial features, expressions, and proportions as in the photo
-- Keep the EXACT same body pose, limb positions, and orientation
-- Maintain the EXACT same clothing details, patterns, accessories, and textures
-- Preserve the EXACT same background elements and spatial composition
-- Keep the EXACT same viewing angle and perspective
-- Maintain PRECISE proportions and scale relationships between all elements
-- Replicate the EXACT same hairstyle, hair length, and hair details
-- Keep the EXACT same object positions and arrangements
-
-STYLE REQUIREMENTS:
-- Convert to clear, smooth black outline lines only
-- Pure white background
-- No shadows, grayscale, or color filling
-- Suitable for printing on 8.5x11 inch paper
-- Add a small colored reference version in the lower right corner (10-15% of total size)
-- Line weight should be consistent and appropriate for coloring
-- Suitable for 6-9 year old children
-
-ABSOLUTE PRIORITY: Maximum fidelity to the original photo. Every visual detail, proportion, facial feature, pose, and composition element must be preserved as accurately as possible. The coloring page MUST look like a line drawing version of THIS EXACT photo."""
-
-            self.edit_prompt_without_model = """Transform this photo into a black and white line drawing coloring page with MAXIMUM FIDELITY to the original image.
-
-CRITICAL REQUIREMENTS FOR HIGH RESEMBLANCE:
-- Preserve EXACTLY the same facial features, expressions, and proportions as in the photo
-- Keep the EXACT same body pose, limb positions, and orientation
-- Maintain the EXACT same clothing details, patterns, accessories, and textures
-- Preserve the EXACT same background elements and spatial composition
-- Keep the EXACT same viewing angle and perspective
-- Maintain PRECISE proportions and scale relationships between all elements
-- Replicate the EXACT same hairstyle, hair length, and hair details
-- Keep the EXACT same object positions and arrangements
-
-STYLE REQUIREMENTS:
-- Convert to clear, smooth black outline lines only
-- Pure white background
-- No shadows, grayscale, or color filling
-- Suitable for printing on 8.5x11 inch paper
-- NO colored reference image
-- Line weight should be consistent and appropriate for coloring
-- Suitable for 6-9 year old children
-
-ABSOLUTE PRIORITY: Maximum fidelity to the original photo. Every visual detail, proportion, facial feature, pose, and composition element must be preserved as accurately as possible. The coloring page MUST look like a line drawing version of THIS EXACT photo."""
+            self.edit_prompt_without_model = """Transform this image into a black and white line drawing coloring page. Use thick black outlines only, no shadows, no grayscale, pure white background. Make it suitable for children to color. NO colored reference image."""
             
             # Prompts pour la génération par thème (TEXT-TO-IMAGE)
             self.coloring_prompt_with_model = """A black and white line drawing coloring illustration, suitable for direct printing on standard size (8.5x11 inch) paper, without paper borders. The overall illustration style is fresh and simple, using clear and smooth black outline lines, without shadows, grayscale, or color filling, with a pure white background for easy coloring. [At the same time, for the convenience of users who are not good at coloring, please generate a complete colored version in the lower right corner as a small image for reference] Suitable for: [6-9 year old children]
@@ -437,9 +396,8 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
         user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Convertit une photo en coloriage avec GPT-4o-mini analyse + Gemini text-to-image
-        Cette méthode analyse d'abord la photo avec GPT-4o-mini pour obtenir une description
-        ultra détaillée, puis utilise cette description dans un prompt text-to-image pour Gemini
+        Convertit une photo en coloriage avec Gemini image-to-image direct
+        Cette méthode utilise directement l'image uploadée avec Gemini pour créer un coloriage
         
         Args:
             photo_path: Chemin vers la photo
@@ -450,22 +408,18 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             Dict avec le résultat
         """
         try:
-            print(f"[COLORING PHOTO] Conversion avec analyse GPT-4o-mini + Gemini text-to-image: {photo_path}")
+            print(f"[COLORING PHOTO] Conversion IMAGE-TO-IMAGE direct avec Gemini: {photo_path}")
             
-            # Analyser la photo avec GPT-4o-mini pour obtenir une description ultra détaillée
-            photo_description = await self._analyze_photo_for_coloring(photo_path)
-            
-            # Utiliser la description dans un prompt text-to-image pour Gemini
-            print(f"[COLORING] Génération coloriage avec description détaillée...")
-            coloring_path_str = await self._generate_coloring_from_description(
-                photo_description, 
+            # Utiliser l'édition d'image DIRECTE avec Gemini (IMAGE-TO-IMAGE)
+            print(f"[IMAGE-TO-IMAGE] Transformation directe avec gemini-3-pro-image-preview...")
+            coloring_path_str = await self._edit_photo_to_coloring_direct(
+                photo_path, 
                 custom_prompt, 
-                with_colored_model,
-                photo_path  # Pour préserver les dimensions originales
+                with_colored_model
             )
             
             if not coloring_path_str:
-                raise Exception("Échec de la génération Gemini (text-to-image avec description)")
+                raise Exception("Échec de la génération Gemini (image-to-image)")
             
             # Convertir en Path
             coloring_path = Path(coloring_path_str)
@@ -502,14 +456,14 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 "total_images": 1,
                 "metadata": {
                     "source_photo": photo_path,
-                    "method": "GPT-4o-mini analysis + Gemini text-to-image",
+                    "method": "Gemini image-to-image direct editing",
                     "created_at": datetime.now().isoformat(),
                     "model": "gpt-image-1-mini",
                     "with_colored_model": with_colored_model
                 }
             }
             
-            print(f"[OK] Coloriage photo généré avec succès (GPT-4o-mini analyse + Gemini text-to-image): {coloring_path.name}")
+            print(f"[OK] Coloriage photo généré avec succès (Gemini image-to-image): {coloring_path.name}")
             return result
             
         except Exception as e:
