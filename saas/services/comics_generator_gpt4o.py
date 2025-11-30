@@ -504,7 +504,7 @@ Génère maintenant le scénario complet en JSON:"""
             print(f"   📊 Type MIME: {mime_type}")
             
             response = await self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4o",
                 messages=[
                     {
                         "role": "user",
