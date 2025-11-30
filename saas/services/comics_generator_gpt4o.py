@@ -690,17 +690,17 @@ CRITICAL REQUIREMENTS:
             
             if not response.choices or len(response.choices) == 0:
                 print(f"   ⚠️ ERREUR: Aucune réponse dans les choices")
-                raise Exception("GPT-4o-mini n'a retourné aucune réponse")
+                raise Exception("GPT-4o n'a retourné aucune réponse")
             
             if not response.choices[0].message or not response.choices[0].message.content:
                 print(f"   ⚠️ ERREUR: Contenu de réponse vide")
-                raise Exception("GPT-4o-mini a retourné une réponse vide")
+                raise Exception("GPT-4o a retourné une réponse vide")
             
             description = response.choices[0].message.content.strip()
             
-            # Vérifier si GPT-4o-mini a refusé (filtres de sécurité)
-            if not description or len(description) < 50 or "I'm sorry" in description or "I can't assist" in description or "cannot" in description.lower():
-                print(f"   ⚠️ ERREUR: GPT-4o-mini a refusé d'analyser la photo")
+            # Vérifier si GPT-4o a refusé (filtres de sécurité)
+            if not description or len(description) < 50 or "I'm sorry" in description or "I can't assist" in description or "I can't help" in description or "cannot" in description.lower() or "can't help" in description.lower():
+                print(f"   ⚠️ ERREUR: GPT-4o a refusé d'analyser la photo")
                 print(f"   📄 Réponse reçue: {description[:500] if description else 'VIDE'}")
                 
                 # Essayer avec un prompt alternatif plus explicite
