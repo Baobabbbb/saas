@@ -700,19 +700,27 @@ STYLE REQUIREMENTS:
                 input_image = Image.open(character_photo_path)
                 print(f"   [DEBUG] Image chargée: {input_image.size}, mode: {input_image.mode}")
                 
-                # Simplifier le prompt pour éviter les blocages de sécurité
-                # Utiliser un prompt plus court et direct comme pour les coloriages
-                edit_prompt = f"""Create a comic book page with 4 panels in a 2x2 grid. The person in the uploaded photo must be the main character in all 4 panels, doing the actions described below. Keep their appearance recognizable.
-
-{prompt}"""
+                # Utiliser un prompt très simple pour éviter les blocages
+                # Inverser l'ordre : image d'abord, puis prompt (comme dans certains exemples Gemini)
+                # Utiliser uniquement le prompt original sans modification pour éviter les filtres
+                print(f"   [DEBUG] Prompt image-to-image (utilisant prompt original): {prompt[:200]}...")
                 
-                print(f"   [DEBUG] Prompt image-to-image: {edit_prompt[:200]}...")
-                
-                # Utiliser image-to-image (même méthode que les coloriages qui fonctionnent)
-                response = self.gemini_client.models.generate_content(
-                    model="gemini-3-pro-image-preview",
-                    contents=[edit_prompt, input_image]  # Passer prompt + image PIL directement
-                )
+                # Essayer avec l'image en premier, puis le prompt
+                # Cela peut aider Gemini à mieux comprendre le contexte
+                try:
+                    response = self.gemini_client.models.generate_content(
+                        model="gemini-3-pro-image-preview",
+                        contents=[input_image, prompt]  # Image d'abord, puis prompt
+                    )
+                    print(f"   [DEBUG] Réponse image-to-image reçue (image d'abord)")
+                except Exception as e:
+                    print(f"   [DEBUG] Erreur avec image d'abord, essai avec prompt d'abord: {e}")
+                    # Fallback: prompt d'abord, puis image
+                    response = self.gemini_client.models.generate_content(
+                        model="gemini-3-pro-image-preview",
+                        contents=[prompt, input_image]  # Prompt d'abord, puis image
+                    )
+                    print(f"   [DEBUG] Réponse image-to-image reçue (prompt d'abord)")
                 print(f"   [DEBUG] Réponse image-to-image reçue")
                 
                 # Vérifier prompt_feedback pour voir s'il y a un blocage
