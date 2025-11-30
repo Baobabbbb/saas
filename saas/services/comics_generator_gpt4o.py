@@ -731,16 +731,20 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
             
             print(f"   [RESPONSE] Réponse reçue de gemini-3-pro-image-preview")
             
-            # Selon la documentation officielle, utiliser response.parts directement
-            # https://ai.google.dev/gemini-api/docs/image-generation?hl=fr
+            # Inspecter la structure complète de la réponse
+            print(f"   [DEBUG] Response type: {type(response)}")
+            print(f"   [DEBUG] Response dir: {[attr for attr in dir(response) if not attr.startswith('_')]}")
+            
             image_data = None
             generated_image = None
             
-            # Parcourir response.parts selon la doc officielle
+            # Essayer différentes structures de réponse selon la documentation
+            # Méthode 1: response.parts (selon la doc Python)
             if hasattr(response, 'parts'):
-                print(f"   [DEBUG] Response a {len(response.parts)} parts")
+                print(f"   [DEBUG] Méthode 1: Response a {len(response.parts)} parts")
                 for idx, part in enumerate(response.parts):
                     print(f"   [DEBUG] Part {idx} type: {type(part)}")
+                    print(f"   [DEBUG] Part {idx} dir: {[attr for attr in dir(part) if not attr.startswith('_')]}")
                     
                     # Vérifier si c'est du texte
                     if hasattr(part, 'text') and part.text is not None:
@@ -767,6 +771,44 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
                                     print(f"   [DEBUG] Image extraite manuellement: {len(image_data)} bytes")
                                     break
             
+            # Méthode 2: response.candidates[0].content.parts (structure alternative)
+            if not image_data and not generated_image:
+                print(f"   [DEBUG] Méthode 2: Essai avec candidates")
+                if hasattr(response, 'candidates') and response.candidates is not None and len(response.candidates) > 0:
+                    candidate = response.candidates[0]
+                    print(f"   [DEBUG] Candidate type: {type(candidate)}")
+                    if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
+                        print(f"   [DEBUG] Candidate a {len(candidate.content.parts)} parts")
+                        for idx, part in enumerate(candidate.content.parts):
+                            print(f"   [DEBUG] Part {idx} type: {type(part)}")
+                            
+                            # Vérifier si c'est du texte
+                            if hasattr(part, 'text') and part.text is not None:
+                                print(f"   [TEXT] {part.text[:200]}...")
+                            
+                            # Vérifier si c'est une image
+                            if hasattr(part, 'inline_data') and part.inline_data is not None:
+                                print(f"   [DEBUG] Part {idx} a inline_data")
+                                try:
+                                    # Essayer as_image() si disponible
+                                    if hasattr(part, 'as_image'):
+                                        generated_image = part.as_image()
+                                        print(f"   [OK] Image obtenue via part.as_image(): {generated_image.size}")
+                                        break
+                                except Exception as e:
+                                    print(f"   [ERROR] Erreur avec part.as_image(): {e}")
+                                
+                                # Fallback: extraire les données manuellement
+                                if hasattr(part.inline_data, 'data'):
+                                    data = part.inline_data.data
+                                    if data:
+                                        if isinstance(data, str):
+                                            image_data = base64.b64decode(data)
+                                        elif isinstance(data, bytes):
+                                            image_data = data
+                                        print(f"   [DEBUG] Image extraite manuellement: {len(image_data)} bytes")
+                                        break
+            
             # Si on a obtenu une image PIL via as_image(), la convertir en bytes
             if generated_image:
                 # Convertir l'image PIL en bytes
@@ -774,6 +816,20 @@ REMINDER: The person in the uploaded photo is the HERO. They must be in ALL pane
                 generated_image.save(img_bytes, format='PNG')
                 image_data = img_bytes.getvalue()
                 print(f"   [OK] Image convertie en bytes: {len(image_data)} bytes")
+            
+            # Si toujours pas d'image, essayer d'inspecter toute la structure
+            if not image_data and not generated_image:
+                print(f"   [DEBUG] Aucune image trouvée, inspection complète...")
+                try:
+                    # Essayer de convertir en dict
+                    if hasattr(response, 'model_dump'):
+                        response_dict = response.model_dump()
+                        print(f"   [DEBUG] Response dict keys: {list(response_dict.keys())}")
+                        # Afficher le contenu complet pour debug
+                        import json
+                        print(f"   [DEBUG] Response dict (first 1000 chars): {str(response_dict)[:1000]}")
+                except Exception as e:
+                    print(f"   [DEBUG] Erreur inspection: {e}")
             
             if image_data:
                 print(f"   [OK] Image reçue ({len(image_data)} bytes)")
