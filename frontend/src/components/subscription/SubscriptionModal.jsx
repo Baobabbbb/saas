@@ -516,8 +516,8 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
 
       {showCheckbox && (
         <div style={{
-          marginTop: '8px',
-          marginBottom: '10px',
+          marginTop: '4px',
+          marginBottom: '6px',
           display: 'flex',
           alignItems: 'flex-start',
           gap: '10px'
@@ -561,7 +561,7 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
                 cursor: 'pointer'
               }}
             >
-              Conditions Générales de Vente
+              CGV
             </a>
             {' '}et l'accès immédiat au service.
           </label>

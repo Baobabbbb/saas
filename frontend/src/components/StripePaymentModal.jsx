@@ -259,8 +259,8 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options, showCheckbox, 
 
       {showCheckbox && (
         <div style={{
-          marginTop: '8px',
-          marginBottom: '10px',
+          marginTop: '4px',
+          marginBottom: '6px',
           display: 'flex',
           alignItems: 'flex-start',
           gap: '10px'
@@ -304,7 +304,7 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options, showCheckbox, 
                 cursor: 'pointer'
               }}
             >
-              Conditions Générales de Vente
+              CGV
             </a>
             {' '}et l'accès immédiat au service.
           </label>
