@@ -516,7 +516,8 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
 
       {showCheckbox && (
         <div style={{
-          marginBottom: '16px',
+          marginTop: '8px',
+          marginBottom: '10px',
           display: 'flex',
           alignItems: 'flex-start',
           gap: '10px'
@@ -527,7 +528,7 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
             checked={acceptCGV}
             onChange={(e) => setAcceptCGV(e.target.checked)}
             style={{
-              marginTop: '3px',
+              marginTop: '2px',
               cursor: 'pointer',
               width: '18px',
               height: '18px',
@@ -537,11 +538,11 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
           <label
             htmlFor="accept-cgv-subscription"
             style={{
-              fontSize: '14px',
+              fontSize: '12px',
               color: '#333',
               fontFamily: '"Baloo 2", sans-serif',
               cursor: 'pointer',
-              lineHeight: '1.5',
+              lineHeight: '1.4',
               flex: 1
             }}
           >
