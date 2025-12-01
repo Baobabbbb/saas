@@ -259,7 +259,7 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options, showCheckbox, 
 
       {showCheckbox && (
         <div style={{
-          marginTop: '4px',
+          marginTop: '0px',
           marginBottom: '6px',
           display: 'flex',
           alignItems: 'center',

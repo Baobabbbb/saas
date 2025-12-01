@@ -516,7 +516,7 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
 
       {showCheckbox && (
         <div style={{
-          marginTop: '4px',
+          marginTop: '0px',
           marginBottom: '6px',
           display: 'flex',
           alignItems: 'center',
