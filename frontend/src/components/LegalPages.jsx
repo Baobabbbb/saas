@@ -17,9 +17,9 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
 
   const sections = [
     { id: 'mentions', title: 'Mentions Légales', icon: '📄' },
+    { id: 'terms', title: 'Conditions d\'utilisation', icon: '📜' },
     { id: 'privacy', title: 'Confidentialité', icon: '🔒' },
     { id: 'cookies', title: 'Cookies', icon: '🍪' },
-    { id: 'terms', title: 'Conditions d\'utilisation', icon: '📜' },
     { id: 'contact', title: 'Contact', icon: '📧' }
   ];
 
@@ -95,7 +95,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <div className="legal-section">
         <h3>2. Données collectées</h3>
         <div className="info-block">
-          <p><strong>Commande :</strong> Email (nécessaire pour vous envoyer l'histoire).</p>
+          <p><strong>Commande :</strong> Email.</p>
           <p><strong>Paiement :</strong> Géré par Stripe. Herbbie n'a jamais accès à vos coordonnées bancaires complètes.</p>
           <p><strong>Navigation :</strong> Adresse IP et cookies techniques (panier).</p>
         </div>
