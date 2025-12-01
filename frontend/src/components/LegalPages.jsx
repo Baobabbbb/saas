@@ -45,59 +45,32 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <h2>📄 Mentions Légales</h2>
 
       <div className="legal-section">
-        <h3>Hébergement</h3>
+        <h3>1. Édition du site</h3>
         <div className="info-block">
-          <p><strong>Hébergeur :</strong> Railway</p>
-          <p><strong>Adresse :</strong> Railway, 1 Sentry Way, San Francisco, CA 94103, États-Unis</p>
-          <p><strong>Site web :</strong> <a href="https://railway.app" target="_blank" rel="noopener noreferrer">railway.app</a></p>
+          <p>En vertu de l'article 6 de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique, il est précisé aux utilisateurs du site internet https://herbbie.com l'identité des différents intervenants dans le cadre de sa réalisation et de son suivi :</p>
+          <p><strong>Propriétaire et Éditeur du site :</strong> Monsieur Adrien Gaulin</p>
+          <p><strong>Statut juridique :</strong> Entrepreneur Individuel (EI)</p>
+          <p><strong>Adresse du siège :</strong> 10 B RUE Félix Arnaudin, 40100 Dax, FRANCE</p>
+          <p><strong>SIREN :</strong> 992 909 051</p>
+          <p><strong>SIRET :</strong> 992 909 051 00011</p>
+          <p><strong>Code APE/NAF :</strong> 62.01Z (Programmation informatique)</p>
+          <p><strong>Numéro de TVA Intracommunautaire :</strong> FR 46 992909051</p>
+          <p><strong>Contact :</strong> Email : <span className="email-protected personal-data">contact@herbbie.com</span></p>
+          <p><strong>Directeur de la publication :</strong> <span className="name-protected personal-data">Monsieur Adrien Gaulin</span></p>
         </div>
       </div>
 
       <div className="legal-section">
-        <h3>Propriété intellectuelle</h3>
+        <h3>2. Hébergement</h3>
         <div className="info-block">
-          <p>L'ensemble du contenu de ce site (textes, images, vidéos, éléments graphiques, logos, icônes, sons, logiciels) est la propriété exclusive de HERBBIE ou de ses partenaires, sauf mention contraire.</p>
-          <p>Toute reproduction, distribution, modification ou exploitation commerciale, même partielle, sans autorisation préalable écrite de HERBBIE est strictement interdite et constituerait une contrefaçon sanctionnée par les articles L.335-2 et suivants du Code de la propriété intellectuelle.</p>
+          <p>Le site est hébergé par la société Vercel Inc. Siège social : 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis. Le stockage des données personnelles des utilisateurs est effectué conformément au RGPD, sur des serveurs sécurisés.</p>
         </div>
       </div>
 
       <div className="legal-section">
-        <h3>Responsabilité</h3>
+        <h3>3. Propriété intellectuelle</h3>
         <div className="info-block">
-          <p>HERBBIE s'efforce d'assurer l'exactitude et la mise à jour des informations diffusées sur ce site, dont elle se réserve le droit de corriger, à tout moment et sans préavis, le contenu.</p>
-          <p>Toutefois, HERBBIE ne peut garantir l'exactitude, la précision ou l'exhaustivité des informations mises à disposition sur ce site. En conséquence, HERBBIE décline toute responsabilité :</p>
-          <ul>
-            <li>Pour toute imprécision, inexactitude ou omission portant sur des informations disponibles sur le site</li>
-            <li>Pour tous dommages résultant d'une intrusion frauduleuse d'un tiers ayant entraîné une modification des informations mises à disposition sur le site</li>
-            <li>Et plus généralement pour tous dommages, directs ou indirects, quelles qu'en soient les causes, origines, natures ou conséquences, provoqués à raison de l'accès de quiconque au site ou de l'impossibilité d'y accéder</li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>Données personnelles</h3>
-        <div className="info-block">
-          <p>Conformément à la loi n°78-17 du 6 janvier 1978 relative à l'informatique, aux fichiers et aux libertés, vous disposez d'un droit d'accès, de rectification et de suppression des données vous concernant.</p>
-          <p>Pour exercer ce droit, vous pouvez nous contacter par email à l'adresse : <span className="email-protected personal-data">contact@herbbie.com</span></p>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>Cookies</h3>
-        <div className="info-block">
-          <p>Le site HERBBIE utilise des cookies pour améliorer votre expérience utilisateur et réaliser des statistiques de visite.</p>
-          <p>Conformément à la réglementation, vous pouvez refuser le dépôt de cookies en configurant votre navigateur.</p>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>Éditeur du site</h3>
-        <div className="info-block personal-data">
-          <p><strong>Dénomination sociale :</strong> <span className="protect-personal-info">HERBBIE</span></p>
-          <p><strong>Forme juridique :</strong> <span className="protect-personal-info">Auto-entreprise (en cours d'immatriculation)</span></p>
-          <p><strong>Adresse du siège social :</strong> <span className="address-protected personal-data">10 bis rue Félix Arnaudin, 40100 Dax</span></p>
-          <p><strong>Numéro SIRET :</strong> <span className="protect-personal-info">En cours d'attribution</span></p>
-          <p><strong>Directeur de la publication :</strong> <span className="name-protected personal-data">Adrien Gaulin</span></p>
+          <p>L'ensemble des éléments figurant sur le site Herbbie (textes, graphismes, logiciels, photographies, images, vidéos, sons, plans, noms, logos, marques, créations et œuvres protégeables diverses, bases de données, etc...) ainsi que le site lui-même, sont protégés par les dispositions du Code de la Propriété Intellectuelle. Monsieur Adrien Gaulin est titulaire exclusif de tous les droits de propriété intellectuelle sur la structure et le contenu du site, à l'exception des éléments générés par les utilisateurs via l'IA (voir CGU). Toute reproduction non autorisée est interdite.</p>
         </div>
       </div>
     </div>
@@ -108,115 +81,39 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <h2>🔒 Politique de Confidentialité</h2>
 
       <div className="legal-section">
-        <h3>1. Collecte des données personnelles</h3>
+        <h3>1. Protection de l'Enfance et Photos "Héros"</h3>
         <div className="info-block">
-          <p>Lors de votre utilisation du service HERBBIE, nous pouvons collecter les informations suivantes :</p>
+          <p>Nous appliquons une politique de sécurité maximale concernant les photos d'enfants téléchargées pour la fonction "Héros" :</p>
           <ul>
-            <li><strong>Données de compte :</strong> adresse email, nom d'utilisateur (si inscription)</li>
-            <li><strong>Données d'utilisation :</strong> historique des créations, préférences, statistiques d'usage</li>
-            <li><strong>Données techniques :</strong> adresse IP, type de navigateur, système d'exploitation</li>
-            <li><strong>Contenu généré :</strong> les créations réalisées via notre service (histoires, coloriages, etc.)</li>
-          </ul>
-          <p>La collecte de ces données est nécessaire pour :</p>
-          <ul>
-            <li>Fournir nos services de génération de contenu créatif</li>
-            <li>Améliorer la qualité de nos services</li>
-            <li>Assurer la sécurité de la plateforme</li>
-            <li>Respecter nos obligations légales</li>
+            <li><strong>Usage unique :</strong> La photo sert exclusivement à créer l'avatar vectorisé.</li>
+            <li><strong>Purge immédiate :</strong> La photo source originale est automatiquement et définitivement supprimée de nos serveurs dès que l'avatar est généré. Nous ne conservons aucune base de données de visages ("No Face Storage").</li>
+            <li><strong>Pas d'entraînement d'IA :</strong> Nous garantissons que les photos des utilisateurs ne sont JAMAIS utilisées pour entraîner nos modèles d'intelligence artificielle ni vendues à des tiers.</li>
           </ul>
         </div>
       </div>
 
       <div className="legal-section">
-        <h3>2. Utilisation des données</h3>
+        <h3>2. Données collectées</h3>
         <div className="info-block">
-          <p>Les données collectées sont utilisées pour :</p>
-          <ul>
-            <li><strong>Fournir le service :</strong> génération de contenu personnalisé, sauvegarde des créations</li>
-            <li><strong>Amélioration :</strong> analyse des usages pour optimiser l'expérience utilisateur</li>
-            <li><strong>Communication :</strong> envoi d'informations relatives au service, support client</li>
-            <li><strong>Sécurité :</strong> détection et prévention des fraudes et activités malveillantes</li>
-            <li><strong>Obligations légales :</strong> conservation des données requises par la loi</li>
-          </ul>
+          <p><strong>Commande :</strong> Email (nécessaire pour vous envoyer l'histoire).</p>
+          <p><strong>Paiement :</strong> Géré par Stripe. Herbbie n'a jamais accès à vos coordonnées bancaires complètes.</p>
+          <p><strong>Navigation :</strong> Adresse IP et cookies techniques (panier).</p>
         </div>
       </div>
 
       <div className="legal-section">
-        <h3>3. Partage des données</h3>
+        <h3>3. Durée de conservation</h3>
         <div className="info-block">
-          <p>HERBBIE s'engage à ne pas vendre, louer ou commercialiser vos données personnelles.</p>
-          <p>Les données peuvent être partagées uniquement dans les cas suivants :</p>
-          <ul>
-            <li><strong>Fournisseurs de services :</strong> hébergeurs, prestataires techniques (sous contrat de confidentialité)</li>
-            <li><strong>Obligations légales :</strong> sur demande des autorités compétentes</li>
-            <li><strong>Protection des droits :</strong> en cas de litige ou contentieux</li>
-          </ul>
+          <p><strong>Données de facturation :</strong> 10 ans (obligation légale comptable, art. L123-22 du code de commerce).</p>
+          <p><strong>Histoires générées :</strong> Conservées sur votre compte client jusqu'à votre demande de suppression, pour vous permettre de les retrouver.</p>
+          <p><strong>Compte inactif :</strong> Suppression après 3 ans sans connexion.</p>
         </div>
       </div>
 
       <div className="legal-section">
-        <h3>4. Conservation des données</h3>
+        <h3>4. Vos Droits</h3>
         <div className="info-block">
-          <p>Les données sont conservées pendant la durée nécessaire aux finalités pour lesquelles elles ont été collectées :</p>
-          <ul>
-            <li><strong>Données de compte :</strong> tant que le compte est actif + 3 ans après inactivation</li>
-            <li><strong>Données d'utilisation :</strong> 2 ans à compter de la collecte</li>
-            <li><strong>Contenu généré :</strong> tant que le compte est actif</li>
-            <li><strong>Données de facturation :</strong> 10 ans (obligation légale)</li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>5. Sécurité des données</h3>
-        <div className="info-block">
-          <p>HERBBIE met en œuvre des mesures techniques et organisationnelles appropriées pour protéger vos données personnelles contre :</p>
-          <ul>
-            <li>L'accès non autorisé</li>
-            <li>L'utilisation illégitime</li>
-            <li>La perte ou destruction accidentelle</li>
-            <li>Toute forme de traitement illicite</li>
-          </ul>
-          <p>Ces mesures incluent le chiffrement des données, des contrôles d'accès stricts et des audits réguliers de sécurité.</p>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>6. Vos droits</h3>
-        <div className="info-block">
-          <p>Conformément au RGPD, vous disposez des droits suivants :</p>
-          <ul>
-            <li><strong>Droit d'accès :</strong> demander l'accès à vos données personnelles</li>
-            <li><strong>Droit de rectification :</strong> demander la correction de données inexactes</li>
-            <li><strong>Droit à l'effacement :</strong> demander la suppression de vos données</li>
-            <li><strong>Droit à la limitation :</strong> demander la limitation du traitement</li>
-            <li><strong>Droit à la portabilité :</strong> demander la récupération de vos données</li>
-            <li><strong>Droit d'opposition :</strong> vous opposer au traitement de vos données</li>
-          </ul>
-          <p>Pour exercer ces droits, contactez-nous à : <span className="email-protected personal-data">contact@herbbie.com</span></p>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>7. Cookies et technologies similaires</h3>
-        <div className="info-block">
-          <p>HERBBIE utilise uniquement des cookies strictement essentiels au fonctionnement du service :</p>
-          <ul>
-            <li><strong>Cookies de session :</strong> Maintien de votre connexion et sécurité</li>
-            <li><strong>Cookies d'authentification :</strong> Mémorisation de votre identité</li>
-            <li><strong>Cookies de sécurité :</strong> Protection contre les menaces</li>
-          </ul>
-
-          <h4>Stockage et sécurité des cookies :</h4>
-          <ul>
-            <li><strong>Emplacement :</strong> Stockés localement dans le navigateur (localStorage)</li>
-            <li><strong>Durée de vie :</strong> Sessions temporaires (supprimés à la déconnexion)</li>
-            <li><strong>Sécurité :</strong> Chiffrés et protégés contre les attaques CSRF</li>
-            <li><strong>Serveur :</strong> Gestion automatique par Supabase avec sécurité renforcée</li>
-          </ul>
-
-          <p><strong>Note :</strong> Aucun cookie de fonctionnalité, analytique, de personnalisation ou publicitaire n'est utilisé.</p>
-          <p>Les cookies essentiels sont automatiquement gérés et exemptés de consentement selon le RGPD.</p>
+          <p>Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et d'effacement de vos données. Pour exercer ce droit ou supprimer votre compte, écrivez à : <span className="email-protected personal-data">contact@herbbie.com</span></p>
         </div>
       </div>
     </div>
@@ -227,92 +124,25 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <h2>🍪 Politique des Cookies</h2>
 
       <div className="legal-section">
-        <h3>1. Qu'est-ce qu'un cookie ?</h3>
+        <h3>Gestion des Cookies sur Herbbie</h3>
         <div className="info-block">
-          <p>Un cookie est un petit fichier texte déposé sur votre terminal (ordinateur, tablette, smartphone) lors de la visite d'un site internet. Il permet de stocker des informations relatives à votre navigation et d'améliorer votre expérience utilisateur.</p>
+          <h4>1. Qu'est-ce qu'un cookie ?</h4>
+          <p>Un cookie est un petit fichier texte déposé sur votre appareil lors de la visite du site.</p>
         </div>
       </div>
 
       <div className="legal-section">
-        <h3>2. Cookies utilisés par HERBBIE</h3>
+        <h3>2. Les cookies que nous utilisons</h3>
         <div className="info-block">
-          <p><strong>Conformément à la réglementation RGPD, HERBBIE utilise uniquement des cookies strictement essentiels nécessaires au fonctionnement du service.</strong></p>
-
-          <h4>Cookies essentiels (obligatoires) :</h4>
-          <ul>
-            <li><strong>Cookies de session :</strong> Maintien de votre connexion et sécurité pendant votre visite</li>
-            <li><strong>Cookies d'authentification :</strong> Mémorisation de votre identité pour éviter de vous reconnecter</li>
-            <li><strong>Cookies de sécurité :</strong> Protection contre les attaques CSRF et autres menaces</li>
-          </ul>
-
-          <div className="alert alert-info">
-            <strong>Note :</strong> Aucun cookie de fonctionnalité, analytique, de personnalisation ou publicitaire n'est utilisé sur ce site.
-          </div>
+          <p><strong>Cookies Indispensables (Techniques) :</strong> Ils sont nécessaires au fonctionnement du site (gestion du panier d'achat, maintien de la connexion sécurisée). Ils ne peuvent pas être désactivés.</p>
+          <p><strong>Cookies de Mesure d'Audience (Analytiques) :</strong> Nous utilisons des outils anonymisés (comme Vercel Analytics) pour comprendre le trafic sur notre site.</p>
         </div>
       </div>
 
       <div className="legal-section">
-        <h3>3. Gestion des cookies</h3>
+        <h3>3. Vos Choix</h3>
         <div className="info-block">
-          <p>Les cookies essentiels utilisés par HERBBIE sont automatiquement gérés et ne nécessitent pas d'action de votre part.</p>
-
-          <h4>Via votre navigateur :</h4>
-          <p>Si vous souhaitez supprimer les cookies essentiels (ce qui peut affecter le fonctionnement du site) :</p>
-          <ul>
-            <li><strong>Chrome :</strong> Paramètres → Confidentialité et sécurité → Cookies</li>
-            <li><strong>Firefox :</strong> Préférences → Vie privée et sécurité → Cookies</li>
-            <li><strong>Safari :</strong> Préférences → Confidentialité → Gérer les cookies</li>
-            <li><strong>Edge :</strong> Paramètres → Cookies et autorisations de site</li>
-          </ul>
-
-          <h4>Durée de conservation :</h4>
-          <ul>
-            <li><strong>Cookies de session :</strong> Supprimés automatiquement à la fermeture du navigateur</li>
-            <li><strong>Cookies d'authentification :</strong> Conservés pendant votre session active (maximum 24h)</li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>4. Finalités des cookies</h3>
-        <div className="info-block">
-          <p>HERBBIE utilise uniquement des cookies essentiels pour :</p>
-          <ul>
-            <li><strong>Fonctionnement du service :</strong> Maintien de la session utilisateur</li>
-            <li><strong>Sécurité :</strong> Sécurisation des transactions et protection contre les menaces</li>
-            <li><strong>Préférences essentielles :</strong> Mémorisation des paramètres de base (langue)</li>
-            <li><strong>Performance :</strong> Optimisation du fonctionnement du site</li>
-          </ul>
-
-          <div className="alert alert-info">
-            <strong>Note :</strong> Aucun cookie n'est utilisé pour l'analyse d'audience, le suivi utilisateur ou la personnalisation avancée.
-          </div>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>5. Cookies tiers</h3>
-        <div className="info-block">
-          <p>HERBBIE n'utilise pas de cookies tiers pour l'analyse, le suivi ou la publicité.</p>
-          <p>Les services externes utilisés (comme les APIs d'IA) ne déposent pas de cookies sur votre navigateur.</p>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>6. Consentement</h3>
-        <div className="info-block">
-          <p><strong>Conformément à la réglementation RGPD, les cookies essentiels utilisés par HERBBIE ne nécessitent pas de consentement explicite car ils sont strictement nécessaires au fonctionnement du service.</strong></p>
-          <p>Ces cookies sont automatiquement activés pour garantir la sécurité et le bon fonctionnement du site.</p>
-          <p>Note : La désactivation de ces cookies essentiels peut gravement affecter le fonctionnement du service.</p>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>7. Mise à jour</h3>
-        <div className="info-block">
-          <p>Cette politique des cookies peut être mise à jour régulièrement pour refléter les évolutions de nos services ou de la réglementation.</p>
-          <p>La date de dernière modification est indiquée en bas de cette page.</p>
-          <p>En cas de modification substantielle, nous vous en informerons via une notification sur le site.</p>
+          <p>Lors de votre arrivée sur le site, un bandeau vous permet d'accepter ou de refuser les cookies non essentiels. Vous pouvez modifier ce choix à tout moment. Conformément aux recommandations de la CNIL, le refus des cookies n'empêche pas l'accès au site (sauf fonctionnalités liées au panier d'achat).</p>
         </div>
       </div>
     </div>
@@ -320,185 +150,77 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
 
   const renderTermsOfService = () => (
     <div className="legal-content">
-      <h2>📜 Conditions d'utilisation</h2>
+      <h2>📜 Conditions Générales de Vente et d'Utilisation (CGV/CGU)</h2>
 
       <div className="legal-section">
-        <h3>1. Objet du service</h3>
+        <h3>Date de dernière mise à jour : 01 Décembre 2025</h3>
+      </div>
+
+      <div className="legal-section">
+        <h3>PRÉAMBULE</h3>
         <div className="info-block">
-          <p>HERBBIE est une plateforme de génération de contenu créatif destinée aux enfants, utilisant l'intelligence artificielle pour créer :</p>
-          <ul>
-            <li>Des histoires personnalisées et éducatives</li>
-            <li>Des coloriages et activités créatives</li>
-            <li>Du contenu pédagogique adapté à chaque âge</li>
-            <li>Des expériences d'apprentissage ludiques</li>
-          </ul>
-          <p>Le service est conçu pour stimuler l'imagination et la créativité des enfants de manière sécurisée et éducative.</p>
+          <p>Les présentes conditions régissent les ventes de contenus numériques (histoires, BD, coloriages) sur le site herbbie.com par Monsieur Adrien Gaulin (ci-après "l'Éditeur") à toute personne physique consommatrice (ci-après "le Client").</p>
         </div>
       </div>
 
       <div className="legal-section">
-        <h3>2. Conditions d'accès</h3>
+        <h3>AVERTISSEMENT SUR L'INTELLIGENCE ARTIFICIELLE (IA)</h3>
         <div className="info-block">
-          <h4>Âge minimum :</h4>
-          <p>Le service HERBBIE est accessible aux enfants de tous âges. Pour les enfants de moins de 13 ans, l'utilisation doit se faire sous la supervision d'un adulte responsable.</p>
-
-          <h4>Inscription :</h4>
+          <p>Le service repose sur des technologies d'IA générative. Le Client reconnaît être informé que :</p>
           <ul>
-            <li>Les utilisateurs peuvent créer un compte gratuit</li>
-            <li>L'inscription nécessite une adresse email valide</li>
-            <li>Les mots de passe doivent être sécurisés</li>
-            <li>Une seule inscription par personne est autorisée</li>
-          </ul>
-
-          <h4>Utilisation acceptable :</h4>
-          <ul>
-            <li>Respect des autres utilisateurs</li>
-            <li>Utilisation dans un cadre éducatif et ludique</li>
-            <li>Interdiction de générer du contenu inapproprié</li>
-            <li>Respect des droits d'auteur et propriété intellectuelle</li>
+            <li>Les résultats sont probabilistes et peuvent comporter des imperfections visuelles (artefacts) ou des incohérences narratives mineures.</li>
+            <li>L'acceptation de cet aléa technologique est une condition substantielle du contrat.</li>
+            <li>Ces imperfections ne constituent pas un défaut de conformité au sens légal, tant que le contenu respecte le thème global de la commande.</li>
           </ul>
         </div>
       </div>
 
       <div className="legal-section">
-        <h3>3. Services et fonctionnalités</h3>
+        <h3>ARTICLE 1 : PRIX ET PAIEMENT</h3>
         <div className="info-block">
-          <h4>Services gratuits :</h4>
-          <ul>
-            <li>Accès à un nombre limité de génération par jour</li>
-            <li>Fonctionnalités de base de création de contenu</li>
-            <li>Sauvegarde des créations pendant 30 jours</li>
-            <li>Support communautaire</li>
-          </ul>
+          <p>Les prix sont indiqués en euros (€) toutes taxes comprises (TTC). Le tarif unitaire par génération est indiqué clairement avant la validation de la commande (ex: 0,70 €). L'Éditeur se réserve le droit de modifier ses prix à tout moment. Le paiement est exigible immédiatement à la commande par carte bancaire via le prestataire sécurisé Stripe.</p>
+        </div>
+      </div>
 
-          <h4>Services premium (optionnels) :</h4>
+      <div className="legal-section">
+        <h3>ARTICLE 2 : RENONCIATION AU DROIT DE RÉTRACTATION</h3>
+        <div className="info-block">
+          <p>Le Client est informé que le droit de rétractation de 14 jours (article L.221-18 du Code de la consommation) ne s'applique pas aux contrats de fourniture d'un contenu numérique non fourni sur un support matériel, dont l'exécution a commencé après accord préalable exprès du consommateur et renoncement exprès à son droit de rétractation (Article L.221-28 13°).</p>
+          <p>En validant sa commande et en cochant la case prévue à cet effet ("Je renonce à mon droit de rétractation pour un accès immédiat"), le Client :</p>
           <ul>
-            <li>Générations illimitées</li>
-            <li>Sauvegarde permanente des créations</li>
-            <li>Fonctionnalités avancées</li>
-            <li>Support prioritaire</li>
-            <li>Contenu personnalisé avancé</li>
+            <li>Demande expressément l'exécution immédiate du service (génération de l'histoire) avant la fin du délai légal de rétractation.</li>
+            <li>Reconnaît expressément perdre son droit de rétractation une fois la commande validée. En conséquence, aucun remboursement ne sera effectué après la validation du paiement, sauf en cas de défaut technique avéré empêchant le téléchargement du fichier.</li>
           </ul>
         </div>
       </div>
 
       <div className="legal-section">
-        <h3>4. Règles de conduite</h3>
+        <h3>ARTICLE 3 : LICENCE D'UTILISATION DES CONTENUS</h3>
         <div className="info-block">
-          <h4>Interdictions :</h4>
-          <ul>
-            <li>Générer du contenu violent, haineux ou inapproprié</li>
-            <li>Utiliser le service pour harceler ou intimider</li>
-            <li>Tenter de contourner les limitations techniques</li>
-            <li>Partager des informations personnelles d'autrui</li>
-            <li>Utiliser le service à des fins commerciales sans autorisation</li>
-            <li>Copier ou reproduire le contenu généré par d'autres utilisateurs</li>
-          </ul>
-
-          <h4>Obligations des utilisateurs :</h4>
-          <ul>
-            <li>Fournir des informations exactes lors de l'inscription</li>
-            <li>Respecter les droits d'auteur et la propriété intellectuelle</li>
-            <li>Signaler tout contenu inapproprié</li>
-            <li>Maintenir la confidentialité de leurs identifiants</li>
-            <li>Utiliser le service de manière responsable</li>
-          </ul>
+          <p>L'Éditeur concède au Client une licence d'utilisation personnelle, non exclusive, mondiale et perpétuelle sur les fichiers générés.</p>
+          <p><strong>Autorisé :</strong> Usage privé, lecture, impression pour usage familial, partage sur les réseaux sociaux privés.</p>
+          <p><strong>Interdit :</strong> Revente du fichier numérique brut, revendication d'un monopole de droit d'auteur empêchant des tiers de générer des contenus similaires. L'Éditeur ne garantit pas la protection par le droit d'auteur des œuvres générées exclusivement par IA, conformément à l'état actuel de la jurisprudence.</p>
         </div>
       </div>
 
       <div className="legal-section">
-        <h3>5. Propriété intellectuelle</h3>
+        <h3>ARTICLE 4 : RESPONSABILITÉ DE L'UTILISATEUR</h3>
         <div className="info-block">
-          <h4>Contenu généré :</h4>
-          <p>Le contenu créé via HERBBIE appartient à l'utilisateur qui l'a généré. L'utilisateur peut :</p>
+          <p>Le Client est seul responsable des textes (prompts) et des photos qu'il soumet à l'IA. Il s'interdit de soumettre :</p>
           <ul>
-            <li>Télécharger et utiliser ses créations à des fins personnelles</li>
-            <li>Partager ses créations dans un cadre familial ou éducatif</li>
-            <li>Modifier ses propres créations</li>
+            <li>Des contenus illicites, haineux, pornographiques ou diffamatoires.</li>
+            <li>Des photos de tiers sans leur consentement.</li>
+            <li>Des demandes violant le droit d'auteur de tiers (ex: personnages de marques protégées).</li>
           </ul>
-
-          <h4>Plateforme HERBBIE :</h4>
-          <p>Tous les éléments de la plateforme (interface, algorithmes, design, etc.) restent la propriété exclusive de HERBBIE.</p>
-
-          <h4>Contenu tiers :</h4>
-          <p>Certains éléments peuvent être soumis à des licences tierces (polices, images, sons). L'utilisation doit respecter ces licences.</p>
+          <p>Le Client garantit l'Éditeur contre toute action judiciaire résultant d'une utilisation illicite du service.</p>
         </div>
       </div>
 
       <div className="legal-section">
-        <h3>6. Limitation de responsabilité</h3>
+        <h3>ARTICLE 5 : MÉDIATION DE LA CONSOMMATION</h3>
         <div className="info-block">
-          <p>HERBBIE s'efforce de fournir un service de qualité, mais ne peut garantir :</p>
-          <ul>
-            <li>La disponibilité permanente du service (maintenance, pannes)</li>
-            <li>L'absence totale de bugs ou erreurs</li>
-            <li>L'adéquation du contenu généré à tous les besoins</li>
-            <li>La sécurité absolue contre les cyberattaques</li>
-          </ul>
-
-          <p>En aucun cas HERBBIE ne pourra être tenu responsable :</p>
-          <ul>
-            <li>Des dommages indirects ou consécutifs à l'utilisation du service</li>
-            <li>De la perte de données ou de créations</li>
-            <li>Des interruptions de service non planifiées</li>
-            <li>Des actes de tiers (piratage, virus, etc.)</li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>7. Résiliation</h3>
-        <div className="info-block">
-          <h4>Par l'utilisateur :</h4>
-          <p>L'utilisateur peut résilier son compte à tout moment via les paramètres de son profil.</p>
-
-          <h4>Par HERBBIE :</h4>
-          <p>HERBBIE peut suspendre ou résilier un compte en cas de :</p>
-          <ul>
-            <li>Violation grave des conditions d'utilisation</li>
-            <li>Utilisation abusive du service</li>
-            <li>Non-paiement des services premium</li>
-            <li>Inactivité prolongée (plus de 2 ans)</li>
-          </ul>
-
-          <h4>Conséquences de la résiliation :</h4>
-          <ul>
-            <li>Accès immédiat au service suspendu</li>
-            <li>Conservation des données pendant 30 jours</li>
-            <li>Suppression définitive après ce délai</li>
-            <li>Possibilité de réactivation sous conditions</li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>8. Modification des conditions</h3>
-        <div className="info-block">
-          <p>HERBBIE se réserve le droit de modifier ces conditions d'utilisation à tout moment.</p>
-          <p>Les modifications seront notifiées aux utilisateurs par email ou notification sur le site.</p>
-          <p>La poursuite de l'utilisation du service après notification vaut acceptation des nouvelles conditions.</p>
-          <p>En cas de désaccord avec les modifications, l'utilisateur peut résilier son compte.</p>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>9. Droit applicable</h3>
-        <div className="info-block">
-          <p>Ces conditions d'utilisation sont régies par le droit français.</p>
-          <p>Tout litige relatif à l'interprétation ou l'exécution de ces conditions sera soumis aux tribunaux compétents du ressort de Paris.</p>
-          <p>En cas de traduction de ces conditions, seule la version française fait foi.</p>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>10. Contact</h3>
-        <div className="info-block">
-          <p>Pour toute question relative à ces conditions d'utilisation :</p>
-          <ul>
-            <li><strong>Email :</strong> <span className="email-protected personal-data">contact@herbbie.com</span></li>
-            <li><strong>Objet :</strong> "Question CGU"</li>
-            <li><strong>Délai de réponse :</strong> 48-72 heures</li>
-          </ul>
+          <p>Conformément aux articles L.616-1 et R.616-1 du code de la consommation, notre entreprise a mis en place un dispositif de médiation de la consommation. L'entité de médiation retenue est : CM2C. En cas de litige, vous pouvez déposer votre réclamation sur son site : <a href="https://www.cm2c.net" target="_blank" rel="noopener noreferrer">https://www.cm2c.net</a></p>
+          <p>Ou par voie postale : CM2C, 14 rue Saint Jean, 75017 Paris.</p>
         </div>
       </div>
     </div>
