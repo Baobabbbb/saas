@@ -519,8 +519,8 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
           marginTop: '4px',
           marginBottom: '6px',
           display: 'flex',
-          alignItems: 'flex-start',
-          gap: '10px'
+          alignItems: 'center',
+          gap: '8px'
         }}>
           <input
             type="checkbox"
@@ -528,11 +528,11 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
             checked={acceptCGV}
             onChange={(e) => setAcceptCGV(e.target.checked)}
             style={{
-              marginTop: '2px',
               cursor: 'pointer',
-              width: '18px',
-              height: '18px',
-              accentColor: '#6B4EFF'
+              width: '14px',
+              height: '14px',
+              accentColor: '#6B4EFF',
+              flexShrink: 0
             }}
           />
           <label
