@@ -35,12 +35,14 @@ const CARD_ELEMENT_OPTIONS = {
   }
 };
 
-const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
+const CheckoutForm = ({ onClose, onSuccess, contentType, options, showCheckbox, onOpenCGV }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [cardholderName, setCardholderName] = useState('');
+  const [acceptCGV, setAcceptCGV] = useState(false);
+  const [cardComplete, setCardComplete] = useState(false);
 
   const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
   const priceInfo = getContentPrice(normalizedContentType, options);
@@ -55,6 +57,11 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
 
     if (!cardholderName.trim()) {
       setErrorMessage('Veuillez entrer le nom du titulaire de la carte');
+      return;
+    }
+
+    if (showCheckbox && !acceptCGV) {
+      setErrorMessage('Veuillez accepter les Conditions Générales de Vente');
       return;
     }
 
@@ -250,6 +257,59 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
         </div>
       )}
 
+      {showCheckbox && (
+        <div style={{
+          marginBottom: '16px',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '10px'
+        }}>
+          <input
+            type="checkbox"
+            id="accept-cgv-payment"
+            checked={acceptCGV}
+            onChange={(e) => setAcceptCGV(e.target.checked)}
+            style={{
+              marginTop: '3px',
+              cursor: 'pointer',
+              width: '18px',
+              height: '18px',
+              accentColor: '#6B4EFF'
+            }}
+          />
+          <label
+            htmlFor="accept-cgv-payment"
+            style={{
+              fontSize: '14px',
+              color: '#333',
+              fontFamily: '"Baloo 2", sans-serif',
+              cursor: 'pointer',
+              lineHeight: '1.5',
+              flex: 1
+            }}
+          >
+            J'ai lu et j'accepte les{' '}
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (onOpenCGV) {
+                  onOpenCGV('terms');
+                }
+              }}
+              style={{
+                color: '#6B4EFF',
+                textDecoration: 'underline',
+                cursor: 'pointer'
+              }}
+            >
+              Conditions Générales de Vente
+            </a>
+            {' '}et l'accès immédiat au service.
+          </label>
+        </div>
+      )}
+
       <div style={{
         display: 'flex',
         gap: '10px',
@@ -286,7 +346,7 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
         </button>
         <button
           type="submit"
-          disabled={!stripe || isProcessing}
+          disabled={!stripe || isProcessing || (showCheckbox && !acceptCGV) || !cardholderName.trim()}
           style={{
             flex: 1,
             padding: '12px 20px',
@@ -296,13 +356,13 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
             border: 'none',
             backgroundColor: '#6B4EFF',
             color: 'white',
-            cursor: (!stripe || isProcessing) ? 'not-allowed' : 'pointer',
-            opacity: (!stripe || isProcessing) ? 0.6 : 1,
+            cursor: (!stripe || isProcessing || (showCheckbox && !acceptCGV) || !cardholderName.trim()) ? 'not-allowed' : 'pointer',
+            opacity: (!stripe || isProcessing || (showCheckbox && !acceptCGV) || !cardholderName.trim()) ? 0.6 : 1,
             fontFamily: '"Baloo 2", sans-serif',
             transition: 'background-color 0.2s ease'
           }}
           onMouseEnter={(e) => {
-            if (stripe && !isProcessing) {
+            if (stripe && !isProcessing && (!showCheckbox || acceptCGV) && cardholderName.trim()) {
               e.target.style.backgroundColor = '#5a3eef';
             }
           }}
@@ -317,11 +377,51 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options }) => {
   );
 };
 
-const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options = {} }) => {
+const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options = {}, onOpenCGV }) => {
   if (!isOpen) return null;
 
   const normalizedContentType = contentType === 'audio' ? 'histoire' : contentType;
   const priceInfo = getContentPrice(normalizedContentType, options);
+  const [showCheckbox, setShowCheckbox] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+
+  // Vérifier le rôle utilisateur pour déterminer si on affiche la checkbox
+  useEffect(() => {
+    const checkUserRole = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          // Utilisateur anonyme = afficher la checkbox
+          setShowCheckbox(true);
+          return;
+        }
+
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (error || !profile) {
+          // Erreur ou pas de profil = afficher la checkbox par sécurité
+          setShowCheckbox(true);
+          return;
+        }
+
+        // Afficher la checkbox uniquement si l'utilisateur n'est pas admin ni free
+        setShowCheckbox(profile.role !== 'admin' && profile.role !== 'free');
+        setUserRole(profile.role);
+      } catch (error) {
+        console.error('Erreur vérification rôle:', error);
+        // En cas d'erreur, afficher la checkbox par sécurité
+        setShowCheckbox(true);
+      }
+    };
+
+    if (isOpen) {
+      checkUserRole();
+    }
+  }, [isOpen]);
 
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -429,6 +529,8 @@ const StripePaymentModal = ({ isOpen, onClose, onSuccess, contentType, options =
             onSuccess={onSuccess}
             contentType={contentType}
             options={options}
+            showCheckbox={showCheckbox}
+            onOpenCGV={onOpenCGV}
           />
         </Elements>
 

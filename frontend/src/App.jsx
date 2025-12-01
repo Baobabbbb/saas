@@ -2096,6 +2096,11 @@ const downloadPDF = async (title, content) => {
         onClose={() => {
           setShowPaymentModal(false);
         }}
+        onOpenCGV={(section) => {
+          setShowPaymentModal(false);
+          setShowLegalPages(true);
+          setLegalInitialSection(section || 'terms');
+        }}
       />
     )}
 
@@ -2105,6 +2110,11 @@ const downloadPDF = async (title, content) => {
         onClose={() => setShowSubscriptionModal(false)}
         userId={user?.id}
         userEmail={user?.email}
+        onOpenCGV={(section) => {
+          setShowSubscriptionModal(false);
+          setShowLegalPages(true);
+          setLegalInitialSection(section || 'terms');
+        }}
       />
     )}
     {/* Footer avec mentions légales et contact */}

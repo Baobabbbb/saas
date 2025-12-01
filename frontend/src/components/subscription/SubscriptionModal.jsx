@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 // CACHE-BUST: v1762479000 - 2025-11-07 02:30:00 - FORCE RELOAD
 import { loadStripe } from '@stripe/stripe-js';
+import { supabase } from '../../supabaseClient';
 import {
   Elements,
   CardNumberElement,
@@ -275,13 +276,14 @@ const CARD_ELEMENT_OPTIONS = {
   }
 };
 
-const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail }) => {
+const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail, showCheckbox, onOpenCGV }) => {
   // FORCE RELOAD 2025-11-07 02:30:00 - NOUVEAU DESIGN AVEC CHAMPS SÉPARÉS
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [cardholderName, setCardholderName] = useState('');
   const [error, setError] = useState(null);
+  const [acceptCGV, setAcceptCGV] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -293,6 +295,11 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
 
     if (!cardholderName.trim()) {
       setError('Veuillez entrer le nom du titulaire de la carte');
+      return;
+    }
+
+    if (showCheckbox && !acceptCGV) {
+      setError('Veuillez accepter les Conditions Générales de Vente');
       return;
     }
 
@@ -507,6 +514,59 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
         </div>
       )}
 
+      {showCheckbox && (
+        <div style={{
+          marginBottom: '16px',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '10px'
+        }}>
+          <input
+            type="checkbox"
+            id="accept-cgv-subscription"
+            checked={acceptCGV}
+            onChange={(e) => setAcceptCGV(e.target.checked)}
+            style={{
+              marginTop: '3px',
+              cursor: 'pointer',
+              width: '18px',
+              height: '18px',
+              accentColor: '#6B4EFF'
+            }}
+          />
+          <label
+            htmlFor="accept-cgv-subscription"
+            style={{
+              fontSize: '14px',
+              color: '#333',
+              fontFamily: '"Baloo 2", sans-serif',
+              cursor: 'pointer',
+              lineHeight: '1.5',
+              flex: 1
+            }}
+          >
+            J'ai lu et j'accepte les{' '}
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (onOpenCGV) {
+                  onOpenCGV('terms');
+                }
+              }}
+              style={{
+                color: '#6B4EFF',
+                textDecoration: 'underline',
+                cursor: 'pointer'
+              }}
+            >
+              Conditions Générales de Vente
+            </a>
+            {' '}et l'accès immédiat au service.
+          </label>
+        </div>
+      )}
+
       {/* Boutons */}
       <div style={{
         display: 'flex',
@@ -544,7 +604,7 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
         </button>
         <button
           type="submit"
-          disabled={!stripe || loading}
+          disabled={!stripe || loading || (showCheckbox && !acceptCGV) || !cardholderName.trim()}
           style={{
             flex: 1,
             padding: '12px 20px',
@@ -554,13 +614,13 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
             border: 'none',
             backgroundColor: '#6B4EFF',
             color: 'white',
-            cursor: (!stripe || loading) ? 'not-allowed' : 'pointer',
-            opacity: (!stripe || loading) ? 0.6 : 1,
+            cursor: (!stripe || loading || (showCheckbox && !acceptCGV) || !cardholderName.trim()) ? 'not-allowed' : 'pointer',
+            opacity: (!stripe || loading || (showCheckbox && !acceptCGV) || !cardholderName.trim()) ? 0.6 : 1,
             fontFamily: '"Baloo 2", sans-serif',
             transition: 'background-color 0.2s ease'
           }}
           onMouseEnter={(e) => {
-            if (stripe && !loading) {
+            if (stripe && !loading && (!showCheckbox || acceptCGV) && cardholderName.trim()) {
               e.target.style.backgroundColor = '#5a3eef';
             }
           }}
@@ -780,15 +840,52 @@ const SubscriptionManagement = ({ subscription, onCancel, onClose }) => {
   );
 };
 
-const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
+const SubscriptionModal = ({ isOpen, onClose, userId, userEmail, onOpenCGV }) => {
   const [currentStep, setCurrentStep] = useState('plans'); // 'plans', 'payment', 'management'
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showCheckbox, setShowCheckbox] = useState(false);
 
   useEffect(() => {
     if (isOpen && userId) {
       loadUserSubscription();
+    }
+  }, [isOpen, userId]);
+
+  // Vérifier le rôle utilisateur pour déterminer si on affiche la checkbox
+  useEffect(() => {
+    const checkUserRole = async () => {
+      if (!userId) {
+        // Utilisateur anonyme = afficher la checkbox
+        setShowCheckbox(true);
+        return;
+      }
+
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .single();
+
+        if (error || !profile) {
+          // Erreur ou pas de profil = afficher la checkbox par sécurité
+          setShowCheckbox(true);
+          return;
+        }
+
+        // Afficher la checkbox uniquement si l'utilisateur n'est pas admin ni free
+        setShowCheckbox(profile.role !== 'admin' && profile.role !== 'free');
+      } catch (error) {
+        console.error('Erreur vérification rôle:', error);
+        // En cas d'erreur, afficher la checkbox par sécurité
+        setShowCheckbox(true);
+      }
+    };
+
+    if (isOpen) {
+      checkUserRole();
     }
   }, [isOpen, userId]);
 
@@ -881,6 +978,8 @@ const SubscriptionModal = ({ isOpen, onClose, userId, userEmail }) => {
                       onCancel={handleCancel}
                       userId={userId}
                       userEmail={userEmail}
+                      showCheckbox={showCheckbox}
+                      onOpenCGV={onOpenCGV}
                     />
                   </Elements>
                 )}
