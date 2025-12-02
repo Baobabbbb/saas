@@ -144,17 +144,28 @@ class ComicsGeneratorGPT4o:
             print(f"   [WATERMARK] Position calculée: ({x}, {y})")
             
             # Dessiner un fond semi-transparent pour la lisibilité (plus opaque)
-            padding = 8
+            padding = 10
             rect_coords = [x - padding, y - padding, x + text_width + padding, y + text_height + padding]
+            # Fond blanc très opaque avec bordure noire
             draw.rectangle(
                 rect_coords,
-                fill=(255, 255, 255, 240)  # Blanc très opaque pour meilleure visibilité
+                fill=(255, 255, 255, 250)  # Blanc presque opaque
+            )
+            # Bordure noire autour du fond
+            draw.rectangle(
+                rect_coords,
+                outline=(0, 0, 0, 255),
+                width=2
             )
             print(f"   [WATERMARK] Rectangle fond dessiné: {rect_coords}")
             
-            # Dessiner le texte en noir (plus épais)
+            # Dessiner le texte en noir avec contour blanc pour meilleure visibilité
+            # D'abord le contour (blanc)
+            for adj in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
+                draw.text((x + adj[0], y + adj[1]), text, fill=(255, 255, 255, 255), font=font)
+            # Puis le texte principal (noir)
             draw.text((x, y), text, fill=(0, 0, 0, 255), font=font)
-            print(f"   [WATERMARK] Texte dessiné: '{text}'")
+            print(f"   [WATERMARK] Texte dessiné avec contour: '{text}'")
             
             # Convertir de nouveau en RGB si l'image originale était en RGB (pour compatibilité)
             original_mode = image.mode
