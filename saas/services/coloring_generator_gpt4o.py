@@ -96,8 +96,13 @@ Scene description:
             Image avec watermark ajouté
         """
         try:
-            # Créer une copie pour ne pas modifier l'original
-            watermarked = image.copy()
+            # Convertir l'image en RGBA si nécessaire pour supporter la transparence
+            if image.mode != 'RGBA':
+                watermarked = image.convert('RGBA')
+            else:
+                watermarked = image.copy()
+            
+            # Créer un nouveau draw sur l'image
             draw = ImageDraw.Draw(watermarked, 'RGBA')
             
             # Texte du watermark
@@ -141,7 +146,11 @@ Scene description:
             # Dessiner le texte en noir (plus épais)
             draw.text((x, y), text, fill=(0, 0, 0, 255), font=font)
             
-            print(f"[WATERMARK] Watermark ajouté en bas à gauche: '{text}' à ({x}, {y})")
+            # Convertir de nouveau en RGB si l'image originale était en RGB (pour compatibilité)
+            if image.mode == 'RGB':
+                watermarked = watermarked.convert('RGB')
+            
+            print(f"[WATERMARK] Watermark ajouté en bas à gauche: '{text}' à ({x}, {y}), taille police: {font_size}px")
             
             return watermarked
             
