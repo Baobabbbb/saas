@@ -491,9 +491,6 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 final_img = generated_img
                 print(f"[NO RESIZE] Dimensions déjà correctes: {final_width}x{final_height}")
             
-            # Ajouter le watermark
-            final_img = self._add_watermark(final_img)
-            
             # Sauvegarder
             output_path = self.output_dir / f"coloring_photo_direct_{uuid.uuid4().hex[:8]}.png"
             final_img.save(output_path, 'PNG', optimize=True)
@@ -630,9 +627,6 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             # Extraire la zone centrale de l'image générée (sans redimensionnement)
             final_img = generated_img.crop((crop_x, crop_y, crop_x + crop_width, crop_y + crop_height))
             print(f"[DEBUG] Image finale extraite: {final_img.size} (sans redimensionnement)")
-            
-            # Ajouter le watermark
-            final_img = self._add_watermark(final_img)
             
             # Sauvegarder l'image telle quelle, sans redimensionnement
             output_path = self.output_dir / f"coloring_photo_gpt_image_1_{uuid.uuid4().hex[:8]}.png"
@@ -893,9 +887,6 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                     final_img = generated_img.resize((final_width, final_height), Image.Resampling.LANCZOS)
                     print(f"[RESIZED] Redimensionnement direct: {generated_width}x{generated_height} -> {final_width}x{final_height}")
 
-                # Ajouter le watermark
-                final_img = self._add_watermark(final_img)
-                
                 # Sauvegarder avec les dimensions finales
                 output_path = self.output_dir / f"coloring_photo_direct_{uuid.uuid4().hex[:8]}.png"
                 final_img.save(output_path, 'PNG', optimize=True)
@@ -1019,9 +1010,6 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 print(f"[OK] Image generee recue ({len(image_data)} bytes)")
                 print(f"[ORIGINAL] Dimensions generees: {generated_img.size}")
 
-                # Ajouter le watermark
-                generated_img = self._add_watermark(generated_img)
-                
                 # Garder les dimensions naturelles de l'image générée par l'API
                 output_path = self.output_dir / f"coloring_theme_{uuid.uuid4().hex[:8]}.png"
                 generated_img.save(output_path, 'PNG', optimize=True)
