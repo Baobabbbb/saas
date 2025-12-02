@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { getUserCreations, deleteCreation } from '../services/creations';
 import './History.css';
 import { jsPDF } from 'jspdf';
-import { downloadColoringAsPDF } from '../utils/coloringPdfUtils';
+import { downloadColoringAsPDF, addHerbbieSuffix } from '../utils/coloringPdfUtils';
 
 // Fonction helper pour obtenir l'URL d'image correcte pour les BD
 const getComicImageUrl = (imagePath, baseUrl) => {
@@ -106,7 +106,7 @@ const downloadComicAsPDF = async (comic, baseUrl) => {
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
 
-  pdf.save(`${safeTitle}.pdf`);
+  pdf.save(addHerbbieSuffix(safeTitle, 'pdf'));
 };
 import useSupabaseUser from '../hooks/useSupabaseUser';
 import useUserCreations from '../hooks/useUserCreations';
@@ -342,7 +342,7 @@ const History = ({ onClose, onSelect }) => {
 
       const link = document.createElement('a');
       link.href = pdfUrl;
-      link.download = `${safeTitle}.pdf`;
+      link.download = addHerbbieSuffix(safeTitle, 'pdf');
       link.style.display = 'none';
 
       document.body.appendChild(link);
@@ -445,7 +445,7 @@ const History = ({ onClose, onSelect }) => {
                             
                             const link = document.createElement('a');
                             link.href = blobUrl;
-                            link.download = `${safeTitle}.mp3`;
+                            link.download = addHerbbieSuffix(safeTitle, 'mp3');
                             link.style.display = 'none';
                             
                             document.body.appendChild(link);
@@ -501,7 +501,7 @@ const History = ({ onClose, onSelect }) => {
                                 
                                 const link = document.createElement('a');
                                 link.href = blobUrl;
-                                link.download = `${safeTitle}.mp3`;
+                                link.download = addHerbbieSuffix(safeTitle, 'mp3');
                                 link.style.display = 'none';
                                 
                                 document.body.appendChild(link);
@@ -538,7 +538,7 @@ const History = ({ onClose, onSelect }) => {
                             const safeTitle = (creation.title || 'audio').replace(/[^a-z0-9]/gi, '_').toLowerCase();
                             const link = document.createElement('a');
                             link.href = blobUrl;
-                            link.download = `${safeTitle}.mp3`;
+                            link.download = addHerbbieSuffix(safeTitle, 'mp3');
                             link.style.display = 'none';
                             
                             document.body.appendChild(link);

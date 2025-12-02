@@ -1,4 +1,5 @@
 import React from 'react';
+import { addHerbbieSuffix } from '../utils/coloringPdfUtils';
 import './ColoringViewer.css';
 
 const ColoringViewer = ({ coloringResult, onDownloadAll, onOpenColoring, onColorizeNow }) => {
@@ -18,7 +19,7 @@ const ColoringViewer = ({ coloringResult, onDownloadAll, onOpenColoring, onColor
       const link = document.createElement('a');
       link.href = blobUrl;
       const baseName = (coloringResult?.title || 'coloriage').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      link.download = `${baseName}_${index + 1}.png`;
+      link.download = addHerbbieSuffix(`${baseName}_${index + 1}`, 'png');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -33,7 +34,7 @@ const ColoringViewer = ({ coloringResult, onDownloadAll, onOpenColoring, onColor
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
       const baseName = (coloringResult?.title || 'coloriage').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      link.download = `${baseName}_${index + 1}.png`;
+      link.download = addHerbbieSuffix(`${baseName}_${index + 1}`, 'png');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

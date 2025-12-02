@@ -17,7 +17,7 @@ import base64
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import io
 from dotenv import load_dotenv
 from services.supabase_storage import get_storage_service
@@ -80,6 +80,69 @@ class ComicsGeneratorGPT4o:
                 "prompt_modifier": "watercolor painting style, soft colors, artistic brush strokes, dreamy atmosphere, painted texture"
             }
         }
+        
+    def _add_watermark(self, image: Image.Image) -> Image.Image:
+        """
+        Ajoute le watermark "Créé avec HERBBIE" en bas à droite de l'image
+        
+        Args:
+            image: Image PIL à watermarker
+            
+        Returns:
+            Image avec watermark ajouté
+        """
+        try:
+            # Créer une copie pour ne pas modifier l'original
+            watermarked = image.copy()
+            draw = ImageDraw.Draw(watermarked, 'RGBA')
+            
+            # Texte du watermark
+            text = "Créé avec HERBBIE"
+            
+            # Taille de l'image
+            width, height = watermarked.size
+            
+            # Taille de police adaptative (environ 2% de la hauteur)
+            font_size = max(12, int(height * 0.02))
+            
+            # Essayer de charger une police, sinon utiliser la police par défaut
+            try:
+                # Essayer d'utiliser une police système
+                font = ImageFont.truetype("arial.ttf", font_size)
+            except:
+                try:
+                    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size)
+                except:
+                    # Police par défaut
+                    font = ImageFont.load_default()
+            
+            # Calculer la taille du texte
+            bbox = draw.textbbox((0, 0), text, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            
+            # Position en bas à droite avec marge (2% de la largeur/hauteur)
+            margin_x = int(width * 0.02)
+            margin_y = int(height * 0.02)
+            x = width - text_width - margin_x
+            y = height - text_height - margin_y
+            
+            # Dessiner un fond semi-transparent pour la lisibilité
+            padding = 4
+            draw.rectangle(
+                [x - padding, y - padding, x + text_width + padding, y + text_height + padding],
+                fill=(255, 255, 255, 200)  # Blanc semi-transparent
+            )
+            
+            # Dessiner le texte en noir
+            draw.text((x, y), text, fill=(0, 0, 0, 255), font=font)
+            
+            return watermarked
+            
+        except Exception as e:
+            print(f"   [WARNING] Erreur ajout watermark: {e}")
+            # En cas d'erreur, retourner l'image originale
+            return image
         
         # Thèmes prédéfinis
         self.themes = {
@@ -548,6 +611,8 @@ Génère maintenant le scénario complet en JSON:"""
             
             # Sauvegarder l'illustration de personnage
             character_illustration_path = self.cache_dir / f"comic_character_{uuid.uuid4().hex[:8]}.png"
+            # Ajouter le watermark à l'illustration du personnage
+            generated_img = self._add_watermark(generated_img)
             generated_img.save(character_illustration_path, 'PNG', optimize=True)
             print(f"   ✅ Personnage BD créé: {character_illustration_path.name}")
             
@@ -907,12 +972,14 @@ The character from the provided image must be the main character performing all 
                 actual_width, actual_height = img.size
                 print(f"   [DIMENSIONS] Image générée: {actual_width}x{actual_height}")
                 
+                # Ajouter le watermark
+                img = self._add_watermark(img)
+                
                 # Sauvegarder
                 output_path = output_dir / f"page_{page_num}.png"
-                with open(output_path, 'wb') as f:
-                    f.write(image_data)
+                img.save(output_path, 'PNG', optimize=True)
                 
-                print(f"   ✅ Planche sauvegardée: {output_path.name} ({len(image_data)} bytes, {actual_width}x{actual_height})")
+                print(f"   ✅ Planche sauvegardée: {output_path.name} ({actual_width}x{actual_height})")
                 return output_path
             else:
                 print(f"   [ERROR] Aucune image trouvée dans la réponse")

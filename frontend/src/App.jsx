@@ -29,7 +29,7 @@ import { API_BASE_URL, ANIMATION_API_BASE_URL } from './config/api';
 import { authFetch } from './services/apiClient';
 
 import { addCreation } from './services/creations';
-import { downloadColoringAsPDF } from './utils/coloringPdfUtils';
+import { downloadColoringAsPDF, addHerbbieSuffix } from './utils/coloringPdfUtils';
 import { checkPaymentPermission, hasFreeAccess, getContentPrice } from './services/payment';
 import StripePaymentModal from './components/StripePaymentModal';
 import SubscriptionModal from './components/subscription/SubscriptionModal';
@@ -1291,7 +1291,7 @@ const downloadPDF = async (title, content) => {
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
 
-  doc.save(`${safeTitle}.pdf`);
+  doc.save(addHerbbieSuffix(safeTitle, 'pdf'));
   } catch (error) {
     // Erreur PDF silencieuse
     alert("Erreur lors de la génération du PDF. Veuillez réessayer.");
@@ -1775,7 +1775,7 @@ const downloadPDF = async (title, content) => {
 
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = `${safeTitle}.mp3`;
+                    link.download = addHerbbieSuffix(safeTitle, 'mp3');
                   link.style.display = 'none';
 
                     document.body.appendChild(link);
@@ -1914,7 +1914,7 @@ const downloadPDF = async (title, content) => {
                     
                     const link = document.createElement('a');
                     link.href = blobUrl;
-                    link.download = `${safeTitle}.mp3`;
+                    link.download = addHerbbieSuffix(safeTitle, 'mp3');
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -1937,7 +1937,7 @@ const downloadPDF = async (title, content) => {
                   // Créer un lien pour déclencher le téléchargement
                   const link = document.createElement('a');
                   link.href = blobUrl;
-                  link.download = `${safeTitle}.mp3`;
+                  link.download = addHerbbieSuffix(safeTitle, 'mp3');
 
                   // Déclencher le téléchargement
                   document.body.appendChild(link);

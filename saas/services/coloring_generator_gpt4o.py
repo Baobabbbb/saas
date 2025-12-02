@@ -9,7 +9,7 @@ import base64
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import io
 import requests
 from openai import AsyncOpenAI
@@ -84,6 +84,69 @@ Scene description:
         except Exception as e:
             # Erreur silencieuse lors de l'initialisation
             raise
+    
+    def _add_watermark(self, image: Image.Image) -> Image.Image:
+        """
+        Ajoute le watermark "Créé avec HERBBIE" en bas à droite de l'image
+        
+        Args:
+            image: Image PIL à watermarker
+            
+        Returns:
+            Image avec watermark ajouté
+        """
+        try:
+            # Créer une copie pour ne pas modifier l'original
+            watermarked = image.copy()
+            draw = ImageDraw.Draw(watermarked, 'RGBA')
+            
+            # Texte du watermark
+            text = "Créé avec HERBBIE"
+            
+            # Taille de l'image
+            width, height = watermarked.size
+            
+            # Taille de police adaptative (environ 2% de la hauteur)
+            font_size = max(12, int(height * 0.02))
+            
+            # Essayer de charger une police, sinon utiliser la police par défaut
+            try:
+                # Essayer d'utiliser une police système
+                font = ImageFont.truetype("arial.ttf", font_size)
+            except:
+                try:
+                    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size)
+                except:
+                    # Police par défaut
+                    font = ImageFont.load_default()
+            
+            # Calculer la taille du texte
+            bbox = draw.textbbox((0, 0), text, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            
+            # Position en bas à droite avec marge (2% de la largeur/hauteur)
+            margin_x = int(width * 0.02)
+            margin_y = int(height * 0.02)
+            x = width - text_width - margin_x
+            y = height - text_height - margin_y
+            
+            # Dessiner un fond semi-transparent pour la lisibilité
+            padding = 4
+            draw.rectangle(
+                [x - padding, y - padding, x + text_width + padding, y + text_height + padding],
+                fill=(255, 255, 255, 200)  # Blanc semi-transparent
+            )
+            
+            # Dessiner le texte en noir
+            draw.text((x, y), text, fill=(0, 0, 0, 255), font=font)
+            
+            return watermarked
+            
+        except Exception as e:
+            print(f"[WARNING] Erreur ajout watermark: {e}")
+            # En cas d'erreur, retourner l'image originale
+            return image
     
     async def _analyze_photo_for_coloring(self, photo_path: str) -> str:
         """Analyse une photo avec gpt-4o-mini pour créer une description ULTRA DÉTAILLÉE pour coloriage
@@ -387,6 +450,9 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 final_img = generated_img
                 print(f"[NO RESIZE] Dimensions déjà correctes: {final_width}x{final_height}")
             
+            # Ajouter le watermark
+            final_img = self._add_watermark(final_img)
+            
             # Sauvegarder
             output_path = self.output_dir / f"coloring_photo_direct_{uuid.uuid4().hex[:8]}.png"
             final_img.save(output_path, 'PNG', optimize=True)
@@ -523,6 +589,9 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             # Extraire la zone centrale de l'image générée (sans redimensionnement)
             final_img = generated_img.crop((crop_x, crop_y, crop_x + crop_width, crop_y + crop_height))
             print(f"[DEBUG] Image finale extraite: {final_img.size} (sans redimensionnement)")
+            
+            # Ajouter le watermark
+            final_img = self._add_watermark(final_img)
             
             # Sauvegarder l'image telle quelle, sans redimensionnement
             output_path = self.output_dir / f"coloring_photo_gpt_image_1_{uuid.uuid4().hex[:8]}.png"
@@ -783,6 +852,9 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                     final_img = generated_img.resize((final_width, final_height), Image.Resampling.LANCZOS)
                     print(f"[RESIZED] Redimensionnement direct: {generated_width}x{generated_height} -> {final_width}x{final_height}")
 
+                # Ajouter le watermark
+                final_img = self._add_watermark(final_img)
+                
                 # Sauvegarder avec les dimensions finales
                 output_path = self.output_dir / f"coloring_photo_direct_{uuid.uuid4().hex[:8]}.png"
                 final_img.save(output_path, 'PNG', optimize=True)
@@ -906,6 +978,9 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                 print(f"[OK] Image generee recue ({len(image_data)} bytes)")
                 print(f"[ORIGINAL] Dimensions generees: {generated_img.size}")
 
+                # Ajouter le watermark
+                generated_img = self._add_watermark(generated_img)
+                
                 # Garder les dimensions naturelles de l'image générée par l'API
                 output_path = self.output_dir / f"coloring_theme_{uuid.uuid4().hex[:8]}.png"
                 generated_img.save(output_path, 'PNG', optimize=True)

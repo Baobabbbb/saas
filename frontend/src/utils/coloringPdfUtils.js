@@ -42,6 +42,13 @@ export function getSafeFilename(str, contentType = '') {
     .toLowerCase();
 }
 
+// Fonction helper pour ajouter "_herbbie" avant l'extension
+export function addHerbbieSuffix(filename, extension) {
+  // Si le filename contient déjà l'extension, on la retire d'abord
+  const baseName = filename.replace(new RegExp(`\\.${extension}$`, 'i'), '');
+  return `${baseName}_herbbie.${extension}`;
+}
+
 export async function downloadColoringAsPDF(images, title = 'coloriages') {
   const pdf = new jsPDF({
     orientation: 'portrait',
@@ -96,5 +103,5 @@ export async function downloadColoringAsPDF(images, title = 'coloriages') {
     pdf.addImage(dataUrl, 'PNG', x, y, finalWidth, finalHeight);
   }
 
-  pdf.save(`${getSafeFilename(title)}.pdf`);
+  pdf.save(addHerbbieSuffix(getSafeFilename(title), 'pdf'));
 }

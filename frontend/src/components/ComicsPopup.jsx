@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { addHerbbieSuffix } from '../utils/coloringPdfUtils';
 import './ComicsPopup.css';
 
 const ComicsPopup = ({ comic, onClose, baseUrl }) => {
@@ -54,7 +55,7 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
       const link = document.createElement('a');
       link.href = blobUrl;
       const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      link.download = `${safeTitle}_page_${currentPage + 1}.png`;
+      link.download = addHerbbieSuffix(`${safeTitle}_page_${currentPage + 1}`, 'png');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -69,7 +70,7 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
       const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      link.download = `${safeTitle}_page_${currentPage + 1}.png`;
+      link.download = addHerbbieSuffix(`${safeTitle}_page_${currentPage + 1}`, 'png');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -93,7 +94,7 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
         const link = document.createElement('a');
         link.href = blobUrl;
         const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-        link.download = `${safeTitle}_page_${index + 1}.png`;
+        link.download = addHerbbieSuffix(`${safeTitle}_page_${index + 1}`, 'png');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -108,7 +109,7 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-        link.download = `${safeTitle}_page_${index + 1}.png`;
+        link.download = addHerbbieSuffix(`${safeTitle}_page_${index + 1}`, 'png');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

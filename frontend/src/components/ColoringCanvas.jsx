@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { addHerbbieSuffix } from '../utils/coloringPdfUtils';
 import './ColoringCanvas.css';
 
 const ColoringCanvas = ({ imageUrl, theme, onClose, onSave }) => {
@@ -249,7 +250,7 @@ const ColoringCanvas = ({ imageUrl, theme, onClose, onSave }) => {
       // Générer un nom de fichier cohérent basé sur le thème
       const themeName = theme || 'coloriage';
       const safeTheme = themeName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      link.download = `coloriages_${safeTheme}_colorie.png`;
+      link.download = addHerbbieSuffix(`coloriages_${safeTheme}_colorie`, 'png');
 
       document.body.appendChild(link); // Ajout pour compatibilité
       link.click();

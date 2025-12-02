@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { addHerbbieSuffix } from '../utils/coloringPdfUtils';
 import './RhymePopup.css';
 
 const RhymePopup = ({ title, audioUrls, onClose }) => {
@@ -72,10 +73,10 @@ const RhymePopup = ({ title, audioUrls, onClose }) => {
                               const blob = await response.blob();
                               const blobUrl = URL.createObjectURL(blob);
                               
-                              const safeTitle = `${title.replace(/[^a-z0-9]/gi, '_')}_v${index + 1}.mp3`;
+                              const safeTitle = `${title.replace(/[^a-z0-9]/gi, '_')}_v${index + 1}`;
                               const link = document.createElement('a');
                               link.href = blobUrl;
-                              link.download = safeTitle;
+                              link.download = addHerbbieSuffix(safeTitle, 'mp3');
                               link.style.display = 'none';
                               
                               document.body.appendChild(link);
