@@ -99,6 +99,13 @@ const downloadComicAsPDF = async (comic, baseUrl) => {
     const y = (pageHeight - finalHeight) / 2;
 
     pdf.addImage(dataUrl, 'PNG', x, y, finalWidth, finalHeight);
+    
+    // 🏷️ Watermark "Créé avec HERBBIE" en bas à gauche
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    pdf.setFontSize(8);
+    pdf.setTextColor(106, 90, 205); // Violet doux (même couleur que la pagination)
+    pdf.text("Créé avec HERBBIE", 15, pageHeight - 10, { align: "left" });
   }
 
   // Nom de fichier safe
@@ -309,6 +316,11 @@ const History = ({ onClose, onSelect }) => {
           doc.setFontSize(11);
           doc.setTextColor(106, 90, 205); // Violet doux
           doc.text(`Page ${page + 1}`, pageWidth - 15, 290, { align: "right" });
+          
+          // 🏷️ Watermark "Créé avec HERBBIE" en bas à gauche
+          doc.setFontSize(8);
+          doc.setTextColor(106, 90, 205); // Violet doux (même couleur que la pagination)
+          doc.text("Créé avec HERBBIE", 15, 290, { align: "left" });
         }
       } catch (error) {
         console.error('❌ Erreur lors de la génération du PDF:', error);

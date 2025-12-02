@@ -1284,6 +1284,11 @@ const downloadPDF = async (title, content) => {
       doc.setFontSize(8);
     doc.setTextColor(106, 90, 205); // Violet doux
       doc.text(`Page ${page + 1}`, pageWidth - 15, pageHeight - 10, { align: "right" });
+      
+      // 🏷️ Watermark "Créé avec HERBBIE" en bas à gauche
+      doc.setFontSize(8);
+      doc.setTextColor(106, 90, 205); // Violet doux (même couleur que la pagination)
+      doc.text("Créé avec HERBBIE", 15, pageHeight - 10, { align: "left" });
   }
 
   // 📁 Nom de fichier propre
