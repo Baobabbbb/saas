@@ -87,7 +87,7 @@ Scene description:
     
     def _add_watermark(self, image: Image.Image) -> Image.Image:
         """
-        Ajoute le watermark "Créé avec HERBBIE" en bas à droite de l'image
+        Ajoute le watermark "Créé avec HERBBIE" en bas à gauche de l'image
         
         Args:
             image: Image PIL à watermarker
@@ -106,8 +106,8 @@ Scene description:
             # Taille de l'image
             width, height = watermarked.size
             
-            # Taille de police adaptative (environ 2% de la hauteur)
-            font_size = max(12, int(height * 0.02))
+            # Taille de police adaptative (environ 3% de la hauteur, minimum 16px)
+            font_size = max(16, int(height * 0.03))
             
             # Essayer de charger une police, sinon utiliser la police par défaut
             try:
@@ -125,26 +125,30 @@ Scene description:
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
             
-            # Position en bas à droite avec marge (2% de la largeur/hauteur)
+            # Position en bas à gauche avec marge (2% de la largeur/hauteur)
             margin_x = int(width * 0.02)
             margin_y = int(height * 0.02)
-            x = width - text_width - margin_x
+            x = margin_x  # Bas à gauche
             y = height - text_height - margin_y
             
-            # Dessiner un fond semi-transparent pour la lisibilité
-            padding = 4
+            # Dessiner un fond semi-transparent pour la lisibilité (plus opaque)
+            padding = 6
             draw.rectangle(
                 [x - padding, y - padding, x + text_width + padding, y + text_height + padding],
-                fill=(255, 255, 255, 200)  # Blanc semi-transparent
+                fill=(255, 255, 255, 230)  # Blanc plus opaque pour meilleure visibilité
             )
             
-            # Dessiner le texte en noir
+            # Dessiner le texte en noir (plus épais)
             draw.text((x, y), text, fill=(0, 0, 0, 255), font=font)
+            
+            print(f"[WATERMARK] Watermark ajouté en bas à gauche: '{text}' à ({x}, {y})")
             
             return watermarked
             
         except Exception as e:
             print(f"[WARNING] Erreur ajout watermark: {e}")
+            import traceback
+            traceback.print_exc()
             # En cas d'erreur, retourner l'image originale
             return image
     
