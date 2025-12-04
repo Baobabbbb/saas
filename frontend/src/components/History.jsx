@@ -36,8 +36,9 @@ const downloadComicAsPDF = async (comic, baseUrl) => {
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 40;
+  const watermarkHeight = 20; // Espace réservé pour le watermark en bas
   const imageWidth = pageWidth - 2 * margin;
-  const imageHeight = pageHeight - 2 * margin;
+  const imageHeight = pageHeight - 2 * margin - watermarkHeight; // Réserver de l'espace pour le watermark
 
   // Fonction pour charger une image et obtenir son dataURL
   const fetchImageInfo = (url) => {
@@ -94,19 +95,16 @@ const downloadComicAsPDF = async (comic, baseUrl) => {
       finalWidth = imageHeight * aspectRatio;
     }
     
-    // Centrage de l'image
+    // Centrage de l'image (verticalement, mais en laissant de l'espace en bas pour le watermark)
     const x = (pageWidth - finalWidth) / 2;
-    const y = (pageHeight - finalHeight) / 2;
+    const y = (pageHeight - finalHeight - watermarkHeight) / 2; // Centrer mais laisser de l'espace en bas
 
     pdf.addImage(dataUrl, 'PNG', x, y, finalWidth, finalHeight);
     
-    // 🏷️ Watermark "Créé avec HERBBIE" en bas à gauche
-    // Récupérer les dimensions de la page actuelle (en px)
-    const currentPageWidth = pdf.internal.pageSize.getWidth();
-    const currentPageHeight = pdf.internal.pageSize.getHeight();
+    // 🏷️ Watermark "Créé avec HERBBIE" en bas à gauche (après l'image pour être au-dessus)
     pdf.setFontSize(8);
     pdf.setTextColor(107, 78, 255); // #6B4EFF - Violet HERBBIE
-    pdf.text("Créé avec HERBBIE", 15, currentPageHeight - 10, { align: "left" });
+    pdf.text("Créé avec HERBBIE", 15, pageHeight - 10, { align: "left" });
   }
 
   // Nom de fichier safe
