@@ -417,7 +417,7 @@ class ComicsGeneratorGPT4o:
                 raise Exception("Échec transformation photo: illustration vide")
         
         # Construire le prompt pour gpt-4o-mini
-        prompt = f"""Tu es un scénariste expert en bandes dessinées pour enfants de 6-10 ans. Tu écris en français impeccable sans aucune faute d'orthographe.
+        prompt = f"""Tu es un scénariste expert en bandes dessinées pour enfants de 6-10 ans. Tu écris en français impeccable sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison.
 
 MISSION: Créer une histoire complète en {num_pages} planches de bande dessinée.
 
@@ -441,13 +441,18 @@ CONSIGNES IMPORTANTES:
    - Des dialogues dans des bulles (maximum 2 bulles par case)
    - Une indication de l'action ou l'émotion
 
-5. CRITIQUE pour les BULLES DE DIALOGUE:
-   - TOUS les textes doivent être en FRANÇAIS PARFAIT sans faute d'orthographe
+5. CRITIQUE ABSOLUE pour les BULLES DE DIALOGUE - ORTHOGRAPHE PARFAITE OBLIGATOIRE:
+   - TOUS les textes doivent être en FRANÇAIS PARFAIT sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison
    - Les bulles doivent contenir le texte EXACT à afficher dans l'image finale
    - Le texte doit être COURT (maximum 8-10 mots par bulle pour tenir dans la bulle)
    - Langage simple et adapté aux enfants de 6-10 ans
-   - Pas de fautes d'orthographe, de grammaire ou de conjugaison
-   - Vérifie chaque mot : "tu" au lieu de "t", "c'est" au lieu de "cé", etc.
+   - ⚠️ VÉRIFICATION ORTHOGRAPHE OBLIGATOIRE pour chaque bulle avant de l'inclure :
+     * "tu" (pas "t"), "c'est" (pas "cé" ou "c"), "il y a" (pas "y'a")
+     * Accents corrects : "été", "été", "à", "é", "è", "ê", "ô", "û", etc.
+     * Conjugaisons correctes : "il fait" (pas "il fai"), "nous allons" (pas "on va" si c'est formel)
+     * Pluriels corrects : "les enfants" (pas "les enfant"), "des amis" (pas "des ami")
+     * Articles corrects : "le", "la", "les", "un", "une", "des"
+     * Pas de mots inventés ou abrégés : "super" (pas "sup"), "génial" (pas "génial")
    - Les bulles doivent être positionnées pour ne pas cacher les personnages
    - Précise la position suggérée de chaque bulle (haut-gauche, haut-droite, bas-gauche, bas-droite)
 
@@ -524,7 +529,7 @@ Génère maintenant le scénario complet en JSON:"""
             response = await self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "Tu es un scénariste expert en bandes dessinées pour enfants. Tu génères des scénarios détaillés en JSON."},
+                    {"role": "system", "content": "Tu es un scénariste expert en bandes dessinées pour enfants. Tu génères des scénarios détaillés en JSON. CRITIQUE: Tous les textes dans les bulles de dialogue doivent être en français PARFAIT sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison. Vérifie chaque mot avant de l'inclure dans les bulles."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
