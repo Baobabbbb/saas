@@ -48,10 +48,13 @@ export const downloadComicAsPDF = async (imageUrls, filename = 'comic') => {
         // Ajouter l'image au PDF
         pdf.addImage(img, 'PNG', x, y, scaledWidth, scaledHeight);
         
-        // 🏷️ Watermark "Créé avec HERBBIE" en bas à gauche
+        // 🏷️ Watermark "Créé avec HERBBIE" en bas à gauche (après l'image pour être au-dessus)
+        // Récupérer les dimensions de la page actuelle (en mm)
+        const currentPageHeight = pdf.internal.pageSize.getHeight();
+        
         pdf.setFontSize(8);
         pdf.setTextColor(107, 78, 255); // #6B4EFF - Violet HERBBIE
-        pdf.text("Créé avec HERBBIE", 15, pageHeight - 10, { align: "left" });
+        pdf.text("Créé avec HERBBIE", 15, currentPageHeight - 10, { align: "left" });
         
       } catch (error) {
         console.error(`Erreur lors du chargement de l'image ${i + 1}:`, error);

@@ -101,11 +101,12 @@ const downloadComicAsPDF = async (comic, baseUrl) => {
     pdf.addImage(dataUrl, 'PNG', x, y, finalWidth, finalHeight);
     
     // 🏷️ Watermark "Créé avec HERBBIE" en bas à gauche
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+    // Récupérer les dimensions de la page actuelle (en px)
+    const currentPageWidth = pdf.internal.pageSize.getWidth();
+    const currentPageHeight = pdf.internal.pageSize.getHeight();
     pdf.setFontSize(8);
-    pdf.setTextColor(106, 90, 205); // Violet doux (même couleur que la pagination)
-    pdf.text("Créé avec HERBBIE", 15, pageHeight - 10, { align: "left" });
+    pdf.setTextColor(107, 78, 255); // #6B4EFF - Violet HERBBIE
+    pdf.text("Créé avec HERBBIE", 15, currentPageHeight - 10, { align: "left" });
   }
 
   // Nom de fichier safe
