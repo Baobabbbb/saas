@@ -1479,19 +1479,19 @@ async def generate_animation(
     duration: int = 30,
     style: str = "cartoon",
     custom_prompt: str = None,
-    authorization: Optional[str] = Header(None)
+    request: Request = None
 ):
     """
-    Génère une VRAIE animation avec Runway ML Veo 3.1 Fast (workflow zseedance)
+    Génère une VRAIE animation avec Wan 2.5 via WaveSpeed (workflow zseedance)
     Supporte les requêtes GET avec query parameters - PLUS DE MODE, toujours vrai pipeline
     """
-    # Extraire user_id depuis JWT - AUTHENTIFICATION REQUISE
-    user_id = await extract_user_id_from_jwt(authorization, None)
-    if not user_id:
-        raise HTTPException(
-            status_code=401,
-            detail="Authentification requise pour générer une animation"
-        )
+    # Extraire user_id depuis JWT si disponible (optionnel pour compatibilité)
+    user_id = None
+    if request:
+        authorization = request.headers.get("authorization")
+        if authorization:
+            user_id = await extract_user_id_from_jwt(authorization, request)
+    
     return await _generate_animation_logic(theme, duration, style, custom_prompt, user_id=user_id)
 
 async def _generate_animation_logic(
