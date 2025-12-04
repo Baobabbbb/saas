@@ -20,8 +20,9 @@ export const downloadComicAsPDF = async (imageUrls, filename = 'comic') => {
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const margin = 40;
+    const watermarkHeight = 20; // Espace réservé pour le watermark en bas
     const imageWidth = pageWidth - 2 * margin;
-    const imageHeight = pageHeight - 2 * margin;
+    const imageHeight = pageHeight - 2 * margin - watermarkHeight; // Réserver de l'espace pour le watermark
     
     // Fonction pour charger une image et obtenir son dataURL
     const fetchImageInfo = (url) => {
@@ -76,29 +77,32 @@ export const downloadComicAsPDF = async (imageUrls, filename = 'comic') => {
         finalWidth = imageHeight * aspectRatio;
       }
       
-      // Centrage de l'image
+      // Centrage de l'image (verticalement, mais en laissant de l'espace en bas pour le watermark)
       const x = (pageWidth - finalWidth) / 2;
-      const y = (pageHeight - finalHeight) / 2;
+      const y = (pageHeight - finalHeight - watermarkHeight) / 2; // Centrer mais laisser de l'espace en bas
       
       // Ajouter l'image au PDF
       pdf.addImage(dataUrl, 'PNG', x, y, finalWidth, finalHeight);
       
       // 🏷️ Watermark "Créé avec HERBBIE" en bas à gauche (après l'image pour être au-dessus)
+      // S'assurer que le watermark est toujours visible même si l'image est grande
       pdf.setFontSize(8);
       pdf.setTextColor(107, 78, 255); // #6B4EFF - Violet HERBBIE
       pdf.text("Créé avec HERBBIE", 15, pageHeight - 10, { align: "left" });
-        
-      } catch (error) {
-        console.error(`Erreur lors du chargement de l'image ${i + 1}:`, error);
-        
-        // Ajouter une page d'erreur
-        if (i > 0) {
-          pdf.addPage();
-        }
-        
-        pdf.setFontSize(16);
-        pdf.text(`Erreur lors du chargement de la page ${i + 1}`, 20, 50);
+      
+    } catch (error) {
+      console.error(`Erreur lors du chargement de l'image ${i + 1}:`, error);
+      
+      // Ajouter une page d'erreur
+      if (!isFirstPage) {
+        pdf.addPage();
       }
+      isFirstPage = false;
+      
+      pdf.setFontSize(16);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Erreur lors du chargement de la page ${i + 1}`, 20, 50);
+    }
     }
     
     // Télécharger le PDF
