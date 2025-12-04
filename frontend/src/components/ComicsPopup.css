@@ -129,11 +129,13 @@
   border: 1px solid rgba(107, 78, 255, 0.08);
 }
 
-.nav-btn {
+.nav-btn,
+.nav-btn.prev-btn,
+.nav-btn.next-btn {
   padding: 14px 20px;
-  background: #6B4EFF;
-  color: white;
-  border: none;
+  background: #6B4EFF !important;
+  color: white !important;
+  border: none !important;
   border-radius: 12px;
   font-size: 0.95rem;
   font-weight: 700;
@@ -143,15 +145,19 @@
   box-shadow: 0 4px 12px rgba(107, 78, 255, 0.3);
 }
 
-.nav-btn:hover:not(:disabled) {
-  background: #5840d4;
+.nav-btn:hover:not(:disabled),
+.nav-btn.prev-btn:hover:not(:disabled),
+.nav-btn.next-btn:hover:not(:disabled) {
+  background: #5840d4 !important;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(107, 78, 255, 0.4);
 }
 
-.nav-btn:disabled {
-  background: #E0E0E0;
-  color: #999999;
+.nav-btn:disabled,
+.nav-btn.prev-btn:disabled,
+.nav-btn.next-btn:disabled {
+  background: #E0E0E0 !important;
+  color: #999999 !important;
   cursor: not-allowed;
   opacity: 0.6;
   transform: none;
