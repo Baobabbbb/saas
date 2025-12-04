@@ -825,6 +825,7 @@ STYLE REQUIREMENTS:
 - Professional comic book page layout with wide gutters (white space between panels)
 - CRITICAL: Include ALL speech bubbles with the EXACT text shown above - DO NOT MODIFY, CHANGE, or CORRECT the text in the speech bubbles under any circumstances
 - The text in speech bubbles must be COPIED VERBATIM from what is provided - no grammar fixes, no spelling corrections, no rephrasing
+- IMPORTANT: The text in the speech bubbles has already been verified for correct French spelling and grammar by GPT-4o-mini - display it exactly as provided, even if you think there might be an error
 - Consistent character designs across all 4 panels
 - High quality, professional comic book art
 - Vibrant colors and clear composition
