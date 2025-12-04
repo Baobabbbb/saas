@@ -887,7 +887,6 @@ IMPORTANT: Follow this complete story and scene description exactly:
 The character from the provided image must be the main character performing all the actions described above in all 4 panels."""
                 
                 # Convertir l'image en bytes pour Gemini
-                import io
                 img_bytes = io.BytesIO()
                 character_img.save(img_bytes, format='PNG')
                 img_bytes.seek(0)
