@@ -104,7 +104,7 @@ export async function downloadColoringAsPDF(images, title = 'coloriages') {
     
     // 🏷️ Watermark "Créé avec HERBBIE" en bas à gauche
     pdf.setFontSize(8);
-    pdf.setTextColor(106, 90, 205); // Violet doux (même couleur que la pagination)
+    pdf.setTextColor(107, 78, 255); // #6B4EFF - Violet HERBBIE
     pdf.text("Créé avec HERBBIE", 15, pageHeight - 10, { align: "left" });
   }
 
