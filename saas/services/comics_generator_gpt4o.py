@@ -81,110 +81,6 @@ class ComicsGeneratorGPT4o:
             }
         }
         
-    def _add_watermark(self, image: Image.Image) -> Image.Image:
-        """
-        Ajoute le watermark "Créé avec HERBBIE" en bas à gauche de l'image
-        
-        Args:
-            image: Image PIL à watermarker
-            
-        Returns:
-            Image avec watermark ajouté
-        """
-        try:
-            print(f"   [WATERMARK] Début ajout watermark, mode image: {image.mode}, taille: {image.size}")
-            
-            # Convertir l'image en RGBA si nécessaire pour supporter la transparence
-            if image.mode != 'RGBA':
-                watermarked = image.convert('RGBA')
-                print(f"   [WATERMARK] Image convertie en RGBA")
-            else:
-                watermarked = image.copy()
-            
-            # Créer un nouveau draw sur l'image
-            draw = ImageDraw.Draw(watermarked, 'RGBA')
-            
-            # Texte du watermark
-            text = "Créé avec HERBBIE"
-            
-            # Taille de l'image
-            width, height = watermarked.size
-            
-            # Taille de police adaptative (environ 4% de la hauteur, minimum 20px pour visibilité)
-            font_size = max(20, int(height * 0.04))
-            print(f"   [WATERMARK] Taille police calculée: {font_size}px")
-            
-            # Essayer de charger une police, sinon utiliser la police par défaut
-            font = None
-            try:
-                # Essayer d'utiliser une police système
-                font = ImageFont.truetype("arial.ttf", font_size)
-                print(f"   [WATERMARK] Police Arial chargée")
-            except:
-                try:
-                    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size)
-                    print(f"   [WATERMARK] Police DejaVu chargée")
-                except:
-                    # Police par défaut
-                    font = ImageFont.load_default()
-                    print(f"   [WATERMARK] Police par défaut utilisée")
-            
-            # Calculer la taille du texte
-            bbox = draw.textbbox((0, 0), text, font=font)
-            text_width = bbox[2] - bbox[0]
-            text_height = bbox[3] - bbox[1]
-            print(f"   [WATERMARK] Taille texte: {text_width}x{text_height}")
-            
-            # Position en bas à gauche avec marge (3% de la largeur/hauteur)
-            margin_x = max(10, int(width * 0.03))
-            margin_y = max(10, int(height * 0.03))
-            x = margin_x  # Bas à gauche
-            y = height - text_height - margin_y
-            
-            print(f"   [WATERMARK] Position calculée: ({x}, {y})")
-            
-            # Dessiner un fond semi-transparent pour la lisibilité (plus opaque)
-            padding = 10
-            rect_coords = [x - padding, y - padding, x + text_width + padding, y + text_height + padding]
-            # Fond blanc très opaque avec bordure noire
-            draw.rectangle(
-                rect_coords,
-                fill=(255, 255, 255, 250)  # Blanc presque opaque
-            )
-            # Bordure noire autour du fond
-            draw.rectangle(
-                rect_coords,
-                outline=(0, 0, 0, 255),
-                width=2
-            )
-            print(f"   [WATERMARK] Rectangle fond dessiné: {rect_coords}")
-            
-            # Dessiner le texte en noir avec contour blanc pour meilleure visibilité
-            # D'abord le contour (blanc)
-            for adj in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
-                draw.text((x + adj[0], y + adj[1]), text, fill=(255, 255, 255, 255), font=font)
-            # Puis le texte principal (noir)
-            draw.text((x, y), text, fill=(0, 0, 0, 255), font=font)
-            print(f"   [WATERMARK] Texte dessiné avec contour: '{text}'")
-            
-            # Convertir de nouveau en RGB si l'image originale était en RGB (pour compatibilité)
-            original_mode = image.mode
-            if original_mode == 'RGB':
-                watermarked = watermarked.convert('RGB')
-                print(f"   [WATERMARK] Image reconvertie en RGB")
-            
-            print(f"   [WATERMARK] ✅ Watermark ajouté avec succès en bas à gauche: '{text}' à ({x}, {y}), taille police: {font_size}px")
-            
-            return watermarked
-            
-        except Exception as e:
-            print(f"   [ERROR] Erreur ajout watermark: {e}")
-            import traceback
-            traceback.print_exc()
-            # En cas d'erreur, retourner l'image originale
-            print(f"   [WARNING] Retour de l'image originale sans watermark")
-            return image
-        
         # Thèmes prédéfinis
         self.themes = {
             "espace": {
@@ -374,6 +270,110 @@ class ComicsGeneratorGPT4o:
                 "keywords": "party, birthday, celebration, cake, balloons, presents, fun, friends, joy"
             }
         }
+        
+    def _add_watermark(self, image: Image.Image) -> Image.Image:
+        """
+        Ajoute le watermark "Créé avec HERBBIE" en bas à gauche de l'image
+        
+        Args:
+            image: Image PIL à watermarker
+            
+        Returns:
+            Image avec watermark ajouté
+        """
+        try:
+            print(f"   [WATERMARK] Début ajout watermark, mode image: {image.mode}, taille: {image.size}")
+            
+            # Convertir l'image en RGBA si nécessaire pour supporter la transparence
+            if image.mode != 'RGBA':
+                watermarked = image.convert('RGBA')
+                print(f"   [WATERMARK] Image convertie en RGBA")
+            else:
+                watermarked = image.copy()
+            
+            # Créer un nouveau draw sur l'image
+            draw = ImageDraw.Draw(watermarked, 'RGBA')
+            
+            # Texte du watermark
+            text = "Créé avec HERBBIE"
+            
+            # Taille de l'image
+            width, height = watermarked.size
+            
+            # Taille de police adaptative (environ 4% de la hauteur, minimum 20px pour visibilité)
+            font_size = max(20, int(height * 0.04))
+            print(f"   [WATERMARK] Taille police calculée: {font_size}px")
+            
+            # Essayer de charger une police, sinon utiliser la police par défaut
+            font = None
+            try:
+                # Essayer d'utiliser une police système
+                font = ImageFont.truetype("arial.ttf", font_size)
+                print(f"   [WATERMARK] Police Arial chargée")
+            except:
+                try:
+                    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size)
+                    print(f"   [WATERMARK] Police DejaVu chargée")
+                except:
+                    # Police par défaut
+                    font = ImageFont.load_default()
+                    print(f"   [WATERMARK] Police par défaut utilisée")
+            
+            # Calculer la taille du texte
+            bbox = draw.textbbox((0, 0), text, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            print(f"   [WATERMARK] Taille texte: {text_width}x{text_height}")
+            
+            # Position en bas à gauche avec marge (3% de la largeur/hauteur)
+            margin_x = max(10, int(width * 0.03))
+            margin_y = max(10, int(height * 0.03))
+            x = margin_x  # Bas à gauche
+            y = height - text_height - margin_y
+            
+            print(f"   [WATERMARK] Position calculée: ({x}, {y})")
+            
+            # Dessiner un fond semi-transparent pour la lisibilité (plus opaque)
+            padding = 10
+            rect_coords = [x - padding, y - padding, x + text_width + padding, y + text_height + padding]
+            # Fond blanc très opaque avec bordure noire
+            draw.rectangle(
+                rect_coords,
+                fill=(255, 255, 255, 250)  # Blanc presque opaque
+            )
+            # Bordure noire autour du fond
+            draw.rectangle(
+                rect_coords,
+                outline=(0, 0, 0, 255),
+                width=2
+            )
+            print(f"   [WATERMARK] Rectangle fond dessiné: {rect_coords}")
+            
+            # Dessiner le texte en noir avec contour blanc pour meilleure visibilité
+            # D'abord le contour (blanc)
+            for adj in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
+                draw.text((x + adj[0], y + adj[1]), text, fill=(255, 255, 255, 255), font=font)
+            # Puis le texte principal (noir)
+            draw.text((x, y), text, fill=(0, 0, 0, 255), font=font)
+            print(f"   [WATERMARK] Texte dessiné avec contour: '{text}'")
+            
+            # Convertir de nouveau en RGB si l'image originale était en RGB (pour compatibilité)
+            original_mode = image.mode
+            if original_mode == 'RGB':
+                watermarked = watermarked.convert('RGB')
+                print(f"   [WATERMARK] Image reconvertie en RGB")
+            
+            print(f"   [WATERMARK] ✅ Watermark ajouté avec succès en bas à gauche: '{text}' à ({x}, {y}), taille police: {font_size}px")
+            
+            return watermarked
+            
+        except Exception as e:
+            print(f"   [ERROR] Erreur ajout watermark: {e}")
+            import traceback
+            traceback.print_exc()
+            # En cas d'erreur, retourner l'image originale
+            print(f"   [WARNING] Retour de l'image originale sans watermark")
+            return image
     
     async def generate_comic_story(
         self,
