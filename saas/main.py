@@ -1850,8 +1850,9 @@ async def get_animation_status(task_id: str):
                     "message": f"Statut inconnu: {status}"
                 }
             }
-            
-            return result
+        
+        # Retourner le résultat dans tous les cas
+        return result
 
     except HTTPException:
         raise

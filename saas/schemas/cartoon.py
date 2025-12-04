@@ -256,14 +256,19 @@ class GenerationResult(BaseModel):
             "video_urls": self.video_urls,
             "title": self.title,
             "duration": self.duration_seconds,
+            "total_duration": self.duration_seconds,  # Alias pour compatibilité frontend
             "theme": self.theme,
             "style": self.style,
+            "successful_clips": self.successful_clips,
+            "generation_time": self.generation_time_seconds,
             "clips": [
                 {
                     "scene_number": i + 1,
                     "video_url": url,
+                    "clip_url": url,  # Alias pour compatibilité frontend
                     "duration": 5,
-                    "status": "success"
+                    "status": "success",
+                    "type": "real_video"  # Indique que c'est une vraie vidéo (pas une image démo)
                 }
                 for i, url in enumerate(self.video_urls)
             ],
