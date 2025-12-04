@@ -131,7 +131,7 @@
 
 .nav-btn {
   padding: 14px 20px;
-  background: linear-gradient(135deg, #f5f0ff 0%, #8B5CF6 100%);
+  background: #6B4EFF;
   color: white;
   border: none;
   border-radius: 12px;
@@ -140,11 +140,11 @@
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 110px;
-  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(107, 78, 255, 0.3);
 }
 
 .nav-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #5939cc 0%, #7c3aed 100%);
+  background: #5840d4;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(107, 78, 255, 0.4);
 }
@@ -183,8 +183,8 @@
 }
 
 .page-dot.active {
-  background: linear-gradient(135deg, #f5f0ff 0%, #8B5CF6 100%);
-  border-color: #f5f0ff;
+  background: #6B4EFF;
+  border-color: #6B4EFF;
   width: 36px;
   border-radius: 18px;
   box-shadow: 0 2px 8px rgba(107, 78, 255, 0.3);
@@ -215,7 +215,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: 'Nunito', sans-serif;
-  background: var(--primary, #6B4EFF);
+  background: #6B4EFF;
   color: white;
   box-shadow: 0 4px 12px rgba(107, 78, 255, 0.3);
 }
@@ -241,7 +241,7 @@
 
 .thumbnails-section h4 {
   font-size: 1.3rem;
-  color: #f5f0ff;
+  color: #6B4EFF;
   margin-bottom: 24px;
   font-weight: 800;
   font-family: 'Baloo 2', cursive;
@@ -266,13 +266,13 @@
 }
 
 .thumbnail:hover {
-  border-color: #f5f0ff;
+  border-color: #6B4EFF;
   box-shadow: 0 8px 20px rgba(107, 78, 255, 0.25);
   transform: translateY(-2px);
 }
 
 .thumbnail.active {
-  border-color: #f5f0ff;
+  border-color: #6B4EFF;
   box-shadow: 0 8px 24px rgba(107, 78, 255, 0.35);
   transform: translateY(-2px);
 }
