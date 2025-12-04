@@ -39,6 +39,9 @@ from services.real_animation_generator import RealAnimationGenerator
 from services.local_animation_generator import LocalAnimationGenerator
 from services.sora2_zseedance_generator import Sora2ZseedanceGenerator
 from services.sora2_generator import Sora2Generator
+# Nouveau système Wan 2.5 via WaveSpeed API
+from services.cartoon_engine import WanVideoOrchestrator, get_wan_orchestrator, is_wan_orchestrator_available
+from schemas.cartoon import GenerationRequest, GenerationStatus
 from utils.translate import translate_text
 from routes.admin_features import router as admin_features_router, load_features_config, CONFIG_FILE
 # from models.animation import AnimationRequest
@@ -1557,9 +1560,9 @@ async def _generate_animation_logic(
             "status": "processing"
         }
 
-        # Génération selon le workflow zseedance.json (toujours le même pipeline)
+        # Génération selon le workflow Wan 2.5 via WaveSpeed API (Seedance-style)
         import asyncio
-        asyncio.create_task(generate_zseedance_animation_task(task_id, theme, duration, style))
+        asyncio.create_task(generate_zseedance_animation_task(task_id, theme, duration, style, user_id))
 
         # Retourner immédiatement le task_id
         result = {
@@ -1585,14 +1588,21 @@ async def _generate_animation_logic(
 task_storage = {}
 comic_task_storage = {}
 
-async def generate_zseedance_animation_task(task_id: str, theme: str, duration: int, style: str = "cartoon"):
+async def generate_zseedance_animation_task(task_id: str, theme: str, duration: int, style: str = "cartoon", user_id: str = None):
     """
-    Tâche en arrière-plan pour la génération selon le workflow zseedance.json
-    Pipeline complet : Ideas → Prompts → Create Clips (Veo 3.1) → Create Sounds → Sequence Video
+    Tâche en arrière-plan pour la génération avec Wan 2.5 via WaveSpeed API.
+    Pipeline complet : Ideas → Prompts → Create Clips (Wan 2.5) → Sequence Video (FAL FFmpeg)
+    
+    Utilise le WanVideoOrchestrator qui implémente:
+    - Showrunner logic avec Character Sheet pour consistance
+    - Génération parallèle avec rate limiting (semaphore)
+    - Assemblage intelligent avec normalisation audio
+    - Wan 2.5 génère déjà l'audio - pas besoin de génération audio séparée
     """
     print(f"\n{'='*80}")
-    print(f"🚀🚀🚀 DÉBUT TÂCHE GÉNÉRATION ZSEEDANCE 🚀🚀🚀")
+    print(f"🚀🚀🚀 DÉBUT TÂCHE GÉNÉRATION WAN 2.5 (WaveSpeed) 🚀🚀🚀")
     print(f"Task ID: {task_id}")
+    print(f"User ID: {user_id}")
     print(f"Thème: {theme}")
     print(f"Durée: {duration}s")
     print(f"Style: {style}")
@@ -1603,53 +1613,83 @@ async def generate_zseedance_animation_task(task_id: str, theme: str, duration: 
         task_storage[task_id]["status"] = "generating"
         print(f"✅ Statut mis à jour: generating")
 
-        # Utiliser le générateur Sora2ZseedanceGenerator (workflow fidèle à zseedance.json)
-        print(f"🔧 Initialisation du générateur Sora2ZseedanceGenerator...")
+        # Utiliser le nouveau WanVideoOrchestrator
+        print(f"🔧 Initialisation du WanVideoOrchestrator (Wan 2.5 via WaveSpeed)...")
         try:
-            generator = Sora2ZseedanceGenerator()
-            print(f"✅ Générateur initialisé avec succès")
+            orchestrator = get_wan_orchestrator()
+            print(f"✅ WanVideoOrchestrator initialisé avec succès")
         except Exception as init_error:
-            print(f"❌ ERREUR lors de l'initialisation du générateur: {init_error}")
+            print(f"❌ ERREUR lors de l'initialisation du WanVideoOrchestrator: {init_error}")
             import traceback
             traceback.print_exc()
             raise init_error
-        print(f"🎬 Utilisation du workflow ZSEEDANCE (n8n identique)")
+        
+        print(f"🎬 Utilisation du workflow Wan 2.5 (Seedance-style)")
 
-        # Calculer le nombre de scènes selon la durée (8s par scène avec veo3.1_fast)
-        # Arrondir pour être plus proche de la durée demandée
-        num_scenes = max(3, round(duration / 8))  # Minimum 3 scènes, ~8s par scène
-        total_duration = num_scenes * 8
-        print(f"📊 Génération de {num_scenes} scènes de 8 secondes chacune (durée totale: {total_duration}s pour {duration}s demandés)")
+        # Calculer le nombre de scènes selon la durée (5s par scène avec Wan 2.5)
+        num_scenes = max(1, duration // 5)
+        total_duration = num_scenes * 5
+        print(f"📊 Génération de {num_scenes} scènes de 5 secondes chacune (durée totale: {total_duration}s pour {duration}s demandés)")
 
-        # Générer l'animation complète selon le workflow zseedance
-        print(f"🚀 Appel generate_complete_animation_zseedance avec thème: {theme}")
+        # Créer la requête de génération
+        request = GenerationRequest(
+            user_id=user_id or task_id,  # Utiliser task_id comme fallback si pas de user_id
+            theme=theme,
+            duration_seconds=duration,
+            style=style
+        )
+
+        # Callback pour mise à jour du progrès
+        async def on_progress(progress: int, message: str):
+            task_storage[task_id]["progress"] = progress
+            task_storage[task_id]["message"] = message
+            print(f"📊 Progress {task_id}: {progress}% - {message}")
+
+        # Générer l'animation complète avec le nouveau pipeline
+        print(f"🚀 Appel WanVideoOrchestrator.run_pipeline avec thème: {theme}")
         try:
-            animation_result = await generator.generate_complete_animation_zseedance(theme)
-            print(f"✅ generate_complete_animation_zseedance terminé avec résultat: {animation_result.get('status', 'unknown')}")
+            result = await orchestrator.run_pipeline(request, on_progress=on_progress)
+            print(f"✅ run_pipeline terminé avec résultat: {result.status.value}")
         except Exception as gen_error:
-            print(f"❌ ERREUR lors de l'appel generate_complete_animation_zseedance: {gen_error}")
+            print(f"❌ ERREUR lors de l'appel run_pipeline: {gen_error}")
             import traceback
             traceback.print_exc()
             raise gen_error
 
-        # Vérifier le statut réel de l'animation
-        result_status = animation_result.get("status", "failed")
-        final_video_url = animation_result.get("final_video_url")
-
-        if result_status == "completed" and final_video_url:
-            print(f"✅ Animation ZSEEDANCE {task_id} générée avec succès!")
-            print(f"🎬 Vidéo finale: {final_video_url[:50]}...")
+        # Convertir le résultat au format attendu par le frontend
+        if result.status == GenerationStatus.COMPLETED and result.final_video_url:
+            print(f"✅ Animation Wan 2.5 {task_id} générée avec succès!")
+            print(f"🎬 Vidéo finale: {result.final_video_url[:50]}...")
             task_storage[task_id]["status"] = "completed"
+            
+            # Stocker le résultat au format compatible avec l'ancien système
+            animation_result = result.to_frontend_response()
+            animation_result["status"] = "completed"
+            task_storage[task_id]["result"] = animation_result
+            
+        elif result.status == GenerationStatus.PARTIAL_SUCCESS:
+            print(f"⚠️ Animation Wan 2.5 {task_id} partiellement réussie (dégradation gracieuse)")
+            print(f"🎬 Vidéo finale: {result.final_video_url[:50] if result.final_video_url else 'N/A'}...")
+            task_storage[task_id]["status"] = "completed"  # On marque comme completed pour le frontend
+            
+            animation_result = result.to_frontend_response()
+            animation_result["status"] = "completed"
+            animation_result["warning"] = f"{result.failed_clips} clips sur {result.total_clips} ont échoué"
+            task_storage[task_id]["result"] = animation_result
+            
         else:
-            print(f"❌ Animation ZSEEDANCE {task_id} échouée: {animation_result.get('error', 'Erreur inconnue')}")
+            print(f"❌ Animation Wan 2.5 {task_id} échouée: {result.error_message}")
             task_storage[task_id]["status"] = "failed"
-
-        # Stocker le résultat dans tous les cas
-        task_storage[task_id]["result"] = animation_result
+            task_storage[task_id]["result"] = {
+                "status": "failed",
+                "error": result.error_message or "Erreur inconnue",
+                "theme": theme,
+                "type": "wan25_wavespeed"
+            }
 
     except Exception as e:
         print(f"\n{'='*80}")
-        print(f"❌❌❌ ERREUR TÂCHE GÉNÉRATION ZSEEDANCE ❌❌❌")
+        print(f"❌❌❌ ERREUR TÂCHE GÉNÉRATION WAN 2.5 ❌❌❌")
         print(f"Task ID: {task_id}")
         print(f"Erreur: {e}")
         print(f"Type: {type(e).__name__}")
@@ -1660,6 +1700,12 @@ async def generate_zseedance_animation_task(task_id: str, theme: str, duration: 
 
         task_storage[task_id]["status"] = "failed"
         task_storage[task_id]["error"] = str(e)
+        task_storage[task_id]["result"] = {
+            "status": "failed",
+            "error": str(e),
+            "theme": theme,
+            "type": "wan25_wavespeed"
+        }
 
 async def generate_comic_task(task_id: str, theme: str, art_style: str, num_pages: int, custom_prompt: str, character_photo_path: str):
     """

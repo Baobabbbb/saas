@@ -472,7 +472,6 @@ const SubscriptionForm = ({ selectedPlan, onSuccess, onCancel, userId, userEmail
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gap: '12px',
-        marginBottom: '16px'
       }}>
         <div>
           <label style={labelStyle}>

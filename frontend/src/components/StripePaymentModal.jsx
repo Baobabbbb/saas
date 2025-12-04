@@ -216,7 +216,6 @@ const CheckoutForm = ({ onClose, onSuccess, contentType, options, showCheckbox, 
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gap: '12px',
-        marginBottom: '16px'
       }}>
         <div>
           <label style={labelStyle}>
