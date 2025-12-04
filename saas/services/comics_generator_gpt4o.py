@@ -652,8 +652,6 @@ Génère maintenant le scénario complet en JSON:"""
             
             # Sauvegarder l'illustration de personnage
             character_illustration_path = self.cache_dir / f"comic_character_{uuid.uuid4().hex[:8]}.png"
-            # Ajouter le watermark à l'illustration du personnage
-            generated_img = self._add_watermark(generated_img)
             generated_img.save(character_illustration_path, 'PNG', optimize=True)
             print(f"   ✅ Personnage BD créé: {character_illustration_path.name}")
             
@@ -1011,9 +1009,6 @@ The character from the provided image must be the main character performing all 
                 img = Image.open(io.BytesIO(image_data))
                 actual_width, actual_height = img.size
                 print(f"   [DIMENSIONS] Image générée: {actual_width}x{actual_height}")
-                
-                # Ajouter le watermark
-                img = self._add_watermark(img)
                 
                 # Sauvegarder
                 output_path = output_dir / f"page_{page_num}.png"
