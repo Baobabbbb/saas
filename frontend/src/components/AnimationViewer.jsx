@@ -3,19 +3,34 @@ import { API_BASE_URL, ANIMATION_API_BASE_URL } from '../config/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import './AnimationViewer.css';
 
-// Composant pour jouer les clips en séquence (playlist)
+// Composant pour jouer les clips en séquence fluide (comme un vrai film)
 const VideoPlaylist = ({ clips }) => {
   const [currentClipIndex, setCurrentClipIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const videoRef = useRef(null);
+  const nextVideoRef = useRef(null);
 
   const currentClip = clips[currentClipIndex];
+  const nextClip = clips[currentClipIndex + 1];
   const videoUrl = currentClip?.video_url || currentClip?.clip_url;
+  const nextVideoUrl = nextClip?.video_url || nextClip?.clip_url;
 
-  // Passer au clip suivant automatiquement
+  // Précharger le prochain clip pour transition fluide
+  useEffect(() => {
+    if (nextVideoUrl && nextVideoRef.current) {
+      nextVideoRef.current.src = nextVideoUrl;
+      nextVideoRef.current.load();
+    }
+  }, [currentClipIndex, nextVideoUrl]);
+
+  // Passer au clip suivant automatiquement (transition fluide)
   const handleVideoEnded = () => {
     if (currentClipIndex < clips.length - 1) {
-      setCurrentClipIndex(currentClipIndex + 1);
+      setIsLoading(true);
+      setCurrentClipIndex(prev => prev + 1);
+      // Transition rapide
+      setTimeout(() => setIsLoading(false), 100);
     } else {
       // Boucle vers le début
       setCurrentClipIndex(0);
@@ -29,76 +44,152 @@ const VideoPlaylist = ({ clips }) => {
     }
   }, [currentClipIndex, isPlaying]);
 
+  // Calculer la durée totale
+  const totalDuration = clips.length * 5; // 5 secondes par clip
+  const currentTime = currentClipIndex * 5;
+  const progressPercent = ((currentClipIndex + 1) / clips.length) * 100;
+
   if (!videoUrl) {
     return <div className="no-video">Aucune vidéo disponible</div>;
   }
 
   return (
-    <div className="video-playlist">
-      {/* Lecteur principal */}
-      <div className="main-video-container">
+    <div className="video-playlist" style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+      {/* Lecteur principal - Style cinématique */}
+      <div className="main-video-container" style={{ 
+        position: 'relative',
+        backgroundColor: '#000',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.4)'
+      }}>
         <video
           ref={videoRef}
           src={videoUrl}
           className="final-animation-video"
           controls
           autoPlay
-          muted
-          preload="metadata"
+          muted={false}
+          preload="auto"
           onEnded={handleVideoEnded}
+          onCanPlay={() => setIsLoading(false)}
           style={{
             width: '100%',
-            maxWidth: '600px',
             height: 'auto',
-            borderRadius: '12px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-            margin: '1rem 0'
+            aspectRatio: '16/9',
+            display: 'block',
+            opacity: isLoading ? 0.7 : 1,
+            transition: 'opacity 0.2s ease'
           }}
         />
-      </div>
+        
+        {/* Préchargement du prochain clip (invisible) */}
+        <video
+          ref={nextVideoRef}
+          style={{ display: 'none' }}
+          preload="auto"
+        />
 
-      {/* Info de progression */}
-      <div className="playlist-info" style={{ textAlign: 'center', marginBottom: '1rem' }}>
-        <span style={{ 
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-          color: 'white', 
-          padding: '4px 12px', 
-          borderRadius: '12px',
-          fontSize: '14px'
+        {/* Badge de scène */}
+        <div style={{
+          position: 'absolute',
+          top: '12px',
+          left: '12px',
+          background: 'rgba(0,0,0,0.7)',
+          color: 'white',
+          padding: '6px 12px',
+          borderRadius: '20px',
+          fontSize: '12px',
+          fontWeight: '600',
+          backdropFilter: 'blur(10px)'
         }}>
-          Scène {currentClipIndex + 1} / {clips.length}
-        </span>
+          🎬 Scène {currentClipIndex + 1}/{clips.length}
+        </div>
       </div>
 
-      {/* Miniatures des clips */}
-      <div className="clips-thumbnails" style={{ 
+      {/* Barre de progression globale */}
+      <div style={{ 
+        marginTop: '16px',
+        padding: '0 8px'
+      }}>
+        <div style={{
+          height: '6px',
+          background: '#e0e0e0',
+          borderRadius: '3px',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            height: '100%',
+            width: `${progressPercent}%`,
+            background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: '3px',
+            transition: 'width 0.3s ease'
+          }} />
+        </div>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          marginTop: '8px',
+          fontSize: '12px',
+          color: '#666'
+        }}>
+          <span>Durée: ~{totalDuration}s</span>
+          <span>Lecture automatique</span>
+        </div>
+      </div>
+
+      {/* Timeline des scènes */}
+      <div style={{ 
         display: 'flex', 
-        gap: '8px', 
-        overflowX: 'auto', 
+        gap: '4px', 
+        marginTop: '16px',
         padding: '8px',
-        justifyContent: 'center',
-        flexWrap: 'wrap'
+        overflowX: 'auto',
+        justifyContent: 'center'
       }}>
         {clips.map((clip, index) => (
           <button
             key={index}
-            onClick={() => setCurrentClipIndex(index)}
+            onClick={() => {
+              setCurrentClipIndex(index);
+              if (videoRef.current) {
+                videoRef.current.currentTime = 0;
+                videoRef.current.play();
+              }
+            }}
             style={{
-              padding: '8px 16px',
+              minWidth: '50px',
+              height: '36px',
               borderRadius: '8px',
-              border: currentClipIndex === index ? '2px solid #667eea' : '2px solid #e0e0e0',
-              background: currentClipIndex === index ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'white',
-              color: currentClipIndex === index ? 'white' : '#333',
+              border: 'none',
+              background: currentClipIndex === index 
+                ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+                : index < currentClipIndex 
+                  ? '#c0c0c0' 
+                  : '#e8e8e8',
+              color: currentClipIndex === index ? 'white' : '#666',
               cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: currentClipIndex === index ? '600' : '400',
-              transition: 'all 0.2s ease'
+              fontSize: '11px',
+              fontWeight: currentClipIndex === index ? '700' : '500',
+              transition: 'all 0.2s ease',
+              transform: currentClipIndex === index ? 'scale(1.1)' : 'scale(1)',
+              boxShadow: currentClipIndex === index ? '0 4px 12px rgba(102,126,234,0.4)' : 'none'
             }}
           >
-            🎬 Scène {index + 1}
+            {index + 1}
           </button>
         ))}
       </div>
+
+      {/* Message d'information */}
+      <p style={{
+        textAlign: 'center',
+        color: '#888',
+        fontSize: '12px',
+        marginTop: '12px'
+      }}>
+        ▶️ Les scènes se jouent automatiquement en séquence
+      </p>
     </div>
   );
 };

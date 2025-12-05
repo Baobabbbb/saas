@@ -14,8 +14,8 @@ from datetime import datetime
 
 class AspectRatio(str, Enum):
     """Aspect ratios supported by Wan 2.5."""
-    VERTICAL = "9:16"       # TikTok/Reels style (default for Herbbie)
-    HORIZONTAL = "16:9"     # YouTube/Traditional
+    HORIZONTAL = "16:9"     # YouTube/Traditional (default - paysage)
+    VERTICAL = "9:16"       # TikTok/Reels style
     SQUARE = "1:1"          # Instagram
 
 
@@ -179,8 +179,8 @@ class GenerationRequest(BaseModel):
         description="Optional custom instructions"
     )
     aspect_ratio: AspectRatio = Field(
-        default=AspectRatio.VERTICAL,
-        description="Video aspect ratio"
+        default=AspectRatio.HORIZONTAL,
+        description="Video aspect ratio (paysage par défaut)"
     )
     resolution: Resolution = Field(
         default=Resolution.HD,

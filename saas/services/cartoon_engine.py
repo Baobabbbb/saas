@@ -58,9 +58,9 @@ class WanVideoOrchestrator:
     WAN25_ENDPOINT = "/alibaba/wan-2.5/text-to-video-fast"  # URL correcte selon doc WaveSpeed
     FAL_FFMPEG_URL = "https://queue.fal.run/fal-ai/ffmpeg-api/compose"
     
-    # Default settings optimized for children's cartoon content
-    DEFAULT_NEGATIVE_PROMPT = "nsfw, distorted, morphing, text, watermark, scary, horror, violence, blood, dark, creepy, realistic, photorealistic, live action"
-    DEFAULT_STYLE = "High-quality 2D cartoon animation, Disney Pixar Dreamworks style, colorful children's cartoon, expressive animated characters, smooth animation, vibrant saturated colors, professional cartoon quality"
+    # Default settings optimized for high-quality cartoon animation
+    DEFAULT_NEGATIVE_PROMPT = "nsfw, distorted, morphing, text, watermark, scary, horror, violence, blood, dark, creepy, blurry, low quality, bad anatomy, deformed, ugly, amateur"
+    DEFAULT_STYLE = "Professional 3D animated movie scene, Pixar Disney DreamWorks animation quality, cinematic lighting, smooth fluid motion, highly detailed characters, beautiful backgrounds, 4K quality animation, movie-quality rendering"
     
     def __init__(
         self,
@@ -248,52 +248,57 @@ class WanVideoOrchestrator:
     
     def _build_script_system_prompt(self, num_scenes: int, style: str) -> str:
         """Build the system prompt for script generation."""
-        return f"""You are a PROFESSIONAL children's cartoon animation scriptwriter at Disney/Pixar creating a complete animated short film.
+        return f"""You are a PROFESSIONAL animation director at Pixar/DreamWorks creating a cohesive animated short film.
 
-Your task is to create a COHESIVE STORY with:
-1. ONE MAIN CHARACTER with EXACT visual description (same in every scene!)
-2. Exactly {num_scenes} scenes that tell ONE COMPLETE STORY with beginning, middle, and happy ending
-3. Each scene is a {self.clip_duration}-second animated clip
+CRITICAL MISSION: Create {num_scenes} scenes that form ONE CONTINUOUS, COHERENT STORY like a real animated movie.
 
-STORY STRUCTURE REQUIREMENTS:
-- Scene 1: INTRODUCTION - Introduce character and setting
-- Scene 2-{num_scenes-1}: ADVENTURE/PROBLEM - Character faces a challenge or goes on adventure  
-- Scene {num_scenes}: HAPPY ENDING - Resolution, character learned something or achieved goal
+VISUAL CONSISTENCY RULES (EXTREMELY IMPORTANT):
+1. Define ONE main character with EXACT visual details that NEVER change
+2. The IDENTICAL character description must appear WORD-FOR-WORD in EVERY scene
+3. Same setting/environment style throughout (consistent art direction)
+4. Continuous story flow - each scene directly follows the previous one
 
-CRITICAL VISUAL RULES:
-- The EXACT SAME character description MUST appear in EVERY scene
-- Example: "A small blue bunny with big pink ears and a yellow star on its forehead"
-- EVERY visual_description must START with this character description
-- Use BRIGHT, COLORFUL cartoon visuals
-- Style: {style} animation like Disney/Pixar shorts
+STORY STRUCTURE:
+- Scene 1: Character introduction in their environment
+- Scenes 2-{num_scenes-1}: Sequential story progression (cause and effect)
+- Scene {num_scenes}: Satisfying conclusion
 
-ANIMATION STYLE:
-- 2D or 3D cartoon animation (NOT realistic)
-- Expressive character emotions
-- Vibrant colors, soft lighting
-- Child-friendly, magical, whimsical
+ANIMATION QUALITY:
+- High-end 3D animation quality (Pixar/DreamWorks level)
+- Cinematic composition and lighting
+- Smooth, fluid character animation
+- Rich, detailed backgrounds
+- Professional movie quality
 
-OUTPUT FORMAT: Return ONLY valid JSON:
+CHARACTER DESIGN RULES:
+- Create ONE distinctive character with SPECIFIC visual traits
+- Include: species/type, colors, clothing, accessories, distinctive features
+- Example: "A fluffy orange cat with emerald green eyes, wearing a small purple wizard hat with golden stars and a matching purple cape"
+- This EXACT description appears at the START of every scene!
+
+OUTPUT FORMAT (strict JSON):
 {{
-    "title": "Catchy title (3-5 words)",
-    "synopsis": "One paragraph story summary",
-    "setting": "Colorful cartoon location",
-    "mood": "joyful/magical/adventurous",
+    "title": "Engaging title (3-5 words)",
+    "synopsis": "Full story summary showing narrative arc",
+    "setting": "Detailed environment description",
+    "mood": "magical/adventurous/heartwarming",
     "main_character": {{
         "name": "Character name",
-        "visual_description": "EXACT visual description to repeat in every scene (e.g., 'A small blue bunny with big pink ears, a yellow star on its forehead, and a tiny red cape')",
-        "personality_traits": ["curious", "brave", "kind"],
-        "color_palette": ["#4A90D9", "#FF69B4", "#FFD700"]
+        "visual_description": "DETAILED, SPECIFIC description that will be copied into every scene - be very precise about colors, features, clothing",
+        "personality_traits": ["trait1", "trait2", "trait3"],
+        "color_palette": ["#hex1", "#hex2", "#hex3"]
     }},
     "scenes": [
         {{
             "scene_number": 1,
-            "visual_description": "[CHARACTER DESCRIPTION]. [What character does in this scene]. [Setting/background details]",
-            "camera_angle": "wide shot / medium shot / close-up",
-            "audio_description": "Happy cartoon music, sound effects"
+            "visual_description": "[COPY CHARACTER DESCRIPTION HERE]. [Specific action in this scene]. [Background/environment details]. [Lighting/mood details]",
+            "camera_angle": "establishing wide shot / medium shot / close-up / tracking shot",
+            "audio_description": "Orchestral music mood, ambient sounds"
         }}
     ]
-}}"""
+}}
+
+REMEMBER: The visual_description in EACH scene MUST start with the EXACT same character description for visual consistency across clips!"""
 
     def _build_script_user_prompt(
         self,
@@ -629,9 +634,11 @@ Requirements:
         normalize_audio: bool = True
     ) -> str:
         """
-        Stitch multiple video clips into a single video using FAL AI luma-video-to-video concat.
+        Return video URLs for seamless playlist playback.
         
-        Falls back to returning first video if stitching fails.
+        Note: Server-side video concatenation is complex and requires ffmpeg.
+        Instead, we return all URLs and the frontend plays them as a seamless playlist
+        with automatic transitions.
         
         Args:
             video_urls: List of video clip URLs
@@ -639,72 +646,25 @@ Requirements:
             normalize_audio: Whether to normalize audio loudness
             
         Returns:
-            URL of the final stitched video (or first video on failure)
+            First video URL (full list is in video_urls for playlist mode)
         """
-        logger.info(f"🔗 Stitching {len(video_urls)} clips...")
+        logger.info(f"🎬 Préparation de {len(video_urls)} clips pour lecture en playlist...")
         
         if not video_urls:
             raise ValueError("No video URLs to stitch")
         
         if len(video_urls) == 1:
-            logger.info("✅ Only one clip, no stitching needed")
+            logger.info("✅ Un seul clip, pas d'assemblage nécessaire")
             return video_urls[0]
         
-        try:
-            # Use FAL AI video concat endpoint (simpler API)
-            concat_url = "https://fal.run/fal-ai/video-utils/concat"
-            
-            # Build payload for video concat
-            payload = {
-                "video_urls": video_urls
-            }
-            
-            headers = {
-                "Authorization": f"Key {self.fal_api_key}",
-                "Content-Type": "application/json"
-            }
-            
-            logger.info(f"📡 POST {concat_url}")
-            logger.info(f"📦 Concatenating {len(video_urls)} videos")
-            
-            async with httpx.AsyncClient(timeout=120.0) as client:
-                response = await client.post(
-                    concat_url,
-                    json=payload,
-                    headers=headers
-                )
-                
-                logger.info(f"📨 FAL concat response status: {response.status_code}")
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    logger.info(f"📨 FAL concat result: {result}")
-                    
-                    # Get video URL from response
-                    video_url = (
-                        result.get("video", {}).get("url") or
-                        result.get("video_url") or
-                        result.get("output_url") or
-                        result.get("url")
-                    )
-                    
-                    if video_url:
-                        logger.info(f"✅ Video stitching complete: {video_url[:50]}...")
-                        return video_url
-                    else:
-                        logger.warning(f"⚠️ No video URL in concat response: {result}")
-                        raise Exception("No video URL in concat response")
-                else:
-                    error_text = response.text
-                    logger.error(f"❌ FAL concat API error ({response.status_code}): {error_text}")
-                    raise Exception(f"FAL concat API error: {response.status_code} - {error_text}")
-            
-        except Exception as e:
-            logger.error(f"❌ Video stitching failed: {e}")
-            logger.warning(f"⚠️ Fallback: returning all video URLs for sequential playback")
-            # Fallback: return all video URLs - frontend can play them sequentially
-            # We return the first one as the "final" but the full list is in video_urls
-            return video_urls[0]  # First video as thumbnail/preview
+        # Les clips sont prêts pour lecture en playlist seamless
+        # Le frontend VideoPlaylist les jouera automatiquement en séquence
+        logger.info(f"✅ {len(video_urls)} clips prêts pour lecture en playlist automatique")
+        logger.info(f"📺 Durée totale: {len(video_urls) * self.clip_duration}s")
+        
+        # Return first video as preview/thumbnail
+        # The full list video_urls is available in the result for playlist playback
+        return video_urls[0]
     
     async def _wait_for_fal_result(
         self,
