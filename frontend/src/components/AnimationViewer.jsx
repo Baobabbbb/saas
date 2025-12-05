@@ -3,46 +3,67 @@ import { API_BASE_URL, ANIMATION_API_BASE_URL } from '../config/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import './AnimationViewer.css';
 
-// Composant pour jouer les clips en séquence fluide (comme un vrai film)
+// Composant pour jouer les clips en séquence ULTRA-FLUIDE (comme un vrai film Disney)
 const VideoPlaylist = ({ clips }) => {
   const [currentClipIndex, setCurrentClipIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [allPreloaded, setAllPreloaded] = useState(false);
   const videoRef = useRef(null);
-  const nextVideoRef = useRef(null);
+  const preloadedVideos = useRef([]);
 
   const currentClip = clips[currentClipIndex];
-  const nextClip = clips[currentClipIndex + 1];
   const videoUrl = currentClip?.video_url || currentClip?.clip_url;
-  const nextVideoUrl = nextClip?.video_url || nextClip?.clip_url;
 
-  // Précharger le prochain clip pour transition fluide
+  // Précharger TOUS les clips au démarrage pour transitions instantanées
   useEffect(() => {
-    if (nextVideoUrl && nextVideoRef.current) {
-      nextVideoRef.current.src = nextVideoUrl;
-      nextVideoRef.current.load();
-    }
-  }, [currentClipIndex, nextVideoUrl]);
+    const preloadAll = async () => {
+      preloadedVideos.current = [];
+      for (let i = 0; i < clips.length; i++) {
+        const clip = clips[i];
+        const url = clip?.video_url || clip?.clip_url;
+        if (url) {
+          const video = document.createElement('video');
+          video.src = url;
+          video.preload = 'auto';
+          video.muted = true;
+          preloadedVideos.current.push(video);
+          // Déclencher le chargement
+          video.load();
+        }
+      }
+      // Attendre un peu pour que le préchargement commence
+      setTimeout(() => setAllPreloaded(true), 500);
+    };
+    preloadAll();
+  }, [clips]);
 
-  // Passer au clip suivant automatiquement (transition fluide)
+  // Transition INSTANTANÉE au clip suivant
   const handleVideoEnded = () => {
     if (currentClipIndex < clips.length - 1) {
-      setIsLoading(true);
-      setCurrentClipIndex(prev => prev + 1);
-      // Transition rapide
-      setTimeout(() => setIsLoading(false), 100);
+      setIsTransitioning(true);
+      // Transition quasi-instantanée pour effet film continu
+      requestAnimationFrame(() => {
+        setCurrentClipIndex(prev => prev + 1);
+        setIsTransitioning(false);
+      });
     } else {
       // Boucle vers le début
       setCurrentClipIndex(0);
     }
   };
 
-  // Jouer le clip quand il change
+  // Démarrer la lecture immédiatement quand le clip change
   useEffect(() => {
     if (videoRef.current && isPlaying) {
-      videoRef.current.play().catch(() => {});
+      // Lecture immédiate sans délai
+      videoRef.current.currentTime = 0;
+      const playPromise = videoRef.current.play();
+      if (playPromise) {
+        playPromise.catch(() => {});
+      }
     }
-  }, [currentClipIndex, isPlaying]);
+  }, [currentClipIndex, isPlaying, videoUrl]);
 
   // Calculer la durée totale
   const totalDuration = clips.length * 5; // 5 secondes par clip (modèle fast)
@@ -72,23 +93,32 @@ const VideoPlaylist = ({ clips }) => {
           muted={false}
           preload="auto"
           onEnded={handleVideoEnded}
-          onCanPlay={() => setIsLoading(false)}
           style={{
             width: '100%',
             height: 'auto',
             aspectRatio: '16/9',
             display: 'block',
-            opacity: isLoading ? 0.7 : 1,
-            transition: 'opacity 0.2s ease'
+            opacity: isTransitioning ? 0.95 : 1,
+            transition: 'opacity 0.05s ease',
+            objectFit: 'cover'
           }}
         />
         
-        {/* Préchargement du prochain clip (invisible) */}
-        <video
-          ref={nextVideoRef}
-          style={{ display: 'none' }}
-          preload="auto"
-        />
+        {/* Indicateur de préchargement */}
+        {!allPreloaded && (
+          <div style={{
+            position: 'absolute',
+            bottom: '12px',
+            right: '12px',
+            background: 'rgba(0,0,0,0.7)',
+            color: '#4ade80',
+            padding: '4px 8px',
+            borderRadius: '12px',
+            fontSize: '10px'
+          }}>
+            ⏳ Préchargement...
+          </div>
+        )}
 
         {/* Badge de scène */}
         <div style={{

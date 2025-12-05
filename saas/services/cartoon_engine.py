@@ -58,9 +58,9 @@ class WanVideoOrchestrator:
     WAN25_ENDPOINT = "/alibaba/wan-2.5/text-to-video-fast"  # URL correcte selon doc WaveSpeed
     FAL_FFMPEG_URL = "https://queue.fal.run/fal-ai/ffmpeg-api/compose"
     
-    # Default settings optimized for high-quality cartoon animation
-    DEFAULT_NEGATIVE_PROMPT = "nsfw, distorted, morphing, text, watermark, scary, horror, violence, blood, dark, creepy, blurry, low quality, bad anatomy, deformed, ugly, amateur"
-    DEFAULT_STYLE = "Professional 3D animated movie scene, Pixar Disney DreamWorks animation quality, cinematic lighting, smooth fluid motion, highly detailed characters, beautiful backgrounds, 4K quality animation, movie-quality rendering"
+    # Default settings optimized for Disney/Pixar quality animation
+    DEFAULT_NEGATIVE_PROMPT = "nsfw, distorted, morphing, text, watermark, scary, horror, violence, blood, dark, creepy, blurry, low quality, bad anatomy, deformed, ugly, amateur, inconsistent style, different art style, changing appearance, jump cut, abrupt transition"
+    DEFAULT_STYLE = "Disney Pixar animated movie, consistent character design throughout, seamless continuous animation, same art style and lighting in every frame, professional 3D animation, cinematic composition, warm soft lighting, rich vibrant colors, smooth fluid motion, highly detailed expressive characters, beautiful detailed backgrounds, 4K movie quality"
     
     def __init__(
         self,
@@ -248,57 +248,72 @@ class WanVideoOrchestrator:
     
     def _build_script_system_prompt(self, num_scenes: int, style: str) -> str:
         """Build the system prompt for script generation."""
-        return f"""You are a PROFESSIONAL animation director at Pixar/DreamWorks creating a cohesive animated short film.
+        return f"""You are a DISNEY PIXAR animation director creating a seamless animated short film.
 
-CRITICAL MISSION: Create {num_scenes} scenes that form ONE CONTINUOUS, COHERENT STORY like a real animated movie.
+CRITICAL MISSION: Create {num_scenes} scenes that flow SEAMLESSLY like ONE CONTINUOUS SHOT from a Disney movie.
 
-VISUAL CONSISTENCY RULES (EXTREMELY IMPORTANT):
-1. Define ONE main character with EXACT visual details that NEVER change
-2. The IDENTICAL character description must appear WORD-FOR-WORD in EVERY scene
-3. Same setting/environment style throughout (consistent art direction)
-4. Continuous story flow - each scene directly follows the previous one
+═══════════════════════════════════════════════════════════════════════════════
+VISUAL CONSISTENCY - ABSOLUTE REQUIREMENT (READ CAREFULLY)
+═══════════════════════════════════════════════════════════════════════════════
 
-STORY STRUCTURE:
-- Scene 1: Character introduction in their environment
-- Scenes 2-{num_scenes-1}: Sequential story progression (cause and effect)
-- Scene {num_scenes}: Satisfying conclusion
+1. CHARACTER CONSISTENCY:
+   - Create ONE character with ULTRA-SPECIFIC visual details
+   - Use EXACT SAME description WORD-FOR-WORD in EVERY scene
+   - Include: exact colors (use specific names like "bright coral pink"), exact features, exact clothing
+   - Example: "A small round bunny with soft lavender fur, big sparkling violet eyes with long eyelashes, tiny pink nose, wearing a golden crown with a single ruby gem"
 
-ANIMATION QUALITY:
-- High-end 3D animation quality (Pixar/DreamWorks level)
-- Cinematic composition and lighting
-- Smooth, fluid character animation
-- Rich, detailed backgrounds
-- Professional movie quality
+2. ART STYLE CONSISTENCY:
+   - SAME lighting style in every scene (warm golden sunlight / soft moonlight / etc.)
+   - SAME color palette throughout (specify 3-4 dominant colors)
+   - SAME level of detail and rendering style
+   - SAME camera distance and framing style
 
-CHARACTER DESIGN RULES:
-- Create ONE distinctive character with SPECIFIC visual traits
-- Include: species/type, colors, clothing, accessories, distinctive features
-- Example: "A fluffy orange cat with emerald green eyes, wearing a small purple wizard hat with golden stars and a matching purple cape"
-- This EXACT description appears at the START of every scene!
+3. SEAMLESS TRANSITIONS:
+   - Each scene CONTINUES directly from the previous one
+   - Use transitional phrases: "then", "next", "moments later", "as the sun sets"
+   - NO abrupt location changes - gradual environment evolution
+   - Character maintains same pose/direction at scene boundaries when possible
 
-OUTPUT FORMAT (strict JSON):
+═══════════════════════════════════════════════════════════════════════════════
+STORY STRUCTURE FOR {num_scenes} SCENES
+═══════════════════════════════════════════════════════════════════════════════
+
+Scene 1: OPENING - Introduce character in a beautiful establishing shot
+Scenes 2-{max(2, num_scenes-2)}: JOURNEY - Continuous adventure, each scene flows into next
+Scene {num_scenes}: HEARTWARMING ENDING - Character achieves goal, warm emotional conclusion
+
+═══════════════════════════════════════════════════════════════════════════════
+OUTPUT FORMAT (STRICT JSON)
+═══════════════════════════════════════════════════════════════════════════════
+
 {{
-    "title": "Engaging title (3-5 words)",
-    "synopsis": "Full story summary showing narrative arc",
-    "setting": "Detailed environment description",
-    "mood": "magical/adventurous/heartwarming",
+    "title": "Magical title (3-5 words)",
+    "synopsis": "Full story arc description",
+    "setting": "Consistent environment description used throughout",
+    "mood": "heartwarming/magical/adventurous",
+    "art_direction": {{
+        "lighting": "Warm golden sunlight with soft shadows",
+        "color_palette": ["#FFD700", "#87CEEB", "#98FB98", "#FFB6C1"],
+        "style": "Disney Pixar 3D animation, soft rounded shapes, expressive eyes"
+    }},
     "main_character": {{
         "name": "Character name",
-        "visual_description": "DETAILED, SPECIFIC description that will be copied into every scene - be very precise about colors, features, clothing",
-        "personality_traits": ["trait1", "trait2", "trait3"],
-        "color_palette": ["#hex1", "#hex2", "#hex3"]
+        "visual_description": "ULTRA-DETAILED description: A [specific adjective] [animal/creature] with [exact color] [feature], [exact color] [feature], wearing [exact clothing with colors]. [Additional distinctive features].",
+        "personality_traits": ["curious", "brave", "kind"],
+        "signature_expression": "wide sparkling eyes and a gentle smile"
     }},
     "scenes": [
         {{
             "scene_number": 1,
-            "visual_description": "[COPY CHARACTER DESCRIPTION HERE]. [Specific action in this scene]. [Background/environment details]. [Lighting/mood details]",
-            "camera_angle": "establishing wide shot / medium shot / close-up / tracking shot",
-            "audio_description": "Orchestral music mood, ambient sounds"
+            "visual_description": "[PASTE EXACT CHARACTER DESCRIPTION]. [Character's action - be specific about movement]. [Environment details matching art_direction]. Disney Pixar 3D animation style, [lighting from art_direction].",
+            "transition_from_previous": "Opening shot",
+            "camera_angle": "wide establishing shot slowly zooming in",
+            "audio_description": "Gentle orchestral music begins"
         }}
     ]
 }}
 
-REMEMBER: The visual_description in EACH scene MUST start with the EXACT same character description for visual consistency across clips!"""
+CRITICAL: Every visual_description MUST start with the EXACT character description, then add scene-specific action, then add consistent environment and lighting details!"""
 
     def _build_script_user_prompt(
         self,
@@ -309,19 +324,27 @@ REMEMBER: The visual_description in EACH scene MUST start with the EXACT same ch
         character_name: Optional[str]
     ) -> str:
         """Build the user prompt for script generation."""
-        prompt = f"""Create a magical {style} animated short film about: {theme}
+        prompt = f"""Create a DISNEY PIXAR quality animated short film about: {theme}
 
-Requirements:
-- {num_scenes} scenes of {self.clip_duration} seconds each
-- Complete story arc (beginning, middle, happy ending)
-- Child-friendly, positive, educational if possible
-- Vibrant colors and expressive characters"""
+CRITICAL REQUIREMENTS:
+- Exactly {num_scenes} scenes of {self.clip_duration} seconds each
+- ONE adorable main character with IDENTICAL appearance in EVERY single scene
+- Scenes must flow SEAMLESSLY like a real Disney movie - no visible cuts
+- Each scene continues DIRECTLY from where the previous one ended
+- SAME art style, warm lighting, and vibrant colors throughout ALL scenes
+- Heartwarming story with emotional happy ending
+
+FOR SEAMLESS FLOW BETWEEN SCENES:
+- End of Scene N and start of Scene N+1 must connect smoothly
+- Use transitional movements (character turns, walks forward, looks up, etc.)
+- Maintain consistent time of day, weather, and lighting across scenes
+- The CHARACTER DESCRIPTION must be WORD-FOR-WORD identical in every scene"""
         
         if character_name:
-            prompt += f"\n- Main character should be named '{character_name}'"
+            prompt += f"\n\nMain character name: {character_name}"
         
         if custom_prompt:
-            prompt += f"\n- Additional instructions: {custom_prompt}"
+            prompt += f"\n\nStory inspiration: {custom_prompt}"
         
         return prompt
     
