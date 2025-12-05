@@ -1718,7 +1718,7 @@ const downloadPDF = async (title, content) => {
           🎬 {animationResult.title || 'Votre Dessin Animé'}
         </h3>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-          {animationResult.clips?.length || 6} scènes • ~{(animationResult.clips?.length || 6) * 10}s de vidéo
+          {animationResult.clips?.length || Math.floor((animationResult.duration_seconds || 30) / 10)} scènes • ~{animationResult.duration_seconds || (animationResult.clips?.length || 3) * 10}s de vidéo
         </p>
       </div>
       <button
