@@ -95,17 +95,23 @@ class Scene(BaseModel):
     def build_wan_prompt(self, character_sheet: Optional[CharacterSheet] = None) -> str:
         """
         Build the complete prompt for Wan 2.5 API.
-        Format: {Visual_Description} + {Character_Sheet} + {Camera_Angle}. Soundtrack: {Audio_Description}
+        Format optimized for cartoon animation generation.
         """
-        parts = [self.visual_description]
+        parts = []
         
+        # Start with character description for consistency
         if character_sheet:
             parts.append(f"Main character: {character_sheet.visual_description}")
         
-        parts.append(f"Camera: {self.camera_angle}")
+        # Add scene visual description
+        parts.append(self.visual_description)
         
+        # Add camera angle
+        parts.append(f"Camera angle: {self.camera_angle}")
+        
+        # Add atmosphere/mood if available
         if self.audio_description:
-            parts.append(f"Soundtrack: {self.audio_description}")
+            parts.append(f"Atmosphere: {self.audio_description}")
         
         return ". ".join(parts)
 

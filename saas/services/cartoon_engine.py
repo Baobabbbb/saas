@@ -58,9 +58,9 @@ class WanVideoOrchestrator:
     WAN25_ENDPOINT = "/alibaba/wan-2.5/text-to-video-fast"  # URL correcte selon doc WaveSpeed
     FAL_FFMPEG_URL = "https://queue.fal.run/fal-ai/ffmpeg-api/compose"
     
-    # Default settings optimized for children's content
-    DEFAULT_NEGATIVE_PROMPT = "nsfw, distorted, morphing, text, watermark, scary, horror, violence, blood, dark, creepy"
-    DEFAULT_STYLE = "2D cartoon animation, Disney Pixar style, child-friendly, vibrant colors, smooth fluid animation, expressive characters"
+    # Default settings optimized for children's cartoon content
+    DEFAULT_NEGATIVE_PROMPT = "nsfw, distorted, morphing, text, watermark, scary, horror, violence, blood, dark, creepy, realistic, photorealistic, live action"
+    DEFAULT_STYLE = "High-quality 2D cartoon animation, Disney Pixar Dreamworks style, colorful children's cartoon, expressive animated characters, smooth animation, vibrant saturated colors, professional cartoon quality"
     
     def __init__(
         self,
@@ -248,39 +248,49 @@ class WanVideoOrchestrator:
     
     def _build_script_system_prompt(self, num_scenes: int, style: str) -> str:
         """Build the system prompt for script generation."""
-        return f"""You are a professional children's animation scriptwriter creating a "Series Bible" for a short animated video.
+        return f"""You are a PROFESSIONAL children's cartoon animation scriptwriter at Disney/Pixar creating a complete animated short film.
 
-Your task is to create a complete, production-ready script with:
-1. A MAIN CHARACTER with precise, consistent visual description
-2. Exactly {num_scenes} connected scenes that form a complete story
-3. Each scene must be suitable for a {self.clip_duration}-second video clip
+Your task is to create a COHESIVE STORY with:
+1. ONE MAIN CHARACTER with EXACT visual description (same in every scene!)
+2. Exactly {num_scenes} scenes that tell ONE COMPLETE STORY with beginning, middle, and happy ending
+3. Each scene is a {self.clip_duration}-second animated clip
 
-CRITICAL RULES:
-- The animation is for children aged 4-10 years old
-- ONLY positive, friendly, magical, joyful content
-- NO scary elements, violence, danger, or negative emotions
-- The main character description MUST be included in EVERY scene prompt for visual consistency
-- Each scene must have a clear camera angle and audio description
-- Style: {style} animation, vibrant colors, expressive characters
+STORY STRUCTURE REQUIREMENTS:
+- Scene 1: INTRODUCTION - Introduce character and setting
+- Scene 2-{num_scenes-1}: ADVENTURE/PROBLEM - Character faces a challenge or goes on adventure  
+- Scene {num_scenes}: HAPPY ENDING - Resolution, character learned something or achieved goal
 
-OUTPUT FORMAT: Return ONLY valid JSON with this exact structure:
+CRITICAL VISUAL RULES:
+- The EXACT SAME character description MUST appear in EVERY scene
+- Example: "A small blue bunny with big pink ears and a yellow star on its forehead"
+- EVERY visual_description must START with this character description
+- Use BRIGHT, COLORFUL cartoon visuals
+- Style: {style} animation like Disney/Pixar shorts
+
+ANIMATION STYLE:
+- 2D or 3D cartoon animation (NOT realistic)
+- Expressive character emotions
+- Vibrant colors, soft lighting
+- Child-friendly, magical, whimsical
+
+OUTPUT FORMAT: Return ONLY valid JSON:
 {{
-    "title": "Short catchy title",
-    "synopsis": "2-3 sentence story summary",
-    "setting": "Where the story takes place",
-    "mood": "Overall mood (joyful, adventurous, magical, etc.)",
+    "title": "Catchy title (3-5 words)",
+    "synopsis": "One paragraph story summary",
+    "setting": "Colorful cartoon location",
+    "mood": "joyful/magical/adventurous",
     "main_character": {{
         "name": "Character name",
-        "visual_description": "PRECISE visual description for consistency (e.g., 'A chubby orange fox with bright amber eyes, wearing a small blue backpack with golden stars')",
-        "personality_traits": ["trait1", "trait2", "trait3"],
-        "color_palette": ["#hex1", "#hex2", "#hex3"]
+        "visual_description": "EXACT visual description to repeat in every scene (e.g., 'A small blue bunny with big pink ears, a yellow star on its forehead, and a tiny red cape')",
+        "personality_traits": ["curious", "brave", "kind"],
+        "color_palette": ["#4A90D9", "#FF69B4", "#FFD700"]
     }},
     "scenes": [
         {{
             "scene_number": 1,
-            "visual_description": "What happens visually (MUST include character description)",
-            "camera_angle": "medium shot / close-up / wide shot / etc.",
-            "audio_description": "Background music and sound effects"
+            "visual_description": "[CHARACTER DESCRIPTION]. [What character does in this scene]. [Setting/background details]",
+            "camera_angle": "wide shot / medium shot / close-up",
+            "audio_description": "Happy cartoon music, sound effects"
         }}
     ]
 }}"""
@@ -391,11 +401,14 @@ Requirements:
             logger.info(f"🎬 Generating clip for Scene {scene.scene_number}: {scene.visual_description[:50]}...")
             
             try:
-                # Build the complete prompt
+                # Build the complete prompt for cartoon animation
                 full_prompt = scene.build_wan_prompt(character_sheet)
                 
-                # Add style prefix
-                styled_prompt = f"{self.DEFAULT_STYLE}. {full_prompt}"
+                # Add style prefix for high-quality cartoon
+                styled_prompt = f"Animated cartoon scene. {self.DEFAULT_STYLE}. {full_prompt}"
+                
+                # Log the prompt for debugging
+                logger.info(f"🎨 Prompt for Scene {scene.scene_number}: {styled_prompt[:100]}...")
                 
                 # Truncate if too long (API limit)
                 if len(styled_prompt) > 1500:
@@ -688,9 +701,10 @@ Requirements:
             
         except Exception as e:
             logger.error(f"❌ Video stitching failed: {e}")
-            logger.warning(f"⚠️ Fallback: returning first video as final result")
-            # Fallback: return first video URL instead of failing completely
-            return video_urls[0]
+            logger.warning(f"⚠️ Fallback: returning all video URLs for sequential playback")
+            # Fallback: return all video URLs - frontend can play them sequentially
+            # We return the first one as the "final" but the full list is in video_urls
+            return video_urls[0]  # First video as thumbnail/preview
     
     async def _wait_for_fal_result(
         self,
