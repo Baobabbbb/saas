@@ -55,7 +55,7 @@ class WanVideoOrchestrator:
     
     # API Configuration
     WAVESPEED_BASE_URL = "https://api.wavespeed.ai/api/v3"
-    WAN25_ENDPOINT = "/alibaba/alibaba-wan-2.5-text-to-video-fast"
+    WAN25_ENDPOINT = "/alibaba/wan-2.5/text-to-video-fast"  # URL correcte selon doc WaveSpeed
     FAL_FFMPEG_URL = "https://queue.fal.run/fal-ai/ffmpeg-api/compose"
     
     # Default settings optimized for children's content
@@ -369,7 +369,7 @@ Requirements:
         self,
         scene: Scene,
         character_sheet: Optional[CharacterSheet] = None,
-        aspect_ratio: str = "9:16",
+        aspect_ratio: str = "16:9",
         resolution: str = "720p"
     ) -> Scene:
         """
@@ -381,7 +381,7 @@ Requirements:
         Args:
             scene: Scene object with prompt
             character_sheet: Optional character sheet for consistency
-            aspect_ratio: Video aspect ratio (default: 9:16 for vertical)
+            aspect_ratio: Video aspect ratio (default: 16:9 for horizontal)
             resolution: Video resolution (default: 720p)
             
         Returns:
@@ -401,13 +401,24 @@ Requirements:
                 if len(styled_prompt) > 1500:
                     styled_prompt = styled_prompt[:1497] + "..."
                 
-                # Prepare WaveSpeed API request
+                # Map aspect_ratio and resolution to WaveSpeed "size" format
+                # WaveSpeed accepts: 1280*720, 720*1280, 1920*1080, 1080*1920
+                size_mapping = {
+                    ("16:9", "720p"): "1280*720",
+                    ("9:16", "720p"): "720*1280",
+                    ("16:9", "1080p"): "1920*1080",
+                    ("9:16", "1080p"): "1080*1920",
+                }
+                size = size_mapping.get((aspect_ratio, resolution), "1280*720")
+                
+                # Prepare WaveSpeed API request (according to official documentation)
                 payload = {
                     "prompt": styled_prompt,
                     "negative_prompt": self.DEFAULT_NEGATIVE_PROMPT,
-                    "aspect_ratio": aspect_ratio,
-                    "duration": scene.duration_seconds,
-                    "resolution": resolution
+                    "size": size,  # WaveSpeed format: "1280*720"
+                    "duration": min(scene.duration_seconds, 10),  # Max 10 seconds
+                    "enable_prompt_expansion": False,
+                    "seed": -1
                 }
                 
                 headers = {
@@ -417,10 +428,10 @@ Requirements:
                 
                 api_url = f"{self.WAVESPEED_BASE_URL}{self.WAN25_ENDPOINT}"
                 logger.info(f"📡 POST {api_url}")
-                logger.debug(f"📦 Payload: {payload}")
+                logger.info(f"📦 Payload: size={size}, duration={payload['duration']}")
                 
                 # Make the request
-                async with httpx.AsyncClient(timeout=30.0) as client:
+                async with httpx.AsyncClient(timeout=60.0) as client:
                     response = await client.post(api_url, json=payload, headers=headers)
                     
                     if response.status_code != 200:
@@ -429,6 +440,8 @@ Requirements:
                         raise httpx.HTTPError(f"WaveSpeed API error: {response.status_code} - {error_text}")
                     
                     result = response.json()
+                    logger.info(f"📨 WaveSpeed response: {result}")
+                    
                     prediction_id = result.get("data", {}).get("id") or result.get("id")
                     
                     if not prediction_id:
@@ -529,7 +542,7 @@ Requirements:
     async def generate_all_clips(
         self,
         script: Script,
-        aspect_ratio: str = "9:16",
+        aspect_ratio: str = "16:9",
         resolution: str = "720p",
         on_progress: Optional[callable] = None
     ) -> List[Scene]:
@@ -541,8 +554,8 @@ Requirements:
         
         Args:
             script: Script with scenes to generate
-            aspect_ratio: Video aspect ratio
-            resolution: Video resolution
+            aspect_ratio: Video aspect ratio (16:9 or 9:16)
+            resolution: Video resolution (720p or 1080p)
             on_progress: Optional callback for progress updates
             
         Returns:
