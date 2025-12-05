@@ -50,7 +50,7 @@ class WanVideoOrchestrator:
         openai_api_key: OpenAI API key for script generation
         fal_api_key: FAL AI API key for video stitching
         max_concurrent_clips: Maximum concurrent clip generation (semaphore limit)
-        clip_duration: Duration per clip in seconds (5s for Wan 2.5)
+        clip_duration: Duration per clip in seconds (10s for Wan 2.5)
     """
     
     # API Configuration
@@ -69,7 +69,7 @@ class WanVideoOrchestrator:
         fal_api_key: Optional[str] = None,
         supabase_client: Optional[Any] = None,
         max_concurrent_clips: int = 5,
-        clip_duration: int = 5
+        clip_duration: int = 10
     ):
         """
         Initialize the WanVideoOrchestrator.
@@ -80,7 +80,7 @@ class WanVideoOrchestrator:
             fal_api_key: FAL AI API key (or from env FAL_API_KEY)
             supabase_client: Supabase client for database updates
             max_concurrent_clips: Max concurrent video generations (default: 5)
-            clip_duration: Duration per clip in seconds (default: 5 for Wan 2.5)
+            clip_duration: Duration per clip in seconds (default: 10 for Wan 2.5)
         """
         # Load API keys from environment or parameters
         self.wavespeed_api_key = wavespeed_api_key or os.getenv("WAVESPEED_API_KEY")
@@ -90,7 +90,7 @@ class WanVideoOrchestrator:
         
         # Configuration
         self.max_concurrent_clips = max_concurrent_clips
-        self.clip_duration = clip_duration
+        self.clip_duration = clip_duration  # 10 secondes par défaut pour clips plus longs
         self.semaphore = asyncio.Semaphore(max_concurrent_clips)
         
         # Text model for script generation

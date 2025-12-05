@@ -45,7 +45,7 @@ const VideoPlaylist = ({ clips }) => {
   }, [currentClipIndex, isPlaying]);
 
   // Calculer la durée totale
-  const totalDuration = clips.length * 5; // 5 secondes par clip
+  const totalDuration = clips.length * 10; // 10 secondes par clip
   const currentTime = currentClipIndex * 5;
   const progressPercent = ((currentClipIndex + 1) / clips.length) * 100;
 

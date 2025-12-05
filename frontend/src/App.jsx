@@ -1697,6 +1697,50 @@ const downloadPDF = async (title, content) => {
         📚 Lire la bande dessinée
       </button>
     </motion.div>
+  ) : animationResult && contentType === 'animation' ? (
+    <motion.div
+      className="generated-result"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      key="animation-result"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '1rem',
+        padding: '1rem'
+      }}
+    >
+      <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+        <h3 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>
+          🎬 {animationResult.title || 'Votre Dessin Animé'}
+        </h3>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+          {animationResult.clips?.length || 6} scènes • ~{(animationResult.clips?.length || 6) * 10}s de vidéo
+        </p>
+      </div>
+      <button
+        onClick={() => setShowAnimationViewer(true)}
+        style={{
+          padding: '0.8rem 2rem',
+          backgroundColor: '#6B4EFF',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '12px',
+          cursor: 'pointer',
+          fontWeight: '700',
+          fontSize: '1rem',
+          boxShadow: '0 4px 12px rgba(245, 240, 255, 0.3)',
+          transition: 'all 0.2s ease'
+        }}
+        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+      >
+        🎬 Voir le dessin animé
+      </button>
+    </motion.div>
   ) : generatedResult && contentType === 'rhyme' && generatedResult.suno_url && downloadReady ? (
     <motion.div
       className="generated-result"
