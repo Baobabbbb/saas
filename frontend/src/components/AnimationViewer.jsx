@@ -1,7 +1,107 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { API_BASE_URL, ANIMATION_API_BASE_URL } from '../config/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import './AnimationViewer.css';
+
+// Composant pour jouer les clips en séquence (playlist)
+const VideoPlaylist = ({ clips }) => {
+  const [currentClipIndex, setCurrentClipIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const videoRef = useRef(null);
+
+  const currentClip = clips[currentClipIndex];
+  const videoUrl = currentClip?.video_url || currentClip?.clip_url;
+
+  // Passer au clip suivant automatiquement
+  const handleVideoEnded = () => {
+    if (currentClipIndex < clips.length - 1) {
+      setCurrentClipIndex(currentClipIndex + 1);
+    } else {
+      // Boucle vers le début
+      setCurrentClipIndex(0);
+    }
+  };
+
+  // Jouer le clip quand il change
+  useEffect(() => {
+    if (videoRef.current && isPlaying) {
+      videoRef.current.play().catch(() => {});
+    }
+  }, [currentClipIndex, isPlaying]);
+
+  if (!videoUrl) {
+    return <div className="no-video">Aucune vidéo disponible</div>;
+  }
+
+  return (
+    <div className="video-playlist">
+      {/* Lecteur principal */}
+      <div className="main-video-container">
+        <video
+          ref={videoRef}
+          src={videoUrl}
+          className="final-animation-video"
+          controls
+          autoPlay
+          muted
+          preload="metadata"
+          onEnded={handleVideoEnded}
+          style={{
+            width: '100%',
+            maxWidth: '600px',
+            height: 'auto',
+            borderRadius: '12px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+            margin: '1rem 0'
+          }}
+        />
+      </div>
+
+      {/* Info de progression */}
+      <div className="playlist-info" style={{ textAlign: 'center', marginBottom: '1rem' }}>
+        <span style={{ 
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+          color: 'white', 
+          padding: '4px 12px', 
+          borderRadius: '12px',
+          fontSize: '14px'
+        }}>
+          Scène {currentClipIndex + 1} / {clips.length}
+        </span>
+      </div>
+
+      {/* Miniatures des clips */}
+      <div className="clips-thumbnails" style={{ 
+        display: 'flex', 
+        gap: '8px', 
+        overflowX: 'auto', 
+        padding: '8px',
+        justifyContent: 'center',
+        flexWrap: 'wrap'
+      }}>
+        {clips.map((clip, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentClipIndex(index)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: currentClipIndex === index ? '2px solid #667eea' : '2px solid #e0e0e0',
+              background: currentClipIndex === index ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'white',
+              color: currentClipIndex === index ? 'white' : '#333',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: currentClipIndex === index ? '600' : '400',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            🎬 Scène {index + 1}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const AnimationViewer = ({ animationResult, onClose }) => {
   const [activeTab, setActiveTab] = useState('video');
@@ -154,16 +254,28 @@ const AnimationViewer = ({ animationResult, onClose }) => {
               >
                 {hasVideo ? (
                   <div className="video-player">
-                    {/* VIDÉO FINALE ASSEMBLÉE EN PREMIER */}
-                    {(animationResult.final_video_url || animationResult.result?.final_video_url) ? (
+                    {/* TOUJOURS AFFICHER LES CLIPS EN PLAYLIST */}
+                    {actualClips.length > 0 ? (
                       <div className="final-animation">
                         <div className="video-icon">🎬</div>
                         <h3>🎉 {animationResult.title || 'Votre dessin animé est prêt !'}</h3>
                         <p>
-                          Animation complète de {formatTime(total_duration || animationResult.duration)} avec {successful_clips || totalClips} scènes.
+                          Animation de {formatTime(total_duration || animationResult.duration)} avec {actualClips.length} scènes.
+                          {actualClips.length > 1 && ' Cliquez sur une scène pour la voir.'}
                         </p>
                         
-                        {/* LECTEUR VIDÉO PRINCIPAL */}
+                        {/* LECTEUR VIDÉO AVEC PLAYLIST */}
+                        <VideoPlaylist clips={actualClips} />
+                      </div>
+                    ) : (animationResult.final_video_url || animationResult.result?.final_video_url) ? (
+                      <div className="final-animation">
+                        <div className="video-icon">🎬</div>
+                        <h3>🎉 {animationResult.title || 'Votre dessin animé est prêt !'}</h3>
+                        <p>
+                          Animation complète de {formatTime(total_duration || animationResult.duration)}.
+                        </p>
+                        
+                        {/* LECTEUR VIDÉO PRINCIPAL (fallback) */}
                         <div className="main-video-container">
                           <video 
                             src={animationResult.final_video_url || animationResult.result?.final_video_url}
@@ -181,9 +293,8 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                               boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
                               margin: '1rem 0'
                             }}
-                            onLoadedData={() => {/* console.log('✅ Animation finale chargée!') */}}
+                            onLoadedData={() => {}}
                             onError={(e) => {
-                              // console.log('❌ Erreur vidéo finale:', e.target.src);
                               e.target.style.display = 'none';
                             }}
                           />
