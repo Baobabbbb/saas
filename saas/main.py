@@ -35,17 +35,12 @@ from services.stt import transcribe_audio
 # Authentification gérée par Supabase - modules supprimés car inutiles avec Vercel
 from services.coloring_generator_gpt4o import ColoringGeneratorGPT4o
 from services.comics_generator_gpt4o import ComicsGeneratorGPT4o
-from services.real_animation_generator import RealAnimationGenerator
-from services.local_animation_generator import LocalAnimationGenerator
-from services.sora2_zseedance_generator import Sora2ZseedanceGenerator
-from services.sora2_generator import Sora2Generator
-# Nouveau système Wan 2.5 via WaveSpeed API
+# Système de dessins animés Wan 2.5 via WaveSpeed API
 from services.cartoon_engine import WanVideoOrchestrator, get_wan_orchestrator, is_wan_orchestrator_available
 from schemas.cartoon import GenerationRequest, GenerationStatus
 from utils.translate import translate_text
 from routes.admin_features import router as admin_features_router, load_features_config, CONFIG_FILE
-# from models.animation import AnimationRequest
-# Validation et sécurité supprimées car gérées automatiquement par Vercel + Supabase
+# Validation et sécurité gérées par Supabase
 
 # Service d'unicité pour éviter les doublons
 from services.uniqueness_service import uniqueness_service
@@ -1860,34 +1855,6 @@ async def get_animation_status(task_id: str):
         print(f"❌ Erreur récupération statut: {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération du statut : {str(e)}")
 
-
-async def generate_sora2_animation_task(task_id: str, theme: str, duration: int):
-    """
-    Tâche en arrière-plan pour la génération Sora 2 d'animation
-    """
-    try:
-        print(f"🚀 Démarrage génération Sora 2 pour {task_id}")
-
-        # Mettre à jour le statut
-        task_storage[task_id]["status"] = "generating"
-
-        # Utiliser le générateur Sora 2
-        generator = Sora2Generator()
-        print(f"🎬 Utilisation de SORA 2 (plateforme: {generator.selected_platform})")
-
-        # Générer l'animation Sora 2
-        animation_result = await generator.generate_complete_animation(theme, duration)
-
-        # Stocker le résultat
-        task_storage[task_id]["result"] = animation_result
-        task_storage[task_id]["status"] = "completed"
-
-        print(f"✅ Animation Sora 2 {task_id} générée avec succès!")
-
-    except Exception as e:
-        print(f"❌ Erreur génération Sora 2 {task_id}: {e}")
-        task_storage[task_id]["status"] = "failed"
-        task_storage[task_id]["error"] = str(e)
 
 # === ROUTES D'AUTHENTIFICATION JWT ===
 
