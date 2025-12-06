@@ -98,7 +98,7 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, user
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.6 }}
         >
-          Les dessins animés sont disponibles mais la qualité peut varier.
+          La qualité et cohérence des dessins animés peut grandement varier.
         </motion.p>
       </div>
       
