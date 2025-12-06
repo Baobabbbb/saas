@@ -248,72 +248,86 @@ class WanVideoOrchestrator:
     
     def _build_script_system_prompt(self, num_scenes: int, style: str) -> str:
         """Build the system prompt for script generation."""
-        return f"""You are a DISNEY PIXAR animation director creating a seamless animated short film.
-
-CRITICAL MISSION: Create {num_scenes} scenes that flow SEAMLESSLY like ONE CONTINUOUS SHOT from a Disney movie.
-
-═══════════════════════════════════════════════════════════════════════════════
-VISUAL CONSISTENCY - ABSOLUTE REQUIREMENT (READ CAREFULLY)
-═══════════════════════════════════════════════════════════════════════════════
-
-1. CHARACTER CONSISTENCY:
-   - Create ONE character with ULTRA-SPECIFIC visual details
-   - Use EXACT SAME description WORD-FOR-WORD in EVERY scene
-   - Include: exact colors (use specific names like "bright coral pink"), exact features, exact clothing
-   - Example: "A small round bunny with soft lavender fur, big sparkling violet eyes with long eyelashes, tiny pink nose, wearing a golden crown with a single ruby gem"
-
-2. ART STYLE CONSISTENCY:
-   - SAME lighting style in every scene (warm golden sunlight / soft moonlight / etc.)
-   - SAME color palette throughout (specify 3-4 dominant colors)
-   - SAME level of detail and rendering style
-   - SAME camera distance and framing style
-
-3. SEAMLESS TRANSITIONS:
-   - Each scene CONTINUES directly from the previous one
-   - Use transitional phrases: "then", "next", "moments later", "as the sun sets"
-   - NO abrupt location changes - gradual environment evolution
-   - Character maintains same pose/direction at scene boundaries when possible
+        
+        # Map style to specific visual instructions
+        style_mapping = {
+            "3d": "High-quality 3D CGI animation like Pixar/DreamWorks, smooth plastic-like textures, volumetric lighting, ray-traced reflections",
+            "cartoon": "Classic 2D cartoon animation like Disney classics, bold outlines, flat colors, squash and stretch animation",
+            "anime": "Japanese anime style like Studio Ghibli, large expressive eyes, detailed backgrounds, soft color gradients",
+            "realistic": "Photorealistic CGI animation, lifelike textures, natural lighting, cinematic depth of field"
+        }
+        style_description = style_mapping.get(style.lower(), style_mapping["3d"])
+        
+        return f"""You are a MASTER STORYTELLER creating a {num_scenes}-scene animated short film.
 
 ═══════════════════════════════════════════════════════════════════════════════
-STORY STRUCTURE FOR {num_scenes} SCENES
+🎬 ANIMATION STYLE: {style.upper()}
 ═══════════════════════════════════════════════════════════════════════════════
-
-Scene 1: OPENING - Introduce character in a beautiful establishing shot
-Scenes 2-{max(2, num_scenes-2)}: JOURNEY - Continuous adventure, each scene flows into next
-Scene {num_scenes}: HEARTWARMING ENDING - Character achieves goal, warm emotional conclusion
+Visual Style: {style_description}
 
 ═══════════════════════════════════════════════════════════════════════════════
-OUTPUT FORMAT (STRICT JSON)
+📖 STORY REQUIREMENTS - CREATE A REAL NARRATIVE!
+═══════════════════════════════════════════════════════════════════════════════
+
+Your story MUST have:
+
+1. **A CLEAR GOAL** - The main character WANTS something (find a friend, discover treasure, help someone, learn something)
+
+2. **A PROBLEM/CONFLICT** - Something prevents the character from achieving their goal (obstacle, fear, misunderstanding, challenge)
+
+3. **CHARACTER INTERACTIONS** - Show:
+   - Emotional reactions (joy, surprise, determination, worry, relief)
+   - Physical actions (running, jumping, hugging, dancing, exploring)
+   - Interactions with environment or other characters
+
+4. **STORY ARC across {num_scenes} scenes**:
+   - Scene 1: SETUP - Introduce character + their desire/goal
+   - Scene 2: JOURNEY BEGINS - Character takes action toward goal
+   - Scenes 3-{max(3, num_scenes-1)}: ADVENTURE + CHALLENGE - Obstacles, discoveries, emotional moments
+   - Scene {num_scenes}: RESOLUTION - Character achieves goal, emotional happy ending
+
+═══════════════════════════════════════════════════════════════════════════════
+🎨 VISUAL CONSISTENCY RULES
+═══════════════════════════════════════════════════════════════════════════════
+
+1. **CHARACTER**: Create ONE detailed character. Copy EXACT description in EVERY scene.
+   Example: "A tiny orange fox with fluffy white-tipped tail, bright amber eyes, wearing a small blue scarf with yellow stars"
+
+2. **EACH SCENE must describe**:
+   - The EXACT character description (copy-paste)
+   - What the character is DOING (specific action verb)
+   - What EMOTION they're showing (facial expression, body language)
+   - The ENVIRONMENT (consistent setting with small variations)
+   - The LIGHTING (same style throughout)
+
+═══════════════════════════════════════════════════════════════════════════════
+📋 OUTPUT FORMAT (JSON)
 ═══════════════════════════════════════════════════════════════════════════════
 
 {{
-    "title": "Magical title (3-5 words)",
-    "synopsis": "Full story arc description",
-    "setting": "Consistent environment description used throughout",
-    "mood": "heartwarming/magical/adventurous",
-    "art_direction": {{
-        "lighting": "Warm golden sunlight with soft shadows",
-        "color_palette": ["#FFD700", "#87CEEB", "#98FB98", "#FFB6C1"],
-        "style": "Disney Pixar 3D animation, soft rounded shapes, expressive eyes"
-    }},
+    "title": "Engaging story title",
+    "synopsis": "One paragraph describing the complete story arc with beginning, middle, and end",
+    "theme": "The emotional theme (friendship, courage, curiosity, kindness)",
+    "setting": "The main location where the story takes place",
+    "mood": "Overall feeling (heartwarming, adventurous, magical, funny)",
+    "visual_style": "{style_description}",
     "main_character": {{
         "name": "Character name",
-        "visual_description": "ULTRA-DETAILED description: A [specific adjective] [animal/creature] with [exact color] [feature], [exact color] [feature], wearing [exact clothing with colors]. [Additional distinctive features].",
-        "personality_traits": ["curious", "brave", "kind"],
-        "signature_expression": "wide sparkling eyes and a gentle smile"
+        "visual_description": "DETAILED: A [adjective] [animal/creature] with [color] [feature], [color] [feature], wearing [clothing]. [Distinctive features].",
+        "goal": "What the character wants to achieve",
+        "personality": ["trait1", "trait2", "trait3"]
     }},
     "scenes": [
         {{
             "scene_number": 1,
-            "visual_description": "[PASTE EXACT CHARACTER DESCRIPTION]. [Character's action - be specific about movement]. [Environment details matching art_direction]. Disney Pixar 3D animation style, [lighting from art_direction].",
-            "transition_from_previous": "Opening shot",
-            "camera_angle": "wide establishing shot slowly zooming in",
-            "audio_description": "Gentle orchestral music begins"
+            "story_beat": "What happens in this scene (narrative description)",
+            "visual_description": "[EXACT CHARACTER DESCRIPTION]. [Character's specific ACTION]. [Character's EMOTION shown through expression/body]. [ENVIRONMENT details]. [LIGHTING]. {style_description}.",
+            "character_emotion": "The emotion shown (happy, curious, worried, determined, joyful)",
+            "camera_angle": "wide shot / medium shot / close-up",
+            "transition_to_next": "How this scene connects to the next"
         }}
     ]
-}}
-
-CRITICAL: Every visual_description MUST start with the EXACT character description, then add scene-specific action, then add consistent environment and lighting details!"""
+}}"""
 
     def _build_script_user_prompt(
         self,
@@ -324,27 +338,53 @@ CRITICAL: Every visual_description MUST start with the EXACT character descripti
         character_name: Optional[str]
     ) -> str:
         """Build the user prompt for script generation."""
-        prompt = f"""Create a DISNEY PIXAR quality animated short film about: {theme}
+        
+        # Map theme to story ideas
+        theme_stories = {
+            "space": "a curious little astronaut exploring colorful planets and making friends with aliens",
+            "ocean": "a friendly sea creature discovering underwater treasures and helping ocean friends",
+            "forest": "a brave woodland animal going on an adventure through a magical enchanted forest",
+            "animals": "adorable animal friends working together to solve a problem and celebrate friendship",
+            "magic": "a young apprentice wizard learning to use their magical powers for good",
+            "adventure": "an explorer discovering hidden wonders and overcoming challenges with courage",
+            "friendship": "two unlikely friends meeting and learning the value of true friendship",
+            "nature": "a nature spirit protecting the forest and its magical creatures",
+            "circus": "a talented performer preparing for the big show and overcoming stage fright",
+            "dinosaur": "a baby dinosaur exploring the prehistoric world and finding their family"
+        }
+        
+        story_idea = theme_stories.get(theme.lower(), f"an exciting story about {theme}")
+        
+        prompt = f"""Create an animated short film ({num_scenes} scenes × {self.clip_duration}s each) about:
 
-CRITICAL REQUIREMENTS:
-- Exactly {num_scenes} scenes of {self.clip_duration} seconds each
-- ONE adorable main character with IDENTICAL appearance in EVERY single scene
-- Scenes must flow SEAMLESSLY like a real Disney movie - no visible cuts
-- Each scene continues DIRECTLY from where the previous one ended
-- SAME art style, warm lighting, and vibrant colors throughout ALL scenes
-- Heartwarming story with emotional happy ending
+🎬 THEME: {theme.upper()}
+📖 STORY IDEA: {story_idea}
+🎨 VISUAL STYLE: {style.upper()}
 
-FOR SEAMLESS FLOW BETWEEN SCENES:
-- End of Scene N and start of Scene N+1 must connect smoothly
-- Use transitional movements (character turns, walks forward, looks up, etc.)
-- Maintain consistent time of day, weather, and lighting across scenes
-- The CHARACTER DESCRIPTION must be WORD-FOR-WORD identical in every scene"""
+STORY REQUIREMENTS:
+1. Create a COMPELLING NARRATIVE with:
+   - A lovable main character with a CLEAR GOAL
+   - A PROBLEM or CHALLENGE to overcome
+   - EMOTIONAL moments (joy, wonder, determination, triumph)
+   - A SATISFYING happy ending
+
+2. Make each scene VISUALLY EXCITING:
+   - Show CHARACTER ACTIONS (running, jumping, discovering, hugging, celebrating)
+   - Show CHARACTER EMOTIONS through expressions and body language
+   - Include interesting ENVIRONMENT details related to {theme}
+
+3. Ensure VISUAL CONSISTENCY:
+   - SAME character appearance in EVERY scene (copy exact description)
+   - SAME art style and lighting throughout
+   - Smooth story flow from one scene to the next
+
+IMPORTANT: This should feel like watching a real animated short film with a beginning, middle, and satisfying end!"""
         
         if character_name:
-            prompt += f"\n\nMain character name: {character_name}"
+            prompt += f"\n\n👤 MAIN CHARACTER NAME: {character_name}"
         
         if custom_prompt:
-            prompt += f"\n\nStory inspiration: {custom_prompt}"
+            prompt += f"\n\n💡 ADDITIONAL STORY DETAILS: {custom_prompt}"
         
         return prompt
     

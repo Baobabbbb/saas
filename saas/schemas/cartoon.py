@@ -95,25 +95,28 @@ class Scene(BaseModel):
     def build_wan_prompt(self, character_sheet: Optional[CharacterSheet] = None) -> str:
         """
         Build the complete prompt for Wan 2.5 API.
-        Format optimized for cartoon animation generation.
+        Format optimized for expressive, story-driven animation.
         """
         parts = []
         
-        # Start with character description for consistency
+        # Start with character description for visual consistency
         if character_sheet:
-            parts.append(f"Main character: {character_sheet.visual_description}")
+            parts.append(character_sheet.visual_description)
         
-        # Add scene visual description
+        # Add the scene visual description (action + environment)
         parts.append(self.visual_description)
         
-        # Add camera angle
-        parts.append(f"Camera angle: {self.camera_angle}")
+        # Add camera framing for cinematic feel
+        if self.camera_angle and self.camera_angle != "medium shot":
+            parts.append(f"Shot: {self.camera_angle}")
         
-        # Add atmosphere/mood if available
-        if self.audio_description:
-            parts.append(f"Atmosphere: {self.audio_description}")
+        # Build the final prompt
+        prompt = ". ".join(parts)
         
-        return ". ".join(parts)
+        # Add quality keywords at the end
+        prompt += ". Smooth animation, expressive character, vibrant colors, professional quality."
+        
+        return prompt
 
 
 class Script(BaseModel):
