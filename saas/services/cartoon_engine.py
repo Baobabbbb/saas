@@ -869,15 +869,28 @@ IMPORTANT: This should feel like watching a real animated short film with a begi
             
             # Collect successful video URLs
             video_urls = [s.video_url for s in scenes if s.video_url]
-            result.video_urls = video_urls
             result.successful_clips = len(video_urls)
             result.failed_clips = result.total_clips - result.successful_clips
             
-            await self._update_progress(result, 80, f"Clips générés: {len(video_urls)}/{result.total_clips}", on_progress)
+            await self._update_progress(result, 75, f"Clips générés: {len(video_urls)}/{result.total_clips}", on_progress)
             
-            # Step 4: Stitch videos
+            # Step 4: Upload videos to Supabase Storage
+            await self._update_progress(result, 80, "Sauvegarde des vidéos...", on_progress)
+            
+            supabase_urls = await self._upload_videos_to_supabase(
+                video_urls=video_urls,
+                user_id=request.user_id,
+                creation_id=task_id
+            )
+            
+            # Use Supabase URLs if upload succeeded, otherwise keep original
+            result.video_urls = supabase_urls if supabase_urls else video_urls
+            
+            await self._update_progress(result, 85, f"Vidéos sauvegardées: {len(result.video_urls)}", on_progress)
+            
+            # Step 5: Prepare final result (playlist mode)
             result.status = GenerationStatus.STITCHING
-            await self._update_progress(result, 85, "Assemblage de la vidéo finale...", on_progress)
+            await self._update_progress(result, 90, "Préparation de la vidéo finale...", on_progress)
             
             final_url = await self.stitch_videos(video_urls, normalize_audio=True)
             result.final_video_url = final_url
@@ -918,6 +931,59 @@ IMPORTANT: This should feel like watching a real animated short film with a begi
             
             return result
     
+    async def _upload_videos_to_supabase(
+        self,
+        video_urls: List[str],
+        user_id: str,
+        creation_id: str
+    ) -> List[str]:
+        """
+        Upload all video clips to Supabase Storage.
+        
+        Args:
+            video_urls: List of video URLs from WaveSpeed
+            user_id: User ID for storage path
+            creation_id: Animation ID for storage path
+            
+        Returns:
+            List of Supabase Storage URLs (or original URLs if upload fails)
+        """
+        from services.supabase_storage import get_storage_service
+        
+        storage = get_storage_service()
+        if not storage:
+            logger.warning("⚠️ Supabase Storage non disponible, utilisation des URLs originales")
+            return video_urls
+        
+        supabase_urls = []
+        
+        for idx, url in enumerate(video_urls):
+            try:
+                logger.info(f"📤 Upload clip {idx + 1}/{len(video_urls)} vers Supabase...")
+                
+                result = await storage.upload_from_url(
+                    source_url=url,
+                    user_id=user_id or "anonymous",
+                    content_type="animation",
+                    creation_id=creation_id,
+                    custom_filename=f"scene_{idx + 1}.mp4"
+                )
+                
+                if result.get("success"):
+                    supabase_url = result.get("public_url")
+                    supabase_urls.append(supabase_url)
+                    logger.info(f"✅ Clip {idx + 1} uploadé: {supabase_url[:60]}...")
+                else:
+                    logger.warning(f"⚠️ Échec upload clip {idx + 1}, utilisation URL originale")
+                    supabase_urls.append(url)
+                    
+            except Exception as e:
+                logger.warning(f"⚠️ Erreur upload clip {idx + 1}: {e}")
+                supabase_urls.append(url)
+        
+        logger.info(f"📦 Upload terminé: {len([u for u in supabase_urls if 'supabase' in u])}/{len(video_urls)} vers Supabase")
+        return supabase_urls
+
     async def _update_progress(
         self,
         result: GenerationResult,

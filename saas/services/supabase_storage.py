@@ -295,6 +295,117 @@ class SupabaseStorageService:
         """
         return f"{self.supabase_url}/storage/v1/object/public/{self.BUCKET_NAME}/{storage_path}"
     
+    async def upload_from_url(
+        self,
+        source_url: str,
+        user_id: str,
+        content_type: str,
+        creation_id: Optional[str] = None,
+        custom_filename: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Télécharge un fichier depuis une URL et l'upload vers Supabase Storage
+        
+        Args:
+            source_url: URL du fichier à télécharger
+            user_id: ID de l'utilisateur
+            content_type: Type de création (animation, comic, etc.)
+            creation_id: ID optionnel de la création
+            custom_filename: Nom personnalisé pour le fichier
+        
+        Returns:
+            Dict avec 'success', 'public_url', 'storage_path', etc.
+        """
+        import httpx
+        import tempfile
+        import os
+        
+        try:
+            print(f"📥 Téléchargement depuis: {source_url[:60]}...")
+            
+            # Télécharger le fichier depuis l'URL
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                response = await client.get(source_url)
+                
+                if response.status_code != 200:
+                    return {
+                        "success": False,
+                        "error": f"Failed to download: HTTP {response.status_code}"
+                    }
+                
+                file_data = response.content
+                file_size = len(file_data)
+                
+                # Déterminer l'extension depuis le Content-Type ou l'URL
+                content_type_header = response.headers.get("content-type", "")
+                if "mp4" in content_type_header or source_url.endswith(".mp4"):
+                    extension = "mp4"
+                    mime_type = "video/mp4"
+                elif "webm" in content_type_header or source_url.endswith(".webm"):
+                    extension = "webm"
+                    mime_type = "video/webm"
+                elif "png" in content_type_header or source_url.endswith(".png"):
+                    extension = "png"
+                    mime_type = "image/png"
+                elif "jpg" in content_type_header or "jpeg" in content_type_header:
+                    extension = "jpg"
+                    mime_type = "image/jpeg"
+                else:
+                    extension = "mp4"  # Par défaut pour les vidéos
+                    mime_type = "video/mp4"
+            
+            # Générer le chemin de stockage
+            storage_path = self._generate_storage_path(
+                user_id=user_id,
+                content_type=content_type,
+                creation_id=creation_id,
+                filename=custom_filename or f"video.{extension}",
+                extension=extension
+            )
+            
+            # Obtenir le bon bucket
+            bucket_name = self._get_bucket_for_type(content_type)
+            bucket = self.client.storage.from_(bucket_name)
+            
+            print(f"📤 Upload vers Supabase Storage:")
+            print(f"   - Bucket: {bucket_name}")
+            print(f"   - Chemin: {storage_path}")
+            print(f"   - Taille: {file_size / 1024:.2f} KB")
+            
+            # Upload vers Supabase Storage
+            response = bucket.upload(
+                path=storage_path,
+                file=file_data,
+                file_options={
+                    "content-type": mime_type,
+                    "cache-control": "public, max-age=31536000",
+                    "upsert": "true"
+                }
+            )
+            
+            # Générer l'URL publique
+            public_url = f"{self.supabase_url}/storage/v1/object/public/{bucket_name}/{storage_path}"
+            
+            print(f"✅ Upload réussi: {storage_path}")
+            
+            return {
+                "success": True,
+                "storage_path": storage_path,
+                "bucket": bucket_name,
+                "public_url": public_url,
+                "file_size": file_size,
+                "mime_type": mime_type
+            }
+            
+        except Exception as e:
+            print(f"❌ Erreur upload depuis URL: {e}")
+            import traceback
+            traceback.print_exc()
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
     async def delete_file(self, storage_path: str) -> Dict[str, Any]:
         """
         Supprime un fichier du Storage
