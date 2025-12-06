@@ -409,7 +409,8 @@ const History = ({ onClose, onSelect }) => {
                 onClick={() => onSelect({
                   ...creation,
                   action: creation.type === 'coloring' ? 'showColoring' : 
-                          (creation.type === 'comic' || creation.type === 'bd') ? 'showComic' : 'showStory'
+                          (creation.type === 'comic' || creation.type === 'bd') ? 'showComic' :
+                          (creation.type === 'animation' || creation.type === 'crewai_animation') ? 'showAnimation' : 'showStory'
                 })}
                 whileHover={{ scale: 1.01 }}
                 transition={{ duration: 0.2 }}

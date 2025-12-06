@@ -1133,6 +1133,25 @@ const handleSelectCreation = (creation) => {
       });
       setShowComicsPopup(true);
       // On ne ferme PAS l'historique, juste on affiche la popup
+    } else if (creation.action === 'showAnimation') {
+      // Pour les dessins animés, ouvrir le viewer d'animation
+      const animationData = creation.animation_data || creation.data?.animation_data || creation.data || {};
+      
+      // Construire l'objet animationResult avec la structure attendue par AnimationViewer
+      setAnimationResult({
+        title: creation.title || animationData.title || 'Mon Dessin Animé',
+        status: 'completed',
+        final_video_url: creation.final_video_url || animationData.final_video_url || creation.video_url,
+        video_urls: creation.video_urls || animationData.video_urls || [],
+        clips: creation.clips || animationData.clips || (creation.video_urls || animationData.video_urls || []).map((url, idx) => ({
+          video_url: url,
+          scene_number: idx + 1,
+          status: 'completed'
+        })),
+        duration_seconds: creation.duration_seconds || animationData.duration_seconds || 30
+      });
+      setShowAnimationViewer(true);
+      // On ne ferme PAS l'historique, juste on affiche le viewer
     } else {
       // Pour les autres actions, on ferme l'historique
       setShowHistory(false);
