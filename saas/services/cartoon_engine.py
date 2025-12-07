@@ -695,39 +695,113 @@ IMPORTANT: This should feel like watching a real animated short film with a begi
         video_urls: List[str],
         output_format: str = "mp4",
         normalize_audio: bool = True
-    ) -> str:
+    ) -> Tuple[str, List[str]]:
         """
-        Return video URLs for seamless playlist playback.
-        
-        Note: Server-side video concatenation is complex and requires ffmpeg.
-        Instead, we return all URLs and the frontend plays them as a seamless playlist
-        with automatic transitions.
+        Télécharge et assemble les clips vidéo en une seule vidéo avec moviepy.
         
         Args:
-            video_urls: List of video clip URLs
+            video_urls: List of video clip URLs from WaveSpeed
             output_format: Output format (mp4)
             normalize_audio: Whether to normalize audio loudness
             
         Returns:
-            First video URL (full list is in video_urls for playlist mode)
+            Tuple of (path to assembled video file, list of temp clip paths for cleanup)
         """
-        logger.info(f"🎬 Préparation de {len(video_urls)} clips pour lecture en playlist...")
+        import tempfile
+        import httpx
+        
+        logger.info(f"🎬 Assemblage de {len(video_urls)} clips vidéo...")
         
         if not video_urls:
             raise ValueError("No video URLs to stitch")
         
-        if len(video_urls) == 1:
-            logger.info("✅ Un seul clip, pas d'assemblage nécessaire")
-            return video_urls[0]
+        temp_dir = tempfile.mkdtemp(prefix="cartoon_")
+        temp_clips = []
         
-        # Les clips sont prêts pour lecture en playlist seamless
-        # Le frontend VideoPlaylist les jouera automatiquement en séquence
-        logger.info(f"✅ {len(video_urls)} clips prêts pour lecture en playlist automatique")
-        logger.info(f"📺 Durée totale: {len(video_urls) * self.clip_duration}s")
-        
-        # Return first video as preview/thumbnail
-        # The full list video_urls is available in the result for playlist playback
-        return video_urls[0]
+        try:
+            # Step 1: Download all clips
+            logger.info(f"📥 Téléchargement de {len(video_urls)} clips...")
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                for idx, url in enumerate(video_urls):
+                    logger.info(f"📥 Téléchargement clip {idx + 1}/{len(video_urls)}...")
+                    response = await client.get(url)
+                    
+                    if response.status_code != 200:
+                        logger.warning(f"⚠️ Échec téléchargement clip {idx + 1}: HTTP {response.status_code}")
+                        continue
+                    
+                    clip_path = os.path.join(temp_dir, f"clip_{idx:03d}.mp4")
+                    with open(clip_path, 'wb') as f:
+                        f.write(response.content)
+                    temp_clips.append(clip_path)
+                    logger.info(f"✅ Clip {idx + 1} téléchargé: {len(response.content) / 1024:.1f} KB")
+            
+            if len(temp_clips) == 0:
+                raise ValueError("Aucun clip n'a pu être téléchargé")
+            
+            if len(temp_clips) == 1:
+                logger.info("✅ Un seul clip, pas d'assemblage nécessaire")
+                return temp_clips[0], temp_clips
+            
+            # Step 2: Concatenate with moviepy
+            logger.info(f"🔧 Assemblage de {len(temp_clips)} clips avec moviepy...")
+            
+            from moviepy.editor import VideoFileClip, concatenate_videoclips
+            
+            # Load all clips
+            clips = []
+            for clip_path in temp_clips:
+                try:
+                    clip = VideoFileClip(clip_path)
+                    clips.append(clip)
+                except Exception as e:
+                    logger.warning(f"⚠️ Erreur chargement clip {clip_path}: {e}")
+            
+            if len(clips) == 0:
+                raise ValueError("Aucun clip n'a pu être chargé pour l'assemblage")
+            
+            # Concatenate all clips
+            final_clip = concatenate_videoclips(clips, method="compose")
+            
+            # Export final video
+            output_path = os.path.join(temp_dir, f"animation_complete.{output_format}")
+            logger.info(f"📼 Export de la vidéo finale ({final_clip.duration:.1f}s)...")
+            
+            final_clip.write_videofile(
+                output_path,
+                codec='libx264',
+                audio_codec='aac',
+                fps=24,
+                preset='medium',
+                threads=4,
+                logger=None  # Disable moviepy's verbose logging
+            )
+            
+            # Close all clips to free memory
+            for clip in clips:
+                clip.close()
+            final_clip.close()
+            
+            logger.info(f"✅ Vidéo assemblée: {output_path}")
+            logger.info(f"📺 Durée totale: {len(temp_clips) * self.clip_duration}s")
+            
+            return output_path, temp_clips
+            
+        except Exception as e:
+            logger.error(f"❌ Erreur assemblage vidéo: {e}")
+            import traceback
+            traceback.print_exc()
+            # Cleanup on error
+            for clip_path in temp_clips:
+                try:
+                    os.remove(clip_path)
+                except:
+                    pass
+            try:
+                os.rmdir(temp_dir)
+            except:
+                pass
+            raise
     
     async def _wait_for_fal_result(
         self,
@@ -872,29 +946,32 @@ IMPORTANT: This should feel like watching a real animated short film with a begi
             result.successful_clips = len(video_urls)
             result.failed_clips = result.total_clips - result.successful_clips
             
-            await self._update_progress(result, 75, f"Clips générés: {len(video_urls)}/{result.total_clips}", on_progress)
+            await self._update_progress(result, 70, f"Clips générés: {len(video_urls)}/{result.total_clips}", on_progress)
             
-            # Step 4: Upload videos to Supabase Storage
-            await self._update_progress(result, 80, "Sauvegarde des vidéos...", on_progress)
+            # Step 4: Assemble all clips into one video
+            result.status = GenerationStatus.STITCHING
+            await self._update_progress(result, 75, "Assemblage de la vidéo...", on_progress)
             
-            supabase_urls = await self._upload_videos_to_supabase(
-                video_urls=video_urls,
+            assembled_video_path, temp_clips = await self.stitch_videos(video_urls, normalize_audio=True)
+            result.duration_seconds = len(video_urls) * self.clip_duration
+            
+            await self._update_progress(result, 85, "Vidéo assemblée, upload en cours...", on_progress)
+            
+            # Step 5: Upload assembled video to Supabase Storage
+            final_url = await self._upload_final_video_to_supabase(
+                video_path=assembled_video_path,
                 user_id=request.user_id,
-                creation_id=task_id
+                creation_id=task_id,
+                duration_seconds=result.duration_seconds
             )
             
-            # Use Supabase URLs if upload succeeded, otherwise keep original
-            result.video_urls = supabase_urls if supabase_urls else video_urls
-            
-            await self._update_progress(result, 85, f"Vidéos sauvegardées: {len(result.video_urls)}", on_progress)
-            
-            # Step 5: Prepare final result (playlist mode)
-            result.status = GenerationStatus.STITCHING
-            await self._update_progress(result, 90, "Préparation de la vidéo finale...", on_progress)
-            
-            final_url = await self.stitch_videos(video_urls, normalize_audio=True)
             result.final_video_url = final_url
-            result.duration_seconds = len(video_urls) * self.clip_duration
+            result.video_urls = [final_url]  # Single assembled video
+            
+            # Cleanup temp files
+            await self._cleanup_temp_files(assembled_video_path, temp_clips)
+            
+            await self._update_progress(result, 95, "Animation sauvegardée!", on_progress)
             
             # Step 5: Mark as completed
             result.status = GenerationStatus.COMPLETED
@@ -931,58 +1008,98 @@ IMPORTANT: This should feel like watching a real animated short film with a begi
             
             return result
     
-    async def _upload_videos_to_supabase(
+    async def _upload_final_video_to_supabase(
         self,
-        video_urls: List[str],
+        video_path: str,
         user_id: str,
-        creation_id: str
-    ) -> List[str]:
+        creation_id: str,
+        duration_seconds: int
+    ) -> str:
         """
-        Upload all video clips to Supabase Storage.
+        Upload the assembled final video to Supabase Storage.
         
         Args:
-            video_urls: List of video URLs from WaveSpeed
+            video_path: Local path to the assembled video file
             user_id: User ID for storage path
             creation_id: Animation ID for storage path
+            duration_seconds: Duration of the final video
             
         Returns:
-            List of Supabase Storage URLs (or original URLs if upload fails)
+            Public URL of the uploaded video
         """
         from services.supabase_storage import get_storage_service
         
         storage = get_storage_service()
         if not storage:
-            logger.warning("⚠️ Supabase Storage non disponible, utilisation des URLs originales")
-            return video_urls
+            logger.warning("⚠️ Supabase Storage non disponible")
+            raise ValueError("Supabase Storage is not configured")
         
-        supabase_urls = []
+        try:
+            logger.info(f"📤 Upload vidéo assemblée vers Supabase Storage...")
+            logger.info(f"   - Fichier: {video_path}")
+            logger.info(f"   - Durée: {duration_seconds}s")
+            
+            # Upload the assembled video file
+            result = await storage.upload_file(
+                file_path=video_path,
+                user_id=user_id or "anonymous",
+                content_type="animation",
+                creation_id=creation_id,
+                custom_filename=f"animation_{creation_id}.mp4"
+            )
+            
+            if result.get("success"):
+                public_url = result.get("public_url")
+                logger.info(f"✅ Vidéo uploadée vers Supabase: {public_url[:80]}...")
+                return public_url
+            else:
+                error = result.get("error", "Unknown error")
+                logger.error(f"❌ Échec upload Supabase: {error}")
+                raise ValueError(f"Failed to upload to Supabase: {error}")
+                
+        except Exception as e:
+            logger.error(f"❌ Erreur upload vidéo finale: {e}")
+            raise
+    
+    async def _cleanup_temp_files(self, assembled_path: str, clip_paths: List[str]) -> None:
+        """
+        Clean up temporary video files after upload.
         
-        for idx, url in enumerate(video_urls):
+        Args:
+            assembled_path: Path to the assembled video
+            clip_paths: List of paths to individual clip files
+        """
+        import shutil
+        
+        try:
+            # Get the temp directory from the assembled path
+            temp_dir = os.path.dirname(assembled_path)
+            
+            # Remove all files in the temp directory
+            for clip_path in clip_paths:
+                try:
+                    if os.path.exists(clip_path):
+                        os.remove(clip_path)
+                except Exception as e:
+                    logger.warning(f"⚠️ Impossible de supprimer {clip_path}: {e}")
+            
+            # Remove assembled video
             try:
-                logger.info(f"📤 Upload clip {idx + 1}/{len(video_urls)} vers Supabase...")
-                
-                result = await storage.upload_from_url(
-                    source_url=url,
-                    user_id=user_id or "anonymous",
-                    content_type="animation",
-                    creation_id=creation_id,
-                    custom_filename=f"scene_{idx + 1}.mp4"
-                )
-                
-                if result.get("success"):
-                    supabase_url = result.get("public_url")
-                    supabase_urls.append(supabase_url)
-                    logger.info(f"✅ Clip {idx + 1} uploadé: {supabase_url[:60]}...")
-                else:
-                    logger.warning(f"⚠️ Échec upload clip {idx + 1}, utilisation URL originale")
-                    supabase_urls.append(url)
-                    
+                if os.path.exists(assembled_path):
+                    os.remove(assembled_path)
             except Exception as e:
-                logger.warning(f"⚠️ Erreur upload clip {idx + 1}: {e}")
-                supabase_urls.append(url)
-        
-        logger.info(f"📦 Upload terminé: {len([u for u in supabase_urls if 'supabase' in u])}/{len(video_urls)} vers Supabase")
-        return supabase_urls
+                logger.warning(f"⚠️ Impossible de supprimer {assembled_path}: {e}")
+            
+            # Remove temp directory
+            try:
+                if os.path.exists(temp_dir) and temp_dir.startswith(os.path.join(os.sep, "tmp")) or "cartoon_" in temp_dir:
+                    shutil.rmtree(temp_dir, ignore_errors=True)
+                    logger.info(f"🗑️ Dossier temporaire nettoyé: {temp_dir}")
+            except Exception as e:
+                logger.warning(f"⚠️ Impossible de supprimer le dossier temp: {e}")
+                
+        except Exception as e:
+            logger.warning(f"⚠️ Erreur nettoyage fichiers temp: {e}")
 
     async def _update_progress(
         self,

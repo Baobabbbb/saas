@@ -3,79 +3,16 @@ import { API_BASE_URL, ANIMATION_API_BASE_URL } from '../config/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import './AnimationViewer.css';
 
-// Composant pour jouer les clips en séquence ULTRA-FLUIDE (comme un vrai film Disney)
-const VideoPlaylist = ({ clips }) => {
-  const [currentClipIndex, setCurrentClipIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [allPreloaded, setAllPreloaded] = useState(false);
+// Composant pour afficher la vidéo finale assemblée
+const SingleVideoPlayer = ({ videoUrl, duration, title }) => {
   const videoRef = useRef(null);
-  const preloadedVideos = useRef([]);
-
-  const currentClip = clips[currentClipIndex];
-  const videoUrl = currentClip?.video_url || currentClip?.clip_url;
-
-  // Précharger TOUS les clips au démarrage pour transitions instantanées
-  useEffect(() => {
-    const preloadAll = async () => {
-      preloadedVideos.current = [];
-      for (let i = 0; i < clips.length; i++) {
-        const clip = clips[i];
-        const url = clip?.video_url || clip?.clip_url;
-        if (url) {
-          const video = document.createElement('video');
-          video.src = url;
-          video.preload = 'auto';
-          video.muted = true;
-          preloadedVideos.current.push(video);
-          // Déclencher le chargement
-          video.load();
-        }
-      }
-      // Attendre un peu pour que le préchargement commence
-      setTimeout(() => setAllPreloaded(true), 500);
-    };
-    preloadAll();
-  }, [clips]);
-
-  // Transition INSTANTANÉE au clip suivant
-  const handleVideoEnded = () => {
-    if (currentClipIndex < clips.length - 1) {
-      setIsTransitioning(true);
-      // Transition quasi-instantanée pour effet film continu
-      requestAnimationFrame(() => {
-        setCurrentClipIndex(prev => prev + 1);
-        setIsTransitioning(false);
-      });
-    } else {
-      // Boucle vers le début
-      setCurrentClipIndex(0);
-    }
-  };
-
-  // Démarrer la lecture immédiatement quand le clip change
-  useEffect(() => {
-    if (videoRef.current && isPlaying) {
-      // Lecture immédiate sans délai
-      videoRef.current.currentTime = 0;
-      const playPromise = videoRef.current.play();
-      if (playPromise) {
-        playPromise.catch(() => {});
-      }
-    }
-  }, [currentClipIndex, isPlaying, videoUrl]);
-
-  // Calculer la durée totale
-  const totalDuration = clips.length * 5; // 5 secondes par clip (modèle fast)
-  const currentTime = currentClipIndex * 5;
-  const progressPercent = ((currentClipIndex + 1) / clips.length) * 100;
 
   if (!videoUrl) {
     return <div className="no-video">Aucune vidéo disponible</div>;
   }
 
   return (
-    <div className="video-playlist" style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+    <div className="video-player-container" style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
       {/* Lecteur principal - Style cinématique */}
       <div className="main-video-container" style={{ 
         position: 'relative',
@@ -90,37 +27,19 @@ const VideoPlaylist = ({ clips }) => {
           className="final-animation-video"
           controls
           autoPlay
+          loop
           muted={false}
           preload="auto"
-          onEnded={handleVideoEnded}
           style={{
             width: '100%',
             height: 'auto',
             aspectRatio: '16/9',
             display: 'block',
-            opacity: isTransitioning ? 0.95 : 1,
-            transition: 'opacity 0.05s ease',
             objectFit: 'cover'
           }}
         />
         
-        {/* Indicateur de préchargement */}
-        {!allPreloaded && (
-          <div style={{
-            position: 'absolute',
-            bottom: '12px',
-            right: '12px',
-            background: 'rgba(0,0,0,0.7)',
-            color: '#4ade80',
-            padding: '4px 8px',
-            borderRadius: '12px',
-            fontSize: '10px'
-          }}>
-            ⏳ Préchargement...
-          </div>
-        )}
-
-        {/* Badge de scène */}
+        {/* Badge titre */}
         <div style={{
           position: 'absolute',
           top: '12px',
@@ -133,92 +52,49 @@ const VideoPlaylist = ({ clips }) => {
           fontWeight: '600',
           backdropFilter: 'blur(10px)'
         }}>
-          🎬 Scène {currentClipIndex + 1}/{clips.length}
+          🎬 {title || 'Dessin animé'}
         </div>
       </div>
 
-      {/* Barre de progression globale */}
+      {/* Informations */}
       <div style={{ 
         marginTop: '16px',
-        padding: '0 8px'
+        padding: '0 8px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
-        <div style={{
-          height: '6px',
-          background: '#e0e0e0',
-          borderRadius: '3px',
-          overflow: 'hidden'
-        }}>
-          <div style={{
-            height: '100%',
-            width: `${progressPercent}%`,
-            background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
-            borderRadius: '3px',
-            transition: 'width 0.3s ease'
-          }} />
-        </div>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          marginTop: '8px',
-          fontSize: '12px',
-          color: '#666'
-        }}>
-          <span>Durée: ~{totalDuration}s</span>
-          <span>Lecture automatique</span>
-        </div>
+        <span style={{ fontSize: '14px', color: '#666' }}>
+          ⏱️ Durée: {duration ? `${Math.round(duration)}s` : 'N/A'}
+        </span>
+        <button 
+          onClick={() => window.open(videoUrl, '_blank')}
+          style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '8px',
+            fontSize: '12px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+        >
+          🔗 Ouvrir en plein écran
+        </button>
       </div>
 
-      {/* Timeline des scènes */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '4px', 
-        marginTop: '16px',
-        padding: '8px',
-        overflowX: 'auto',
-        justifyContent: 'center'
-      }}>
-        {clips.map((clip, index) => (
-          <button
-            key={index}
-            onClick={() => {
-              setCurrentClipIndex(index);
-              if (videoRef.current) {
-                videoRef.current.currentTime = 0;
-                videoRef.current.play();
-              }
-            }}
-            style={{
-              minWidth: '50px',
-              height: '36px',
-              borderRadius: '8px',
-              border: 'none',
-              background: currentClipIndex === index 
-                ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
-                : index < currentClipIndex 
-                  ? '#c0c0c0' 
-                  : '#e8e8e8',
-              color: currentClipIndex === index ? 'white' : '#666',
-              cursor: 'pointer',
-              fontSize: '11px',
-              fontWeight: currentClipIndex === index ? '700' : '500',
-              transition: 'all 0.2s ease',
-              transform: currentClipIndex === index ? 'scale(1.1)' : 'scale(1)',
-              boxShadow: currentClipIndex === index ? '0 4px 12px rgba(102,126,234,0.4)' : 'none'
-            }}
-          >
-            {index + 1}
-          </button>
-        ))}
-      </div>
-
-      {/* Message d'information */}
+      {/* Message */}
       <p style={{
         textAlign: 'center',
         color: '#888',
         fontSize: '12px',
         marginTop: '12px'
       }}>
-        ▶️ Les scènes se jouent automatiquement en séquence
+        ✨ Animation complète générée par IA et stockée dans le cloud
       </p>
     </div>
   );
@@ -373,219 +249,56 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                 exit={{ opacity: 0, x: -20 }}
                 className="video-tab"
               >
-                {hasVideo ? (
-                  <div className="video-player">
-                    {/* TOUJOURS AFFICHER LES CLIPS EN PLAYLIST */}
-                    {actualClips.length > 0 ? (
-                      <div className="final-animation">
-                        <div className="video-icon">🎬</div>
-                        <h3>🎉 {animationResult.title || 'Votre dessin animé est prêt !'}</h3>
-                        <p>
-                          Animation de {formatTime(total_duration || animationResult.duration)} avec {actualClips.length} scènes.
-                          {actualClips.length > 1 && ' Cliquez sur une scène pour la voir.'}
-                        </p>
-                        
-                        {/* LECTEUR VIDÉO AVEC PLAYLIST */}
-                        <VideoPlaylist clips={actualClips} />
-                      </div>
-                    ) : (animationResult.final_video_url || animationResult.result?.final_video_url) ? (
-                      <div className="final-animation">
-                        <div className="video-icon">🎬</div>
-                        <h3>🎉 {animationResult.title || 'Votre dessin animé est prêt !'}</h3>
-                        <p>
-                          Animation complète de {formatTime(total_duration || animationResult.duration)}.
-                        </p>
-                        
-                        {/* LECTEUR VIDÉO PRINCIPAL (fallback) */}
-                        <div className="main-video-container">
-                          <video 
-                            src={animationResult.final_video_url || animationResult.result?.final_video_url}
-                            className="final-animation-video"
-                            controls
-                            autoPlay
-                            loop
-                            muted
-                            preload="metadata"
-                            style={{
-                              width: '100%',
-                              maxWidth: '600px',
-                              height: 'auto',
-                              borderRadius: '12px',
-                              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                              margin: '1rem 0'
-                            }}
-                            onLoadedData={() => {}}
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                            }}
+                {(() => {
+                  // Déterminer l'URL vidéo finale (priorité: final_video_url > video_urls[0] > clips[0])
+                  const finalVideoUrl = 
+                    animationResult.final_video_url || 
+                    animationResult.result?.final_video_url ||
+                    (animationResult.video_urls && animationResult.video_urls[0]) ||
+                    (actualClips[0]?.video_url || actualClips[0]?.clip_url);
+                  
+                  const videoDuration = total_duration || animationResult.duration || animationResult.duration_seconds;
+                  
+                  if (finalVideoUrl) {
+                    return (
+                      <div className="video-player">
+                        <div className="final-animation">
+                          <div className="video-icon">🎬</div>
+                          <h3>🎉 {animationResult.title || 'Votre dessin animé est prêt !'}</h3>
+                          <p>
+                            Animation complète de {formatTime(videoDuration)}.
+                            Générée par IA et sauvegardée dans le cloud.
+                          </p>
+                          
+                          {/* LECTEUR VIDÉO UNIQUE */}
+                          <SingleVideoPlayer 
+                            videoUrl={finalVideoUrl}
+                            duration={videoDuration}
+                            title={animationResult.title}
                           />
                         </div>
-                        
-                        <div className="video-controls">
-                          <button 
-                            className="play-btn" 
-                            onClick={() => window.open(animationResult.final_video_url || animationResult.result?.final_video_url, '_blank')}
-                            style={{
-                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                              color: 'white',
-                              border: 'none',
-                              padding: '12px 24px',
-                              borderRadius: '8px',
-                              fontSize: '14px',
-                              fontWeight: '600',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              margin: '0 auto'
-                            }}
-                          >
-                            🎬 Ouvrir en plein écran
-                          </button>
-                        </div>
                       </div>
-                    ) : (
-                      <div className="animation-gallery">
-                        <div className="video-icon">🎬</div>
-                        <h3>🎉 Votre dessin animé est prêt !</h3>
+                    );
+                  } else if (status === 'completed') {
+                    return (
+                      <div className="no-video">
+                        <div className="no-video-icon">✅</div>
+                        <h3>Animation terminée !</h3>
                         <p>
-                          Animation de {formatTime(total_duration)} générée avec succès.
-                          {successful_clips > 0 && ` ${successful_clips} scènes créées avec l'IA.`}
+                          Votre animation "{animationResult.theme || 'N/A'}" a été générée avec succès.
                         </p>
-                        
-                        {/* Galerie d'images des scènes - FALLBACK SI PAS DE VIDÉO FINALE */}
-                        <div className="scenes-gallery">
-                          <h4>🎨 Votre dessin animé en images :</h4>
-                        <div className="gallery-grid">
-                          {actualClips.map((clip, index) => {
-                            // Gestion des médias : vidéo réelle ou image
-                            let mediaUrl = null;
-                            let isVideo = false;
-                            
-                            // Priorité: video_url pour vraies vidéos > demo_image_url > image_url
-                            if (clip.video_url && clip.type === 'real_video') {
-                              // Si l'URL est déjà absolue, on la garde telle quelle ; sinon, on préfixe avec le domaine de l'API animation
-                              mediaUrl = /^https?:\/\//i.test(clip.video_url)
-                                ? clip.video_url
-                                : `${ANIMATION_API_BASE_URL}${clip.video_url}`;
-                              isVideo = true;
-                            } else if (clip.demo_image_url) {
-                              mediaUrl = /^https?:\/\//i.test(clip.demo_image_url)
-                                ? clip.demo_image_url
-                                : `${ANIMATION_API_BASE_URL}${clip.demo_image_url}`;
-                            } else if (clip.image_url) {
-                              mediaUrl = /^https?:\/\//i.test(clip.image_url)
-                                ? clip.image_url
-                                : `${ANIMATION_API_BASE_URL}${clip.image_url}`;
-                            } else if (clip.video_url) {
-                              mediaUrl = /^https?:\/\//i.test(clip.video_url)
-                                ? clip.video_url
-                                : `${ANIMATION_API_BASE_URL}${clip.video_url}`;
-                            }
-                            
-                            // console.log(`Clip ${index + 1}:`, { clip, mediaUrl, isVideo });
-                            
-                            return (
-                              <div key={index} className="scene-media-card">
-                                {isVideo ? (
-                                  <video 
-                                    src={mediaUrl}
-                                    className="scene-video"
-                                    controls
-                                    loop
-                                    muted
-                                    preload="metadata"
-                                    onLoadedData={() => {/* console.log(`✅ Vidéo ${index + 1} chargée:`, mediaUrl) */}}
-                                    onError={(e) => {
-                                      // console.log('❌ Erreur vidéo:', mediaUrl);
-                                      e.target.style.display = 'none';
-                                      e.target.nextSibling.style.display = 'flex';
-                                    }}
-                                  />
-                                ) : (
-                                  <img 
-                                    src={mediaUrl}
-                                    alt={`Scène ${clip.scene_number}`}
-                                    className="scene-image"
-                                    onLoad={() => {/* console.log(`✅ Image ${index + 1} chargée:`, mediaUrl) */}}
-                                    onError={(e) => {
-                                      // console.log('❌ Erreur image:', mediaUrl);
-                                      e.target.style.display = 'none';
-                                      e.target.nextSibling.style.display = 'flex';
-                                    }}
-                                  />
-                                )}
-                                <div className="scene-placeholder" style={{display: 'none'}}>
-                                  <span>🎬</span>
-                                  <p>Scène {clip.scene_number}</p>
-                                  <small>{clip.type || 'En cours...'}</small>
-                                </div>
-                                <div className="scene-info">
-                                  <span>Scène {clip.scene_number}</span>
-                                  <span>{formatTime(clip.duration)}</span>
-                                  {clip.type === 'real_video' && <span className="clip-type real">🎥 Vidéo</span>}
-                                  {clip.type === 'demo' && <span className="clip-type demo">🎨 Démo</span>}
-                                  {clip.status === 'success' && <span className="clip-status success">✅</span>}
-                                  {clip.status === 'fallback' && <span className="clip-status fallback">⚠️</span>}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        
-                        <div className="gallery-summary">
-                          <p>
-                            <strong>🎬 Votre animation complète :</strong> 
-                            {totalClips} scènes illustrées représentant votre histoire.
-                            Chaque image correspond à un moment clé de votre récit généré par l'IA.
-                          </p>
-                        </div>
                       </div>
-                      
-                      {/* Liste des clips pour les scènes sans image */}
-                      {actualClips.filter(clip => clip.status === 'success').length > 0 && (
-                        <div className="video-clips-list">
-                          <h4>📝 Toutes les scènes générées :</h4>
-                          {actualClips.filter(clip => clip.status === 'success').map((clip, index) => (
-                            <div key={index} className="clip-item">
-                              <span>🎬 Scène {clip.scene_number}</span>
-                              <span>{formatTime(clip.duration)}</span>
-                              {clip.type === 'image' && <span className="clip-type">🎨 Image</span>}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      
-                      <div className="video-actions">
-                        <button className="download-btn">
-                          📥 Télécharger
-                        </button>
-                        <button className="share-btn">
-                          🔗 Partager
-                        </button>
-                        </div>
+                    );
+                  } else {
+                    return (
+                      <div className="no-video">
+                        <div className="no-video-icon">⏳</div>
+                        <h3>Génération en cours...</h3>
+                        <p>La génération de votre dessin animé peut prendre quelques minutes.</p>
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="no-video">
-                    <div className="no-video-icon">{status === 'completed' ? '✅' : '⚠️'}</div>
-                    <h3>{status === 'completed' ? 'Animation terminée !' : 'Génération en cours...'}</h3>
-                    {/* <p style={{fontSize: '12px', color: '#666'}}>Debug: status={status}, hasVideo={hasVideo}</p> */}
-                    <p>
-                      {status === 'completed' 
-                        ? 'Votre animation a été générée avec succès ! Thème: ' + (animationResult.theme || 'N/A')
-                        : 'La génération vidéo peut prendre quelques minutes. Certaines scènes utilisent des modes de fallback.'}
-                    </p>
-                    {status === 'completed' && (animationResult.final_video_url || animationResult.result?.final_video_url) && (
-                      <div className="video-controls">
-                        <button className="play-btn" onClick={() => window.open(animationResult.final_video_url || animationResult.result?.final_video_url, '_blank')}>
-                          🎬 Voir l'animation
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                    );
+                  }
+                })()}
               </motion.div>
             )}
 
