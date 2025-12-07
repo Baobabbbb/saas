@@ -406,12 +406,28 @@ const History = ({ onClose, onSelect }) => {
                 <motion.div 
                 key={creation.id}
                 className={itemClasses}
-                onClick={() => onSelect({
-                  ...creation,
-                  action: creation.type === 'coloring' ? 'showColoring' : 
-                          (creation.type === 'comic' || creation.type === 'bd') ? 'showComic' :
-                          (creation.type === 'animation' || creation.type === 'crewai_animation') ? 'showAnimation' : 'showStory'
-                })}
+                onClick={() => {
+                  // Pour les animations, extraire l'URL vidéo finale des données
+                  if (creation.type === 'animation' || creation.type === 'crewai_animation') {
+                    const videoUrl = creation.final_video_url || 
+                                    creation.video_url ||
+                                    creation.data?.final_video_url || 
+                                    creation.data?.video_url;
+                    onSelect({
+                      ...creation,
+                      final_video_url: videoUrl,
+                      video_urls: videoUrl ? [videoUrl] : [],
+                      duration: creation.duration || creation.data?.duration,
+                      action: 'showAnimation'
+                    });
+                  } else {
+                    onSelect({
+                      ...creation,
+                      action: creation.type === 'coloring' ? 'showColoring' : 
+                              (creation.type === 'comic' || creation.type === 'bd') ? 'showComic' : 'showStory'
+                    });
+                  }
+                }}
                 whileHover={{ scale: 1.01 }}
                 transition={{ duration: 0.2 }}
               >
@@ -598,6 +614,46 @@ const History = ({ onClose, onSelect }) => {
                         }}
                       >
                         📄 Télécharger le PDF
+                      </button>
+                    )}
+
+                    {/* Pour les animations : bouton télécharger la vidéo */}
+                    {(creation.type === 'animation' || creation.type === 'crewai_animation') && (creation.final_video_url || creation.video_url || creation.data?.final_video_url || creation.data?.video_url) && (
+                      <button
+                        className="btn-pdf"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const videoUrl = creation.final_video_url || 
+                                            creation.video_url ||
+                                            creation.data?.final_video_url || 
+                                            creation.data?.video_url;
+                            
+                            const response = await fetch(videoUrl);
+                            const blob = await response.blob();
+                            const blobUrl = URL.createObjectURL(blob);
+                            
+                            const safeTitle = (creation.title || 'dessin_anime')
+                              .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                              .toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+                            
+                            const link = document.createElement('a');
+                            link.href = blobUrl;
+                            link.download = addHerbbieSuffix(safeTitle, 'mp4');
+                            link.style.display = 'none';
+                            
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            
+                            URL.revokeObjectURL(blobUrl);
+                          } catch (error) {
+                            console.error('Erreur lors du téléchargement de la vidéo:', error);
+                            alert('Erreur lors du téléchargement. Veuillez réessayer.');
+                          }
+                        }}
+                      >
+                        🎬 Télécharger la vidéo
                       </button>
                     )}
 

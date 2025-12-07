@@ -973,16 +973,24 @@ function App() {
           comic_data: generatedContent || {}
         };
       } else if (contentType === 'animation') {
-        // Pour les animations, utiliser les données de l'animation
+        // Pour les animations, utiliser l'URL de la vidéo finale assemblée
+        const finalVideoUrl = generatedContent?.final_video_url || 
+                              generatedContent?.result?.final_video_url ||
+                              (generatedContent?.video_urls && generatedContent.video_urls[0]);
+        const duration = generatedContent?.actual_duration || generatedContent?.duration_seconds || generatedContent?.duration || selectedDuration;
+        
         newCreation = {
           id: Date.now().toString(),
           type: contentType,
           title: title,
           createdAt: new Date().toISOString(),
-          content: generatedContent ? `Animation de ${generatedContent.actual_duration}s avec ${generatedContent.total_scenes} scènes` : 'Animation générée',
+          content: generatedContent ? `Animation de ${duration}s` : 'Animation générée',
           theme: currentTheme,
-          clips: generatedContent?.clips || [],
-          animation_data: generatedContent || {}
+          // URL de la vidéo finale assemblée (stockée dans Supabase Storage)
+          final_video_url: finalVideoUrl,
+          video_url: finalVideoUrl, // Alias pour compatibilité
+          duration: duration,
+          style: selectedStyle || 'cartoon'
         };
       } else if (contentType === 'histoire' || contentType === 'audio') {
         // Pour les histoires (texte ou audio), utiliser les données de l'histoire
