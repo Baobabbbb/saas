@@ -116,7 +116,7 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                   <button 
                     onClick={() => window.open(finalVideoUrl, '_blank')}
                     style={{
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: '#6B4EFF',
                       color: 'white',
                       border: 'none',
                       padding: '10px 18px',
