@@ -355,12 +355,12 @@ class SupabaseStorageService:
                     mime_type = "video/mp4"
             
             # Générer le chemin de stockage
+            filename = custom_filename or f"video.{extension}"
             storage_path = self._generate_storage_path(
                 user_id=user_id,
                 content_type=content_type,
-                creation_id=creation_id,
-                filename=custom_filename or f"video.{extension}",
-                extension=extension
+                filename=filename,
+                creation_id=creation_id
             )
             
             # Obtenir le bon bucket
