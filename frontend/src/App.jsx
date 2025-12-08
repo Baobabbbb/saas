@@ -1195,11 +1195,16 @@ const handleSelectCreation = (creation) => {
       if (!numPages) return false;
       if (selectedComicsTheme === 'custom' && !customComicsStory.trim()) return false;
     } else if (contentType === 'animation') {
-      // Pour les animations, soit un thème soit une histoire personnalisée
+      // Pour les animations: thème, durée et style sont obligatoires
       if (!selectedAnimationTheme && !customStory.trim()) return false;
       if (selectedAnimationTheme === 'custom' && !customStory.trim()) return false;
       // Vérifier que l'histoire personnalisée fait au moins 10 caractères
       if (selectedAnimationTheme === 'custom' && customStory.trim().length < 10) return false;
+      // Durée obligatoire
+      if (!selectedDuration) return false;
+      // Style obligatoire
+      if (!selectedStyle) return false;
+      // Note: characterImage est optionnel
     } else if (contentType === 'histoire') {
       // Pour les histoires, soit un thème soit une histoire personnalisée
       if (!selectedStory) return false;
