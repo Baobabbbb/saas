@@ -31,6 +31,9 @@ from schemas.cartoon import (
     GenerationStatus, ProgressUpdate, AspectRatio, Resolution
 )
 
+# Import uniqueness service to avoid duplicates
+from services.uniqueness_service import uniqueness_service
+
 # Configure logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -165,7 +168,8 @@ class WanVideoOrchestrator:
         duration_seconds: int,
         style: str = "cartoon",
         custom_prompt: Optional[str] = None,
-        character_name: Optional[str] = None
+        character_name: Optional[str] = None,
+        user_history: Optional[List[Dict[str, Any]]] = None
     ) -> Script:
         """
         Generate a complete script with character sheet and scenes.
@@ -181,6 +185,7 @@ class WanVideoOrchestrator:
             style: Visual style (cartoon, anime, 3d, realistic)
             custom_prompt: Optional additional instructions
             character_name: Optional character name
+            user_history: Optional list of user's previous animations to avoid duplicates
             
         Returns:
             Complete Script object with scenes
@@ -213,6 +218,13 @@ class WanVideoOrchestrator:
             user_prompt = self._build_script_user_prompt(
                 theme, num_scenes, style, custom_prompt, character_name
             )
+            
+            # Enrich prompt with user history to avoid duplicates
+            if user_history and len(user_history) > 0:
+                user_prompt = uniqueness_service.enrich_prompt_with_history(
+                    user_prompt, user_history, "animation"
+                )
+                logger.info(f"🔄 Prompt enrichi avec {len(user_history)} animation(s) précédente(s) pour éviter les doublons")
             
             response = await client.chat.completions.create(
                 model=self.text_model,
@@ -1025,6 +1037,22 @@ The result should feel like watching a real Disney/Pixar short film - fluid, coh
             result.status = GenerationStatus.MODERATING
             await self._update_progress(result, 5, "Vérification du contenu...", on_progress)
             
+            # Step 1.5: Get user history to avoid duplicates
+            user_history = []
+            if request.user_id and self.supabase:
+                try:
+                    user_history = await uniqueness_service.get_user_history(
+                        self.supabase,
+                        request.user_id,
+                        "animation",
+                        theme=request.theme,
+                        limit=5
+                    )
+                    if user_history:
+                        logger.info(f"📜 Found {len(user_history)} previous animations for user on theme '{request.theme}'")
+                except Exception as e:
+                    logger.warning(f"⚠️ Could not fetch user history: {e}")
+            
             # Step 2: Generate script
             result.status = GenerationStatus.GENERATING_SCRIPT
             await self._update_progress(result, 10, "Création du scénario...", on_progress)
@@ -1034,7 +1062,8 @@ The result should feel like watching a real Disney/Pixar short film - fluid, coh
                 duration_seconds=request.duration_seconds,
                 style=request.style,
                 custom_prompt=request.custom_prompt,
-                character_name=request.character_name
+                character_name=request.character_name,
+                user_history=user_history
             )
             
             result.script = script
