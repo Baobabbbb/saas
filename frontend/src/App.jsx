@@ -392,7 +392,7 @@ function App() {
     setCharacterPhoto(null);
     setComicsResult(null);
     setSelectedAnimationTheme(null);
-    setSelectedDuration(30); // Remettre à la valeur par défaut
+    setSelectedDuration(null); // Aucune valeur par défaut
     setSelectedStyle(null);
     setCustomStory('');
     setSelectedStory(null);
