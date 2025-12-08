@@ -1,6 +1,6 @@
 # GRILLE TARIFAIRE COMPLÈTE HERBBIE
 
-*Dernière mise à jour : Novembre 2025 - Prix arrondis (0,50€ et 0,70€)*
+*Dernière mise à jour : Novembre 2025 - Prix arrondis (0,50€ et 0,60€)*
 
 ## Vue d'ensemble
 
@@ -11,24 +11,28 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 ## PAY-PER-USE (Prix à l'unité)
 
 **Modèles utilisés :**
-- Texte : gpt-4o-mini (~0,0004€)
+- Texte/Prompts : gpt-4o-mini (~0,0004€)
+- Analyse images : gpt-4o (~0,02€) - pour BD avec photos personnalisées
+- Images normales : gemini-3-pro-image-preview (~0,13€) - coloriages et BD par thème
+- Images personnalisées : gpt-image-1 (~0,04€) - coloriages avec photos uploadées
 - Audio : OpenAI TTS (0,042€)
-- Images : gpt-image-1 (0,16€)
 - Musique : Suno (~0,15€)
-- Vidéo : Veo 3.1 Fast (0,14€/seconde)
+- Vidéo : WaveSpeed Alibaba WAN 2.5 Text-to-Video Fast 1080p (≈0,102$/s, ~0,094€/s)
 
 | Fonctionnalité | Prix | Coût API Réel | Marge | Marge % |
 |---|---|---|---|---|
 | Histoire | 0,50€ | 0,042€ | 0,46€ | 92% |
-| Coloriage | 0,70€ | 0,16€ | 0,54€ | 78% |
-| BD par page | 0,70€ | 0,16€ | 0,54€ | 78% |
-| Comptine | 0,70€ | 0,15€ | 0,55€ | 79% |
-| Animation 30s | 5,99€ | 4,20€ | 1,79€ | 30% |
-| Animation 1min | 9,99€ | 8,40€ | 1,59€ | 16% |
-| Animation 2min | 18,99€ | 16,80€ | 2,19€ | 12% |
-| Animation 3min | 27,99€ | 25,20€ | 2,79€ | 10% |
-| Animation 4min | 36,99€ | 33,60€ | 3,39€ | 9% |
-| Animation 5min | 46,99€ | 42,00€ | 4,99€ | 11% |
+| Coloriage (thème) | 0,60€ | 0,13€ | 0,47€ | 78% |
+| Coloriage (photo) | 0,60€ | 0,04€ | 0,56€ | 93% |
+| BD par page (thème) | 0,60€ | 0,13€ | 0,47€ | 78% |
+| BD par page (photo) | 0,60€ | 0,15€ | 0,45€ | 75% |
+| Comptine | 0,60€ | 0,15€ | 0,45€ | 75% |
+| Animation 30s | 5,99€ | 3,06€ | 2,93€ | 49% |
+| Animation 1min | 9,99€ | 6,12€ | 3,87€ | 39% |
+| Animation 2min | 18,99€ | 12,24€ | 6,75€ | 36% |
+| Animation 3min | 27,99€ | 18,36€ | 9,63€ | 34% |
+| Animation 4min | 36,99€ | 24,48€ | 12,51€ | 34% |
+| Animation 5min | 46,99€ | 30,60€ | 16,39€ | 35% |
 
 ---
 
@@ -44,15 +48,17 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 | Contenu | Coût API | Tokens requis |
 |---------|----------|---------------|
 | Histoire | 0,042€ | 4 tokens |
-| Coloriage | 0,16€ | 16 tokens |
-| BD (par page) | 0,16€ | 16 tokens |
+| Coloriage (thème) | 0,13€ | 13 tokens |
+| Coloriage (photo) | 0,04€ | 4 tokens |
+| BD (par page, thème) | 0,13€ | 13 tokens |
+| BD (par page, photo) | 0,15€ | 15 tokens |
 | Comptine | 0,15€ | 15 tokens |
-| Animation 30s | 4,20€ | 420 tokens |
-| Animation 1min | 8,40€ | 840 tokens |
-| Animation 2min | 16,80€ | 1680 tokens |
-| Animation 3min | 25,20€ | 2520 tokens |
-| Animation 4min | 33,60€ | 3360 tokens |
-| Animation 5min | 42,00€ | 4200 tokens |
+| Animation 30s | 3,06€ | 306 tokens |
+| Animation 1min | 6,12€ | 612 tokens |
+| Animation 2min | 12,24€ | 1224 tokens |
+| Animation 3min | 18,36€ | 1836 tokens |
+| Animation 4min | 24,48€ | 2448 tokens |
+| Animation 5min | 30,60€ | 3060 tokens |
 
 ---
 
@@ -63,14 +69,16 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 
 **Coûts en tokens :**
 - Histoire : 4 tokens
-- Coloriage : 16 tokens  
-- Page BD : 16 tokens
+- Coloriage (thème) : 13 tokens
+- Coloriage (photo) : 4 tokens
+- Page BD (thème) : 13 tokens
+- Page BD (photo) : 15 tokens
 - Comptine : 15 tokens
 
 **Exemples de mix possibles :**
-- 40 histoires + 5 coloriages
-- 30 histoires + 3 coloriages + 5 comptines
-- 10 coloriages + 5 comptines
+- 50 histoires + 5 coloriages (thème)
+- 40 histoires + 3 coloriages (thème) + 5 comptines
+- 12 coloriages (thème) + 5 comptines
 - 62 histoires (si vous n'utilisez que ça)
 
 **Idéal pour :** Utilisateurs occasionnels, découverte de la plateforme
@@ -84,14 +92,14 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 
 **Coûts en tokens :**
 - Histoire : 4 tokens
-- Coloriage : 16 tokens
-- Page BD : 16 tokens
+- Coloriage : 13 tokens
+- Page BD : 13 tokens
 - Comptine : 15 tokens
 - Animation 30s : 420 tokens
 
 **Exemples de mix possibles :**
-- 80 histoires + 10 coloriages
-- 60 histoires + 5 coloriages + 8 comptines
+- 100 histoires + 10 coloriages (thème)
+- 80 histoires + 5 coloriages (thème) + 8 comptines
 - 1 animation 30s + 20 histoires
 - 125 histoires (si vous n'utilisez que ça)
 
@@ -106,15 +114,15 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 
 **Coûts en tokens :**
 - Histoire : 4 tokens
-- Coloriage : 16 tokens
-- Page BD : 16 tokens
+- Coloriage : 13 tokens
+- Page BD : 13 tokens
 - Comptine : 15 tokens
 - Animation 30s : 420 tokens
 - Animation 1min : 840 tokens
 
 **Exemples de mix possibles :**
-- 150 histoires + 20 coloriages
-- 100 histoires + 10 coloriages + 15 comptines
+- 180 histoires + 20 coloriages (thème)
+- 130 histoires + 10 coloriages (thème) + 15 comptines
 - 2 animations 30s + 40 histoires
 - 1 animation 1min + 40 histoires
 - 250 histoires (si vous n'utilisez que ça)
@@ -130,22 +138,24 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 
 **Coûts en tokens :**
 - Histoire : 4 tokens
-- Coloriage : 16 tokens
-- Page BD : 16 tokens
+- Coloriage (thème) : 13 tokens
+- Coloriage (photo) : 4 tokens
+- Page BD (thème) : 13 tokens
+- Page BD (photo) : 15 tokens
 - Comptine : 15 tokens
 - Animation 30s : 420 tokens
 - Animation 1min : 840 tokens
 - Animation 2min : 1680 tokens
 
 **Exemples de mix possibles :**
-- 300 histoires + 50 coloriages
-- 200 histoires + 30 coloriages + 30 comptines
+- 400 histoires + 50 coloriages (thème)
+- 300 histoires + 30 coloriages (thème) + 30 comptines
 - 5 animations 30s + 100 histoires
 - 1 animation 2min + 150 histoires
 - 2 animations 1min + 100 histoires
 - 625 histoires (si vous n'utilisez que ça)
 
-**💡 Note :** Les animations 3-5min (2520-4200 tokens) sont uniquement disponibles en PAY-PER-USE.
+**💡 Note :** Les animations 3-5min (1836-3060 tokens) sont uniquement disponibles en PAY-PER-USE.
 
 **Idéal pour :** Écoles, crèches, centres de loisirs, institutions
 
@@ -174,18 +184,18 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 
 ### Attractivité maximale
 - Prix d'appel à 0,50€ pour les histoires
-- Coloriages, BD et comptines à 0,70€ (prix psychologiques ronds)
-- Abonnements avec économies jusqu'à 92%
+- Coloriages, BD et comptines à 0,60€ (prix psychologiques ronds)
+- Abonnements avec économies jusqu'à 93%
 - Animations premium à partir de 5,99€ (rentables)
 
 ### Cohérence parfaite
 - Échelonnage logique (0,50€ → 46,99€)
-- Marges bénéficiaires excellentes (9-85% selon le type)
+- Marges bénéficiaires excellentes (9-93% selon le type)
 - Valeur perçue alignée avec les coûts réels
 - Abonnements rentables même avec rabais généreux
 
 ### Stratégie marketing optimale
-- Prix psychologiques (.50€, .70€, 5.99€)
+- Prix psychologiques (.50€, .60€, 5.99€)
 - Tunnel de conversion efficace (pay-per-use → abonnement)
 - Positionnement premium justifié pour les animations
 - Abonnements basés sur nombre de générations (facile à comprendre)
