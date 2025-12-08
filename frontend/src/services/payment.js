@@ -377,19 +377,19 @@ export const calculateTokenCost = (contentType, options = {}, subscription = nul
   } else if (contentType === 'comptine' || contentType === 'rhyme') {
     tokensRequired = 15; // 0,15€ → 15 tokens
   } else if (contentType === 'animation') {
-    // Coûts animations basés sur la durée (Veo 3.1 Fast: 0,14€/seconde)
+    // Coûts animations basés sur la durée (WaveSpeed WAN 2.5 Fast 1080p: 0,102$/s ~0,102€/s)
     const duration = options.duration || 30; // durée en secondes
-    const costPerSecond = 0.14; // €
+    const costPerSecond = 0.102; // €
     const totalCost = costPerSecond * duration;
     tokensRequired = Math.ceil(totalCost * 100); // Convertir en tokens (1 token = 0,01€)
     
-    // Résultat selon la tarification:
-    // 30s: 4,20€ → 420 tokens
-    // 60s: 8,40€ → 840 tokens
-    // 120s: 16,80€ → 1680 tokens
-    // 180s: 25,20€ → 2520 tokens
-    // 240s: 33,60€ → 3360 tokens
-    // 300s: 42,00€ → 4200 tokens
+    // Résultat selon la tarification WAN 2.5 1080p:
+    // 30s: 3,06€ → 306 tokens
+    // 60s: 6,12€ → 612 tokens
+    // 120s: 12,24€ → 1224 tokens
+    // 180s: 18,36€ → 1836 tokens
+    // 240s: 24,48€ → 2448 tokens
+    // 300s: 30,60€ → 3060 tokens
   }
 
   return tokensRequired;
