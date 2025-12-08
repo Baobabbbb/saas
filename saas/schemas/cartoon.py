@@ -95,26 +95,35 @@ class Scene(BaseModel):
     def build_wan_prompt(self, character_sheet: Optional[CharacterSheet] = None) -> str:
         """
         Build the complete prompt for Wan 2.5 API.
-        Format optimized for expressive, story-driven animation.
+        Format optimized for coherent, fluid, realistic animation.
         """
         parts = []
         
-        # Start with character description for visual consistency
-        if character_sheet:
+        # Start with animation style/quality for consistency
+        parts.append("Animated scene, consistent character design, smooth fluid motion")
+        
+        # Add character description for visual consistency (CRITICAL)
+        if character_sheet and character_sheet.visual_description:
             parts.append(character_sheet.visual_description)
         
-        # Add the scene visual description (action + environment)
-        parts.append(self.visual_description)
+        # Add the scene visual description (action + environment + emotion)
+        if self.visual_description:
+            parts.append(self.visual_description)
         
         # Add camera framing for cinematic feel
-        if self.camera_angle and self.camera_angle != "medium shot":
-            parts.append(f"Shot: {self.camera_angle}")
+        if self.camera_angle:
+            camera_desc = {
+                "wide shot": "wide establishing shot showing full scene",
+                "medium shot": "medium shot showing character and surroundings",
+                "close-up": "close-up shot focusing on character expression"
+            }.get(self.camera_angle.lower(), self.camera_angle)
+            parts.append(camera_desc)
         
         # Build the final prompt
         prompt = ". ".join(parts)
         
-        # Add quality keywords at the end
-        prompt += ". Smooth animation, expressive character, vibrant colors, professional quality."
+        # Add quality keywords for professional output
+        prompt += ". Continuous seamless animation, expressive detailed character, vibrant rich colors, professional Disney Pixar quality, cinematic lighting, no glitches or artifacts."
         
         return prompt
 

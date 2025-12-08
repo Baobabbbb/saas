@@ -258,7 +258,7 @@ class WanVideoOrchestrator:
         }
         style_description = style_mapping.get(style.lower(), style_mapping["3d"])
         
-        return f"""You are a MASTER STORYTELLER creating a {num_scenes}-scene animated short film.
+        return f"""You are a PROFESSIONAL ANIMATION DIRECTOR creating a {num_scenes}-scene animated short film.
 
 ═══════════════════════════════════════════════════════════════════════════════
 🎬 ANIMATION STYLE: {style.upper()}
@@ -266,65 +266,72 @@ class WanVideoOrchestrator:
 Visual Style: {style_description}
 
 ═══════════════════════════════════════════════════════════════════════════════
-📖 STORY REQUIREMENTS - CREATE A REAL NARRATIVE!
+📖 CRITICAL: CREATE A COHERENT, FLUID, REALISTIC STORY!
 ═══════════════════════════════════════════════════════════════════════════════
 
-Your story MUST have:
+Your animation MUST tell ONE CONTINUOUS STORY where each scene is the DIRECT CONTINUATION of the previous one.
 
-1. **A CLEAR GOAL** - The main character WANTS something (find a friend, discover treasure, help someone, learn something)
+**NARRATIVE STRUCTURE for {num_scenes} scenes:**
 
-2. **A PROBLEM/CONFLICT** - Something prevents the character from achieving their goal (obstacle, fear, misunderstanding, challenge)
+Scene 1 (INTRODUCTION): 
+- Establish the situation, setting and main character
+- Show WHERE they are and WHAT they're about to do
+- Example: "The team walks onto the field, crowd cheering"
 
-3. **CHARACTER INTERACTIONS** - Show:
-   - Emotional reactions (joy, surprise, determination, worry, relief)
-   - Physical actions (running, jumping, hugging, dancing, exploring)
-   - Interactions with environment or other characters
+Scene 2 (ACTION BEGINS):
+- The main activity/action starts
+- Direct continuation from Scene 1
+- Example: "Players position themselves, referee blows whistle, match begins"
 
-4. **STORY ARC across {num_scenes} scenes**:
-   - Scene 1: SETUP - Introduce character + their desire/goal
-   - Scene 2: JOURNEY BEGINS - Character takes action toward goal
-   - Scenes 3-{max(3, num_scenes-1)}: ADVENTURE + CHALLENGE - Obstacles, discoveries, emotional moments
-   - Scene {num_scenes}: RESOLUTION - Character achieves goal, emotional happy ending
+{"Scene 3 (DEVELOPMENT): " + chr(10) + "- The action continues and intensifies" + chr(10) + "- Build tension or excitement" + chr(10) + "- Example: 'Intense back-and-forth play, near misses'" if num_scenes >= 3 else ""}
+
+Scene {num_scenes} (CLIMAX & RESOLUTION):
+- The exciting conclusion
+- A triumphant or satisfying ending moment
+- Example: "Hero scores the winning goal, team celebrates together"
 
 ═══════════════════════════════════════════════════════════════════════════════
-🎨 VISUAL CONSISTENCY RULES
+🎨 VISUAL CONSISTENCY - ABSOLUTELY CRITICAL!
 ═══════════════════════════════════════════════════════════════════════════════
 
-1. **CHARACTER**: Create ONE detailed character. Copy EXACT description in EVERY scene.
-   Example: "A tiny orange fox with fluffy white-tipped tail, bright amber eyes, wearing a small blue scarf with yellow stars"
+1. **SAME CHARACTER in EVERY scene**: 
+   - Create ONE detailed character description
+   - COPY-PASTE the EXACT SAME description word-for-word in every scene
+   - Include: hair color, eye color, skin tone, clothing, distinctive features
+   - Example: "A young boy with short brown hair, blue eyes, wearing a red #10 jersey, white shorts, red socks and white cleats"
 
-2. **EACH SCENE must describe**:
-   - The EXACT character description (copy-paste)
-   - What the character is DOING (specific action verb)
-   - What EMOTION they're showing (facial expression, body language)
-   - The ENVIRONMENT (consistent setting with small variations)
-   - The LIGHTING (same style throughout)
+2. **SAME SETTING throughout**:
+   - All scenes happen in the SAME location (or clearly connected locations)
+   - Same lighting, same time of day, same weather
+   - Example: "A sunny football stadium with green grass, white lines, and packed stands"
+
+3. **CONTINUOUS ACTION**:
+   - Each scene picks up EXACTLY where the previous ended
+   - No random jumps or unrelated scenes
+   - The story flows like watching a real video
 
 ═══════════════════════════════════════════════════════════════════════════════
 📋 OUTPUT FORMAT (JSON)
 ═══════════════════════════════════════════════════════════════════════════════
 
 {{
-    "title": "Engaging story title",
-    "synopsis": "One paragraph describing the complete story arc with beginning, middle, and end",
-    "theme": "The emotional theme (friendship, courage, curiosity, kindness)",
-    "setting": "The main location where the story takes place",
-    "mood": "Overall feeling (heartwarming, adventurous, magical, funny)",
+    "title": "Short, catchy title",
+    "synopsis": "Complete story summary in one paragraph",
+    "setting": "The main location (be specific)",
+    "mood": "Overall feeling",
     "visual_style": "{style_description}",
     "main_character": {{
         "name": "Character name",
-        "visual_description": "DETAILED: A [adjective] [animal/creature] with [color] [feature], [color] [feature], wearing [clothing]. [Distinctive features].",
-        "goal": "What the character wants to achieve",
-        "personality": ["trait1", "trait2", "trait3"]
+        "visual_description": "ULTRA-DETAILED: [Age/type] with [hair color/style], [eye color], [skin tone], wearing [specific clothing with colors]. [Any distinctive features].",
+        "role": "Their role in the story"
     }},
     "scenes": [
         {{
             "scene_number": 1,
-            "story_beat": "What happens in this scene (narrative description)",
-            "visual_description": "[EXACT CHARACTER DESCRIPTION]. [Character's specific ACTION]. [Character's EMOTION shown through expression/body]. [ENVIRONMENT details]. [LIGHTING]. {style_description}.",
-            "character_emotion": "The emotion shown (happy, curious, worried, determined, joyful)",
-            "camera_angle": "wide shot / medium shot / close-up",
-            "transition_to_next": "How this scene connects to the next"
+            "story_beat": "What happens (narrative)",
+            "visual_description": "[COPY EXACT CHARACTER DESCRIPTION]. [SPECIFIC ACTION with movement verbs]. [EMOTION through facial expression and body language]. [ENVIRONMENT: same setting]. [LIGHTING: consistent]. {style_description}.",
+            "character_emotion": "Primary emotion",
+            "camera_angle": "wide/medium/close-up"
         }}
     ]
 }}"""
@@ -339,52 +346,162 @@ Your story MUST have:
     ) -> str:
         """Build the user prompt for script generation."""
         
-        # Map theme to story ideas
-        theme_stories = {
-            "space": "a curious little astronaut exploring colorful planets and making friends with aliens",
-            "ocean": "a friendly sea creature discovering underwater treasures and helping ocean friends",
-            "forest": "a brave woodland animal going on an adventure through a magical enchanted forest",
-            "animals": "adorable animal friends working together to solve a problem and celebrate friendship",
-            "magic": "a young apprentice wizard learning to use their magical powers for good",
-            "adventure": "an explorer discovering hidden wonders and overcoming challenges with courage",
-            "friendship": "two unlikely friends meeting and learning the value of true friendship",
-            "nature": "a nature spirit protecting the forest and its magical creatures",
-            "circus": "a talented performer preparing for the big show and overcoming stage fright",
-            "dinosaur": "a baby dinosaur exploring the prehistoric world and finding their family"
+        # Map theme to CONCRETE story scenarios with clear scene progressions
+        theme_scenarios = {
+            "sport": {
+                "story": "a young athlete competing in an exciting sports match",
+                "example_3_scenes": [
+                    "Scene 1: The player and their team walk onto the field/court, crowd cheering, excited faces",
+                    "Scene 2: The match begins, intense action, players running and competing",
+                    "Scene 3: The hero scores/wins, jumps in celebration, teammates rush to hug them"
+                ],
+                "setting": "a sports stadium/arena with cheering crowd"
+            },
+            "space": {
+                "story": "a young astronaut on an exciting space exploration mission",
+                "example_3_scenes": [
+                    "Scene 1: The astronaut boards their rocket, waves goodbye, rocket launches into space",
+                    "Scene 2: Flying through colorful nebulas, discovering a new planet, landing on surface",
+                    "Scene 3: Meeting friendly aliens, exchanging gifts, celebrating new friendship"
+                ],
+                "setting": "outer space with stars, planets and a spaceship"
+            },
+            "ocean": {
+                "story": "a young diver exploring the magical underwater world",
+                "example_3_scenes": [
+                    "Scene 1: Diver jumps into crystal blue water, descends into the ocean depths",
+                    "Scene 2: Swimming among colorful coral reefs, discovering hidden treasure chest",
+                    "Scene 3: Swimming back to surface with treasure, emerging triumphant, dolphins celebrating"
+                ],
+                "setting": "a vibrant underwater ocean with coral reefs and sea life"
+            },
+            "forest": {
+                "story": "a young adventurer exploring a magical enchanted forest",
+                "example_3_scenes": [
+                    "Scene 1: Hero enters the mystical forest, sunlight filtering through tall trees",
+                    "Scene 2: Discovering magical glowing flowers, meeting forest creatures",
+                    "Scene 3: Finding the heart of the forest, magical transformation, triumphant celebration"
+                ],
+                "setting": "an enchanted forest with tall trees, magical plants and mystical creatures"
+            },
+            "animals": {
+                "story": "adorable animal friends going on an adventure together",
+                "example_3_scenes": [
+                    "Scene 1: Animal friends gather together, planning their adventure, excited faces",
+                    "Scene 2: Journeying through beautiful landscape, helping each other over obstacles",
+                    "Scene 3: Reaching their destination, celebrating together, group hug"
+                ],
+                "setting": "a beautiful natural landscape with meadows and hills"
+            },
+            "magic": {
+                "story": "a young wizard learning to master their magical powers",
+                "example_3_scenes": [
+                    "Scene 1: Young wizard opens a magical spellbook, wand glowing with power",
+                    "Scene 2: Practicing spells, magical effects swirling, initial struggles then success",
+                    "Scene 3: Casting a perfect spell, magical fireworks, celebration dance"
+                ],
+                "setting": "a magical wizard tower with floating books and glowing crystals"
+            },
+            "adventure": {
+                "story": "a brave explorer on a treasure hunting expedition",
+                "example_3_scenes": [
+                    "Scene 1: Explorer studies ancient map, packs backpack, sets off on journey",
+                    "Scene 2: Navigating through jungle/caves, solving puzzles, overcoming obstacles",
+                    "Scene 3: Discovering the legendary treasure, holding it up triumphantly, celebrating"
+                ],
+                "setting": "an exotic adventure location with ancient ruins"
+            },
+            "friendship": {
+                "story": "two characters meeting and becoming best friends",
+                "example_3_scenes": [
+                    "Scene 1: Two characters meet for the first time, shy but curious",
+                    "Scene 2: Playing together, sharing, laughing, having fun activities",
+                    "Scene 3: Best friends forever moment, pinky promise, happy hug"
+                ],
+                "setting": "a colorful playground or park setting"
+            },
+            "dinosaur": {
+                "story": "a baby dinosaur on an adventure in the prehistoric world",
+                "example_3_scenes": [
+                    "Scene 1: Baby dinosaur hatches from egg, takes first steps, curious about world",
+                    "Scene 2: Exploring prehistoric landscape, meeting other dinosaurs, playing",
+                    "Scene 3: Finding dinosaur family, happy reunion, nuzzling together"
+                ],
+                "setting": "a prehistoric landscape with volcanoes, ferns and dinosaurs"
+            },
+            "circus": {
+                "story": "a performer preparing for and delivering an amazing circus show",
+                "example_3_scenes": [
+                    "Scene 1: Performer practices backstage, nervously peeks at the crowd",
+                    "Scene 2: Steps into spotlight, begins performance, audience gasping",
+                    "Scene 3: Grand finale, perfect landing, standing ovation, bowing"
+                ],
+                "setting": "a colorful big top circus tent with spotlights"
+            }
         }
         
-        story_idea = theme_stories.get(theme.lower(), f"an exciting story about {theme}")
+        # Get theme scenario or create generic one
+        scenario = theme_scenarios.get(theme.lower(), {
+            "story": f"an exciting adventure about {theme}",
+            "example_3_scenes": [
+                f"Scene 1: Hero prepares for their {theme} adventure",
+                f"Scene 2: Exciting {theme} action and challenges",
+                f"Scene 3: Triumphant conclusion and celebration"
+            ],
+            "setting": f"a location fitting for {theme}"
+        })
         
-        prompt = f"""Create an animated short film ({num_scenes} scenes × {self.clip_duration}s each) about:
+        # Build scene example based on num_scenes
+        if num_scenes == 3:
+            scene_examples = "\n".join(scenario["example_3_scenes"])
+        elif num_scenes < 3:
+            scene_examples = "\n".join(scenario["example_3_scenes"][:num_scenes])
+        else:
+            # For more scenes, expand the middle
+            scene_examples = scenario["example_3_scenes"][0] + "\n"
+            scene_examples += f"Scenes 2-{num_scenes-1}: Extended action sequence building up to the climax\n"
+            scene_examples += scenario["example_3_scenes"][2].replace("Scene 3:", f"Scene {num_scenes}:")
+        
+        prompt = f"""Create a COHERENT, FLUID, REALISTIC animated short film ({num_scenes} scenes × {self.clip_duration}s each).
 
+═══════════════════════════════════════════════════════════════════════════════
 🎬 THEME: {theme.upper()}
-📖 STORY IDEA: {story_idea}
-🎨 VISUAL STYLE: {style.upper()}
+📖 STORY: {scenario["story"]}
+🏠 SETTING: {scenario["setting"]}
+🎨 STYLE: {style.upper()}
+═══════════════════════════════════════════════════════════════════════════════
 
-STORY REQUIREMENTS:
-1. Create a COMPELLING NARRATIVE with:
-   - A lovable main character with a CLEAR GOAL
-   - A PROBLEM or CHALLENGE to overcome
-   - EMOTIONAL moments (joy, wonder, determination, triumph)
-   - A SATISFYING happy ending
+**SCENE STRUCTURE EXAMPLE** (follow this type of progression):
+{scene_examples}
 
-2. Make each scene VISUALLY EXCITING:
-   - Show CHARACTER ACTIONS (running, jumping, discovering, hugging, celebrating)
-   - Show CHARACTER EMOTIONS through expressions and body language
-   - Include interesting ENVIRONMENT details related to {theme}
+═══════════════════════════════════════════════════════════════════════════════
+⚠️ CRITICAL REQUIREMENTS FOR COHERENCE:
+═══════════════════════════════════════════════════════════════════════════════
 
-3. Ensure VISUAL CONSISTENCY:
-   - SAME character appearance in EVERY scene (copy exact description)
-   - SAME art style and lighting throughout
-   - Smooth story flow from one scene to the next
+1. **ONE CONTINUOUS STORY**: Each scene must be the DIRECT continuation of the previous one. 
+   No random jumps. The viewer should feel like watching ONE video, not separate clips.
 
-IMPORTANT: This should feel like watching a real animated short film with a beginning, middle, and satisfying end!"""
+2. **SAME CHARACTER ALWAYS**: Create ONE character with SPECIFIC details (hair color, eye color, 
+   clothing colors) and COPY-PASTE that exact description in EVERY scene visual_description.
+
+3. **SAME LOCATION**: All scenes happen in the SAME place or clearly connected locations.
+   Same lighting, same weather, same time of day throughout.
+
+4. **LOGICAL PROGRESSION**: 
+   - Scene 1 → leads directly to → Scene 2 → leads directly to → Scene 3...
+   - Actions flow naturally: walk in → start activity → climax → celebration
+
+5. **REALISTIC TIMING**: What you describe in each scene should be achievable in {self.clip_duration} seconds.
+   Don't describe too much action for one scene.
+
+═══════════════════════════════════════════════════════════════════════════════
+The result should feel like watching a real Disney/Pixar short film - fluid, coherent, and emotionally satisfying!"""
         
         if character_name:
             prompt += f"\n\n👤 MAIN CHARACTER NAME: {character_name}"
         
         if custom_prompt:
-            prompt += f"\n\n💡 ADDITIONAL STORY DETAILS: {custom_prompt}"
+            prompt += f"\n\n💡 USER'S SPECIFIC STORY REQUEST: {custom_prompt}\n(Incorporate this into the {theme} theme while keeping the coherent scene structure)"
         
         return prompt
     
