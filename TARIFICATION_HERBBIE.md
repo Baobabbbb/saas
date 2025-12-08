@@ -76,8 +76,8 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 - Comptine : 15 tokens
 
 **Exemples de mix possibles :**
-- 50 histoires + 5 coloriages (thème)
-- 40 histoires + 3 coloriages (thème) + 5 comptines
+- 45 histoires + 5 coloriages (thème)
+- 34 histoires + 3 coloriages (thème) + 5 comptines
 - 12 coloriages (thème) + 5 comptines
 - 62 histoires (si vous n'utilisez que ça)
 
@@ -95,11 +95,11 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 - Coloriage : 13 tokens
 - Page BD : 13 tokens
 - Comptine : 15 tokens
-- Animation 30s : 420 tokens
+- Animation 30s : 306 tokens
 
 **Exemples de mix possibles :**
-- 100 histoires + 10 coloriages (thème)
-- 80 histoires + 5 coloriages (thème) + 8 comptines
+- 90 histoires + 10 coloriages (thème)
+- 75 histoires + 5 coloriages (thème) + 8 comptines
 - 1 animation 30s + 20 histoires
 - 125 histoires (si vous n'utilisez que ça)
 
@@ -117,8 +117,8 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 - Coloriage : 13 tokens
 - Page BD : 13 tokens
 - Comptine : 15 tokens
-- Animation 30s : 420 tokens
-- Animation 1min : 840 tokens
+- Animation 30s : 306 tokens
+- Animation 1min : 612 tokens
 
 **Exemples de mix possibles :**
 - 180 histoires + 20 coloriages (thème)
@@ -143,9 +143,9 @@ Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisa
 - Page BD (thème) : 13 tokens
 - Page BD (photo) : 15 tokens
 - Comptine : 15 tokens
-- Animation 30s : 420 tokens
-- Animation 1min : 840 tokens
-- Animation 2min : 1680 tokens
+- Animation 30s : 306 tokens
+- Animation 1min : 612 tokens
+- Animation 2min : 1224 tokens
 
 **Exemples de mix possibles :**
 - 400 histoires + 50 coloriages (thème)
