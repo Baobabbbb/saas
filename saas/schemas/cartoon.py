@@ -195,8 +195,8 @@ class GenerationRequest(BaseModel):
         description="Video aspect ratio (paysage par défaut)"
     )
     resolution: Resolution = Field(
-        default=Resolution.HD,
-        description="Video resolution"
+        default=Resolution.FULL_HD,
+        description="Video resolution (1080p par défaut)"
     )
     
     # Advanced options
