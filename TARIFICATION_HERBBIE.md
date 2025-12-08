@@ -1,0 +1,225 @@
+# GRILLE TARIFAIRE COMPLÈTE HERBBIE
+
+*Dernière mise à jour : Novembre 2025 - Prix arrondis (0,50€ et 0,60€)*
+
+## Vue d'ensemble
+
+Cette grille tarifaire est optimisée pour maximiser l'attractivité des utilisateurs tout en maintenant d'excellentes marges bénéficiaires (70% en moyenne).
+
+---
+
+## PAY-PER-USE (Prix à l'unité)
+
+**Modèles utilisés :**
+- Texte/Prompts : gpt-4o-mini (~0,0004€)
+- Analyse images : gpt-4o (~0,02€) - pour BD avec photos personnalisées
+- Images normales : gemini-3-pro-image-preview (~0,13€) - coloriages et BD par thème
+- Images personnalisées : gpt-image-1 (~0,04€) - coloriages avec photos uploadées
+- Audio : OpenAI TTS (0,042€)
+- Musique : Suno (~0,15€)
+- Vidéo : WaveSpeed Alibaba WAN 2.5 Text-to-Video Fast 1080p (≈0,102$/s, ~0,094€/s)
+
+| Fonctionnalité | Prix | Coût API Réel | Marge | Marge % |
+|---|---|---|---|---|
+| Histoire | 0,50€ | 0,042€ | 0,46€ | 92% |
+| Coloriage (thème) | 0,60€ | 0,13€ | 0,47€ | 78% |
+| Coloriage (photo) | 0,60€ | 0,04€ | 0,56€ | 93% |
+| BD par page (thème) | 0,60€ | 0,13€ | 0,47€ | 78% |
+| BD par page (photo) | 0,60€ | 0,15€ | 0,45€ | 75% |
+| Comptine | 0,60€ | 0,15€ | 0,45€ | 75% |
+| Animation 30s | 5,99€ | 3,06€ | 2,93€ | 49% |
+| Animation 1min | 9,99€ | 6,12€ | 3,87€ | 39% |
+| Animation 2min | 18,99€ | 12,24€ | 6,75€ | 36% |
+| Animation 3min | 27,99€ | 18,36€ | 9,63€ | 34% |
+| Animation 4min | 36,99€ | 24,48€ | 12,51€ | 34% |
+| Animation 5min | 46,99€ | 30,60€ | 16,39€ | 35% |
+
+---
+
+## SYSTÈME D'ABONNEMENTS (TOKENS)
+
+### ℹ️ Fonctionnement des tokens
+- **1 token = 0,01€ de coût API**
+- Les tokens peuvent être utilisés pour **n'importe quel type de contenu**
+- L'utilisateur choisit comment dépenser ses tokens
+
+### Coûts en tokens par contenu
+
+| Contenu | Coût API | Tokens requis |
+|---------|----------|---------------|
+| Histoire | 0,042€ | 4 tokens |
+| Coloriage (thème) | 0,13€ | 13 tokens |
+| Coloriage (photo) | 0,04€ | 4 tokens |
+| BD (par page, thème) | 0,13€ | 13 tokens |
+| BD (par page, photo) | 0,15€ | 15 tokens |
+| Comptine | 0,15€ | 15 tokens |
+| Animation 30s | 3,06€ | 306 tokens |
+| Animation 1min | 6,12€ | 612 tokens |
+| Animation 2min | 12,24€ | 1224 tokens |
+| Animation 3min | 18,36€ | 1836 tokens |
+| Animation 4min | 24,48€ | 2448 tokens |
+| Animation 5min | 30,60€ | 3060 tokens |
+
+---
+
+### Abonnement Découverte - 4,99€/mois
+**250 tokens/mois** (Budget API : 2,50€, Marge : 50%)
+
+**Système flexible** : Utilisez vos tokens comme vous voulez !
+
+**Coûts en tokens :**
+- Histoire : 4 tokens
+- Coloriage (thème) : 13 tokens
+- Coloriage (photo) : 4 tokens
+- Page BD (thème) : 13 tokens
+- Page BD (photo) : 15 tokens
+- Comptine : 15 tokens
+
+**Exemples de mix possibles :**
+- 45 histoires + 5 coloriages (thème)
+- 34 histoires + 3 coloriages (thème) + 5 comptines
+- 12 coloriages (thème) + 5 comptines
+- 62 histoires (si vous n'utilisez que ça)
+
+**Idéal pour :** Utilisateurs occasionnels, découverte de la plateforme
+
+---
+
+### Abonnement Famille - 9,99€/mois
+**500 tokens/mois** (Budget API : 5,00€, Marge : 50%)
+
+**Système flexible** : Utilisez vos tokens comme vous voulez !
+
+**Coûts en tokens :**
+- Histoire : 4 tokens
+- Coloriage : 13 tokens
+- Page BD : 13 tokens
+- Comptine : 15 tokens
+- Animation 30s : 306 tokens
+
+**Exemples de mix possibles :**
+- 90 histoires + 10 coloriages (thème)
+- 75 histoires + 5 coloriages (thème) + 8 comptines
+- 1 animation 30s + 20 histoires
+- 125 histoires (si vous n'utilisez que ça)
+
+**Idéal pour :** Familles actives, usage régulier
+
+---
+
+### Abonnement Créatif - 19,99€/mois
+**1000 tokens/mois** (Budget API : 10,00€, Marge : 50%)
+
+**Système flexible** : Utilisez vos tokens comme vous voulez !
+
+**Coûts en tokens :**
+- Histoire : 4 tokens
+- Coloriage : 13 tokens
+- Page BD : 13 tokens
+- Comptine : 15 tokens
+- Animation 30s : 306 tokens
+- Animation 1min : 612 tokens
+
+**Exemples de mix possibles :**
+- 180 histoires + 20 coloriages (thème)
+- 130 histoires + 10 coloriages (thème) + 15 comptines
+- 2 animations 30s + 40 histoires
+- 1 animation 1min + 40 histoires
+- 250 histoires (si vous n'utilisez que ça)
+
+**Idéal pour :** Créateurs intensifs, éducateurs, animateurs
+
+---
+
+### Abonnement Institut - 49,99€/mois
+**2500 tokens/mois** (Budget API : 25,00€, Marge : 50%)
+
+**Système flexible** : Utilisez vos tokens comme vous voulez !
+
+**Coûts en tokens :**
+- Histoire : 4 tokens
+- Coloriage (thème) : 13 tokens
+- Coloriage (photo) : 4 tokens
+- Page BD (thème) : 13 tokens
+- Page BD (photo) : 15 tokens
+- Comptine : 15 tokens
+- Animation 30s : 306 tokens
+- Animation 1min : 612 tokens
+- Animation 2min : 1224 tokens
+
+**Exemples de mix possibles :**
+- 400 histoires + 50 coloriages (thème)
+- 300 histoires + 30 coloriages (thème) + 30 comptines
+- 5 animations 30s + 100 histoires
+- 1 animation 2min + 150 histoires
+- 2 animations 1min + 100 histoires
+- 625 histoires (si vous n'utilisez que ça)
+
+**💡 Note :** Les animations 3-5min (1836-3060 tokens) sont uniquement disponibles en PAY-PER-USE.
+
+**Idéal pour :** Écoles, crèches, centres de loisirs, institutions
+
+---
+
+## ANALYSE FINANCIÈRE GLOBALE
+
+### Marges bénéficiaires
+- Marge moyenne pondérée : 70% (ajustée après réduction des prix)
+- Coûts API totaux : 35-40% du CA (réel)
+- Infrastructure/Serveur : 5-8% du CA
+- Marketing/Paiements : 5-7% du CA
+- Marge nette : 40-45%
+
+### Prévisions de revenus (1,000 utilisateurs actifs/mois)
+- CA pay-per-use : 35,000-45,000€
+- CA abonnements : 15,000-20,000€
+- Total CA : 50,000-65,000€/mois
+- Coûts API : 15,000-20,000€
+- Marge brute : 30,000-40,000€
+- Marge nette : 21,000-28,000€
+
+---
+
+## POINTS FORTS DE CETTE TARIFICATION
+
+### Attractivité maximale
+- Prix d'appel à 0,50€ pour les histoires
+- Coloriages, BD et comptines à 0,60€ (prix psychologiques ronds)
+- Abonnements avec économies jusqu'à 93%
+- Animations premium à partir de 5,99€ (rentables)
+
+### Cohérence parfaite
+- Échelonnage logique (0,50€ → 46,99€)
+- Marges bénéficiaires excellentes (9-93% selon le type)
+- Valeur perçue alignée avec les coûts réels
+- Abonnements rentables même avec rabais généreux
+
+### Stratégie marketing optimale
+- Prix psychologiques (.50€, .60€, 5.99€)
+- Tunnel de conversion efficace (pay-per-use → abonnement)
+- Positionnement premium justifié pour les animations
+- Abonnements basés sur nombre de générations (facile à comprendre)
+
+---
+
+## STRATÉGIE DE MISE EN PLACE
+
+### Phase 1 : Lancement (Mois 1-2)
+- Introduction des nouveaux prix pay-per-use
+- Promotion des prix d'appel (0,50€ pour les histoires)
+- Mise en avant des abonnements avec valeur réelle affichée
+
+### Phase 2 : Conversion (Mois 3-6)
+- Mise en avant des économies massives (79% à 92%)
+- Emails de réengagement montrant le coût réel pay-per-use
+- Programme de parrainage avec réductions sur abonnements
+
+### Phase 3 : Optimisation (Mois 6+)
+- A/B testing sur le nombre de générations incluses
+- Analyse des données d'usage pour ajuster les quotas
+- Introduction d'abonnements annuels (-20% de réduction)
+- Packs de tokens supplémentaires pour les gros consommateurs
+
+---
+
+Cette grille tarifaire est parfaitement équilibrée : ultra-attractive pour maximiser les conversions tout en garantissant d'excellentes marges bénéficiaires.

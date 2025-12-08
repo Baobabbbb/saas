@@ -101,7 +101,7 @@ export const getContentPrice = (contentType, options = {}) => {
     'rhyme': { amount: 60, name: 'Comptine musicale', currency: 'EUR', display: '0,60€' },
 
     // Animations avec marges réduites (prix attractifs)
-    'animation': { amount: 599, name: 'Animation IA 30s', currency: 'EUR', display: '5,99€' }
+    'animation': { amount: 499, name: 'Animation IA 30s', currency: 'EUR', display: '4,99€' }
   }
 
   // Gestion spéciale pour les histoires (prix unique : 0,50€)
@@ -117,12 +117,12 @@ export const getContentPrice = (contentType, options = {}) => {
   // Gestion spéciale pour les animations selon la durée (PRIX RÉDUITS 2025-11-06)
   if (contentType === 'animation' && options.duration) {
               const durationPrices = {
-                30: { amount: 599, name: 'Animation IA 30s', display: '5,99€' },
-                60: { amount: 999, name: 'Animation IA 1min', display: '9,99€' },
-                120: { amount: 1899, name: 'Animation IA 2min', display: '18,99€' },
-                180: { amount: 2799, name: 'Animation IA 3min', display: '27,99€' },
-                240: { amount: 3699, name: 'Animation IA 4min', display: '36,99€' },
-                300: { amount: 4699, name: 'Animation IA 5min', display: '46,99€' }
+                30: { amount: 499, name: 'Animation IA 30s', display: '4,99€' },
+                60: { amount: 799, name: 'Animation IA 1min', display: '7,99€' },
+                120: { amount: 1499, name: 'Animation IA 2min', display: '14,99€' },
+                180: { amount: 2099, name: 'Animation IA 3min', display: '20,99€' },
+                240: { amount: 2799, name: 'Animation IA 4min', display: '27,99€' },
+                300: { amount: 3499, name: 'Animation IA 5min', display: '34,99€' }
               }
 
     const durationKey = options.duration

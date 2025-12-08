@@ -60,12 +60,12 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
       coloring: 69,       // 0,69€
       comic: 69,          // 0,69€ par page
       rhyme: 69,          // 0,69€
-      animation30: 599,   // 5,99€
-      animation60: 999,   // 9,99€
-      animation120: 1899, // 18,99€ (2min)
-      animation180: 2799, // 27,99€ (3min)
-      animation240: 3699, // 36,99€ (4min)
-      animation300: 4699  // 46,99€ (5min)
+      animation30: 499,   // 4,99€
+      animation60: 799,   // 7,99€
+      animation120: 1499, // 14,99€ (2min)
+      animation180: 2099, // 20,99€ (3min)
+      animation240: 2799, // 27,99€ (4min)
+      animation300: 3499  // 34,99€ (5min)
     };
 
     // Coûts en TOKENS (1 token = 0,01€ de coût API)
