@@ -183,7 +183,7 @@ function App() {
 
   // Animation states
   const [selectedAnimationTheme, setSelectedAnimationTheme] = useState(null); // Aucun thème par défaut
-  const [selectedDuration, setSelectedDuration] = useState(30); // Valeur par défaut de 30 secondes
+  const [selectedDuration, setSelectedDuration] = useState(null); // Aucune valeur par défaut
   const [selectedStyle, setSelectedStyle] = useState(null);
   const [customStory, setCustomStory] = useState('');
   const [characterImage, setCharacterImage] = useState(null);
