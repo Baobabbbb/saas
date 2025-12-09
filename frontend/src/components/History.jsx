@@ -278,7 +278,7 @@ const History = ({ onClose, onSelect }) => {
         try {
           bgImage = await loadImage(bgImageUrl);
         } catch (error) {
-          console.log('⚠️ Image de fond non disponible, PDF sans fond');
+          // Image de fond non disponible, PDF sans fond
         }
 
         // ✂️ Texte découpé (exactement comme la fonction originale)

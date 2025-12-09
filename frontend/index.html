@@ -245,8 +245,15 @@
           originalConsoleWarn.apply(console, args);
         };
         
-        // Intercepter console.log pour les logs de debug tokens
+        // Intercepter console.log pour les logs de debug et Stripe
         console.log = function(...args) {
+          // Filtrer les objets Stripe avec clés aléatoires (ex: {xkKZ4: 'g'})
+          if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null) {
+            const keys = Object.keys(args[0]);
+            if (keys.length === 1 && /^[a-zA-Z0-9]{4,6}$/.test(keys[0])) {
+              return; // Log Stripe interne, ne pas afficher
+            }
+          }
           const logMessage = argsToString(...args);
           // Masquer les logs de debug tokens
           if (logMessage.includes('[DEBUG]') && 

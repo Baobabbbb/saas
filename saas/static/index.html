@@ -97,7 +97,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/assets/main-94ae471f.js"></script>
+    <script type="module" crossorigin src="/assets/main-faa437d5.js"></script>
     <link rel="stylesheet" href="/assets/index-a6fbffcb.css">
   </head>
   <body>
@@ -247,8 +247,15 @@
           originalConsoleWarn.apply(console, args);
         };
         
-        // Intercepter console.log pour les logs de debug tokens
+        // Intercepter console.log pour les logs de debug et Stripe
         console.log = function(...args) {
+          // Filtrer les objets Stripe avec clés aléatoires (ex: {xkKZ4: 'g'})
+          if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null) {
+            const keys = Object.keys(args[0]);
+            if (keys.length === 1 && /^[a-zA-Z0-9]{4,6}$/.test(keys[0])) {
+              return; // Log Stripe interne, ne pas afficher
+            }
+          }
           const logMessage = argsToString(...args);
           // Masquer les logs de debug tokens
           if (logMessage.includes('[DEBUG]') && 

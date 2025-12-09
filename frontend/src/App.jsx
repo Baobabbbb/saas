@@ -757,7 +757,6 @@ function App() {
           payload.custom_prompt = customColoringTheme.trim();
         }
       
-      console.log('[DEBUG] Payload coloriage:', payload);
       const response = await authFetch(`${API_BASE_URL}/generate_coloring/`, {
         method: 'POST',
       headers: { 'Content-Type': 'application/json' },
