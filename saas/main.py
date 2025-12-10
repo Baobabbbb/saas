@@ -347,6 +347,19 @@ async def favicon():
         return FileResponse(logo_path, media_type="image/png")
     raise HTTPException(status_code=404, detail="Favicon not found")
 
+# Route pour servir le manifest.json (PWA)
+@app.get("/manifest.json", include_in_schema=False)
+async def manifest():
+    """Serve manifest.json pour PWA"""
+    manifest_path = static_dir / "manifest.json"
+    if manifest_path.exists():
+        return FileResponse(
+            manifest_path,
+            media_type="application/json",
+            headers={"Content-Type": "application/json; charset=utf-8"}
+        )
+    raise HTTPException(status_code=404, detail="Manifest not found")
+
 # Endpoint pour fournir les variables d'environnement au frontend
 @app.get("/api/config")
 async def get_config():
