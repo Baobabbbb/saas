@@ -98,7 +98,7 @@ const Header = ({ isLoggedIn, onLogin, onLogout, onRegister, onOpenHistory, user
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.6 }}
         >
-          La création de dessins animés sera bientôt disponible.
+          La création de dessins animés n'est pas encore optimisée et peut contenir des défauts.
         </motion.p>
       </div>
       
