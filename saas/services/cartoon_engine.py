@@ -53,14 +53,13 @@ class WanVideoOrchestrator:
         openai_api_key: OpenAI API key for script generation
         fal_api_key: FAL AI API key for video stitching
         max_concurrent_clips: Maximum concurrent clip generation (semaphore limit)
-        clip_duration: Duration per clip in seconds (10s supported by fast model)
+        clip_duration: Duration per clip in seconds (always 10s with Wan 2.5 Standard)
     """
     
     # API Configuration
     WAVESPEED_BASE_URL = "https://api.wavespeed.ai/api/v3"
-    # Modèle standard (10s supporté) vs Fast (5s max)
-    WAN25_ENDPOINT = "/alibaba/wan-2.5/text-to-video"  # Standard model supports 10s
-    WAN25_FAST_ENDPOINT = "/alibaba/wan-2.5/text-to-video-fast"  # Fast model for 5s only
+    # Modèle standard uniquement - supporte 10 secondes par clip
+    WAN25_ENDPOINT = "/alibaba/wan-2.5/text-to-video"
     FAL_FFMPEG_URL = "https://queue.fal.run/fal-ai/ffmpeg-api/compose"
     
     # Default settings optimized for Disney/Pixar quality animation
@@ -74,7 +73,7 @@ class WanVideoOrchestrator:
         fal_api_key: Optional[str] = None,
         supabase_client: Optional[Any] = None,
         max_concurrent_clips: int = 5,
-        clip_duration: int = 10  # 10 secondes supporté par le modèle "fast"
+        clip_duration: int = 10  # Toujours 10s avec Wan 2.5 Standard
     ):
         """
         Initialize the WanVideoOrchestrator.
@@ -85,7 +84,7 @@ class WanVideoOrchestrator:
             fal_api_key: FAL AI API key (or from env FAL_API_KEY)
             supabase_client: Supabase client for database updates
             max_concurrent_clips: Max concurrent video generations (default: 5)
-            clip_duration: Duration per clip in seconds (default: 10 for fast model)
+            clip_duration: Duration per clip in seconds (always 10s with Wan 2.5 Standard)
         """
         # Load API keys from environment or parameters
         self.wavespeed_api_key = wavespeed_api_key or os.getenv("WAVESPEED_API_KEY")
@@ -95,7 +94,7 @@ class WanVideoOrchestrator:
         
         # Configuration
         self.max_concurrent_clips = max_concurrent_clips
-        self.clip_duration = clip_duration  # 10 secondes par clip (supporté par modèle fast)
+        self.clip_duration = clip_duration  # Toujours 10s par scène avec Wan 2.5 Standard
         self.semaphore = asyncio.Semaphore(max_concurrent_clips)
         
         # Text model for script generation
@@ -623,17 +622,13 @@ The result should feel like watching a real Disney/Pixar short film - fluid, coh
                 }
                 size = size_mapping.get((aspect_ratio, resolution), "1280*720")
                 
-                # Prepare WaveSpeed API request (according to official documentation)
-                # Use standard model for 10s clips, fast model for 5s or less
-                duration = min(scene.duration_seconds, 10)
-                use_fast_model = duration <= 5
-                endpoint = self.WAN25_FAST_ENDPOINT if use_fast_model else self.WAN25_ENDPOINT
-                
+                # Prepare WaveSpeed API request - Wan 2.5 Standard (10s clips)
+                # Toutes les scènes sont de 10 secondes
                 payload = {
                     "prompt": styled_prompt,
                     "negative_prompt": self.DEFAULT_NEGATIVE_PROMPT,
-                    "size": size,  # WaveSpeed format: "1280*720"
-                    "duration": duration,
+                    "size": size,  # WaveSpeed format: "1280*720" ou "1920*1080"
+                    "duration": 10,  # Toujours 10 secondes par scène
                     "enable_prompt_expansion": False,
                     "seed": -1
                 }
@@ -643,10 +638,9 @@ The result should feel like watching a real Disney/Pixar short film - fluid, coh
                     "Content-Type": "application/json"
                 }
                 
-                api_url = f"{self.WAVESPEED_BASE_URL}{endpoint}"
-                model_type = "FAST" if use_fast_model else "STANDARD (10s)"
-                logger.info(f"📡 POST {api_url} [Model: {model_type}]")
-                logger.info(f"📦 Payload: size={size}, duration={duration}s")
+                api_url = f"{self.WAVESPEED_BASE_URL}{self.WAN25_ENDPOINT}"
+                logger.info(f"📡 POST {api_url} [Wan 2.5 Standard - 10s]")
+                logger.info(f"📦 Payload: size={size}, duration=10s")
                 
                 # Make the request
                 async with httpx.AsyncClient(timeout=60.0) as client:
