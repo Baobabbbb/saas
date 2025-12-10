@@ -25,7 +25,7 @@ import ColoringCanvas from './components/ColoringCanvas';
 import ComicsSelector from './components/ComicsSelector';
 import ComicsPopup from './components/ComicsPopup';
 import useSupabaseUser from './hooks/useSupabaseUser';
-import { API_BASE_URL, ANIMATION_API_BASE_URL } from './config/api';
+import { API_BASE_URL } from './config/api';
 import { authFetch } from './services/apiClient';
 
 import { addCreation } from './services/creations';
@@ -862,7 +862,7 @@ function App() {
       };
       const normalizedTheme = normalizedThemeMap[currentTheme] || currentTheme || 'adventure';
 
-      // Utiliser toujours le vrai pipeline zseedance (endpoint generate-quick - GET seulement)
+      // Utiliser le pipeline WAN 2.5 via WaveSpeed (endpoint generate-quick)
       const duration = selectedDuration || 30; // Valeur par défaut de 30 secondes si non sélectionnée
       const endpoint = `${API_BASE_URL}/generate-quick?theme=${encodeURIComponent(normalizedTheme)}&duration=${duration}&style=${selectedStyle || 'cartoon'}&custom_prompt=${encodeURIComponent(story || '')}`;
       const fetchOptions = {

@@ -598,7 +598,6 @@ async def test_suno(authorization: Optional[str] = Header(None)):
             "timestamp": datetime.now().isoformat()
         }
 
-# --- Test Runway API ---
 # --- Audio Streaming ---
 @app.get("/audio/{filename}")
 async def stream_audio(filename: str, download: bool = False):
@@ -642,8 +641,6 @@ async def stream_audio(filename: str, download: bool = False):
             media_type="audio/mpeg",
             headers=headers
         )
-
-# Endpoint Runway supprimé - retour à OpenAI TTS
 
 # --- Histoire Audio ---
 # Ancien modèle remplacé par ValidatedAudioStoryRequest dans validators.py
