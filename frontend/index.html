@@ -262,11 +262,15 @@
         
         // Intercepter console.log pour les logs de debug et Stripe
         console.log = function(...args) {
-          // Filtrer les objets Stripe avec clés aléatoires (ex: {xkKZ4: 'g'})
-          if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null) {
+          // Filtrer les objets Stripe avec clés aléatoires (ex: {xkKZ4: 'g'}, {abc123: 'x'})
+          if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && !Array.isArray(args[0])) {
             const keys = Object.keys(args[0]);
-            if (keys.length === 1 && /^[a-zA-Z0-9]{4,6}$/.test(keys[0])) {
-              return; // Log Stripe interne, ne pas afficher
+            // Objets avec une seule clé courte alphanumerique = log Stripe interne
+            if (keys.length === 1 && keys[0].length <= 10 && /^[a-zA-Z0-9]+$/.test(keys[0])) {
+              const value = args[0][keys[0]];
+              if (typeof value === 'string' && value.length <= 5) {
+                return; // Log Stripe interne, ne pas afficher
+              }
             }
           }
           const logMessage = argsToString(...args);
