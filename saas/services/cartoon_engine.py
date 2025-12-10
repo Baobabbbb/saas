@@ -58,7 +58,9 @@ class WanVideoOrchestrator:
     
     # API Configuration
     WAVESPEED_BASE_URL = "https://api.wavespeed.ai/api/v3"
-    WAN25_ENDPOINT = "/alibaba/wan-2.5/text-to-video-fast"  # URL correcte selon doc WaveSpeed
+    # Modèle standard (10s supporté) vs Fast (5s max)
+    WAN25_ENDPOINT = "/alibaba/wan-2.5/text-to-video"  # Standard model supports 10s
+    WAN25_FAST_ENDPOINT = "/alibaba/wan-2.5/text-to-video-fast"  # Fast model for 5s only
     FAL_FFMPEG_URL = "https://queue.fal.run/fal-ai/ffmpeg-api/compose"
     
     # Default settings optimized for Disney/Pixar quality animation
@@ -622,11 +624,16 @@ The result should feel like watching a real Disney/Pixar short film - fluid, coh
                 size = size_mapping.get((aspect_ratio, resolution), "1280*720")
                 
                 # Prepare WaveSpeed API request (according to official documentation)
+                # Use standard model for 10s clips, fast model for 5s or less
+                duration = min(scene.duration_seconds, 10)
+                use_fast_model = duration <= 5
+                endpoint = self.WAN25_FAST_ENDPOINT if use_fast_model else self.WAN25_ENDPOINT
+                
                 payload = {
                     "prompt": styled_prompt,
                     "negative_prompt": self.DEFAULT_NEGATIVE_PROMPT,
                     "size": size,  # WaveSpeed format: "1280*720"
-                    "duration": min(scene.duration_seconds, 10),  # Max 10 seconds
+                    "duration": duration,
                     "enable_prompt_expansion": False,
                     "seed": -1
                 }
@@ -636,9 +643,10 @@ The result should feel like watching a real Disney/Pixar short film - fluid, coh
                     "Content-Type": "application/json"
                 }
                 
-                api_url = f"{self.WAVESPEED_BASE_URL}{self.WAN25_ENDPOINT}"
-                logger.info(f"📡 POST {api_url}")
-                logger.info(f"📦 Payload: size={size}, duration={payload['duration']}")
+                api_url = f"{self.WAVESPEED_BASE_URL}{endpoint}"
+                model_type = "FAST" if use_fast_model else "STANDARD (10s)"
+                logger.info(f"📡 POST {api_url} [Model: {model_type}]")
+                logger.info(f"📦 Payload: size={size}, duration={duration}s")
                 
                 # Make the request
                 async with httpx.AsyncClient(timeout=60.0) as client:
@@ -679,15 +687,15 @@ The result should feel like watching a real Disney/Pixar short film - fluid, coh
     async def _wait_for_wavespeed_result(
         self,
         prediction_id: str,
-        max_wait: int = 300,
-        poll_interval: int = 5
+        max_wait: int = 600,  # 10 minutes max for standard model (10s clips take longer)
+        poll_interval: int = 8
     ) -> str:
         """
         Poll WaveSpeed API until video generation is complete.
         
         Args:
             prediction_id: WaveSpeed prediction ID
-            max_wait: Maximum wait time in seconds
+            max_wait: Maximum wait time in seconds (600s for standard 10s model)
             poll_interval: Polling interval in seconds
             
         Returns:
