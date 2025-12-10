@@ -2,6 +2,21 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
+    <!-- Filtre console Stripe - DOIT être en premier -->
+    <script>
+      (function() {
+        var origLog = console.log;
+        console.log = function() {
+          if (arguments.length === 1 && typeof arguments[0] === 'object' && arguments[0] !== null) {
+            var keys = Object.keys(arguments[0]);
+            if (keys.length === 1 && /^[a-zA-Z0-9]{4,6}$/.test(keys[0])) {
+              return;
+            }
+          }
+          origLog.apply(console, arguments);
+        };
+      })();
+    </script>
     <!-- Favicon - Configuration complète pour tous les navigateurs et Google -->
     <link rel="icon" type="image/png" sizes="32x32" href="/static/logo_v-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/static/logo_v-16.png" />
