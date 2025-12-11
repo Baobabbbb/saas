@@ -168,10 +168,10 @@ class ComicsGeneratorGPT4o:
                 "description": "Aventures dans le jardin avec plantes et fleurs",
                 "keywords": "garden, plants, flowers, nature, butterflies, bees, growing"
             },
-            "voyage_temps": {
-                "name": "Voyage dans le temps",
-                "description": "Aventures temporelles et voyages dans le passé/futur",
-                "keywords": "time travel, past, future, history, adventure, discovery, timeline"
+            "ocean_fr": {
+                "name": "Océan",
+                "description": "Aventures sous-marines",
+                "keywords": "ocean, underwater, sea creatures, coral reef, diving, marine life"
             },
             # Thèmes avec noms anglais pour compatibilité
             "space": {
@@ -248,11 +248,6 @@ class ComicsGeneratorGPT4o:
                 "name": "Jardin",
                 "description": "Aventures dans le jardin avec plantes et fleurs",
                 "keywords": "garden, plants, flowers, nature, butterflies, bees, growing"
-            },
-            "time_travel": {
-                "name": "Voyage dans le temps",
-                "description": "Aventures temporelles et voyages dans le passé/futur",
-                "keywords": "time travel, past, future, history, adventure, discovery, timeline"
             },
             "zoo": {
                 "name": "Zoo",
