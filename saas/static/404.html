@@ -89,12 +89,23 @@
       90%  { opacity: 1; }
       100% { transform: rotate(315deg) translateX(-1100px); opacity: 0; }
     }
+    .brand {
+      margin-top: 0.6rem;
+      font-size: clamp(1rem, 3.5vw, 1.3rem);
+      font-weight: 700;
+      color: #6B4EFF;
+      letter-spacing: 0.08em;
+      z-index: 1;
+      animation: float 3s ease-in-out infinite;
+      animation-delay: 0.25s;
+    }
   </style>
 </head>
 <body>
   <div class="shooting-stars-container" id="shooting-stars"></div>
   <div class="label">ERREUR</div>
   <div class="code">404</div>
+  <div class="brand">HERBBIE</div>
   <script>
     (function() {
       const container = document.getElementById('shooting-stars');
