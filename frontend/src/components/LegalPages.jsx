@@ -47,23 +47,18 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <div className="legal-section">
         <h3>1. Édition du site</h3>
         <div className="info-block">
-          <p>En vertu de l'article 6 de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique, il est précisé aux utilisateurs du site internet https://herbbie.com l'identité des différents intervenants dans le cadre de sa réalisation et de son suivi :</p>
-          <p><strong>Propriétaire et Éditeur du site :</strong> Monsieur Adrien Gaulin</p>
-          <p><strong>Statut juridique :</strong> Entrepreneur Individuel (EI)</p>
-          <p><strong>Adresse du siège :</strong> 10 B RUE Félix Arnaudin, 40100 Dax, FRANCE</p>
-          <p><strong>SIREN :</strong> 992 909 051</p>
-          <p><strong>SIRET :</strong> 992 909 051 00011</p>
-          <p><strong>Code APE/NAF :</strong> 62.01Z (Programmation informatique)</p>
-          <p><strong>Numéro de TVA Intracommunautaire :</strong> FR 46 992909051</p>
-          <p><strong>Contact :</strong> Email : <span className="email-protected personal-data">contact@herbbie.com</span></p>
-          <p><strong>Directeur de la publication :</strong> <span className="name-protected personal-data">Monsieur Adrien Gaulin</span></p>
+          <p>Le site est édité par Monsieur Adrien Gaulin, Entrepreneur Individuel (EI).</p>
+          <p>Adresse : 10 B RUE Félix Arnaudin, 40100 Dax, FRANCE.</p>
+          <p>SIREN : 992 909 051</p>
+          <p>TVA Intracommunautaire : FR 46 992909051</p>
+          <p>Contact : <span className="email-protected personal-data">contact@herbbie.com</span></p>
         </div>
       </div>
 
       <div className="legal-section">
         <h3>2. Hébergement</h3>
         <div className="info-block">
-          <p>Le site est hébergé par la société Vercel Inc. Siège social : 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis. Le stockage des données personnelles des utilisateurs est effectué conformément au RGPD, sur des serveurs sécurisés.</p>
+          <p>Le site est hébergé par la société Railway Corporation. Adresse : 548 Market St PMB 68956, San Francisco, CA 94104, États-Unis. Les données peuvent transiter par des serveurs situés aux États-Unis, ce que l'utilisateur accepte en utilisant le service.</p>
         </div>
       </div>
 
@@ -114,6 +109,13 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
         <h3>4. Vos Droits</h3>
         <div className="info-block">
           <p>Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et d'effacement de vos données. Pour exercer ce droit ou supprimer votre compte, écrivez à : <span className="email-protected personal-data">contact@herbbie.com</span></p>
+        </div>
+      </div>
+
+      <div className="legal-section">
+        <h3>Transfert de données</h3>
+        <div className="info-block">
+          <p><strong>Transfert hors UE :</strong> Nos infrastructures sont hébergées par Railway Corp. (USA). Les transferts de données sont sécurisés et encadrés par les Clauses Contractuelles Types (CCT) de la Commission Européenne ou le cadre de protection des données (Data Privacy Framework), garantissant un niveau de protection adéquat.</p>
         </div>
       </div>
     </div>
