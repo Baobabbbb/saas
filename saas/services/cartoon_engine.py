@@ -450,6 +450,51 @@ Scene {num_scenes} (CLIMAX & RESOLUTION):
                     "Scene 3: Grand finale, perfect landing, standing ovation, bowing"
                 ],
                 "setting": "a colorful big top circus tent with spotlights"
+            },
+            "pirate": {
+                "story": "a brave young pirate searching for legendary treasure",
+                "example_3_scenes": [
+                    "Scene 1: Captain stands on ship deck, looking at treasure map, crew ready to sail",
+                    "Scene 2: Sailing through stormy seas, fighting sea monsters, island in sight",
+                    "Scene 3: Digging up treasure chest on beach, opening it to reveal gold, celebrating victory"
+                ],
+                "setting": "the open seas with a pirate ship and tropical islands"
+            },
+            "superhero": {
+                "story": "a superhero saving the city from danger",
+                "example_3_scenes": [
+                    "Scene 1: Hero hears alarm, puts on cape, takes off flying into the sky",
+                    "Scene 2: Confronting the villain, epic battle, using superpowers to fight",
+                    "Scene 3: Defeating the villain, rescuing citizens, city celebrates the hero"
+                ],
+                "setting": "a modern city with tall buildings and dramatic skies"
+            },
+            "fairy": {
+                "story": "a fairy princess in an enchanted kingdom",
+                "example_3_scenes": [
+                    "Scene 1: Princess wakes up in magical castle, birds singing at window",
+                    "Scene 2: Flying through enchanted garden, meeting magical creatures, spreading fairy dust",
+                    "Scene 3: Grand ball at the palace, dancing with prince, happily ever after"
+                ],
+                "setting": "an enchanted fairy tale kingdom with castles and magical gardens"
+            },
+            "robot": {
+                "story": "a friendly robot discovering emotions and friendship",
+                "example_3_scenes": [
+                    "Scene 1: Robot activates in futuristic lab, opens eyes, curious about surroundings",
+                    "Scene 2: Exploring futuristic city, helping humans, learning about feelings",
+                    "Scene 3: Making first friend, experiencing joy, heart glowing with happiness"
+                ],
+                "setting": "a futuristic city with neon lights and advanced technology"
+            },
+            "nature": {
+                "story": "a young explorer discovering the wonders of nature",
+                "example_3_scenes": [
+                    "Scene 1: Explorer enters beautiful meadow, butterflies flying, flowers blooming",
+                    "Scene 2: Climbing mountains, crossing streams, discovering hidden waterfall",
+                    "Scene 3: Sitting on hilltop at sunset, animals gathering, peaceful harmony"
+                ],
+                "setting": "beautiful natural landscapes with mountains, rivers and wildlife"
             }
         }
         

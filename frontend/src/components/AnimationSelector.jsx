@@ -30,7 +30,13 @@ const AnimationSelector = ({
       { id: 'animals', name: 'Animaux', description: 'Histoires d\'animaux mignons', emoji: '🐾' },
       { id: 'magic', name: 'Magie', description: 'Monde magique et sortilèges', emoji: '✨' },
       { id: 'friendship', name: 'Amitié', description: 'Histoires d\'amitié', emoji: '🤝' },
-      { id: 'circus', name: 'Cirque', description: 'Spectacle de cirque magique', emoji: '🎪' }
+      { id: 'circus', name: 'Cirque', description: 'Spectacle de cirque magique', emoji: '🎪' },
+      { id: 'sport', name: 'Sport', description: 'Matchs et compétitions sportives', emoji: '⚽' },
+      { id: 'pirate', name: 'Pirates', description: 'Aventures sur les mers', emoji: '🏴‍☠️' },
+      { id: 'superhero', name: 'Super-héros', description: 'Sauver le monde', emoji: '🦸' },
+      { id: 'dinosaur', name: 'Dinosaures', description: 'Monde préhistorique', emoji: '🦖' },
+      { id: 'fairy', name: 'Fées & Princesses', description: 'Contes de fées enchantés', emoji: '🧚' },
+      { id: 'robot', name: 'Robots', description: 'Technologie et robots futuristes', emoji: '🤖' }
     ]);
     setDurations([
       { value: 30, label: '30 secondes' },
