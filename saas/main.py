@@ -1980,9 +1980,15 @@ async def spa_fallback(full_path: str):
     # Laisse les routes d'API et les assets gérer leur 404 normalement
     if full_path.startswith(("api", "static", "assets", "docs", "openapi.json", "redoc")):
         raise HTTPException(status_code=404, detail="Not Found")
-    index_path = static_dir / "index.html"
-    if index_path.exists():
-        return FileResponse(index_path)
+    # Si la ressource n'existe pas, renvoyer la page 404 statique
+    not_found_path = static_dir / "404.html"
+    if not_found_path.exists():
+        return FileResponse(
+            not_found_path,
+            media_type="text/html",
+            status_code=404,
+            headers={"Content-Type": "text/html; charset=utf-8"}
+        )
     raise HTTPException(status_code=404, detail="Not Found")
 
 # === ENDPOINTS DE TEST RATE LIMITING ===
