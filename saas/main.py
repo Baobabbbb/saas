@@ -1934,6 +1934,20 @@ async def serve_robots():
     raise HTTPException(status_code=404, detail="Robots.txt not found")
 
 
+@app.get("/404.html", include_in_schema=False)
+@app.get("/404", include_in_schema=False)
+async def serve_404_page():
+    """Servez la page d'erreur 404 statique sans passer par le fallback SPA."""
+    not_found_path = static_dir / "404.html"
+    if not_found_path.exists():
+        return FileResponse(
+            not_found_path,
+            media_type="text/html",
+            headers={"Content-Type": "text/html; charset=utf-8"}
+        )
+    raise HTTPException(status_code=404, detail="404 page not found")
+
+
 @app.get("/", include_in_schema=False)
 async def serve_root():
     """Servez le build React à la racine."""
