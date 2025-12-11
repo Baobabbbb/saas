@@ -706,7 +706,15 @@ Génère maintenant le scénario complet en JSON:"""
                 print(f"📄 Génération planche {page_num}/{story_data['total_pages']}...")
                 
                 # Construire le prompt complet pour gemini-3-pro-image-preview
-                page_prompt = self._build_page_prompt(page_data, style_info, None)  # Plus besoin de description textuelle
+                page_prompt = self._build_page_prompt(
+                    page_data=page_data,
+                    style_info=style_info,
+                    story_title=story_data.get("title"),
+                    story_synopsis=story_data.get("synopsis"),
+                    total_pages=story_data.get("total_pages", len(story_data.get("pages", []))),
+                    current_page=page_num,
+                    character_description=None  # Conservé pour compatibilité, non utilisé
+                )
                 
                 print(f"   📝 Prompt complet ({len(page_prompt)} caractères): {page_prompt[:200]}...")
                 
@@ -775,22 +783,47 @@ Génère maintenant le scénario complet en JSON:"""
         
         return generated_pages, comic_id
     
-    def _build_page_prompt(self, page_data: Dict, style_info: Dict, character_description: Optional[str] = None) -> str:
+    def _build_page_prompt(
+        self,
+        page_data: Dict,
+        style_info: Dict,
+        story_title: Optional[str] = None,
+        story_synopsis: Optional[str] = None,
+        total_pages: Optional[int] = None,
+        current_page: Optional[int] = None,
+        character_description: Optional[str] = None
+    ) -> str:
         """Construit le prompt détaillé pour gemini-3-pro-image-preview pour générer UNE planche complète
         
         Args:
             page_data: Données de la planche (panels, dialogues, etc.)
             style_info: Informations sur le style artistique
+            story_title: Titre global de l'histoire (pour cohérence multi-pages)
+            story_synopsis: Synopsis global (pour cohérence multi-pages)
+            total_pages: Nombre total de planches dans cette BD (pour cohérence)
+            current_page: Numéro de la planche actuelle (pour cohérence)
             character_description: Non utilisé (conservé pour compatibilité, on utilise l'illustration directement)
         """
         
         panels = page_data["panels"]
+        
+        # Contexte global pour renforcer la cohérence multi-planches
+        title_line = f"COMIC TITLE: {story_title}" if story_title else "COMIC TITLE: A coherent kids comic"
+        synopsis_line = f"SYNOPSIS: {story_synopsis}" if story_synopsis else "SYNOPSIS: Keep the same characters and story thread across all pages."
+        page_progress = ""
+        if total_pages and current_page:
+            page_progress = f"THIS IS PAGE {current_page} OF {total_pages}. The style, main characters, outfits, colors, and props MUST stay identical to the previous pages and across all pages."
+        else:
+            page_progress = "Maintain exactly the same visual style, character designs, outfits, colors, and props across all pages of this comic."
         
         # Plus besoin d'intégrer la description textuelle, on utilise l'illustration directement avec image-to-image
         character_section = ""
         
         # Construire la description de la planche complète avec TOUS les détails
         prompt = f"""A professional comic book page in square format with 4 panels arranged in a 2x2 grid layout.
+{title_line}
+{synopsis_line}
+{page_progress}
 {style_info['prompt_modifier']}.
 {character_section}
 LAYOUT:
@@ -820,6 +853,7 @@ Speech bubbles: {self._format_bubbles_for_prompt(panels[3].get('dialogue_bubbles
 
 STYLE REQUIREMENTS:
 - {style_info['prompt_modifier']}
+- CRITICAL CONTINUITY: Keep identical character designs, outfits, hair color, skin tone, accessories, props, and overall art style consistent with ALL previous and next pages of this comic. Do NOT change faces, outfits, or colors from one page to another.
 - Clear, bold black panel borders with generous spacing between panels
 - Each panel should be significantly smaller to leave plenty of white space around them
 - Professional comic book page layout with wide gutters (white space between panels)
