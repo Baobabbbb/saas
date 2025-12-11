@@ -833,6 +833,7 @@ Génère maintenant le scénario complet en JSON:"""
 {page_progress}
 {continuity_block}
 {style_info['prompt_modifier']}.
+STYLE LOCK: You MUST keep the EXACT SAME art style and rendering settings as all other pages of this comic. Same medium, same palette, same line weight, same shading and lighting. Do NOT change style between pages.
 {character_section}
 LAYOUT:
 - Square format (1024x1024 pixels)
@@ -912,7 +913,15 @@ STYLE REQUIREMENTS:
             joined = ", ".join(sorted(character_names))
             characters_line = f"MAIN CHARACTERS: {joined}. Keep their faces, hair, outfits, colors, accessories, and props IDENTICAL on every page."
 
-        style_line = f"STYLE CONSISTENCY: {style_info.get('prompt_modifier', '')}. Do NOT change style, palettes, lighting, or rendering quality across pages."
+        style_name = style_info.get("name", "Chosen style")
+        style_modifier = style_info.get("prompt_modifier", "")
+        style_line = (
+            f"STYLE CONSISTENCY: Always keep the EXACT SAME art style ({style_name}). "
+            f"Use the same rendering approach described here: {style_modifier}. "
+            "Do NOT switch medium (no watercolor/pencil/3D if not the chosen style), "
+            "do NOT change color palette, line weight, shading method, or outline thickness between pages. "
+            "Match lighting/contrast and overall look IDENTICALLY across all pages."
+        )
 
         return f"{characters_line}\n{style_line}"
     
