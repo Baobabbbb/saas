@@ -33,7 +33,7 @@
       font-size: clamp(4rem, 15vw, 8rem);
       font-weight: 700;
       text-align: center;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.08em;
       animation: float 3s ease-in-out infinite;
       z-index: 1;
     }
@@ -105,8 +105,9 @@
         star.className = 'shooting-star';
 
         const duration = 1 + Math.random() * 2; // 1s à 3s
-        const startTop = Math.random() * window.innerHeight * 0.8; // éviter le bas pour la lisibilité
-        const startLeft = window.innerWidth + 100 + Math.random() * 200;
+        // Positionner surtout dans le quart supérieur, au bord droit
+        const startTop = Math.random() * (window.innerHeight * 0.25) + 10;
+        const startLeft = window.innerWidth - 40 + Math.random() * 160;
 
         star.style.top = `${startTop}px`;
         star.style.left = `${startLeft}px`;
