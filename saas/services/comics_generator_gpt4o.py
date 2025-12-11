@@ -697,6 +697,9 @@ Génère maintenant le scénario complet en JSON:"""
         if character_photo_path:
             print(f"   ✅ Illustration personnage disponible: {character_photo_path}")
         
+        # Contexte global de cohérence (mêmes personnages / styles sur toutes les pages)
+        continuity_notes = self._build_continuity_notes(story_data, style_info)
+
         generated_pages = []
         
         for page_data in story_data["pages"]:
@@ -713,6 +716,7 @@ Génère maintenant le scénario complet en JSON:"""
                     story_synopsis=story_data.get("synopsis"),
                     total_pages=story_data.get("total_pages", len(story_data.get("pages", []))),
                     current_page=page_num,
+                    continuity_notes=continuity_notes,
                     character_description=None  # Conservé pour compatibilité, non utilisé
                 )
                 
@@ -791,6 +795,7 @@ Génère maintenant le scénario complet en JSON:"""
         story_synopsis: Optional[str] = None,
         total_pages: Optional[int] = None,
         current_page: Optional[int] = None,
+        continuity_notes: Optional[str] = None,
         character_description: Optional[str] = None
     ) -> str:
         """Construit le prompt détaillé pour gemini-3-pro-image-preview pour générer UNE planche complète
@@ -802,6 +807,7 @@ Génère maintenant le scénario complet en JSON:"""
             story_synopsis: Synopsis global (pour cohérence multi-pages)
             total_pages: Nombre total de planches dans cette BD (pour cohérence)
             current_page: Numéro de la planche actuelle (pour cohérence)
+            continuity_notes: Notes globales de cohérence (personnages, style, accessoires)
             character_description: Non utilisé (conservé pour compatibilité, on utilise l'illustration directement)
         """
         
@@ -815,6 +821,7 @@ Génère maintenant le scénario complet en JSON:"""
             page_progress = f"THIS IS PAGE {current_page} OF {total_pages}. The style, main characters, outfits, colors, and props MUST stay identical to the previous pages and across all pages."
         else:
             page_progress = "Maintain exactly the same visual style, character designs, outfits, colors, and props across all pages of this comic."
+        continuity_block = continuity_notes or ""
         
         # Plus besoin d'intégrer la description textuelle, on utilise l'illustration directement avec image-to-image
         character_section = ""
@@ -824,6 +831,7 @@ Génère maintenant le scénario complet en JSON:"""
 {title_line}
 {synopsis_line}
 {page_progress}
+{continuity_block}
 {style_info['prompt_modifier']}.
 {character_section}
 LAYOUT:
@@ -880,6 +888,33 @@ STYLE REQUIREMENTS:
             bubble_texts.append(f"[{position}] \"{text}\"")
         
         return " | ".join(bubble_texts)
+
+    def _build_continuity_notes(self, story_data: Dict[str, Any], style_info: Dict[str, Any]) -> str:
+        """
+        Construit un bloc de cohérence global (cast + style) pour toutes les pages
+        afin de forcer Gemini à conserver les mêmes personnages / tenues / props.
+        """
+        # Extraire les noms de personnages depuis les bulles de dialogue
+        character_names = set()
+        try:
+            for page in story_data.get("pages", []):
+                for panel in page.get("panels", []):
+                    for bubble in panel.get("dialogue_bubbles", []):
+                        name = bubble.get("character")
+                        if name:
+                            character_names.add(name.strip())
+        except Exception:
+            pass
+
+        if not character_names:
+            characters_line = "MAIN CHARACTERS: Keep the same main characters with identical faces, hair, outfits, colors, and props on every page."
+        else:
+            joined = ", ".join(sorted(character_names))
+            characters_line = f"MAIN CHARACTERS: {joined}. Keep their faces, hair, outfits, colors, accessories, and props IDENTICAL on every page."
+
+        style_line = f"STYLE CONSISTENCY: {style_info.get('prompt_modifier', '')}. Do NOT change style, palettes, lighting, or rendering quality across pages."
+
+        return f"{characters_line}\n{style_line}"
     
     async def _generate_page_with_gpt_image_1(
         self,
