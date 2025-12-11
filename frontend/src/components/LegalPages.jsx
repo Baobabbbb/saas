@@ -45,27 +45,27 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <h2>📄 Mentions Légales</h2>
 
       <div className="legal-section">
-        <h3>1. Édition du site</h3>
-        <div className="info-block">
-          <p>Le site est édité par Monsieur Adrien Gaulin, Entrepreneur Individuel (EI).</p>
-          <p>Adresse : 10 B RUE Félix Arnaudin, 40100 Dax, FRANCE.</p>
-          <p>SIREN : 992 909 051</p>
-          <p>TVA Intracommunautaire : FR 46 992909051</p>
-          <p>Contact : <span className="email-protected personal-data">contact@herbbie.com</span></p>
-        </div>
-      </div>
-
-      <div className="legal-section">
-        <h3>2. Hébergement</h3>
+        <h3>1. Hébergement</h3>
         <div className="info-block">
           <p>Le site est hébergé par la société Railway Corporation. Adresse : 548 Market St PMB 68956, San Francisco, CA 94104, États-Unis. Les données peuvent transiter par des serveurs situés aux États-Unis, ce que l'utilisateur accepte en utilisant le service.</p>
         </div>
       </div>
 
       <div className="legal-section">
-        <h3>3. Propriété intellectuelle</h3>
+        <h3>2. Propriété intellectuelle</h3>
         <div className="info-block">
           <p>L'ensemble des éléments figurant sur le site Herbbie (textes, graphismes, logiciels, photographies, images, vidéos, sons, plans, noms, logos, marques, créations et œuvres protégeables diverses, bases de données, etc...) ainsi que le site lui-même, sont protégés par les dispositions du Code de la Propriété Intellectuelle. Monsieur Adrien Gaulin est titulaire exclusif de tous les droits de propriété intellectuelle sur la structure et le contenu du site, à l'exception des éléments générés par les utilisateurs via l'IA (voir CGU). Toute reproduction non autorisée est interdite.</p>
+        </div>
+      </div>
+
+      <div className="legal-section">
+        <h3>3. Édition du site</h3>
+        <div className="info-block">
+          <p>Le site est édité par Monsieur Adrien Gaulin, Entrepreneur Individuel (EI).</p>
+          <p>Adresse : 10 B RUE Félix Arnaudin, 40100 Dax, FRANCE.</p>
+          <p>SIREN : 992 909 051</p>
+          <p>TVA Intracommunautaire : FR 46 992909051</p>
+          <p>Contact : <span className="email-protected personal-data">contact@herbbie.com</span></p>
         </div>
       </div>
     </div>
