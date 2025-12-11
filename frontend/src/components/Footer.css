@@ -21,10 +21,6 @@
   color: #bbb;
 }
 
-.ai-notice p:first-child {
-  font-style: italic;
-}
-
 .footer-links {
   display: flex;
   justify-content: center;
