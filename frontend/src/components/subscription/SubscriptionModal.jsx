@@ -173,7 +173,7 @@ const SubscriptionPlans = ({ onSelectPlan, currentSubscription }) => {
     const features = {
       'Découverte': {
         features: featuresList,
-        ideal: 'Parfait pour découvrir Herbbie',
+        ideal: 'Parfait pour découvrir HERBBIE',
         economy: `Économisez ${savings}%`
       },
       'Famille': {

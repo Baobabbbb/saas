@@ -54,7 +54,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <div className="legal-section">
         <h3>2. Propriété intellectuelle</h3>
         <div className="info-block">
-          <p>L'ensemble des éléments figurant sur le site Herbbie (textes, graphismes, logiciels, photographies, images, vidéos, sons, plans, noms, logos, marques, créations et œuvres protégeables diverses, bases de données, etc...) ainsi que le site lui-même, sont protégés par les dispositions du Code de la Propriété Intellectuelle. Monsieur Adrien Gaulin est titulaire exclusif de tous les droits de propriété intellectuelle sur la structure et le contenu du site, à l'exception des éléments générés par les utilisateurs via l'IA (voir CGU). Toute reproduction non autorisée est interdite.</p>
+          <p>L'ensemble des éléments figurant sur le site HERBBIE (textes, graphismes, logiciels, photographies, images, vidéos, sons, plans, noms, logos, marques, créations et œuvres protégeables diverses, bases de données, etc...) ainsi que le site lui-même, sont protégés par les dispositions du Code de la Propriété Intellectuelle. Monsieur Adrien Gaulin est titulaire exclusif de tous les droits de propriété intellectuelle sur la structure et le contenu du site, à l'exception des éléments générés par les utilisateurs via l'IA (voir CGU). Toute reproduction non autorisée est interdite.</p>
         </div>
       </div>
 
@@ -91,7 +91,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
         <h3>2. Données collectées</h3>
         <div className="info-block">
           <p><strong>Commande :</strong> Email.</p>
-          <p><strong>Paiement :</strong> Géré par Stripe. Herbbie n'a jamais accès à vos coordonnées bancaires complètes.</p>
+          <p><strong>Paiement :</strong> Géré par Stripe. HERBBIE n'a jamais accès à vos coordonnées bancaires complètes.</p>
           <p><strong>Navigation :</strong> Adresse IP et cookies techniques (panier).</p>
         </div>
       </div>
@@ -126,7 +126,7 @@ const LegalPages = ({ onClose, initialSection = 'mentions' }) => {
       <h2>🍪 Politique des Cookies</h2>
 
       <div className="legal-section">
-        <h3>Gestion des Cookies sur Herbbie</h3>
+        <h3>Gestion des Cookies sur HERBBIE</h3>
         <div className="info-block">
           <h4>1. Qu'est-ce qu'un cookie ?</h4>
           <p>Un cookie est un petit fichier texte déposé sur votre appareil lors de la visite du site.</p>
