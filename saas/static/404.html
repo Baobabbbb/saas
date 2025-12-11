@@ -25,16 +25,34 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
+      flex-direction: column;
     }
     .code {
       font-size: clamp(4rem, 15vw, 8rem);
       font-weight: 700;
-      letter-spacing: 0.12em;
       text-align: center;
+      letter-spacing: 0.12em;
+      animation: float 3s ease-in-out infinite;
+    }
+    .label {
+      font-size: clamp(1.2rem, 4vw, 1.6rem);
+      font-weight: 600;
+      color: #4F3AC8;
+      margin-bottom: 0.8rem;
+      letter-spacing: 0.08em;
+      animation: float 3s ease-in-out infinite;
+      animation-delay: 0.15s;
+      text-transform: uppercase;
+    }
+    @keyframes float {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+      100% { transform: translateY(0); }
     }
   </style>
 </head>
 <body>
+  <div class="label">ERREUR</div>
   <div class="code">404</div>
 </body>
 </html>
