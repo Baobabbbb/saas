@@ -2269,7 +2269,7 @@ async def get_cleanup_status(
 
 @app.delete("/delete_creation_files/{creation_id}")
 async def delete_creation_files(
-    creation_id: int,
+    creation_id: str,
     authorization: Optional[str] = Header(None)
 ):
     """
@@ -2278,10 +2278,27 @@ async def delete_creation_files(
     et les supprime du Storage avant la suppression de la base de données.
     """
     try:
-        print(f"🗑️ [DELETE_FILES] Suppression fichiers pour création ID: {creation_id}")
+        # Convertir creation_id en int
+        try:
+            creation_id_int = int(creation_id)
+        except (ValueError, TypeError):
+            print(f"❌ [DELETE_FILES] ID de création invalide: {creation_id}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"ID de création invalide: {creation_id}"
+            )
+        
+        print(f"🗑️ [DELETE_FILES] Suppression fichiers pour création ID: {creation_id_int}")
         
         # Extraire user_id depuis JWT
-        token = authorization.split(" ")[1] if authorization and authorization.startswith("Bearer ") else None
+        if not authorization:
+            print("❌ [DELETE_FILES] Header Authorization manquant")
+            raise HTTPException(
+                status_code=401,
+                detail="Authentification requise. Fournissez un JWT valide dans le header Authorization."
+            )
+        
+        token = authorization.split(" ")[1] if authorization.startswith("Bearer ") else authorization
         print(f"🔍 [DELETE_FILES] Token présent: {bool(token)}")
         
         user_id = await fetch_user_id_from_supabase(token)
@@ -2298,12 +2315,12 @@ async def delete_creation_files(
         if not supabase_client:
             raise HTTPException(status_code=500, detail="Service Supabase non disponible")
         
-        creation_response = supabase_client.table("creations").select("*").eq("id", creation_id).eq("user_id", user_id).execute()
+        creation_response = supabase_client.table("creations").select("*").eq("id", creation_id_int).eq("user_id", user_id).execute()
         
         print(f"🔍 [DELETE_FILES] Réponse Supabase: {len(creation_response.data) if creation_response.data else 0} création(s) trouvée(s)")
         
         if not creation_response.data or len(creation_response.data) == 0:
-            print(f"❌ [DELETE_FILES] Création {creation_id} non trouvée pour user {user_id}")
+            print(f"❌ [DELETE_FILES] Création {creation_id_int} non trouvée pour user {user_id}")
             raise HTTPException(status_code=404, detail="Création non trouvée ou vous n'avez pas les droits")
         
         creation = creation_response.data[0]
@@ -2385,10 +2402,14 @@ async def delete_creation_files(
             "failed_count": len(failed_files)
         }
     
-    except HTTPException:
+    except HTTPException as http_exc:
+        print(f"❌ [DELETE_FILES] HTTPException: {http_exc.status_code} - {http_exc.detail}")
         raise
+    except ValueError as ve:
+        print(f"❌ [DELETE_FILES] ValueError: {ve}")
+        raise HTTPException(status_code=400, detail=f"Paramètre invalide: {str(ve)}")
     except Exception as e:
-        print(f"❌ Erreur suppression fichiers création: {e}")
+        print(f"❌ [DELETE_FILES] Erreur suppression fichiers création: {e}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erreur lors de la suppression: {str(e)}")
