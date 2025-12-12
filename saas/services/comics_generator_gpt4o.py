@@ -649,11 +649,11 @@ Génère maintenant le scénario complet en JSON:"""
         retry_count = 0
         
         while retry_count <= max_retries:
-            try:
+        try:
                 if retry_count > 0:
                     print(f"🔄 Tentative {retry_count + 1}/{max_retries + 1} - Retry avec instructions renforcées...")
                 
-                print("🤖 Appel gpt-4o-mini pour le scénario...")
+            print("🤖 Appel gpt-4o-mini pour le scénario...")
                 # Calculer max_tokens selon le nombre total de cases
                 total_panels = num_panels * num_pages
                 # Environ 250 tokens par case (description + dialogues)
@@ -682,31 +682,31 @@ CRITIQUE ORTHOGRAPHE:
 - Tous les textes dans les bulles de dialogue doivent être en français PARFAIT sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison
 - Vérifie chaque mot avant de l'inclure dans les bulles"""
 
-                response = await self.client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
+            response = await self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
                         {"role": "system", "content": system_message},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.7,
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
                     max_tokens=max_tokens
-                )
-                
-                content = response.choices[0].message.content.strip()
-                
-                # Nettoyer le JSON (enlever les balises markdown si présentes)
-                if content.startswith("```json"):
-                    content = content[7:]
-                if content.startswith("```"):
-                    content = content[3:]
-                if content.endswith("```"):
-                    content = content[:-3]
-                
-                content = content.strip()
-                
-                # Parser le JSON
-                story_data = json.loads(content)
-                
+            )
+            
+            content = response.choices[0].message.content.strip()
+            
+            # Nettoyer le JSON (enlever les balises markdown si présentes)
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.startswith("```"):
+                content = content[3:]
+            if content.endswith("```"):
+                content = content[:-3]
+            
+            content = content.strip()
+            
+            # Parser le JSON
+            story_data = json.loads(content)
+            
                 # Vérifier que le format est correct (pages avec panels)
                 if "pages" not in story_data or len(story_data.get("pages", [])) == 0:
                     # Format ancien avec panels directement - convertir
@@ -757,17 +757,17 @@ CRITIQUE ORTHOGRAPHE:
                 
                 # Retourner le scénario ET la description du personnage pour réutilisation
                 return story_data, character_illustration_path
-                
-            except json.JSONDecodeError as e:
-                print(f"❌ Erreur parsing JSON: {e}")
-                print(f"Contenu reçu: {content[:500]}...")
+            
+        except json.JSONDecodeError as e:
+            print(f"❌ Erreur parsing JSON: {e}")
+            print(f"Contenu reçu: {content[:500]}...")
                 if retry_count < max_retries:
                     retry_count += 1
                     print(f"   🔄 Retry {retry_count}/{max_retries} après erreur JSON...")
                     continue
                 else:
                     raise Exception(f"Erreur de format du scénario après {max_retries + 1} tentatives: {e}")
-            except Exception as e:
+        except Exception as e:
                 # Si c'est une erreur de validation, on peut retry
                 if "invalide" in str(e).lower() or "cases" in str(e).lower():
                     if retry_count < max_retries:
@@ -775,8 +775,8 @@ CRITIQUE ORTHOGRAPHE:
                         print(f"   🔄 Retry {retry_count}/{max_retries} après erreur validation...")
                         continue
                 
-                print(f"❌ Erreur génération scénario: {e}")
-                raise Exception(f"Erreur lors de la génération du scénario: {e}")
+            print(f"❌ Erreur génération scénario: {e}")
+            raise Exception(f"Erreur lors de la génération du scénario: {e}")
     
     async def _transform_photo_to_comic_character(self, photo_path: str) -> str:
         """Transforme une photo en illustration de personnage de BD avec gpt-image-1
@@ -1237,27 +1237,86 @@ The character from the provided image must be the main character performing all 
                 character_img.save(img_bytes, format='PNG')
                 img_bytes.seek(0)
                 
-                # Utiliser image-to-image avec Gemini
+                # Utiliser image-to-image avec Gemini avec retry
                 import google.genai.types as types
-                response = self.gemini_client.models.generate_content(
-                    model="gemini-3-pro-image-preview",
-                    contents=[
-                        types.Part.from_bytes(
-                            img_bytes.read(),
-                            mime_type="image/png"
-                        ),
-                        full_prompt
-                    ]
-                )
+                import time
+                import asyncio
+                
+                max_retries = 3
+                retry_delay = 2  # Délai initial en secondes
+                
+                for attempt in range(max_retries):
+                    try:
+                        if attempt > 0:
+                            wait_time = retry_delay * (2 ** (attempt - 1))  # Backoff exponentiel
+                            print(f"   🔄 Retry {attempt + 1}/{max_retries} après {wait_time}s...")
+                            await asyncio.sleep(wait_time)
+                        
+                        img_bytes.seek(0)  # Réinitialiser le buffer pour chaque tentative
+                        response = self.gemini_client.models.generate_content(
+                            model="gemini-3-pro-image-preview",
+                            contents=[
+                                types.Part.from_bytes(
+                                    img_bytes.read(),
+                                    mime_type="image/png"
+                                ),
+                                full_prompt
+                            ],
+                            request_options={
+                                "timeout": 300.0  # 5 minutes timeout
+                            }
+                        )
+                        break  # Succès, sortir de la boucle
+                    except Exception as e:
+                        error_str = str(e)
+                        if attempt == max_retries - 1:
+                            # Dernière tentative échouée
+                            print(f"   ❌ Toutes les tentatives ont échoué: {e}")
+                            raise Exception(f"Erreur génération image après {max_retries} tentatives: {e}")
+                        elif "Connection aborted" in error_str or "RemoteDisconnected" in error_str or "timeout" in error_str.lower():
+                            print(f"   ⚠️ Tentative {attempt + 1} échouée (connexion/timeout): {e}, retry...")
+            else:
+                            # Autre erreur, ne pas retry
+                            print(f"   ❌ Erreur non-réessayable: {e}")
+                            raise
             else:
                 print(f"   🎨 Appel gemini-3-pro-image-preview (text-to-image uniquement)...")
                 print(f"   📝 Prompt détaillé ({len(prompt)} caractères)")
                 
-                # Générer l'image avec text-to-image uniquement
-                response = self.gemini_client.models.generate_content(
-                    model="gemini-3-pro-image-preview",
-                    contents=[prompt]
-                )
+                # Générer l'image avec text-to-image uniquement avec retry
+                import time
+                import asyncio
+                
+                max_retries = 3
+                retry_delay = 2  # Délai initial en secondes
+                
+                for attempt in range(max_retries):
+                    try:
+                        if attempt > 0:
+                            wait_time = retry_delay * (2 ** (attempt - 1))  # Backoff exponentiel
+                            print(f"   🔄 Retry {attempt + 1}/{max_retries} après {wait_time}s...")
+                            await asyncio.sleep(wait_time)
+                        
+                        response = self.gemini_client.models.generate_content(
+                            model="gemini-3-pro-image-preview",
+                            contents=[prompt],
+                            request_options={
+                                "timeout": 300.0  # 5 minutes timeout
+                            }
+                        )
+                        break  # Succès, sortir de la boucle
+                    except Exception as e:
+                        error_str = str(e)
+                        if attempt == max_retries - 1:
+                            # Dernière tentative échouée
+                            print(f"   ❌ Toutes les tentatives ont échoué: {e}")
+                            raise Exception(f"Erreur génération image après {max_retries} tentatives: {e}")
+                        elif "Connection aborted" in error_str or "RemoteDisconnected" in error_str or "timeout" in error_str.lower():
+                            print(f"   ⚠️ Tentative {attempt + 1} échouée (connexion/timeout): {e}, retry...")
+                        else:
+                            # Autre erreur, ne pas retry
+                            print(f"   ❌ Erreur non-réessayable: {e}")
+                            raise
             
             print(f"   [RESPONSE] Réponse reçue de gemini-3-pro-image-preview")
             
