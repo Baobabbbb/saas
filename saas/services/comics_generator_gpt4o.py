@@ -645,38 +645,52 @@ RÈGLES STRICTES:
 
 Génère maintenant le scénario complet en JSON:"""
 
-        try:
-            print("🤖 Appel gpt-4o-mini pour le scénario...")
-            # Calculer max_tokens selon le nombre total de cases
-            total_panels = num_panels * num_pages
-            # Environ 250 tokens par case (description + dialogues)
-            estimated_tokens = total_panels * 250 + 500  # +500 pour le titre, synopsis, etc.
-            max_tokens = min(max(estimated_tokens, 4000), 16000)  # Entre 4000 et 16000 tokens
-            
-            print(f"   📊 Estimation tokens: {estimated_tokens}, max_tokens utilisé: {max_tokens}")
-            
-            system_message = f"""Tu es un scénariste expert en bandes dessinées pour enfants. Tu génères des scénarios détaillés en JSON.
+        max_retries = 2
+        retry_count = 0
+        
+        while retry_count <= max_retries:
+            try:
+                if retry_count > 0:
+                    print(f"🔄 Tentative {retry_count + 1}/{max_retries + 1} - Retry avec instructions renforcées...")
+                
+                print("🤖 Appel gpt-4o-mini pour le scénario...")
+                # Calculer max_tokens selon le nombre total de cases
+                total_panels = num_panels * num_pages
+                # Environ 250 tokens par case (description + dialogues)
+                estimated_tokens = total_panels * 250 + 500  # +500 pour le titre, synopsis, etc.
+                max_tokens = min(max(estimated_tokens, 4000), 16000)  # Entre 4000 et 16000 tokens
+                
+                print(f"   📊 Estimation tokens: {estimated_tokens}, max_tokens utilisé: {max_tokens}")
+                
+                # Renforcer encore plus le message système en cas de retry
+                retry_note = ""
+                if retry_count > 0:
+                    retry_note = f"\n\n⚠️ ATTENTION - C'EST UN RETRY: La tentative précédente a échoué car tu as généré moins de {num_panels} cases par page. Cette fois, tu DOIS absolument générer EXACTEMENT {num_panels} cases pour chaque page. Ne répète PAS l'erreur."
+                
+                system_message = f"""Tu es un scénariste expert en bandes dessinées pour enfants. Tu génères des scénarios détaillés en JSON.
 
-CRITIQUE ABSOLUE - NOMBRE DE CASES:
+CRITIQUE ABSOLUE - NOMBRE DE CASES (LIRE ATTENTIVEMENT):
 - Chaque page DOIT avoir EXACTEMENT {num_panels} cases dans le tableau "panels"
 - Si le JSON indique "panels_per_page": {num_panels}, alors CHAQUE page doit avoir EXACTEMENT {num_panels} cases
 - Ne génère JAMAIS seulement 4 cases par défaut - génère TOUJOURS le nombre exact demandé ({num_panels})
 - Avant de générer le JSON, compte mentalement: "Page 1 aura {num_panels} cases, Page 2 aura {num_panels} cases"
-- Si tu génères moins de {num_panels} cases, le système rejettera ton scénario
+- Si tu génères moins de {num_panels} cases, le système rejettera ton scénario et tu devras recommencer
+- EXEMPLE: Si on te demande 8 cases par page, génère 8 cases (panel_number 1 à 8), PAS seulement 4
+{retry_note}
 
 CRITIQUE ORTHOGRAPHE:
 - Tous les textes dans les bulles de dialogue doivent être en français PARFAIT sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison
 - Vérifie chaque mot avant de l'inclure dans les bulles"""
 
-            response = await self.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": system_message},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7,
-                max_tokens=max_tokens
-            )
+                response = await self.client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": system_message},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.7,
+                    max_tokens=max_tokens
+                )
             
             content = response.choices[0].message.content.strip()
             
@@ -726,13 +740,25 @@ CRITIQUE ORTHOGRAPHE:
             # Retourner le scénario ET la description du personnage pour réutilisation
             return story_data, character_illustration_path
             
-        except json.JSONDecodeError as e:
-            print(f"❌ Erreur parsing JSON: {e}")
-            print(f"Contenu reçu: {content[:500]}...")
-            raise Exception(f"Erreur de format du scénario: {e}")
-        except Exception as e:
-            print(f"❌ Erreur génération scénario: {e}")
-            raise Exception(f"Erreur lors de la génération du scénario: {e}")
+            except json.JSONDecodeError as e:
+                print(f"❌ Erreur parsing JSON: {e}")
+                print(f"Contenu reçu: {content[:500]}...")
+                if retry_count < max_retries:
+                    retry_count += 1
+                    print(f"   🔄 Retry {retry_count}/{max_retries} après erreur JSON...")
+                    continue
+                else:
+                    raise Exception(f"Erreur de format du scénario après {max_retries + 1} tentatives: {e}")
+            except Exception as e:
+                # Si c'est une erreur de validation, on peut retry
+                if "invalide" in str(e).lower() or "cases" in str(e).lower():
+                    if retry_count < max_retries:
+                        retry_count += 1
+                        print(f"   🔄 Retry {retry_count}/{max_retries} après erreur validation...")
+                        continue
+                
+                print(f"❌ Erreur génération scénario: {e}")
+                raise Exception(f"Erreur lors de la génération du scénario: {e}")
     
     async def _transform_photo_to_comic_character(self, photo_path: str) -> str:
         """Transforme une photo en illustration de personnage de BD avec gpt-image-1
