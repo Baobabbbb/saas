@@ -572,14 +572,22 @@ Génère maintenant le scénario complet en JSON:"""
 
         try:
             print("🤖 Appel gpt-4o-mini pour le scénario...")
+            # Calculer max_tokens selon le nombre total de cases
+            total_panels = num_panels * num_pages
+            # Environ 250 tokens par case (description + dialogues)
+            estimated_tokens = total_panels * 250 + 500  # +500 pour le titre, synopsis, etc.
+            max_tokens = min(max(estimated_tokens, 4000), 16000)  # Entre 4000 et 16000 tokens
+            
+            print(f"   📊 Estimation tokens: {estimated_tokens}, max_tokens utilisé: {max_tokens}")
+            
             response = await self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "Tu es un scénariste expert en bandes dessinées pour enfants. Tu génères des scénarios détaillés en JSON. CRITIQUE: Tous les textes dans les bulles de dialogue doivent être en français PARFAIT sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison. Vérifie chaque mot avant de l'inclure dans les bulles."},
+                    {"role": "system", "content": "Tu es un scénariste expert en bandes dessinées pour enfants. Tu génères des scénarios détaillés en JSON. CRITIQUE: Tous les textes dans les bulles de dialogue doivent être en français PARFAIT sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison. Vérifie chaque mot avant de l'inclure dans les bulles. CRITIQUE ABSOLUE: Chaque page DOIT avoir EXACTEMENT le nombre de cases demandé dans 'panels_per_page'. Vérifie que chaque page a bien ce nombre exact de cases avant de générer le JSON."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
-                max_tokens=4000  # Augmenté pour permettre des descriptions détaillées
+                max_tokens=max_tokens
             )
             
             content = response.choices[0].message.content.strip()
