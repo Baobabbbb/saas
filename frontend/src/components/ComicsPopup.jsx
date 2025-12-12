@@ -222,32 +222,6 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
               </button>
             )}
           </div>
-
-          {/* Miniatures (si plusieurs pages) */}
-          {totalPages > 1 && (
-            <div className="thumbnails-section">
-              <h4>Toutes les planches</h4>
-              <div className="thumbnails-grid">
-                {comic.pages.map((page, index) => (
-                  <motion.div
-                    key={index}
-                    className={`thumbnail ${index === currentPage ? 'active' : ''}`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setCurrentPage(index)}
-                  >
-                    <img
-                      src={getImageUrl(page.image_url)}
-                      alt={`Miniature planche ${index + 1}`}
-                    />
-                    <div className="thumbnail-label">
-                      Planche {index + 1}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>
