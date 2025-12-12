@@ -65,22 +65,22 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
     } catch (error) {
       console.error('Erreur lors du téléchargement:', error);
       // Fallback: essayer le téléchargement direct
-      const link = document.createElement('a');
-      link.href = imageUrl;
+    const link = document.createElement('a');
+    link.href = imageUrl;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
-      const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const safeTitle = (comic.title || 'bande_dessinee').replace(/[^a-z0-9]/gi, '_').toLowerCase();
       link.download = addHerbbieSuffix(`${safeTitle}_page_${currentPage + 1}`, 'png');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     }
   };
 
   const downloadAllPages = async () => {
     for (let index = 0; index < comic.pages.length; index++) {
       const page = comic.pages[index];
-      const imageUrl = getImageUrl(page.image_url);
+        const imageUrl = getImageUrl(page.image_url);
       if (!imageUrl) continue;
       
       try {

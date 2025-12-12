@@ -1222,12 +1222,12 @@ async def generate_comic(request: dict, req: Request = None):
         # Récupérer les paramètres
         theme = request.get("theme", "espace")
         art_style = request.get("art_style", "cartoon")
-        num_pages = request.get("num_pages", 1)
+        num_panels = request.get("num_panels", 4)  # Nombre de cases (une seule page)
         custom_prompt = request.get("custom_prompt")
         character_photo_path = request.get("character_photo_path")
         user_id = user_id or request.get("user_id")  # Pour unicité
         
-        print(f"📚 Lancement génération BD: thème={theme}, style={art_style}, pages={num_pages}")
+        print(f"📚 Lancement génération BD: thème={theme}, style={art_style}, cases={num_panels}")
         
         # 🆕 Enrichir avec l'historique (non-bloquant)
         try:
@@ -1257,7 +1257,7 @@ async def generate_comic(request: dict, req: Request = None):
             "start_time": time.time(),
             "theme": theme,
             "art_style": art_style,
-            "num_pages": num_pages,
+            "num_panels": num_panels,
             "custom_prompt": custom_prompt,
             "character_photo_path": character_photo_path,
             "user_id": user_id,  # Stocker pour utilisation ultérieure
@@ -1266,10 +1266,10 @@ async def generate_comic(request: dict, req: Request = None):
         
         # Lancer la génération en arrière-plan
         import asyncio
-        asyncio.create_task(generate_comic_task(task_id, theme, art_style, num_pages, custom_prompt, character_photo_path))
+        asyncio.create_task(generate_comic_task(task_id, theme, art_style, num_panels, custom_prompt, character_photo_path, user_id))
         
         # Retourner immédiatement le task_id
-        estimated_time = f"{num_pages * 1.2:.0f}-{num_pages * 1.5:.0f} minutes"
+        estimated_time = f"{num_panels * 0.3:.0f}-{num_panels * 0.4:.0f} minutes"
         result = {
             "task_id": task_id,
             "status": "processing",
@@ -1277,7 +1277,7 @@ async def generate_comic(request: dict, req: Request = None):
             "estimated_time": estimated_time,
             "theme": theme,
             "art_style": art_style,
-            "num_pages": num_pages
+            "num_panels": num_panels
         }
         
         print(f"✅ Task BD lancée: {result}")
@@ -1357,9 +1357,9 @@ async def get_comic_status(task_id: str):
             current_time = time.time()
             elapsed_seconds = current_time - task_info["start_time"]
             
-            # Estimation temps selon le nombre de pages (70s par page)
-            num_pages = task_info.get("num_pages", 1)
-            estimated_duration = num_pages * 70
+            # Estimation temps selon le nombre de cases (15s par case)
+            num_panels = task_info.get("num_panels", 4)
+            estimated_duration = num_panels * 15
             progress = min(int((elapsed_seconds / estimated_duration) * 100), 95)
             
             result = {
@@ -1712,15 +1712,16 @@ async def generate_zseedance_animation_task(task_id: str, theme: str, duration: 
             "type": "wan25_wavespeed"
         }
 
-async def generate_comic_task(task_id: str, theme: str, art_style: str, num_pages: int, custom_prompt: str, character_photo_path: str):
+async def generate_comic_task(task_id: str, theme: str, art_style: str, num_panels: int, custom_prompt: str, character_photo_path: str, user_id: str = None):
     """
-    Tâche en arrière-plan pour la génération de BD
+    Tâche en arrière-plan pour la génération de BD (une seule page avec nombre variable de cases)
     """
     try:
         print(f"🚀 Démarrage génération BD pour {task_id}")
         
-        # Récupérer user_id depuis le storage
-        user_id = comic_task_storage[task_id].get("user_id")
+        # Récupérer user_id depuis le storage si non fourni
+        if not user_id:
+            user_id = comic_task_storage[task_id].get("user_id")
         
         # Mettre à jour le statut
         comic_task_storage[task_id]["status"] = "generating"
@@ -1728,10 +1729,10 @@ async def generate_comic_task(task_id: str, theme: str, art_style: str, num_page
         # Obtenir le générateur
         generator = get_comics_generator()
         
-        # Générer la BD complète
+        # Générer la BD complète (une seule page avec num_panels cases)
         result = await generator.create_complete_comic(
             theme=theme,
-            num_pages=num_pages,
+            num_panels=num_panels,
             art_style=art_style,
             custom_prompt=custom_prompt,
             character_photo_path=character_photo_path,
@@ -1747,7 +1748,7 @@ async def generate_comic_task(task_id: str, theme: str, art_style: str, num_page
                     synopsis = result.get("synopsis", "")
                     uniqueness_check = await uniqueness_service.ensure_unique_content(
                         supabase_client, user_id, "bd", theme,
-                        synopsis[:200], {"art_style": art_style, "num_pages": num_pages}
+                        synopsis[:200], {"art_style": art_style, "num_panels": num_panels}
                     )
                     uniqueness_metadata = {
                         "content_hash": uniqueness_check.get("content_hash"),

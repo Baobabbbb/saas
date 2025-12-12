@@ -370,20 +370,55 @@ class ComicsGeneratorGPT4o:
             print(f"   [WARNING] Retour de l'image originale sans watermark")
             return image
     
+    def _calculate_image_dimensions(self, num_panels: int) -> tuple[int, int]:
+        """
+        Calcule les dimensions de l'image selon le nombre de cases
+        - 4 cases: 1024x1024 (carré)
+        - 6 cases: 1536x1024 (rectangle horizontal)
+        - 8 cases: 1536x1536 (carré plus grand)
+        - 10 cases: 2048x1280 (rectangle large)
+        - 12 cases: 2048x1536 (rectangle large)
+        """
+        if num_panels <= 4:
+            return (1024, 1024)
+        elif num_panels <= 6:
+            return (1536, 1024)
+        elif num_panels <= 8:
+            return (1536, 1536)
+        elif num_panels <= 10:
+            return (2048, 1280)
+        else:  # 12+
+            return (2048, 1536)
+    
+    def _calculate_grid_layout(self, num_panels: int) -> tuple[int, int]:
+        """
+        Calcule la disposition en grille (rows x cols) selon le nombre de cases
+        """
+        if num_panels <= 4:
+            return (2, 2)
+        elif num_panels <= 6:
+            return (2, 3)
+        elif num_panels <= 8:
+            return (2, 4)
+        elif num_panels <= 10:
+            return (2, 5)
+        else:  # 12
+            return (3, 4)
+    
     async def generate_comic_story(
         self,
         theme: str,
-        num_pages: int,
+        num_panels: int,
         art_style: str,
         custom_prompt: Optional[str] = None,
         character_photo_path: Optional[str] = None
     ) -> tuple[Dict[str, Any], Optional[str]]:
         """
-        Génère le scénario complet de la BD avec gpt-4o-mini
-        Retourne un tuple (JSON avec les détails de chaque planche, description du personnage)
+        Génère le scénario complet de la BD avec gpt-4o-mini (une seule page avec nombre variable de cases)
+        Retourne un tuple (JSON avec les détails de chaque case, description du personnage)
         """
         
-        print(f"📝 Génération scénario BD: thème={theme}, pages={num_pages}, style={art_style}")
+        print(f"📝 Génération scénario BD: thème={theme}, cases={num_panels}, style={art_style}")
         
         # Récupérer les informations du thème
         theme_info = self.themes.get(theme, {
@@ -411,10 +446,13 @@ class ComicsGeneratorGPT4o:
                 print(f"   ⚠️ ERREUR: Aucune illustration obtenue")
                 raise Exception("Échec transformation photo: illustration vide")
         
+        # Calculer la disposition en grille
+        rows, cols = self._calculate_grid_layout(num_panels)
+        
         # Construire le prompt pour gpt-4o-mini
         prompt = f"""Tu es un scénariste expert en bandes dessinées pour enfants de 6-10 ans. Tu écris en français impeccable sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison.
 
-MISSION: Créer une histoire complète en {num_pages} planches de bande dessinée.
+MISSION: Créer une histoire complète en UNE SEULE PAGE de bande dessinée avec EXACTEMENT {num_panels} CASES disposées en grille {rows}x{cols}.
 
 THÈME: {theme_info['name']}
 Description: {theme_info['description']}
@@ -428,7 +466,7 @@ STYLE ARTISTIQUE: {style_info['name']}
 {"⚠️ PERSONNAGE PRINCIPAL PERSONNALISÉ: Un personnage personnalisé (basé sur une photo uploadée) sera le HÉROS PRINCIPAL de cette histoire. Ce personnage doit apparaître dans TOUTES les cases de TOUTES les planches et être le protagoniste de l'histoire. L'histoire doit être centrée sur ce personnage et ses aventures selon le thème choisi." if character_photo_path else ""}
 
 CONSIGNES IMPORTANTES:
-1. Chaque planche contient EXACTEMENT 4 CASES disposées en grille 2×2
+1. Cette BD contient EXACTEMENT {num_panels} CASES disposées en grille {rows}x{cols} sur UNE SEULE PAGE
 2. L'histoire doit être cohérente, captivante et adaptée aux enfants. {"CRITIQUE: L'histoire DOIT être centrée sur le personnage personnalisé uploadé qui est le HÉROS PRINCIPAL. Crée une vraie histoire selon le thème choisi avec ce personnage comme protagoniste." if character_photo_path else ""}
 {"3. CRITIQUE: Le personnage personnalisé uploadé DOIT être le HÉROS PRINCIPAL et apparaître dans LES 4 CASES de chaque planche. C'est LUI qui fait les actions, c'est LUI le protagoniste. Dans CHAQUE case, commence la description par: 'The main character (the personalized character from the uploaded photo) is...' pour que le modèle d'image sache que c'est ce personnage précis qui doit apparaître." if character_photo_path else ""}
 4. Chaque case doit avoir:
@@ -469,49 +507,34 @@ FORMAT JSON REQUIS:
 {{
   "title": "Titre accrocheur de la BD (5-8 mots)",
   "synopsis": "Résumé de l'histoire en 2-3 phrases",
-  "total_pages": {num_pages},
-  "pages": [
+  "total_panels": {num_panels},
+  "grid_layout": "{rows}x{cols}",
+  "panels": [
     {{
-      "page_number": 1,
-      "panels": [
+      "panel_number": 1,
+      "visual_description": "Description ULTRA détaillée en anglais pour gemini-3-pro-image-preview (minimum 40 mots)",
+      "action": "Ce qui se passe dans cette case",
+      "dialogue_bubbles": [
         {{
-          "panel_number": 1,
-          "visual_description": "Description ULTRA détaillée en anglais pour gpt-image-1-mini (minimum 40 mots)",
-          "action": "Ce qui se passe dans cette case",
-          "dialogue_bubbles": [
-            {{
-              "character": "Nom du personnage",
-              "text": "Texte court et percutant",
-              "position": "haut-gauche|haut-droite|bas-gauche|bas-droite",
-              "emotion": "joyeux|surpris|inquiet|etc"
-            }}
-          ]
-        }},
-        {{
-          "panel_number": 2,
-          "visual_description": "...",
-          "action": "...",
-          "dialogue_bubbles": [...]
-        }},
-        {{
-          "panel_number": 3,
-          "visual_description": "...",
-          "action": "...",
-          "dialogue_bubbles": [...]
-        }},
-        {{
-          "panel_number": 4,
-          "visual_description": "...",
-          "action": "...",
-          "dialogue_bubbles": [...]
+          "character": "Nom du personnage",
+          "text": "Texte court et percutant",
+          "position": "haut-gauche|haut-droite|bas-gauche|bas-droite",
+          "emotion": "joyeux|surpris|inquiet|etc"
         }}
       ]
-    }}
+    }},
+    {{
+      "panel_number": 2,
+      "visual_description": "...",
+      "action": "...",
+      "dialogue_bubbles": [...]
+    }},
+    ... (continuer pour toutes les {num_panels} cases)
   ]
 }}
 
 RÈGLES STRICTES:
-- CHAQUE planche a EXACTEMENT 4 cases
+- Cette BD a EXACTEMENT {num_panels} cases sur UNE SEULE PAGE
 - Les descriptions visuelles sont en ANGLAIS (pour gpt-image-1-mini)
 - Les dialogues sont en FRANÇAIS (pour les enfants)
 - L'histoire doit avoir un début, un milieu et une fin satisfaisante
@@ -546,7 +569,16 @@ Génère maintenant le scénario complet en JSON:"""
             # Parser le JSON
             story_data = json.loads(content)
             
-            print(f"✅ Scénario généré: '{story_data['title']}' - {len(story_data['pages'])} planches")
+            # Adapter le format si nécessaire (ancien format avec pages)
+            if "pages" in story_data and len(story_data["pages"]) > 0:
+                # Convertir l'ancien format (pages) vers le nouveau format (panels directement)
+                all_panels = []
+                for page in story_data["pages"]:
+                    all_panels.extend(page.get("panels", []))
+                story_data["panels"] = all_panels
+                story_data["total_panels"] = len(all_panels)
+            
+            print(f"✅ Scénario généré: '{story_data['title']}' - {len(story_data.get('panels', []))} cases")
             
             # Retourner le scénario ET la description du personnage pour réutilisation
             return story_data, character_illustration_path
@@ -674,14 +706,13 @@ Génère maintenant le scénario complet en JSON:"""
         character_photo_path: Optional[str] = None,
         user_id: Optional[str] = None,
         character_description: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> tuple[List[Dict[str, Any]], str]:
         """
-        Génère toutes les planches de BD avec gemini-3-pro-image-preview
-        Chaque planche est une image unique contenant 4 cases + bulles + texte
+        Génère une seule page de BD avec gemini-3-pro-image-preview contenant toutes les cases
         Si character_photo_path est fourni, utilise l'illustration transformée avec Gemini
         """
         
-        print(f"🎨 Génération des planches avec gemini-3-pro-image-preview...")
+        print(f"🎨 Génération de la page BD avec gemini-3-pro-image-preview...")
         
         style_info = self.art_styles.get(art_style, self.art_styles["cartoon"])
         comic_id = str(uuid.uuid4())
@@ -692,86 +723,90 @@ Génère maintenant le scénario complet en JSON:"""
         if character_photo_path:
             print(f"   ✅ Illustration personnage disponible: {character_photo_path}")
         
-        # Contexte global de cohérence (mêmes personnages / styles sur toutes les pages)
-        continuity_notes = self._build_continuity_notes(story_data, style_info)
-
-        generated_pages = []
+        # Récupérer les panels depuis story_data
+        panels = story_data.get("panels", [])
+        num_panels = len(panels)
+        rows, cols = self._calculate_grid_layout(num_panels)
+        width, height = self._calculate_image_dimensions(num_panels)
         
-        for page_data in story_data["pages"]:
-            page_num = page_data["page_number"]
+        # Contexte global de cohérence
+        continuity_notes = self._build_continuity_notes(story_data, style_info)
+        
+        try:
+            print(f"📄 Génération page unique avec {num_panels} cases ({rows}x{cols})...")
             
-            try:
-                print(f"📄 Génération planche {page_num}/{story_data['total_pages']}...")
-                
-                # Construire le prompt complet pour gemini-3-pro-image-preview
-                page_prompt = self._build_page_prompt(
-                    page_data=page_data,
-                    style_info=style_info,
-                    story_title=story_data.get("title"),
-                    story_synopsis=story_data.get("synopsis"),
-                    total_pages=story_data.get("total_pages", len(story_data.get("pages", []))),
-                    current_page=page_num,
-                    continuity_notes=continuity_notes,
-                    character_description=None  # Conservé pour compatibilité, non utilisé
-                )
-                
-                print(f"   📝 Prompt complet ({len(page_prompt)} caractères): {page_prompt[:200]}...")
-                
-                # Générer l'image avec gemini-3-pro-image-preview
-                # Si character_photo_path est fourni, utiliser image-to-image avec l'illustration transformée
-                image_path = await self._generate_page_with_gpt_image_1(
-                    page_prompt,
-                    comic_dir,
-                    page_num,
-                    character_photo_path=character_photo_path,  # Utiliser l'illustration transformée
-                    page_data=None
-                )
-                
-                # 📤 Upload OBLIGATOIRE vers Supabase Storage
-                storage_service = get_storage_service()
-                if not storage_service:
-                    raise Exception("Service Supabase Storage non disponible")
+            # Construire le prompt complet pour gemini-3-pro-image-preview
+            page_prompt = self._build_page_prompt(
+                panels=panels,
+                style_info=style_info,
+                story_title=story_data.get("title"),
+                story_synopsis=story_data.get("synopsis"),
+                num_panels=num_panels,
+                rows=rows,
+                cols=cols,
+                width=width,
+                height=height,
+                continuity_notes=continuity_notes,
+                character_description=None
+            )
+            
+            print(f"   📝 Prompt complet ({len(page_prompt)} caractères): {page_prompt[:200]}...")
+            
+            # Générer l'image avec gemini-3-pro-image-preview
+            # Si character_photo_path est fourni, utiliser image-to-image avec l'illustration transformée
+            image_path = await self._generate_page_with_gpt_image_1(
+                page_prompt,
+                comic_dir,
+                1,  # Une seule page
+                character_photo_path=character_photo_path,
+                width=width,
+                height=height
+            )
+            
+            # 📤 Upload OBLIGATOIRE vers Supabase Storage
+            storage_service = get_storage_service()
+            if not storage_service:
+                raise Exception("Service Supabase Storage non disponible")
 
-                if not user_id:
-                    raise Exception("user_id requis pour l'upload Supabase Storage")
+            if not user_id:
+                raise Exception("user_id requis pour l'upload Supabase Storage")
 
-                upload_result = await storage_service.upload_file(
-                    file_path=str(image_path),
-                    user_id=user_id,
-                    content_type="comic",
-                    creation_id=comic_id,
-                    custom_filename=f"page_{page_num}.png"
-                )
+            upload_result = await storage_service.upload_file(
+                file_path=str(image_path),
+                user_id=user_id,
+                content_type="comic",
+                creation_id=comic_id,
+                custom_filename="page_1.png"
+            )
 
-                if not upload_result["success"]:
-                    raise Exception(f"Échec upload Supabase Storage: {upload_result.get('error', 'Erreur inconnue')}")
+            if not upload_result["success"]:
+                raise Exception(f"Échec upload Supabase Storage: {upload_result.get('error', 'Erreur inconnue')}")
 
-                # Utiliser l'URL signée Supabase (valide 1 an)
-                image_url = upload_result["signed_url"]
-                print(f"✅ Image uploadée vers Supabase Storage: {image_url[:50]}...")
-                
-                # Construire la réponse (format compatible avec le reste de l'app)
-                page_info = {
-                    "page_number": page_num,
-                    "image_url": image_url,
-                    "image_path": str(image_path),
-                    "panels_count": len(page_data["panels"]),
-                    "description": f"Planche {page_num} de {story_data['title']}"
-                }
-                
-                generated_pages.append(page_info)
-                print(f"✅ Planche {page_num} générée: {image_path}")
-                
-            except Exception as e:
-                print(f"❌ Erreur génération planche {page_num}: {e}")
-                raise Exception(f"Erreur génération planche {page_num}: {e}")
+            # Utiliser l'URL signée Supabase (valide 1 an)
+            image_url = upload_result["signed_url"]
+            print(f"✅ Image uploadée vers Supabase Storage: {image_url[:50]}...")
+            
+            # Construire la réponse (format compatible avec le reste de l'app)
+            page_info = {
+                "page_number": 1,
+                "image_url": image_url,
+                "image_path": str(image_path),
+                "panels_count": num_panels,
+                "description": f"Page de {story_data['title']}"
+            }
+            
+            print(f"✅ Page générée: {image_path}")
+            
+        except Exception as e:
+            print(f"❌ Erreur génération page: {e}")
+            raise Exception(f"Erreur génération page: {e}")
         
         # Sauvegarder les métadonnées
         metadata = {
             "comic_id": comic_id,
             "title": story_data["title"],
             "synopsis": story_data["synopsis"],
-            "total_pages": len(generated_pages),
+            "total_panels": num_panels,
             "art_style": art_style,
             "creation_date": datetime.now().isoformat()
         }
@@ -780,95 +815,107 @@ Génère maintenant le scénario complet en JSON:"""
         with open(metadata_path, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2, ensure_ascii=False)
         
-        return generated_pages, comic_id
+        return [page_info], comic_id
     
     def _build_page_prompt(
         self,
-        page_data: Dict,
+        panels: List[Dict],
         style_info: Dict,
         story_title: Optional[str] = None,
         story_synopsis: Optional[str] = None,
-        total_pages: Optional[int] = None,
-        current_page: Optional[int] = None,
+        num_panels: int = 4,
+        rows: int = 2,
+        cols: int = 2,
+        width: int = 1024,
+        height: int = 1024,
         continuity_notes: Optional[str] = None,
         character_description: Optional[str] = None
     ) -> str:
-        """Construit le prompt détaillé pour gemini-3-pro-image-preview pour générer UNE planche complète
+        """Construit le prompt détaillé pour gemini-3-pro-image-preview pour générer UNE page complète avec nombre variable de cases
         
         Args:
-            page_data: Données de la planche (panels, dialogues, etc.)
+            panels: Liste des cases avec leurs descriptions
             style_info: Informations sur le style artistique
-            story_title: Titre global de l'histoire (pour cohérence multi-pages)
-            story_synopsis: Synopsis global (pour cohérence multi-pages)
-            total_pages: Nombre total de planches dans cette BD (pour cohérence)
-            current_page: Numéro de la planche actuelle (pour cohérence)
+            story_title: Titre global de l'histoire
+            story_synopsis: Synopsis global
+            num_panels: Nombre de cases
+            rows: Nombre de lignes dans la grille
+            cols: Nombre de colonnes dans la grille
+            width: Largeur de l'image en pixels
+            height: Hauteur de l'image en pixels
             continuity_notes: Notes globales de cohérence (personnages, style, accessoires)
-            character_description: Non utilisé (conservé pour compatibilité, on utilise l'illustration directement)
+            character_description: Non utilisé (conservé pour compatibilité)
         """
         
-        panels = page_data["panels"]
-        
-        # Contexte global pour renforcer la cohérence multi-planches
+        # Contexte global
         title_line = f"COMIC TITLE: {story_title}" if story_title else "COMIC TITLE: A coherent kids comic"
-        synopsis_line = f"SYNOPSIS: {story_synopsis}" if story_synopsis else "SYNOPSIS: Keep the same characters and story thread across all pages."
-        page_progress = ""
-        if total_pages and current_page:
-            page_progress = f"THIS IS PAGE {current_page} OF {total_pages}. The style, main characters, outfits, colors, and props MUST stay identical to the previous pages and across all pages."
-        else:
-            page_progress = "Maintain exactly the same visual style, character designs, outfits, colors, and props across all pages of this comic."
+        synopsis_line = f"SYNOPSIS: {story_synopsis}" if story_synopsis else "SYNOPSIS: A complete story in one page."
         continuity_block = continuity_notes or ""
         
-        # Plus besoin d'intégrer la description textuelle, on utilise l'illustration directement avec image-to-image
-        character_section = ""
+        # Déterminer le format (carré ou rectangle)
+        format_desc = "square format" if width == height else "rectangular format"
         
-        # Construire la description de la planche complète avec TOUS les détails
-        prompt = f"""A professional comic book page in square format with 4 panels arranged in a 2x2 grid layout.
+        # Construire la description de chaque case
+        panel_descriptions = []
+        panel_positions = []
+        
+        for i, panel in enumerate(panels):
+            row_idx = i // cols
+            col_idx = i % cols
+            position_names = ["Top-Left", "Top-Center", "Top-Right", "Middle-Left", "Middle-Center", "Middle-Right", "Bottom-Left", "Bottom-Center", "Bottom-Right"]
+            
+            if rows == 2:
+                if col_idx == 0:
+                    pos = "Left" if row_idx == 0 else "Bottom-Left"
+                elif col_idx == cols - 1:
+                    pos = "Right" if row_idx == 0 else "Bottom-Right"
+                else:
+                    pos = f"Row {row_idx + 1}, Column {col_idx + 1}"
+            else:
+                if row_idx == 0:
+                    pos = "Top-Left" if col_idx == 0 else ("Top-Right" if col_idx == cols - 1 else f"Top, Column {col_idx + 1}")
+                elif row_idx == rows - 1:
+                    pos = "Bottom-Left" if col_idx == 0 else ("Bottom-Right" if col_idx == cols - 1 else f"Bottom, Column {col_idx + 1}")
+                else:
+                    pos = f"Row {row_idx + 1}, Column {col_idx + 1}"
+            
+            panel_descriptions.append(f"PANEL {i + 1} ({pos}):\n{panel['visual_description']}\nSpeech bubbles: {self._format_bubbles_for_prompt(panel.get('dialogue_bubbles', []))}")
+        
+        panels_text = "\n\n".join(panel_descriptions)
+        
+        # Construire le prompt complet
+        prompt = f"""A professional comic book page in {format_desc} ({width}x{height} pixels) with {num_panels} panels arranged in a {rows}x{cols} grid layout.
 {title_line}
 {synopsis_line}
-{page_progress}
 {continuity_block}
 {style_info['prompt_modifier']}.
-STYLE LOCK: You MUST keep the EXACT SAME art style and rendering settings as all other pages of this comic. Same medium, same palette, same line weight, same shading and lighting. Do NOT change style between pages.
-{character_section}
+STYLE LOCK: Maintain consistent art style, character designs, outfits, colors, and props throughout all panels. Same medium, same palette, same line weight, same shading and lighting.
+
 LAYOUT:
-- Square format (1024x1024 pixels)
-- 4 equally-sized panels in a clean 2x2 grid
+- {format_desc.capitalize()} ({width}x{height} pixels)
+- {num_panels} equally-sized panels in a clean {rows}x{cols} grid
 - Generous white margins around the entire grid
-- Each panel is smaller with thick black borders and plenty of spacing between them
+- Each panel has thick black borders and plenty of spacing between them
 - Professional comic book page composition with clean gutters
 
 PANEL CONTENT:
 
-PANEL 1 (Top-Left):
-{panels[0]['visual_description']}
-Speech bubbles: {self._format_bubbles_for_prompt(panels[0].get('dialogue_bubbles', []))}
-
-PANEL 2 (Top-Right):
-{panels[1]['visual_description']}
-Speech bubbles: {self._format_bubbles_for_prompt(panels[1].get('dialogue_bubbles', []))}
-
-PANEL 3 (Bottom-Left):
-{panels[2]['visual_description']}
-Speech bubbles: {self._format_bubbles_for_prompt(panels[2].get('dialogue_bubbles', []))}
-
-PANEL 4 (Bottom-Right):
-{panels[3]['visual_description']}
-Speech bubbles: {self._format_bubbles_for_prompt(panels[3].get('dialogue_bubbles', []))}
+{panels_text}
 
 STYLE REQUIREMENTS:
 - {style_info['prompt_modifier']}
-- CRITICAL CONTINUITY: Keep identical character designs, outfits, hair color, skin tone, accessories, props, and overall art style consistent with ALL previous and next pages of this comic. Do NOT change faces, outfits, or colors from one page to another.
+- CRITICAL CONTINUITY: Keep identical character designs, outfits, hair color, skin tone, accessories, props, and overall art style consistent across ALL panels. Do NOT change faces, outfits, or colors from one panel to another.
 - Clear, bold black panel borders with generous spacing between panels
-- Each panel should be significantly smaller to leave plenty of white space around them
+- Each panel should be appropriately sized to leave plenty of white space around them
 - Professional comic book page layout with wide gutters (white space between panels)
 - CRITICAL: Include ALL speech bubbles with the EXACT text shown above - DO NOT MODIFY, CHANGE, or CORRECT the text in the speech bubbles under any circumstances
 - The text in speech bubbles must be COPIED VERBATIM from what is provided - no grammar fixes, no spelling corrections, no rephrasing
 - IMPORTANT: The text in the speech bubbles has already been verified for correct French spelling and grammar by GPT-4o-mini - display it exactly as provided, even if you think there might be an error
-- Consistent character designs across all 4 panels
+- Consistent character designs across all {num_panels} panels
 - High quality, professional comic book art
 - Vibrant colors and clear composition
 - No text outside the speech bubbles
-- Clean white background with margins around the entire 2x2 panel grid"""
+- Clean white background with margins around the entire {rows}x{cols} panel grid"""
         
         return prompt
     
@@ -887,26 +934,27 @@ STYLE REQUIREMENTS:
 
     def _build_continuity_notes(self, story_data: Dict[str, Any], style_info: Dict[str, Any]) -> str:
         """
-        Construit un bloc de cohérence global (cast + style) pour toutes les pages
+        Construit un bloc de cohérence global (cast + style) pour toutes les cases
         afin de forcer Gemini à conserver les mêmes personnages / tenues / props.
         """
         # Extraire les noms de personnages depuis les bulles de dialogue
         character_names = set()
         try:
-            for page in story_data.get("pages", []):
-                for panel in page.get("panels", []):
-                    for bubble in panel.get("dialogue_bubbles", []):
-                        name = bubble.get("character")
-                        if name:
-                            character_names.add(name.strip())
+            # Nouveau format: panels directement dans story_data
+            panels = story_data.get("panels", [])
+            for panel in panels:
+                for bubble in panel.get("dialogue_bubbles", []):
+                    name = bubble.get("character")
+                    if name:
+                        character_names.add(name.strip())
         except Exception:
             pass
 
         if not character_names:
-            characters_line = "MAIN CHARACTERS: Keep the same main characters with identical faces, hair, outfits, colors, and props on every page."
+            characters_line = "MAIN CHARACTERS: Keep the same main characters with identical faces, hair, outfits, colors, and props across all panels."
         else:
             joined = ", ".join(sorted(character_names))
-            characters_line = f"MAIN CHARACTERS: {joined}. Keep their faces, hair, outfits, colors, accessories, and props IDENTICAL on every page."
+            characters_line = f"MAIN CHARACTERS: {joined}. Keep their faces, hair, outfits, colors, accessories, and props IDENTICAL across all panels."
 
         style_name = style_info.get("name", "Chosen style")
         style_modifier = style_info.get("prompt_modifier", "")
@@ -914,8 +962,8 @@ STYLE REQUIREMENTS:
             f"STYLE CONSISTENCY: Always keep the EXACT SAME art style ({style_name}). "
             f"Use the same rendering approach described here: {style_modifier}. "
             "Do NOT switch medium (no watercolor/pencil/3D if not the chosen style), "
-            "do NOT change color palette, line weight, shading method, or outline thickness between pages. "
-            "Match lighting/contrast and overall look IDENTICALLY across all pages."
+            "do NOT change color palette, line weight, shading method, or outline thickness between panels. "
+            "Match lighting/contrast and overall look IDENTICALLY across all panels."
         )
 
         return f"{characters_line}\n{style_line}"
@@ -926,7 +974,9 @@ STYLE REQUIREMENTS:
         output_dir: Path,
         page_num: int,
         character_photo_path: Optional[str] = None,
-        page_data: Optional[Dict] = None
+        page_data: Optional[Dict] = None,
+        width: int = 1024,
+        height: int = 1024
     ) -> Path:
         """Génère une planche de BD avec gemini-3-pro-image-preview
         
@@ -953,15 +1003,24 @@ STYLE REQUIREMENTS:
                 
                 # Utiliser le prompt complet pour image-to-image
                 # Le prompt contient toute l'histoire avec les descriptions détaillées de chaque case
-                full_prompt = f"""Transform this character illustration into a comic book page with 4 panels in a 2x2 grid layout. 
+                # Extraire le nombre de cases depuis le prompt original
+                num_panels_match = None
+                import re
+                match = re.search(r'(\d+) panels', prompt)
+                if match:
+                    num_panels_match = int(match.group(1))
+                else:
+                    num_panels_match = 4  # Par défaut
+                
+                full_prompt = f"""Transform this character illustration into a comic book page as described below.
 
-Use the character from the provided image as the main character in all 4 panels, maintaining their recognizable appearance.
+Use the character from the provided image as the main character in all panels, maintaining their recognizable appearance.
 
 IMPORTANT: Follow this complete story and scene description exactly:
 
 {prompt}
 
-The character from the provided image must be the main character performing all the actions described above in all 4 panels."""
+The character from the provided image must be the main character performing all the actions described above in all panels."""
                 
                 # Convertir l'image en bytes pour Gemini
                 img_bytes = io.BytesIO()
@@ -1058,7 +1117,7 @@ The character from the provided image must be the main character performing all 
                                         continue
                         elif hasattr(part, 'text') and part.text:
                             print(f"   [TEXT] {part.text[:200]}...")
-            
+                
             # Si on a obtenu une image PIL via as_image(), la convertir en bytes
             if generated_image:
                 # Convertir l'image PIL en bytes
@@ -1113,16 +1172,16 @@ The character from the provided image must be the main character performing all 
     async def create_complete_comic(
         self,
         theme: str,
-        num_pages: int,
+        num_panels: int,
         art_style: str,
         custom_prompt: Optional[str] = None,
         character_photo_path: Optional[str] = None,
         user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Crée une bande dessinée complète
+        Crée une bande dessinée complète (une seule page avec nombre variable de cases)
         1. Génère le scénario avec gpt-4o-mini
-        2. Génère les planches avec gpt-image-1-mini
+        2. Génère la page avec gemini-3-pro-image-preview
         """
         
         start_time = datetime.now()
@@ -1132,14 +1191,14 @@ The character from the provided image must be the main character performing all 
             print("📝 Étape 1: Génération du scénario...")
             story_data, character_illustration_path = await self.generate_comic_story(
                 theme=theme,
-                num_pages=num_pages,
+                num_panels=num_panels,
                 art_style=art_style,
                 custom_prompt=custom_prompt,
                 character_photo_path=character_photo_path
             )
             
-            # 2. Générer les images (avec illustration du personnage pour référence)
-            print("🎨 Étape 2: Génération des planches...")
+            # 2. Générer la page (avec illustration du personnage pour référence)
+            print("🎨 Étape 2: Génération de la page...")
             pages, comic_id = await self.generate_comic_pages(
                 story_data=story_data,
                 art_style=art_style,
@@ -1155,7 +1214,8 @@ The character from the provided image must be the main character performing all 
                 "title": story_data["title"],
                 "synopsis": story_data["synopsis"],
                 "pages": pages,
-                "total_pages": len(pages),
+                "total_pages": 1,  # Toujours 1 page maintenant
+                "total_panels": num_panels,
                 "theme": theme,
                 "art_style": art_style,
                 "generation_time": generation_time
@@ -1173,6 +1233,7 @@ The character from the provided image must be the main character performing all 
                 "comic_id": None,
                 "title": "Erreur",
                 "pages": [],
-                "total_pages": 0
+                "total_pages": 0,
+                "total_panels": 0
             }
 

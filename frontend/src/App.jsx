@@ -592,7 +592,7 @@ function App() {
 
       const { data: permissionData, error: permissionError } = await supabase.functions.invoke('check-permission', {
         body: {
-          contentType,
+      contentType, 
           userId: user.id,
           userEmail: user.email,
           ...permissionOptions
@@ -606,13 +606,13 @@ function App() {
       }
 
       if (!permissionData.hasPermission) {
-        // Ouvrir directement la modal de paiement
-        setPaymentContentType(contentType);
-        setShowPaymentModal(true);
-        return;
-      } else {
-        // Permission accordée, génération directe
-        startGeneration();
+      // Ouvrir directement la modal de paiement
+      setPaymentContentType(contentType);
+      setShowPaymentModal(true);
+      return;
+    } else {
+      // Permission accordée, génération directe
+      startGeneration();
       }
     } catch (error) {
       console.error('Erreur lors de l\'appel à check-permission:', error);
@@ -698,7 +698,7 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      
+
       if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
       generatedContent = await response.json();
     } else if (contentType === 'coloring') {
@@ -742,10 +742,10 @@ function App() {
           throw new Error('Thème et modèle coloré sont requis pour générer un coloriage');
         }
         
-      const payload = {
+        const payload = {
           theme: String(selectedTheme), // S'assurer que c'est une chaîne
           with_colored_model: Boolean(withColoredModel) // S'assurer que c'est un booléen
-      };
+        };
         
         // Ajouter user_id seulement si l'utilisateur est connecté
         if (user?.id) {
@@ -756,26 +756,26 @@ function App() {
         if (selectedTheme === 'custom' && customColoringTheme.trim()) {
           payload.custom_prompt = customColoringTheme.trim();
         }
-      
+        
       const response = await authFetch(`${API_BASE_URL}/generate_coloring/`, {
-        method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-      if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
-      
-      const coloringData = await response.json();
-      
-      setColoringResult(coloringData);
-      generatedContent = coloringData; // Stocker pour l'historique
+        if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+        
+        const coloringData = await response.json();
+        
+        setColoringResult(coloringData);
+        generatedContent = coloringData; // Stocker pour l'historique
       }
     } else if (contentType === 'comic') {
       // Génération de bande dessinée avec système de tâches asynchrones
       const payload = {
         theme: selectedComicsTheme === 'custom' ? customComicsStory : selectedComicsTheme,
         art_style: selectedComicsStyle || 'cartoon', // Style par défaut si aucun sélectionné
-        num_pages: numPages || 1, // Nombre de pages par défaut si aucun sélectionné
+        num_panels: numPages || 4, // Nombre de cases (une seule page) par défaut si aucun sélectionné
         user_id: user?.id  // ✅ Ajouter user_id pour Supabase Storage
       };
 
@@ -867,10 +867,10 @@ function App() {
       const endpoint = `${API_BASE_URL}/generate-quick?theme=${encodeURIComponent(normalizedTheme)}&duration=${duration}&style=${selectedStyle || 'cartoon'}&custom_prompt=${encodeURIComponent(story || '')}`;
       const fetchOptions = {
         method: 'GET',
-            headers: {
-              'Accept': 'application/json'
-            }
-          };
+          headers: {
+            'Accept': 'application/json'
+          }
+        };
 
       const response = await authFetch(endpoint, {
         ...fetchOptions
@@ -1017,19 +1017,19 @@ function App() {
       
       // Enregistrer dans l'historique via Supabase (seulement si connecté)
       if (user) {
-        try {
-          await addCreation({
-            type: contentType,
-            title: title,
-            data: newCreation        });
+      try {
+        await addCreation({
+          type: contentType,
+          title: title,
+          data: newCreation        });
           
           // Forcer la revérification du bonus dans le Header
           setRefreshBonusTrigger(prev => prev + 1);
           
           // Forcer la mise à jour du texte du bouton
           updateButtonText(userHasFreeAccess);
-        } catch (historyError) {
-          // Erreur silencieuse - historique non critique
+      } catch (historyError) {
+        // Erreur silencieuse - historique non critique
         }
       }
 
@@ -1090,7 +1090,7 @@ function App() {
     if (contentPaidDirectly) {
       setContentPaidDirectly(false);
     }
-
+    
     // Arrêter l'animation de chargement pour les autres types de contenu
     // (pour les comptines, c'est géré par pollTaskStatus)
     setIsGenerating(false);
@@ -1348,7 +1348,7 @@ const downloadPDF = async (title, content) => {
           // Tâche Suno terminée avec succès - URL disponible
           setGeneratedResult(prev => {
             const updatedResult = {
-            ...prev,
+              ...prev,
             audio_path: status.audio_path,
               suno_url: status.suno_url, // URL Suno pour le téléchargement
               title: status.title || prev.title,
@@ -1800,12 +1800,12 @@ const downloadPDF = async (title, content) => {
                 background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', 
                 borderRadius: '15px',
                 border: '2px solid #dee2e6',
-            width: '100%',
+                width: '100%',
             maxWidth: '100%',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             overflow: 'hidden'
               }}>
-          <div style={{ 
+                <div style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
               justifyContent: 'center',
@@ -1815,12 +1815,12 @@ const downloadPDF = async (title, content) => {
                   <h4 style={{ margin: 0, fontSize: '15px', color: '#333', fontWeight: '600' }}>
                     Votre comptine est prête !
                   </h4>
-          </div>
+                </div>
                 <audio
                   controls
                   preload="metadata"
                   controlsList="nodownload"
-              style={{
+                  style={{
                     width: '100%',
                     outline: 'none'
                   }}
@@ -1865,7 +1865,7 @@ const downloadPDF = async (title, content) => {
                   // Nettoyer l'URL d'objet
                   setTimeout(() => window.URL.revokeObjectURL(url), 100);
 
-                } catch (error) {
+                  } catch (error) {
                   alert(`Erreur lors du téléchargement: ${error.message}`);
                   }
                 }
@@ -1890,7 +1890,7 @@ const downloadPDF = async (title, content) => {
               {downloadReady ? '📥 Télécharger' : '⏳ Préparation du téléchargement...'}
             </button>
           </>
-          )}
+        )}
       </div>
     </motion.div>
   ) : generatedResult && (contentType === 'histoire' || contentType === 'audio') ? (

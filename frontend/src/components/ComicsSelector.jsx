@@ -52,8 +52,8 @@ const ComicsSelector = ({
     { id: 'watercolor', name: 'Aquarelle', icon: '🖌️', description: 'Doux et artistique' }
   ];
 
-  // Options nombre de pages (4 cases par page)
-  const pageOptions = [1, 2, 3, 4, 5];
+  // Options nombre de cases (une seule page avec nombre variable de cases)
+  const panelOptions = [4, 6, 8, 10, 12];
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -134,9 +134,9 @@ const ComicsSelector = ({
       </div>
 
       <div className="selector-section">
-        <h3>4. Nombre de pages</h3>
+        <h3>4. Nombre de cases</h3>
         <div className="pages-selector">
-          {pageOptions.map(num => (
+          {panelOptions.map(num => (
             <motion.button
               key={num}
               className={`page-btn ${numPages === num ? 'selected' : ''}`}
@@ -145,8 +145,7 @@ const ComicsSelector = ({
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
             >
-              {num} {num === 1 ? 'page' : 'pages'}
-              <span className="cases-info">({num * 4} cases)</span>
+              {num} {num === 1 ? 'case' : 'cases'}
             </motion.button>
           ))}
         </div>

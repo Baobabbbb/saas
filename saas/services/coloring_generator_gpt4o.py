@@ -394,7 +394,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                     original_width, original_height = input_img.size
                     aspect_ratio = original_width / original_height
                     print(f"[DIMENSIONS] Dimensions originales: {original_width}x{original_height} (ratio: {aspect_ratio:.2f})")
-                except Exception as e:
+        except Exception as e:
                     print(f"[WARNING] Impossible de lire les dimensions originales: {e}")
             
             # Appeler Gemini avec text-to-image
@@ -668,7 +668,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
             
             # Utiliser gpt-image-1 images.edit pour transformer la photo en coloriage
             coloring_path_str = await self._convert_photo_to_coloring_with_gpt_image_1(
-                photo_path,
+                photo_path, 
                 with_colored_model
             )
             
@@ -798,7 +798,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                             print(f"[DEBUG] inline_data type: {type(part.inline_data)}")
                             inline_attrs = [attr for attr in dir(part.inline_data) if not attr.startswith('_')]
                             print(f"[DEBUG] inline_data attributes: {inline_attrs}")
-                            
+            
                             # Essayer différentes méthodes d'accès aux données
                             if hasattr(part.inline_data, 'data'):
                                 data = part.inline_data.data

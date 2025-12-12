@@ -38,9 +38,9 @@ export const downloadComicAsPDF = async (imageUrls, filename = 'comic') => {
           const dataUrl = canvas.toDataURL('image/png');
           resolve({ width: img.width, height: img.height, dataUrl });
         };
-        img.onerror = reject;
+          img.onerror = reject;
         img.src = url;
-      });
+        });
     };
     
     // Précharger toutes les images
@@ -61,8 +61,8 @@ export const downloadComicAsPDF = async (imageUrls, filename = 'comic') => {
       if (!imgInfos[i]) continue;
       
       if (!isFirstPage) {
-        pdf.addPage();
-      }
+          pdf.addPage();
+        }
       isFirstPage = false;
       
       const { dataUrl, width, height } = imgInfos[i];
@@ -80,8 +80,8 @@ export const downloadComicAsPDF = async (imageUrls, filename = 'comic') => {
       // Centrage de l'image (verticalement, mais en laissant de l'espace en bas pour le watermark)
       const x = (pageWidth - finalWidth) / 2;
       const y = (pageHeight - finalHeight - watermarkHeight) / 2; // Centrer mais laisser de l'espace en bas
-      
-      // Ajouter l'image au PDF
+        
+        // Ajouter l'image au PDF
       pdf.addImage(dataUrl, 'PNG', x, y, finalWidth, finalHeight);
       
       // 🏷️ Watermark "Créé avec HERBBIE" en bas à gauche (après l'image pour être au-dessus)
@@ -89,20 +89,20 @@ export const downloadComicAsPDF = async (imageUrls, filename = 'comic') => {
       pdf.setFontSize(8);
       pdf.setTextColor(107, 78, 255); // #6B4EFF - Violet HERBBIE
       pdf.text("Créé avec HERBBIE", 15, pageHeight - 10, { align: "left" });
-      
-    } catch (error) {
-      console.error(`Erreur lors du chargement de l'image ${i + 1}:`, error);
-      
-      // Ajouter une page d'erreur
+        
+      } catch (error) {
+        console.error(`Erreur lors du chargement de l'image ${i + 1}:`, error);
+        
+        // Ajouter une page d'erreur
       if (!isFirstPage) {
-        pdf.addPage();
-      }
+          pdf.addPage();
+        }
       isFirstPage = false;
-      
-      pdf.setFontSize(16);
+        
+        pdf.setFontSize(16);
       pdf.setTextColor(0, 0, 0);
-      pdf.text(`Erreur lors du chargement de la page ${i + 1}`, 20, 50);
-    }
+        pdf.text(`Erreur lors du chargement de la page ${i + 1}`, 20, 50);
+      }
     }
     
     // Télécharger le PDF

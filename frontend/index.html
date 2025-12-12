@@ -269,7 +269,7 @@
             if (keys.length === 1 && keys[0].length <= 10 && /^[a-zA-Z0-9]+$/.test(keys[0])) {
               const value = args[0][keys[0]];
               if (typeof value === 'string' && value.length <= 5) {
-                return; // Log Stripe interne, ne pas afficher
+              return; // Log Stripe interne, ne pas afficher
               }
             }
           }

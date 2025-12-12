@@ -13,7 +13,7 @@ const AnimationViewer = ({ animationResult, onClose }) => {
     animationResult.data?.final_video_url ||
     animationResult.data?.video_url ||
     (animationResult.video_urls && animationResult.video_urls[0]);
-  
+
   const videoDuration = animationResult.duration || 
                         animationResult.duration_seconds || 
                         animationResult.total_duration ||
@@ -83,21 +83,21 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                 overflow: 'hidden',
                 boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
               }}>
-                <video
+                          <video 
                   src={finalVideoUrl}
-                  controls
-                  autoPlay
-                  loop
-                  style={{
-                    width: '100%',
-                    height: 'auto',
+                            controls
+                            autoPlay
+                            loop
+                            style={{
+                              width: '100%',
+                              height: 'auto',
                     aspectRatio: '16/9',
                     display: 'block',
                     objectFit: 'cover'
-                  }}
-                />
-              </div>
-
+                            }}
+                          />
+                        </div>
+                        
               {/* Barre d'actions sous la vidéo */}
               <div style={{ 
                 marginTop: '16px',
@@ -113,24 +113,24 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                   </span>
                 )}
                 <div style={{ display: 'flex', gap: '10px' }}>
-                  <button 
+                          <button 
                     onClick={() => window.open(finalVideoUrl, '_blank')}
-                    style={{
+                            style={{
                       background: '#6B4EFF',
-                      color: 'white',
-                      border: 'none',
+                              color: 'white',
+                              border: 'none',
                       padding: '10px 18px',
-                      borderRadius: '8px',
+                              borderRadius: '8px',
                       fontSize: '13px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
+                              fontWeight: '600',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
                       gap: '6px'
-                    }}
-                  >
+                            }}
+                          >
                     🔗 Plein écran
-                  </button>
+                          </button>
                   <button 
                     onClick={async () => {
                       try {
@@ -160,11 +160,11 @@ const AnimationViewer = ({ animationResult, onClose }) => {
                       gap: '6px'
                     }}
                   >
-                    📥 Télécharger
-                  </button>
+                          📥 Télécharger
+                        </button>
                 </div>
-              </div>
-            </div>
+                    </div>
+                  </div>
           ) : (
             <div style={{ 
               textAlign: 'center', 
@@ -174,8 +174,8 @@ const AnimationViewer = ({ animationResult, onClose }) => {
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎬</div>
               <h3>Vidéo non disponible</h3>
               <p>Cette animation n'a pas de vidéo associée.</p>
-            </div>
-          )}
+                    </div>
+                  )}
         </div>
       </motion.div>
     </motion.div>

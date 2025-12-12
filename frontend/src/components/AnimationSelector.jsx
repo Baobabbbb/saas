@@ -21,14 +21,14 @@ const AnimationSelector = ({
 
   // Initialiser directement avec les thèmes (évite les appels API pour garantir l'affichage des nouveaux thèmes) - Build: 2024
   useEffect(() => {
-    setAnimationThemes([
+          setAnimationThemes([
       { id: 'custom', name: 'Personnalisé', description: 'Écrivez votre propre histoire', emoji: '✏️' },
-      { id: 'space', name: 'Espace', description: 'Voyages spatiaux', emoji: '🚀' },
+          { id: 'space', name: 'Espace', description: 'Voyages spatiaux', emoji: '🚀' },
       { id: 'ocean', name: 'Sous-marin', description: 'Exploration sous-marine', emoji: '🐠' },
-      { id: 'nature', name: 'Nature', description: 'Monde naturel', emoji: '🌳' },
-      { id: 'adventure', name: 'Aventure', description: 'Voyages et explorations', emoji: '🏰' },
-      { id: 'animals', name: 'Animaux', description: 'Histoires d\'animaux mignons', emoji: '🐾' },
-      { id: 'magic', name: 'Magie', description: 'Monde magique et sortilèges', emoji: '✨' },
+          { id: 'nature', name: 'Nature', description: 'Monde naturel', emoji: '🌳' },
+          { id: 'adventure', name: 'Aventure', description: 'Voyages et explorations', emoji: '🏰' },
+          { id: 'animals', name: 'Animaux', description: 'Histoires d\'animaux mignons', emoji: '🐾' },
+          { id: 'magic', name: 'Magie', description: 'Monde magique et sortilèges', emoji: '✨' },
       { id: 'friendship', name: 'Amitié', description: 'Histoires d\'amitié', emoji: '🤝' },
       { id: 'circus', name: 'Cirque', description: 'Spectacle de cirque magique', emoji: '🎪' },
       { id: 'sport', name: 'Sport', description: 'Matchs et compétitions sportives', emoji: '⚽' },
@@ -37,15 +37,15 @@ const AnimationSelector = ({
       { id: 'dinosaur', name: 'Dinosaures', description: 'Monde préhistorique', emoji: '🦖' },
       { id: 'fairy', name: 'Fées & Princesses', description: 'Contes de fées enchantés', emoji: '🧚' },
       { id: 'robot', name: 'Robots', description: 'Technologie et robots futuristes', emoji: '🤖' }
-    ]);
-    setDurations([
-      { value: 30, label: '30 secondes' },
-      { value: 60, label: '1 minute' },
-      { value: 120, label: '2 minutes' },
-      { value: 180, label: '3 minutes' },
-      { value: 240, label: '4 minutes' },
-      { value: 300, label: '5 minutes' }
-    ]);
+        ]);
+        setDurations([
+          { value: 30, label: '30 secondes' },
+          { value: 60, label: '1 minute' },
+          { value: 120, label: '2 minutes' },
+          { value: 180, label: '3 minutes' },
+          { value: 240, label: '4 minutes' },
+          { value: 300, label: '5 minutes' }
+        ]);
   }, []);
 
   const visualStyles = [
@@ -91,37 +91,37 @@ const AnimationSelector = ({
         <div className="themes-grid">
           {animationThemes.map((theme) => (
             <div key={theme.id}>
-              <motion.div
-                className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''} ${theme.id === 'custom' ? 'custom-animation' : ''}`}
-                onClick={() => handleThemeSelect(theme.id)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div className="theme-emoji">{theme.emoji}</div>
-                <div className="theme-content">
-                  <h5>{theme.name}</h5>
-                  <p>{theme.description}</p>
-                </div>
-              </motion.div>
+            <motion.div
+              className={`theme-card ${selectedTheme === theme.id ? 'selected' : ''} ${theme.id === 'custom' ? 'custom-animation' : ''}`}
+              onClick={() => handleThemeSelect(theme.id)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="theme-emoji">{theme.emoji}</div>
+              <div className="theme-content">
+                <h5>{theme.name}</h5>
+                <p>{theme.description}</p>
+              </div>
+            </motion.div>
 
               {/* Encart personnalisé juste en dessous du bouton Personnalisé */}
               {theme.id === 'custom' && selectedTheme === 'custom' && (
-                <motion.div
+          <motion.div 
                   className="custom-theme-input"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
                   transition={{ duration: 0.3 }}
-                >
-                  <textarea
-                    className="custom-story-textarea"
-                    value={customStory}
-                    onChange={(e) => setCustomStory(e.target.value)}
-                    placeholder="Il était une fois... Racontez votre histoire ici. Plus elle est détaillée, plus l'animation sera riche et personnalisée !"
-                    rows={4}
-                  />
-                </motion.div>
-              )}
-            </div>
+          >
+            <textarea
+              className="custom-story-textarea"
+              value={customStory}
+              onChange={(e) => setCustomStory(e.target.value)}
+              placeholder="Il était une fois... Racontez votre histoire ici. Plus elle est détaillée, plus l'animation sera riche et personnalisée !"
+              rows={4}
+            />
+          </motion.div>
+        )}
+      </div>
           ))}
         </div>
 
@@ -183,7 +183,9 @@ const AnimationSelector = ({
         </div>
       </div>
 
-      {/* Section 4: Personnage principal (optionnel) */}
+      {/*
+      // Section 4: Personnage principal (optionnel)
+      // Conservé en commentaire pour réactivation future
       <div className="selector-section">
         <h4>4. Personnage principal (optionnel)</h4>
         <p className="section-description">
@@ -233,6 +235,7 @@ const AnimationSelector = ({
           )}
         </div>
       </div>
+      */}
     </div>
   );
 };
