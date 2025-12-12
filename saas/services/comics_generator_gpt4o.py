@@ -649,11 +649,11 @@ Génère maintenant le scénario complet en JSON:"""
         retry_count = 0
         
         while retry_count <= max_retries:
-        try:
+            try:
                 if retry_count > 0:
                     print(f"🔄 Tentative {retry_count + 1}/{max_retries + 1} - Retry avec instructions renforcées...")
                 
-            print("🤖 Appel gpt-4o-mini pour le scénario...")
+                print("🤖 Appel gpt-4o-mini pour le scénario...")
                 # Calculer max_tokens selon le nombre total de cases
                 total_panels = num_panels * num_pages
                 # Environ 250 tokens par case (description + dialogues)
@@ -682,7 +682,7 @@ CRITIQUE ORTHOGRAPHE:
 - Tous les textes dans les bulles de dialogue doivent être en français PARFAIT sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison
 - Vérifie chaque mot avant de l'inclure dans les bulles"""
 
-            response = await self.client.chat.completions.create(
+                response = await self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
                         {"role": "system", "content": system_message},
@@ -692,21 +692,21 @@ CRITIQUE ORTHOGRAPHE:
                     max_tokens=max_tokens
             )
             
-            content = response.choices[0].message.content.strip()
-            
-            # Nettoyer le JSON (enlever les balises markdown si présentes)
-            if content.startswith("```json"):
-                content = content[7:]
-            if content.startswith("```"):
-                content = content[3:]
-            if content.endswith("```"):
-                content = content[:-3]
-            
-            content = content.strip()
-            
-            # Parser le JSON
-            story_data = json.loads(content)
-            
+                content = response.choices[0].message.content.strip()
+                
+                # Nettoyer le JSON (enlever les balises markdown si présentes)
+                if content.startswith("```json"):
+                    content = content[7:]
+                if content.startswith("```"):
+                    content = content[3:]
+                if content.endswith("```"):
+                    content = content[:-3]
+                
+                content = content.strip()
+                
+                # Parser le JSON
+                story_data = json.loads(content)
+                
                 # Vérifier que le format est correct (pages avec panels)
                 if "pages" not in story_data or len(story_data.get("pages", [])) == 0:
                     # Format ancien avec panels directement - convertir
@@ -757,17 +757,17 @@ CRITIQUE ORTHOGRAPHE:
                 
                 # Retourner le scénario ET la description du personnage pour réutilisation
                 return story_data, character_illustration_path
-            
-        except json.JSONDecodeError as e:
-            print(f"❌ Erreur parsing JSON: {e}")
-            print(f"Contenu reçu: {content[:500]}...")
+                
+            except json.JSONDecodeError as e:
+                print(f"❌ Erreur parsing JSON: {e}")
+                print(f"Contenu reçu: {content[:500]}...")
                 if retry_count < max_retries:
                     retry_count += 1
                     print(f"   🔄 Retry {retry_count}/{max_retries} après erreur JSON...")
                     continue
                 else:
                     raise Exception(f"Erreur de format du scénario après {max_retries + 1} tentatives: {e}")
-        except Exception as e:
+            except Exception as e:
                 # Si c'est une erreur de validation, on peut retry
                 if "invalide" in str(e).lower() or "cases" in str(e).lower():
                     if retry_count < max_retries:
@@ -775,8 +775,8 @@ CRITIQUE ORTHOGRAPHE:
                         print(f"   🔄 Retry {retry_count}/{max_retries} après erreur validation...")
                         continue
                 
-            print(f"❌ Erreur génération scénario: {e}")
-            raise Exception(f"Erreur lors de la génération du scénario: {e}")
+                print(f"❌ Erreur génération scénario: {e}")
+                raise Exception(f"Erreur lors de la génération du scénario: {e}")
     
     async def _transform_photo_to_comic_character(self, photo_path: str) -> str:
         """Transforme une photo en illustration de personnage de BD avec gpt-image-1
@@ -1275,10 +1275,10 @@ The character from the provided image must be the main character performing all 
                             raise Exception(f"Erreur génération image après {max_retries} tentatives: {e}")
                         elif "Connection aborted" in error_str or "RemoteDisconnected" in error_str or "timeout" in error_str.lower():
                             print(f"   ⚠️ Tentative {attempt + 1} échouée (connexion/timeout): {e}, retry...")
-            else:
-                            # Autre erreur, ne pas retry
-                            print(f"   ❌ Erreur non-réessayable: {e}")
-                            raise
+                    else:
+                        # Autre erreur, ne pas retry
+                        print(f"   ❌ Erreur non-réessayable: {e}")
+                        raise
             else:
                 print(f"   🎨 Appel gemini-3-pro-image-preview (text-to-image uniquement)...")
                 print(f"   📝 Prompt détaillé ({len(prompt)} caractères)")
