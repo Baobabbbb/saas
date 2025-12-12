@@ -60,8 +60,8 @@ const ComicsPopup = ({ comic, onClose, baseUrl }) => {
       link.click();
       document.body.removeChild(link);
       
-      // Nettoyer l'URL blob après un court délai
-      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+      // Nettoyer l'URL blob après un délai pour que le navigateur puisse traiter le téléchargement
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 500);
     } catch (error) {
       console.error('Erreur lors du téléchargement:', error);
       // Fallback: essayer le téléchargement direct

@@ -363,7 +363,7 @@ const History = ({ onClose, onSelect }) => {
       // Nettoyer l'URL du blob après utilisation
       setTimeout(() => {
         URL.revokeObjectURL(pdfUrl);
-      }, 100);
+      }, 500);
     });
   };
 
@@ -480,7 +480,10 @@ const History = ({ onClose, onSelect }) => {
                             link.click();
                             document.body.removeChild(link);
                             
-                            URL.revokeObjectURL(blobUrl);
+                            // Attendre un peu avant de révoquer l'URL pour que le navigateur puisse traiter le téléchargement
+                            setTimeout(() => {
+                              URL.revokeObjectURL(blobUrl);
+                            }, 500);
                           } catch (error) {
                             console.error('Erreur lors du téléchargement de la comptine:', error);
                             alert('Erreur lors du téléchargement. Veuillez réessayer.');
@@ -536,7 +539,10 @@ const History = ({ onClose, onSelect }) => {
                                 link.click();
                                 document.body.removeChild(link);
                                 
-                                URL.revokeObjectURL(blobUrl);
+                                // Attendre un peu avant de révoquer l'URL pour que le navigateur puisse traiter le téléchargement
+                                setTimeout(() => {
+                                  URL.revokeObjectURL(blobUrl);
+                                }, 500);
                               } catch (error) {
                                 console.error('Erreur lors du téléchargement audio:', error);
                                 alert('Erreur lors du téléchargement. Veuillez réessayer.');
@@ -573,7 +579,10 @@ const History = ({ onClose, onSelect }) => {
                             link.click();
                             document.body.removeChild(link);
                             
-                            URL.revokeObjectURL(blobUrl);
+                            // Attendre un peu avant de révoquer l'URL pour que le navigateur puisse traiter le téléchargement
+                            setTimeout(() => {
+                              URL.revokeObjectURL(blobUrl);
+                            }, 500);
                           } catch (error) {
                             console.error('Erreur lors du téléchargement audio:', error);
                             alert('Erreur lors du téléchargement. Veuillez réessayer.');
@@ -646,7 +655,10 @@ const History = ({ onClose, onSelect }) => {
                             link.click();
                             document.body.removeChild(link);
                             
-                            URL.revokeObjectURL(blobUrl);
+                            // Attendre un peu avant de révoquer l'URL pour que le navigateur puisse traiter le téléchargement
+                            setTimeout(() => {
+                              URL.revokeObjectURL(blobUrl);
+                            }, 500);
                           } catch (error) {
                             console.error('Erreur lors du téléchargement de la vidéo:', error);
                             alert('Erreur lors du téléchargement. Veuillez réessayer.');

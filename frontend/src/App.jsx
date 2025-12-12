@@ -1867,8 +1867,8 @@ const downloadPDF = async (title, content) => {
                     link.click();
                     document.body.removeChild(link);
 
-                  // Nettoyer l'URL d'objet
-                  setTimeout(() => window.URL.revokeObjectURL(url), 100);
+                  // Nettoyer l'URL d'objet après un délai pour que le navigateur puisse traiter le téléchargement
+                  setTimeout(() => window.URL.revokeObjectURL(url), 500);
 
                   } catch (error) {
                   alert(`Erreur lors du téléchargement: ${error.message}`);
@@ -2004,7 +2004,8 @@ const downloadPDF = async (title, content) => {
                     link.click();
                     document.body.removeChild(link);
                     
-                    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+                    // Attendre un peu avant de révoquer l'URL pour que le navigateur puisse traiter le téléchargement
+                    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 500);
                     return;
                   }
 
