@@ -691,55 +691,73 @@ CRITIQUE ORTHOGRAPHE:
                     temperature=0.7,
                     max_tokens=max_tokens
                 )
-            
-            content = response.choices[0].message.content.strip()
-            
-            # Nettoyer le JSON (enlever les balises markdown si présentes)
-            if content.startswith("```json"):
-                content = content[7:]
-            if content.startswith("```"):
-                content = content[3:]
-            if content.endswith("```"):
-                content = content[:-3]
-            
-            content = content.strip()
-            
-            # Parser le JSON
-            story_data = json.loads(content)
-            
-            # Vérifier que le format est correct (pages avec panels)
-            if "pages" not in story_data or len(story_data.get("pages", [])) == 0:
-                # Format ancien avec panels directement - convertir
-                panels = story_data.get("panels", [])
-                story_data["pages"] = [{"page_number": 1, "panels": panels}]
-            
-            # Vérifier et corriger le nombre de cases par page
-            pages_data = story_data.get("pages", [])
-            for page_idx, page in enumerate(pages_data):
-                page_panels = page.get("panels", [])
-                expected_page_num = page_idx + 1
-                actual_panels_count = len(page_panels)
                 
-                if actual_panels_count != num_panels:
-                    print(f"⚠️ Page {expected_page_num}: {actual_panels_count} cases au lieu de {num_panels} - correction nécessaire")
-                    # Si moins de cases, on peut réessayer ou ajuster
-                    if actual_panels_count < num_panels:
-                        print(f"   ⚠️ ATTENTION: La page {expected_page_num} n'a que {actual_panels_count} cases au lieu de {num_panels}")
-                        raise Exception(f"Page {expected_page_num} invalide: {actual_panels_count} cases au lieu de {num_panels}. Le scénario doit avoir EXACTEMENT {num_panels} cases par page.")
-                else:
-                    print(f"   ✅ Page {expected_page_num}: {actual_panels_count} cases (correct)")
-            
-            total_panels = sum(len(page.get("panels", [])) for page in pages_data)
-            expected_total = num_panels * num_pages
-            if total_panels != expected_total:
-                print(f"⚠️ ATTENTION: Total de {total_panels} cases au lieu de {expected_total} attendues")
-                raise Exception(f"Nombre total de cases incorrect: {total_panels} au lieu de {expected_total} ({num_pages} pages × {num_panels} cases)")
-            
-            print(f"✅ Scénario généré: '{story_data['title']}' - {len(pages_data)} page(s) avec {total_panels} cases au total ({num_panels} cases par page)")
-            
-            # Retourner le scénario ET la description du personnage pour réutilisation
-            return story_data, character_illustration_path
-            
+                content = response.choices[0].message.content.strip()
+                
+                # Nettoyer le JSON (enlever les balises markdown si présentes)
+                if content.startswith("```json"):
+                    content = content[7:]
+                if content.startswith("```"):
+                    content = content[3:]
+                if content.endswith("```"):
+                    content = content[:-3]
+                
+                content = content.strip()
+                
+                # Parser le JSON
+                story_data = json.loads(content)
+                
+                # Vérifier que le format est correct (pages avec panels)
+                if "pages" not in story_data or len(story_data.get("pages", [])) == 0:
+                    # Format ancien avec panels directement - convertir
+                    panels = story_data.get("panels", [])
+                    story_data["pages"] = [{"page_number": 1, "panels": panels}]
+                
+                # Vérifier et corriger le nombre de cases par page
+                pages_data = story_data.get("pages", [])
+                validation_errors = []
+                
+                for page_idx, page in enumerate(pages_data):
+                    page_panels = page.get("panels", [])
+                    expected_page_num = page.get("page_number", page_idx + 1)
+                    actual_panels_count = len(page_panels)
+                    
+                    if actual_panels_count != num_panels:
+                        error_msg = f"Page {expected_page_num}: {actual_panels_count} cases au lieu de {num_panels}"
+                        print(f"⚠️ {error_msg}")
+                        validation_errors.append(error_msg)
+                    else:
+                        print(f"   ✅ Page {expected_page_num}: {actual_panels_count} cases (correct)")
+                
+                if validation_errors:
+                    error_summary = "; ".join(validation_errors)
+                    print(f"❌ ERREUR VALIDATION: {error_summary}")
+                    
+                    # Si on a encore des tentatives, réessayer
+                    if retry_count < max_retries:
+                        retry_count += 1
+                        print(f"   🔄 Retry {retry_count}/{max_retries}...")
+                        continue  # Réessayer avec le prompt renforcé
+                    else:
+                        # Toutes les tentatives épuisées
+                        raise Exception(f"Scénario invalide après {max_retries + 1} tentatives: {error_summary}. Chaque page doit avoir EXACTEMENT {num_panels} cases. Le modèle GPT n'a pas suivi les instructions malgré plusieurs tentatives.")
+                
+                total_panels = sum(len(page.get("panels", [])) for page in pages_data)
+                expected_total = num_panels * num_pages
+                if total_panels != expected_total:
+                    print(f"⚠️ ATTENTION: Total de {total_panels} cases au lieu de {expected_total} attendues")
+                    if retry_count < max_retries:
+                        retry_count += 1
+                        print(f"   🔄 Retry {retry_count}/{max_retries}...")
+                        continue
+                    else:
+                        raise Exception(f"Nombre total de cases incorrect: {total_panels} au lieu de {expected_total} ({num_pages} pages × {num_panels} cases). Veuillez réessayer.")
+                
+                print(f"✅ Scénario généré: '{story_data['title']}' - {len(pages_data)} page(s) avec {total_panels} cases au total ({num_panels} cases par page)")
+                
+                # Retourner le scénario ET la description du personnage pour réutilisation
+                return story_data, character_illustration_path
+                
             except json.JSONDecodeError as e:
                 print(f"❌ Erreur parsing JSON: {e}")
                 print(f"Contenu reçu: {content[:500]}...")
