@@ -24,7 +24,7 @@ const comicThemes = [
   { id: 'vehicles', name: 'Véhicules', description: 'Voitures et transports', emoji: '🚗' },
   { id: 'cooking', name: 'Cuisine', description: 'Recettes et pâtisseries', emoji: '🍰' },
   { id: 'garden', name: 'Jardin', description: 'Plantes et fleurs', emoji: '🌻' },
-  { id: 'time_travel', name: 'Voyage dans le temps', description: 'Aventures temporelles', emoji: '⏰' },
+  { id: 'ocean_fr', name: 'Océan', description: 'Aventures sous-marines', emoji: '🌊' },
   { id: 'zoo', name: 'Zoo', description: 'Aventures au zoo', emoji: '🦓' },
   { id: 'party', name: 'Fête', description: 'Anniversaires et célébrations', emoji: '🎉' }
 ];

@@ -37,7 +37,7 @@ const ComicsSelector = ({
     { id: 'vehicules', name: 'Véhicules', icon: '🚗', description: 'Voitures et transports' },
     { id: 'cuisine', name: 'Cuisine', icon: '🍰', description: 'Recettes et pâtisseries' },
     { id: 'jardin', name: 'Jardin', icon: '🌻', description: 'Plantes et fleurs' },
-    { id: 'voyage_temps', name: 'Voyage dans le temps', icon: '⏰', description: 'Aventures temporelles' },
+    { id: 'ocean_fr', name: 'Océan', icon: '🌊', description: 'Aventures sous-marines' },
     { id: 'zoo', name: 'Zoo', icon: '🦓', description: 'Aventures au zoo' },
     { id: 'fete', name: 'Fête', icon: '🎉', description: 'Anniversaires et célébrations' }
   ];
