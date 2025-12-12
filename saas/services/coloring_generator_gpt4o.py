@@ -394,7 +394,7 @@ CRITICAL: Recreate this exact scene as a black and white line drawing coloring p
                     original_width, original_height = input_img.size
                     aspect_ratio = original_width / original_height
                     print(f"[DIMENSIONS] Dimensions originales: {original_width}x{original_height} (ratio: {aspect_ratio:.2f})")
-        except Exception as e:
+                except Exception as e:
                     print(f"[WARNING] Impossible de lire les dimensions originales: {e}")
             
             # Appeler Gemini avec text-to-image
