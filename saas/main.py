@@ -2270,7 +2270,6 @@ async def get_cleanup_status(
 @app.delete("/delete_creation_files/{creation_id}")
 async def delete_creation_files(
     creation_id: int,
-    request: Request,
     authorization: Optional[str] = Header(None)
 ):
     """
@@ -2279,12 +2278,17 @@ async def delete_creation_files(
     et les supprime du Storage avant la suppression de la base de données.
     """
     try:
+        print(f"🗑️ [DELETE_FILES] Suppression fichiers pour création ID: {creation_id}")
+        
         # Extraire user_id depuis JWT
-        user_id = await fetch_user_id_from_supabase(
-            authorization.split(" ")[1] if authorization and authorization.startswith("Bearer ") else None
-        )
+        token = authorization.split(" ")[1] if authorization and authorization.startswith("Bearer ") else None
+        print(f"🔍 [DELETE_FILES] Token présent: {bool(token)}")
+        
+        user_id = await fetch_user_id_from_supabase(token)
+        print(f"🔍 [DELETE_FILES] User ID: {user_id}")
         
         if not user_id:
+            print("❌ [DELETE_FILES] User ID manquant")
             raise HTTPException(
                 status_code=401,
                 detail="Authentification requise. Fournissez un JWT valide dans le header Authorization."
@@ -2296,12 +2300,18 @@ async def delete_creation_files(
         
         creation_response = supabase_client.table("creations").select("*").eq("id", creation_id).eq("user_id", user_id).execute()
         
+        print(f"🔍 [DELETE_FILES] Réponse Supabase: {len(creation_response.data) if creation_response.data else 0} création(s) trouvée(s)")
+        
         if not creation_response.data or len(creation_response.data) == 0:
+            print(f"❌ [DELETE_FILES] Création {creation_id} non trouvée pour user {user_id}")
             raise HTTPException(status_code=404, detail="Création non trouvée ou vous n'avez pas les droits")
         
         creation = creation_response.data[0]
         creation_type = creation.get("type", "")
         creation_data = creation.get("data", {}) or {}
+        
+        print(f"🔍 [DELETE_FILES] Type de création: {creation_type}")
+        print(f"🔍 [DELETE_FILES] Données création: {json.dumps(creation_data, indent=2)[:500]}")
         
         # Obtenir le service Storage
         storage_service = get_storage_service()
