@@ -406,22 +406,34 @@ class SupabaseStorageService:
                 "error": str(e)
             }
 
-    async def delete_file(self, storage_path: str) -> Dict[str, Any]:
+    async def delete_file(self, storage_path: str, content_type: Optional[str] = None) -> Dict[str, Any]:
         """
         Supprime un fichier du Storage
         
         Args:
             storage_path: Chemin du fichier dans le bucket
+            content_type: Type de contenu pour déterminer le bon bucket (optionnel)
         
         Returns:
             Dict avec 'success' et optionnellement 'error'
         """
         try:
-            self.bucket.remove([storage_path])
-            print(f"🗑️ Fichier supprimé: {storage_path}")
+            # Déterminer le bucket à utiliser
+            if content_type:
+                bucket_name = self._get_bucket_for_type(content_type)
+                bucket = self.client.storage.from_(bucket_name)
+            else:
+                # Par défaut, utiliser le bucket audio (le plus commun)
+                bucket_name = "audio"
+                bucket = self.client.storage.from_(bucket_name)
+            
+            bucket.remove([storage_path])
+            print(f"🗑️ Fichier supprimé: {storage_path} (bucket: {bucket_name})")
             return {"success": True}
         except Exception as e:
             print(f"❌ Erreur suppression fichier: {e}")
+            import traceback
+            traceback.print_exc()
             return {
                 "success": False,
                 "error": str(e)

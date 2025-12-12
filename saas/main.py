@@ -2265,3 +2265,177 @@ async def get_cleanup_status(
             status_code=500,
             detail=f"Erreur lors de la récupération du status: {str(e)}"
         )
+
+
+@app.delete("/delete_creation_files/{creation_id}")
+async def delete_creation_files(
+    creation_id: int,
+    request: Request,
+    authorization: Optional[str] = Header(None)
+):
+    """
+    Supprime tous les fichiers d'une création depuis Supabase Storage.
+    Récupère la création depuis la base de données, extrait tous les chemins de fichiers
+    et les supprime du Storage avant la suppression de la base de données.
+    """
+    try:
+        # Extraire user_id depuis JWT
+        user_id = await fetch_user_id_from_supabase(
+            authorization.split(" ")[1] if authorization and authorization.startswith("Bearer ") else None
+        )
+        
+        if not user_id:
+            raise HTTPException(
+                status_code=401,
+                detail="Authentification requise. Fournissez un JWT valide dans le header Authorization."
+            )
+        
+        # Récupérer la création depuis la base de données
+        if not supabase_client:
+            raise HTTPException(status_code=500, detail="Service Supabase non disponible")
+        
+        creation_response = supabase_client.table("creations").select("*").eq("id", creation_id).eq("user_id", user_id).execute()
+        
+        if not creation_response.data or len(creation_response.data) == 0:
+            raise HTTPException(status_code=404, detail="Création non trouvée ou vous n'avez pas les droits")
+        
+        creation = creation_response.data[0]
+        creation_type = creation.get("type", "")
+        creation_data = creation.get("data", {}) or {}
+        
+        # Obtenir le service Storage
+        storage_service = get_storage_service()
+        if not storage_service:
+            print("⚠️ Service Supabase Storage non disponible, suppression des fichiers ignorée")
+            return {"success": True, "message": "Création supprimée (Storage non disponible)"}
+        
+        deleted_files = []
+        failed_files = []
+        
+        # Extraire et supprimer tous les fichiers selon le type de création
+        if creation_type in ["rhyme", "comptine", "audio", "histoire", "story"]:
+            # Audio
+            audio_path = creation_data.get("audio_path") or creation.get("audio_path")
+            if audio_path:
+                # Extraire le chemin du storage depuis l'URL complète
+                storage_path = _extract_storage_path_from_url(audio_path, creation_type)
+                if storage_path:
+                    result = await storage_service.delete_file(storage_path, content_type=creation_type)
+                    if result.get("success"):
+                        deleted_files.append(storage_path)
+                    else:
+                        failed_files.append({"path": storage_path, "error": result.get("error")})
+        
+        elif creation_type in ["coloring", "coloriage"]:
+            # Images de coloriage
+            images = creation_data.get("images") or []
+            if isinstance(images, list):
+                for image_url in images:
+                    if image_url:
+                        storage_path = _extract_storage_path_from_url(image_url, creation_type)
+                        if storage_path:
+                            result = await storage_service.delete_file(storage_path, content_type=creation_type)
+                            if result.get("success"):
+                                deleted_files.append(storage_path)
+                            else:
+                                failed_files.append({"path": storage_path, "error": result.get("error")})
+        
+        elif creation_type in ["comic", "bd", "story"]:
+            # Pages de BD
+            pages = creation_data.get("pages") or creation_data.get("comic_data", {}).get("pages") or []
+            if isinstance(pages, list):
+                for page in pages:
+                    image_url = page.get("image_url") if isinstance(page, dict) else page
+                    if image_url:
+                        storage_path = _extract_storage_path_from_url(image_url, "comic")
+                        if storage_path:
+                            result = await storage_service.delete_file(storage_path, content_type="comic")
+                            if result.get("success"):
+                                deleted_files.append(storage_path)
+                            else:
+                                failed_files.append({"path": storage_path, "error": result.get("error")})
+        
+        elif creation_type in ["animation", "crewai_animation"]:
+            # Vidéo d'animation
+            video_url = creation_data.get("video_url") or creation_data.get("final_video_url")
+            if video_url:
+                storage_path = _extract_storage_path_from_url(video_url, creation_type)
+                if storage_path:
+                    result = await storage_service.delete_file(storage_path, content_type=creation_type)
+                    if result.get("success"):
+                        deleted_files.append(storage_path)
+                    else:
+                        failed_files.append({"path": storage_path, "error": result.get("error")})
+        
+        return {
+            "success": True,
+            "deleted_files": deleted_files,
+            "failed_files": failed_files,
+            "deleted_count": len(deleted_files),
+            "failed_count": len(failed_files)
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erreur suppression fichiers création: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la suppression: {str(e)}")
+
+
+def _extract_storage_path_from_url(url: str, content_type: str) -> Optional[str]:
+    """
+    Extrait le chemin de stockage depuis une URL Supabase Storage complète.
+    
+    Args:
+        url: URL complète (ex: https://...supabase.co/storage/v1/object/public/audio/user_id/rhymes/file.mp3)
+        content_type: Type de contenu pour déterminer le bucket
+    
+    Returns:
+        Chemin de stockage relatif (ex: user_id/rhymes/file.mp3) ou None si URL invalide
+    """
+    if not url or not isinstance(url, str):
+        return None
+    
+    # Si c'est déjà un chemin relatif (sans http://), le retourner tel quel
+    if not url.startswith("http://") and not url.startswith("https://"):
+        return url
+    
+    # Extraire le chemin depuis l'URL Supabase Storage
+    # Format: https://...supabase.co/storage/v1/object/public/{bucket}/{path}
+    try:
+        from services.supabase_storage import get_storage_service
+        storage_service = get_storage_service()
+        if not storage_service:
+            return None
+        
+        # Déterminer le bucket
+        bucket_name = storage_service._get_bucket_for_type(content_type)
+        
+        # Chercher le pattern /storage/v1/object/public/{bucket}/
+        pattern = f"/storage/v1/object/public/{bucket_name}/"
+        if pattern in url:
+            storage_path = url.split(pattern)[1]
+            # Nettoyer les paramètres de requête si présents
+            storage_path = storage_path.split("?")[0]
+            return storage_path
+        
+        # Si le pattern n'est pas trouvé, essayer d'extraire le chemin après le dernier /
+        # (pour les URLs signées ou autres formats)
+        parts = url.split("/")
+        if len(parts) > 0:
+            # Chercher l'index du bucket dans l'URL
+            try:
+                bucket_index = parts.index(bucket_name)
+                if bucket_index < len(parts) - 1:
+                    storage_path = "/".join(parts[bucket_index + 1:])
+                    storage_path = storage_path.split("?")[0]  # Enlever les paramètres de requête
+                    return storage_path
+            except ValueError:
+                pass
+        
+        return None
+    except Exception as e:
+        print(f"⚠️ Erreur extraction chemin depuis URL: {e}")
+        return None

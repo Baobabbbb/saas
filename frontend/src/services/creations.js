@@ -96,6 +96,43 @@ export const getUserCreations = getCreations;
 // Supprimer une création
 export async function deleteCreation(id) {
   try {
+    // D'abord, supprimer les fichiers du Storage Supabase
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      throw new Error('Utilisateur non connecté');
+    }
+    
+    // Récupérer le token d'authentification
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      throw new Error('Token d\'authentification manquant');
+    }
+    
+    // Appeler l'endpoint backend pour supprimer les fichiers
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://herbbie.com';
+    try {
+      const deleteFilesResponse = await fetch(`${API_BASE_URL}/delete_creation_files/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!deleteFilesResponse.ok) {
+        const errorData = await deleteFilesResponse.json().catch(() => ({}));
+        console.warn('⚠️ Erreur lors de la suppression des fichiers (non-bloquant):', errorData);
+        // Continuer quand même la suppression de la base de données
+      } else {
+        const deleteResult = await deleteFilesResponse.json();
+        console.log(`✅ Fichiers supprimés: ${deleteResult.deleted_count || 0} fichier(s)`);
+      }
+    } catch (filesError) {
+      console.warn('⚠️ Erreur lors de la suppression des fichiers (non-bloquant):', filesError);
+      // Continuer quand même la suppression de la base de données
+    }
+    
+    // Ensuite, supprimer la création de la base de données
     const { error } = await supabase
       .from('creations')
       .delete()
