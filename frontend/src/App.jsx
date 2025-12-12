@@ -2030,10 +2030,10 @@ const downloadPDF = async (title, content) => {
                   link.click();
                   document.body.removeChild(link);
 
-                  // Nettoyer l'URL du blob après un court délai
+                  // Nettoyer l'URL du blob après un délai pour que le navigateur puisse traiter le téléchargement
                   setTimeout(() => {
                     window.URL.revokeObjectURL(blobUrl);
-                  }, 100);
+                  }, 500);
 
                 } catch (error) {
                   // Fallback : ouvrir dans un nouvel onglet
