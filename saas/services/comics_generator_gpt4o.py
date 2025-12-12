@@ -530,17 +530,35 @@ FORMAT JSON REQUIS:
             }}
           ]
         }},
-        ... (continuer pour toutes les {num_panels} cases de la page 1)
+        {{
+          "panel_number": 2,
+          "visual_description": "...",
+          "action": "...",
+          "dialogue_bubbles": [...]
+        }},
+        ... (continuer pour EXACTEMENT {num_panels} cases au total pour la page 1 - pas moins, pas plus)
       ]
     }}{f''',
     {{
       "page_number": 2,
       "panels": [
-        ... (continuer pour toutes les {num_panels} cases de la page 2, en gardant la continuité de l'histoire)
+        {{
+          "panel_number": 1,
+          "visual_description": "...",
+          "action": "...",
+          "dialogue_bubbles": [...]
+        }},
+        ... (continuer pour EXACTEMENT {num_panels} cases au total pour la page 2 - pas moins, pas plus, en gardant la continuité de l'histoire)
       ]
     }}''' if num_pages > 1 else ''}
   ]
 }}
+
+CRITIQUE ABSOLUE:
+- CHAQUE page DOIT avoir EXACTEMENT {num_panels} cases dans le tableau "panels"
+- Page 1: EXACTEMENT {num_panels} cases
+{f'- Page 2: EXACTEMENT {num_panels} cases' if num_pages > 1 else ''}
+- Vérifie que chaque page a bien {num_panels} éléments dans le tableau "panels" avant de générer le JSON
 
 RÈGLES STRICTES:
 - Cette BD a {num_pages} PAGE(S), chaque page ayant EXACTEMENT {num_panels} cases
@@ -585,8 +603,29 @@ Génère maintenant le scénario complet en JSON:"""
                 panels = story_data.get("panels", [])
                 story_data["pages"] = [{"page_number": 1, "panels": panels}]
             
-            total_panels = sum(len(page.get("panels", [])) for page in story_data.get("pages", []))
-            print(f"✅ Scénario généré: '{story_data['title']}' - {len(story_data.get('pages', []))} page(s) avec {total_panels} cases au total")
+            # Vérifier et corriger le nombre de cases par page
+            pages_data = story_data.get("pages", [])
+            for page_idx, page in enumerate(pages_data):
+                page_panels = page.get("panels", [])
+                expected_page_num = page_idx + 1
+                actual_panels_count = len(page_panels)
+                
+                if actual_panels_count != num_panels:
+                    print(f"⚠️ Page {expected_page_num}: {actual_panels_count} cases au lieu de {num_panels} - correction nécessaire")
+                    # Si moins de cases, on peut réessayer ou ajuster
+                    if actual_panels_count < num_panels:
+                        print(f"   ⚠️ ATTENTION: La page {expected_page_num} n'a que {actual_panels_count} cases au lieu de {num_panels}")
+                        raise Exception(f"Page {expected_page_num} invalide: {actual_panels_count} cases au lieu de {num_panels}. Le scénario doit avoir EXACTEMENT {num_panels} cases par page.")
+                else:
+                    print(f"   ✅ Page {expected_page_num}: {actual_panels_count} cases (correct)")
+            
+            total_panels = sum(len(page.get("panels", [])) for page in pages_data)
+            expected_total = num_panels * num_pages
+            if total_panels != expected_total:
+                print(f"⚠️ ATTENTION: Total de {total_panels} cases au lieu de {expected_total} attendues")
+                raise Exception(f"Nombre total de cases incorrect: {total_panels} au lieu de {expected_total} ({num_pages} pages × {num_panels} cases)")
+            
+            print(f"✅ Scénario généré: '{story_data['title']}' - {len(pages_data)} page(s) avec {total_panels} cases au total ({num_panels} cases par page)")
             
             # Retourner le scénario ET la description du personnage pour réutilisation
             return story_data, character_illustration_path
