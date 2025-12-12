@@ -1261,10 +1261,7 @@ The character from the provided image must be the main character performing all 
                                     mime_type="image/png"
                                 ),
                                 full_prompt
-                            ],
-                            request_options={
-                                "timeout": 300.0  # 5 minutes timeout
-                            }
+                            ]
                         )
                         break  # Succès, sortir de la boucle
                     except Exception as e:
@@ -1299,10 +1296,7 @@ The character from the provided image must be the main character performing all 
                         
                         response = self.gemini_client.models.generate_content(
                             model="gemini-3-pro-image-preview",
-                            contents=[prompt],
-                            request_options={
-                                "timeout": 300.0  # 5 minutes timeout
-                            }
+                            contents=[prompt]
                         )
                         break  # Succès, sortir de la boucle
                     except Exception as e:
