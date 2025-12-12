@@ -1126,7 +1126,10 @@ PANEL CONTENT:
 
 STYLE REQUIREMENTS:
 - {style_info['prompt_modifier']}
-- CRITICAL CONTINUITY: Keep identical character designs, outfits, hair color, skin tone, accessories, props, and overall art style consistent across ALL panels. Do NOT change faces, outfits, or colors from one panel to another.
+- CRITICAL CONTINUITY: Keep identical character designs, outfits, hair color, hair style, skin tone, eye color, accessories, props, and overall art style consistent across ALL panels and ALL pages. 
+- ABSOLUTE RULE: If a character has specific hair color (blonde, brown, black, red) in ANY panel, they MUST have the EXACT SAME hair color in ALL panels of ALL pages. DO NOT change hair color between pages.
+- ABSOLUTE RULE: If a character wears specific clothing colors in ANY panel, they MUST wear the EXACT SAME clothing colors in ALL panels of ALL pages. DO NOT change clothing colors between pages.
+- ABSOLUTE RULE: Character faces, body proportions, and physical features MUST be IDENTICAL across all panels and all pages.
 - Clear, bold black panel borders with generous spacing between panels
 - Each panel should be appropriately sized to leave plenty of white space around them
 - Professional comic book page layout with wide gutters (white space between panels)
