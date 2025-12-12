@@ -454,7 +454,14 @@ class ComicsGeneratorGPT4o:
         # Construire le prompt pour gpt-4o-mini
         prompt = f"""Tu es un scénariste expert en bandes dessinées pour enfants de 6-10 ans. Tu écris en français impeccable sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison.
 
-MISSION: Créer une histoire complète en {num_pages} PAGE(S) de bande dessinée avec EXACTEMENT {num_panels} CASES par page (soit {total_panels} cases au total), disposées en grille {rows}x{cols} sur chaque page.
+MISSION CRITIQUE: Créer une histoire complète en {num_pages} PAGE(S) de bande dessinée.
+
+⚠️ EXIGENCE ABSOLUE: CHAQUE PAGE DOIT CONTENIR EXACTEMENT {num_panels} CASES (pas 4, pas 6, EXACTEMENT {num_panels}).
+- Page 1: EXACTEMENT {num_panels} cases disposées en grille {rows}x{cols}
+{f'- Page 2: EXACTEMENT {num_panels} cases disposées en grille {rows}x{cols}' if num_pages > 1 else ''}
+- Total: {total_panels} cases au total ({num_pages} pages × {num_panels} cases)
+
+Si tu génères moins de {num_panels} cases par page, le système rejettera ton scénario. Tu DOIS générer TOUTES les {num_panels} cases pour chaque page.
 
 THÈME: {theme_info['name']}
 Description: {theme_info['description']}
@@ -536,7 +543,43 @@ FORMAT JSON REQUIS:
           "action": "...",
           "dialogue_bubbles": [...]
         }},
-        ... (continuer pour EXACTEMENT {num_panels} cases au total pour la page 1 - pas moins, pas plus)
+        {{
+          "panel_number": 3,
+          "visual_description": "...",
+          "action": "...",
+          "dialogue_bubbles": [...]
+        }},
+        {{
+          "panel_number": 4,
+          "visual_description": "...",
+          "action": "...",
+          "dialogue_bubbles": [...]
+        }}{f''',
+        {{
+          "panel_number": 5,
+          "visual_description": "...",
+          "action": "...",
+          "dialogue_bubbles": [...]
+        }},
+        {{
+          "panel_number": 6,
+          "visual_description": "...",
+          "action": "...",
+          "dialogue_bubbles": [...]
+        }},
+        {{
+          "panel_number": 7,
+          "visual_description": "...",
+          "action": "...",
+          "dialogue_bubbles": [...]
+        }},
+        {{
+          "panel_number": 8,
+          "visual_description": "...",
+          "action": "...",
+          "dialogue_bubbles": [...]
+        }}''' if num_panels >= 8 else ''}{f''',
+        ... (continuer pour EXACTEMENT {num_panels} cases au total pour la page 1 - tu DOIS générer TOUTES les {num_panels} cases, pas seulement 4)''' if num_panels > 4 else ''}
       ]
     }}{f''',
     {{
@@ -554,11 +597,14 @@ FORMAT JSON REQUIS:
   ]
 }}
 
-CRITIQUE ABSOLUE:
+CRITIQUE ABSOLUE - LECTURE OBLIGATOIRE AVANT DE GÉNÉRER:
 - CHAQUE page DOIT avoir EXACTEMENT {num_panels} cases dans le tableau "panels"
-- Page 1: EXACTEMENT {num_panels} cases
-{f'- Page 2: EXACTEMENT {num_panels} cases' if num_pages > 1 else ''}
-- Vérifie que chaque page a bien {num_panels} éléments dans le tableau "panels" avant de générer le JSON
+- Page 1: EXACTEMENT {num_panels} cases (pas 4, pas 6, EXACTEMENT {num_panels})
+{f'- Page 2: EXACTEMENT {num_panels} cases (pas 4, pas 6, EXACTEMENT {num_panels})' if num_pages > 1 else ''}
+- AVANT de générer le JSON, COMPTE mentalement le nombre de cases que tu vas mettre dans chaque page
+- Si tu comptes moins de {num_panels} cases pour une page, AJOUTE des cases jusqu'à atteindre EXACTEMENT {num_panels}
+- Si tu comptes plus de {num_panels} cases, ENLÈVE des cases jusqu'à atteindre EXACTEMENT {num_panels}
+- Vérifie que chaque page a bien EXACTEMENT {num_panels} éléments dans le tableau "panels" AVANT de générer le JSON final
 
 RÈGLES STRICTES:
 - Cette BD a {num_pages} PAGE(S), chaque page ayant EXACTEMENT {num_panels} cases
@@ -580,10 +626,23 @@ Génère maintenant le scénario complet en JSON:"""
             
             print(f"   📊 Estimation tokens: {estimated_tokens}, max_tokens utilisé: {max_tokens}")
             
+            system_message = f"""Tu es un scénariste expert en bandes dessinées pour enfants. Tu génères des scénarios détaillés en JSON.
+
+CRITIQUE ABSOLUE - NOMBRE DE CASES:
+- Chaque page DOIT avoir EXACTEMENT {num_panels} cases dans le tableau "panels"
+- Si le JSON indique "panels_per_page": {num_panels}, alors CHAQUE page doit avoir EXACTEMENT {num_panels} cases
+- Ne génère JAMAIS seulement 4 cases par défaut - génère TOUJOURS le nombre exact demandé ({num_panels})
+- Avant de générer le JSON, compte mentalement: "Page 1 aura {num_panels} cases, Page 2 aura {num_panels} cases"
+- Si tu génères moins de {num_panels} cases, le système rejettera ton scénario
+
+CRITIQUE ORTHOGRAPHE:
+- Tous les textes dans les bulles de dialogue doivent être en français PARFAIT sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison
+- Vérifie chaque mot avant de l'inclure dans les bulles"""
+
             response = await self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "Tu es un scénariste expert en bandes dessinées pour enfants. Tu génères des scénarios détaillés en JSON. CRITIQUE: Tous les textes dans les bulles de dialogue doivent être en français PARFAIT sans AUCUNE faute d'orthographe, de grammaire ou de conjugaison. Vérifie chaque mot avant de l'inclure dans les bulles. CRITIQUE ABSOLUE: Chaque page DOIT avoir EXACTEMENT le nombre de cases demandé dans 'panels_per_page'. Vérifie que chaque page a bien ce nombre exact de cases avant de générer le JSON."},
+                    {"role": "system", "content": system_message},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
