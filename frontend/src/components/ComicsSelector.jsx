@@ -9,6 +9,8 @@ const ComicsSelector = ({
   setSelectedStyle,
   numPages,
   setNumPages,
+  numPanels,
+  setNumPanels,
   customStory,
   setCustomStory,
   characterPhoto,
@@ -134,13 +136,13 @@ const ComicsSelector = ({
       </div>
 
       <div className="selector-section">
-        <h3>4. Nombre de cases</h3>
+        <h3>4. Nombre de cases par page</h3>
         <div className="pages-selector">
           {panelOptions.map(num => (
             <motion.button
               key={num}
-              className={`page-btn ${numPages === num ? 'selected' : ''}`}
-              onClick={() => setNumPages(numPages === num ? null : num)}
+              className={`page-btn ${numPanels === num ? 'selected' : ''}`}
+              onClick={() => setNumPanels(numPanels === num ? null : num)}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
@@ -152,7 +154,26 @@ const ComicsSelector = ({
       </div>
 
       <div className="selector-section">
-        <h3>5. Personnage principal (optionnel)</h3>
+        <h3>5. Nombre de pages</h3>
+        <div className="pages-selector">
+          {[1, 2].map(num => (
+            <motion.button
+              key={num}
+              className={`page-btn ${numPages === num ? 'selected' : ''}`}
+              onClick={() => setNumPages(numPages === num ? null : num)}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+            >
+              {num} {num === 1 ? 'page' : 'pages'}
+              {numPanels && <span className="cases-info"> ({num * numPanels} cases au total)</span>}
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      <div className="selector-section">
+        <h3>6. Personnage principal (optionnel)</h3>
         <div className="character-upload-section">
           <p className="character-description">
             Uploadez une photo pour créer un personnage ressemblant ! L'IA analysera la photo et créera un personnage de BD similaire.

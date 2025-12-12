@@ -176,6 +176,7 @@ function App() {
   const [selectedComicsTheme, setSelectedComicsTheme] = useState(null);
   const [selectedComicsStyle, setSelectedComicsStyle] = useState(null);
   const [numPages, setNumPages] = useState(null);
+  const [numPanels, setNumPanels] = useState(null);
   const [customComicsStory, setCustomComicsStory] = useState('');
   const [characterPhoto, setCharacterPhoto] = useState(null);
   const [comicsResult, setComicsResult] = useState(null);
@@ -775,7 +776,8 @@ function App() {
       const payload = {
         theme: selectedComicsTheme === 'custom' ? customComicsStory : selectedComicsTheme,
         art_style: selectedComicsStyle || 'cartoon', // Style par défaut si aucun sélectionné
-        num_panels: numPages || 4, // Nombre de cases (une seule page) par défaut si aucun sélectionné
+        num_panels: numPanels || 4, // Nombre de cases par page
+        num_pages: numPages || 1, // Nombre de pages (1 ou 2)
         user_id: user?.id  // ✅ Ajouter user_id pour Supabase Storage
       };
 
@@ -1049,6 +1051,7 @@ function App() {
           tokenOptions.duration = selectedDuration;
         } else if (contentType === 'comic' || contentType === 'bd') {
           tokenOptions.pages = numPages || 1;
+          tokenOptions.panels = numPanels || 4;
         }
         if (contentType === 'audio' || (contentType === 'histoire' && selectedVoice)) {
           tokenOptions.voice = selectedVoice;
@@ -1525,6 +1528,8 @@ const downloadPDF = async (title, content) => {
                   setSelectedStyle={setSelectedComicsStyle}
                   numPages={numPages}
                   setNumPages={setNumPages}
+                  numPanels={numPanels}
+                  setNumPanels={setNumPanels}
                   customStory={customComicsStory}
                   setCustomStory={setCustomComicsStory}
                   characterPhoto={characterPhoto}
