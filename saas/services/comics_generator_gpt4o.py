@@ -1099,6 +1099,20 @@ CRITIQUE ORTHOGRAPHE:
 {style_info['prompt_modifier']}.
 STYLE LOCK: Maintain consistent art style, character designs, outfits, colors, and props throughout all panels and across all pages. Same medium, same palette, same line weight, same shading and lighting.
 
+CRITICAL CHARACTER CONSISTENCY - READ CAREFULLY:
+- ALL characters must have IDENTICAL physical features across ALL pages:
+  * Hair color MUST stay the same (if a character has blonde hair on page 1, they MUST have blonde hair on page 2)
+  * Hair style MUST stay the same
+  * Skin tone MUST stay the same
+  * Eye color MUST stay the same
+  * Face shape and features MUST stay the same
+- ALL clothing and accessories must be IDENTICAL:
+  * Clothing colors MUST stay the same (if a character wears a red shirt on page 1, they MUST wear a red shirt on page 2)
+  * Clothing style MUST stay the same
+  * Accessories (hats, glasses, jewelry, etc.) MUST stay the same
+- DO NOT change any physical characteristics between pages
+- If you see a character description in the panels, use those EXACT features for that character in ALL panels of ALL pages
+
 LAYOUT:
 - {format_desc.capitalize()} ({width}x{height} pixels)
 - {num_panels} equally-sized panels in a clean {rows}x{cols} grid
@@ -1144,27 +1158,86 @@ STYLE REQUIREMENTS:
         """
         Construit un bloc de cohérence global (cast + style) pour toutes les cases de toutes les pages
         afin de forcer Gemini à conserver les mêmes personnages / tenues / props.
+        Extrait les caractéristiques physiques des personnages depuis les descriptions visuelles.
         """
+        import re
+        
         # Extraire les noms de personnages depuis les bulles de dialogue
         character_names = set()
+        character_features = {}  # Dictionnaire pour stocker les caractéristiques de chaque personnage
+        
         try:
             # Format avec pages
             pages = story_data.get("pages", [])
             for page in pages:
                 panels = page.get("panels", [])
                 for panel in panels:
+                    # Extraire les noms depuis les bulles
                     for bubble in panel.get("dialogue_bubbles", []):
                         name = bubble.get("character")
                         if name:
                             character_names.add(name.strip())
-        except Exception:
+                    
+                    # Extraire les caractéristiques physiques depuis les descriptions visuelles
+                    visual_desc = panel.get("visual_description", "").lower()
+                    
+                    # Chercher les caractéristiques communes (couleur de cheveux, vêtements, etc.)
+                    hair_colors = ["blonde", "brun", "brown", "black", "red", "roux", "blond", "noir", "rouge"]
+                    for color in hair_colors:
+                        if color in visual_desc:
+                            # Essayer d'identifier le personnage (généralement mentionné en premier)
+                            # Chercher des patterns comme "girl with", "boy with", "character with"
+                            if "girl" in visual_desc or "fille" in visual_desc:
+                                if "girl" not in character_features:
+                                    character_features["girl"] = {}
+                                if "hair_color" not in character_features["girl"]:
+                                    character_features["girl"]["hair_color"] = color
+                            elif "boy" in visual_desc or "garçon" in visual_desc:
+                                if "boy" not in character_features:
+                                    character_features["boy"] = {}
+                                if "hair_color" not in character_features["boy"]:
+                                    character_features["boy"]["hair_color"] = color
+                    
+                    # Extraire les vêtements (shirt, dress, pants, etc.)
+                    clothing_keywords = ["shirt", "dress", "pants", "jeans", "t-shirt", "chemise", "robe", "pantalon"]
+                    for keyword in clothing_keywords:
+                        if keyword in visual_desc:
+                            # Extraire la couleur du vêtement
+                            color_match = re.search(rf'{keyword}[^.]*?(\w+\s+)?(\w+)\s+{keyword}|(\w+)\s+{keyword}', visual_desc)
+                            if color_match:
+                                color = color_match.group(2) or color_match.group(3) or ""
+                                if color and color not in ["the", "a", "an", "with", "wearing"]:
+                                    if "girl" in visual_desc or "fille" in visual_desc:
+                                        if "girl" not in character_features:
+                                            character_features["girl"] = {}
+                                        if "clothing" not in character_features["girl"]:
+                                            character_features["girl"]["clothing"] = f"{color} {keyword}"
+                                    elif "boy" in visual_desc or "garçon" in visual_desc:
+                                        if "boy" not in character_features:
+                                            character_features["boy"] = {}
+                                        if "clothing" not in character_features["boy"]:
+                                            character_features["boy"]["clothing"] = f"{color} {keyword}"
+        except Exception as e:
+            print(f"   ⚠️ Erreur extraction caractéristiques: {e}")
             pass
 
+        # Construire le bloc de continuité avec les caractéristiques extraites
         if not character_names:
-            characters_line = "MAIN CHARACTERS: Keep the same main characters with identical faces, hair, outfits, colors, and props across all panels and all pages."
+            characters_line = "MAIN CHARACTERS: Keep the same main characters with IDENTICAL physical features (hair color, skin tone, face shape, eye color), outfits, colors, and props across ALL panels and ALL pages. DO NOT change hair color, clothing colors, or any physical features between pages."
         else:
             joined = ", ".join(sorted(character_names))
-            characters_line = f"MAIN CHARACTERS: {joined}. Keep their faces, hair, outfits, colors, accessories, and props IDENTICAL across all panels and all pages."
+            features_text = ""
+            if character_features:
+                features_list = []
+                for char_type, features in character_features.items():
+                    if "hair_color" in features:
+                        features_list.append(f"{char_type} has {features['hair_color']} hair")
+                    if "clothing" in features:
+                        features_list.append(f"{char_type} wears {features['clothing']}")
+                if features_list:
+                    features_text = f" IMPORTANT: {', '.join(features_list)}. These features MUST remain IDENTICAL across all pages."
+            
+            characters_line = f"MAIN CHARACTERS: {joined}. CRITICAL: Keep their faces, hair color, hair style, skin tone, eye color, outfits, clothing colors, accessories, and props IDENTICAL across ALL panels and ALL pages. DO NOT change hair color (e.g., from blonde to brown), clothing colors, or any physical features between pages.{features_text}"
 
         style_name = style_info.get("name", "Chosen style")
         style_modifier = style_info.get("prompt_modifier", "")
