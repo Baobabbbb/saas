@@ -566,7 +566,7 @@ FORMAT JSON REQUIS:
           "visual_description": "...",
           "action": "...",
           "dialogue_bubbles": [...]
-        }},
+        }}''' if num_panels >= 6 else ''}{f''',
         {{
           "panel_number": 7,
           "visual_description": "...",
@@ -579,7 +579,30 @@ FORMAT JSON REQUIS:
           "action": "...",
           "dialogue_bubbles": [...]
         }}''' if num_panels >= 8 else ''}{f''',
-        ... (continuer pour EXACTEMENT {num_panels} cases au total pour la page 1 - tu DOIS générer TOUTES les {num_panels} cases, pas seulement 4)''' if num_panels > 4 else ''}
+        {{
+          "panel_number": 9,
+          "visual_description": "...",
+          "action": "...",
+          "dialogue_bubbles": [...]
+        }},
+        {{
+          "panel_number": 10,
+          "visual_description": "...",
+          "action": "...",
+          "dialogue_bubbles": [...]
+        }}''' if num_panels >= 10 else ''}{f''',
+        {{
+          "panel_number": 11,
+          "visual_description": "...",
+          "action": "...",
+          "dialogue_bubbles": [...]
+        }},
+        {{
+          "panel_number": 12,
+          "visual_description": "...",
+          "action": "...",
+          "dialogue_bubbles": [...]
+        }}''' if num_panels >= 12 else ''}
       ]
     }}{f''',
     {{
@@ -591,7 +614,13 @@ FORMAT JSON REQUIS:
           "action": "...",
           "dialogue_bubbles": [...]
         }},
-        ... (continuer pour EXACTEMENT {num_panels} cases au total pour la page 2 - pas moins, pas plus, en gardant la continuité de l'histoire)
+        {{
+          "panel_number": 2,
+          "visual_description": "...",
+          "action": "...",
+          "dialogue_bubbles": [...]
+        }},
+        ... (continuer pour EXACTEMENT {num_panels} cases au total pour la page 2 - génère TOUTES les {num_panels} cases, pas seulement 4, en gardant la continuité de l'histoire)
       ]
     }}''' if num_pages > 1 else ''}
   ]
