@@ -544,13 +544,11 @@ FORMAT JSON REQUIS:
 
 RÈGLES STRICTES:
 - Cette BD a {num_pages} PAGE(S), chaque page ayant EXACTEMENT {num_panels} cases
-
-RÈGLES STRICTES:
-- Cette BD a EXACTEMENT {num_panels} cases sur UNE SEULE PAGE
-- Les descriptions visuelles sont en ANGLAIS (pour gpt-image-1-mini)
+- Les descriptions visuelles sont en ANGLAIS (pour gemini-3-pro-image-preview)
 - Les dialogues sont en FRANÇAIS (pour les enfants)
-- L'histoire doit avoir un début, un milieu et une fin satisfaisante
+- L'histoire doit avoir un début, un milieu et une fin satisfaisante avec continuité narrative entre les pages
 - Ton positif et adapté aux enfants (pas de violence, pas de peur excessive)
+- CRITIQUE: Les personnages, leurs vêtements, leurs couleurs et le style de dessin DOIVENT être IDENTIQUES sur toutes les pages
 
 Génère maintenant le scénario complet en JSON:"""
 
