@@ -2267,6 +2267,56 @@ async def get_cleanup_status(
         )
 
 
+def _extract_storage_path_from_url(url: str, content_type: str) -> Optional[str]:
+    """
+    Extrait le chemin de stockage depuis une URL Supabase Storage.
+    
+    Formats d'URL supportés:
+    - URL signée: https://xxx.supabase.co/storage/v1/object/sign/{bucket}/{path}?token=...
+    - URL publique: https://xxx.supabase.co/storage/v1/object/public/{bucket}/{path}
+    
+    Args:
+        url: URL complète du fichier dans Supabase Storage
+        content_type: Type de contenu (pour validation)
+    
+    Returns:
+        Chemin de stockage relatif (ex: "user_id/folder/filename.png") ou None si erreur
+    """
+    if not url or not isinstance(url, str):
+        return None
+    
+    try:
+        # Supprimer les paramètres de requête (token, etc.)
+        url_without_params = url.split('?')[0]
+        
+        # Patterns pour extraire le chemin
+        patterns = [
+            '/storage/v1/object/sign/',  # URL signée
+            '/storage/v1/object/public/',  # URL publique
+        ]
+        
+        for pattern in patterns:
+            if pattern in url_without_params:
+                # Extraire la partie après le pattern
+                path_part = url_without_params.split(pattern, 1)[1]
+                
+                # Le format est: {bucket}/{storage_path}
+                # On doit extraire {storage_path} qui commence après le premier /
+                parts = path_part.split('/', 1)
+                if len(parts) == 2:
+                    bucket = parts[0]
+                    storage_path = parts[1]
+                    print(f"🔍 [EXTRACT_PATH] Bucket: {bucket}, Path: {storage_path}")
+                    return storage_path
+        
+        # Si aucun pattern ne correspond, retourner None
+        print(f"⚠️ [EXTRACT_PATH] Format d'URL non reconnu: {url[:100]}")
+        return None
+        
+    except Exception as e:
+        print(f"❌ [EXTRACT_PATH] Erreur extraction chemin: {e}")
+        return None
+
 @app.delete("/delete_creation_files/{creation_id}")
 async def delete_creation_files(
     creation_id: str,
@@ -2358,16 +2408,27 @@ async def delete_creation_files(
         elif creation_type in ["coloring", "coloriage"]:
             # Images de coloriage
             images = creation_data.get("images") or []
+            print(f"🔍 [DELETE_FILES] Images trouvées: {len(images) if isinstance(images, list) else 0}")
             if isinstance(images, list):
-                for image_url in images:
+                for idx, image_item in enumerate(images):
+                    # image_item peut être un dict avec "image_url" ou directement une URL string
+                    image_url = image_item.get("image_url") if isinstance(image_item, dict) else image_item
+                    print(f"🔍 [DELETE_FILES] Image {idx}: {image_url[:100] if image_url else 'None'}...")
                     if image_url:
                         storage_path = _extract_storage_path_from_url(image_url, creation_type)
                         if storage_path:
+                            print(f"🗑️ [DELETE_FILES] Suppression image coloriage: {storage_path}")
                             result = await storage_service.delete_file(storage_path, content_type=creation_type)
                             if result.get("success"):
                                 deleted_files.append(storage_path)
+                                print(f"✅ [DELETE_FILES] Image supprimée: {storage_path}")
                             else:
                                 failed_files.append({"path": storage_path, "error": result.get("error")})
+                                print(f"❌ [DELETE_FILES] Échec suppression: {storage_path} - {result.get('error')}")
+                        else:
+                            print(f"⚠️ [DELETE_FILES] Impossible d'extraire le chemin depuis: {image_url[:100]}")
+            else:
+                print(f"⚠️ [DELETE_FILES] 'images' n'est pas une liste: {type(images)}")
         
         elif creation_type in ["comic", "bd", "story"]:
             # Pages de BD
@@ -2395,6 +2456,8 @@ async def delete_creation_files(
                         deleted_files.append(storage_path)
                     else:
                         failed_files.append({"path": storage_path, "error": result.get("error")})
+        
+        print(f"✅ [DELETE_FILES] Suppression terminée: {len(deleted_files)} fichier(s) supprimé(s), {len(failed_files)} échec(s)")
         
         return {
             "success": True,
