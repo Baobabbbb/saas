@@ -2270,7 +2270,7 @@ async def get_cleanup_status(
 @app.delete("/delete_creation_files/{creation_id}")
 async def delete_creation_files(
     creation_id: str,
-    authorization: Optional[str] = Header(None)
+    request: Request
 ):
     """
     Supprime tous les fichiers d'une création depuis Supabase Storage.
@@ -2290,7 +2290,9 @@ async def delete_creation_files(
         
         print(f"🗑️ [DELETE_FILES] Suppression fichiers pour création ID: {creation_id_int}")
         
-        # Extraire user_id depuis JWT
+        # Extraire user_id depuis JWT - utiliser Request pour obtenir le header
+        authorization = request.headers.get("authorization") or request.headers.get("Authorization")
+        
         if not authorization:
             print("❌ [DELETE_FILES] Header Authorization manquant")
             raise HTTPException(
