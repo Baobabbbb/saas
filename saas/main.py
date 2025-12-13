@@ -2304,13 +2304,10 @@ def _extract_storage_path_from_url(url: str, content_type: str) -> Optional[str]
                 # On doit extraire {storage_path} qui commence après le premier /
                 parts = path_part.split('/', 1)
                 if len(parts) == 2:
-                    bucket = parts[0]
                     storage_path = parts[1]
-                    print(f"🔍 [EXTRACT_PATH] Bucket: {bucket}, Path: {storage_path}")
                     return storage_path
         
         # Si aucun pattern ne correspond, retourner None
-        print(f"⚠️ [EXTRACT_PATH] Format d'URL non reconnu: {url[:100]}")
         return None
         
     except Exception as e:
@@ -2351,10 +2348,8 @@ async def delete_creation_files(
             )
         
         token = authorization.split(" ")[1] if authorization.startswith("Bearer ") else authorization
-        print(f"🔍 [DELETE_FILES] Token présent: {bool(token)}")
         
         user_id = await fetch_user_id_from_supabase(token)
-        print(f"🔍 [DELETE_FILES] User ID: {user_id}")
         
         if not user_id:
             print("❌ [DELETE_FILES] User ID manquant")
@@ -2369,8 +2364,6 @@ async def delete_creation_files(
         
         creation_response = supabase_client.table("creations").select("*").eq("id", creation_id_int).eq("user_id", user_id).execute()
         
-        print(f"🔍 [DELETE_FILES] Réponse Supabase: {len(creation_response.data) if creation_response.data else 0} création(s) trouvée(s)")
-        
         if not creation_response.data or len(creation_response.data) == 0:
             print(f"❌ [DELETE_FILES] Création {creation_id_int} non trouvée pour user {user_id}")
             raise HTTPException(status_code=404, detail="Création non trouvée ou vous n'avez pas les droits")
@@ -2378,9 +2371,6 @@ async def delete_creation_files(
         creation = creation_response.data[0]
         creation_type = creation.get("type", "")
         creation_data = creation.get("data", {}) or {}
-        
-        print(f"🔍 [DELETE_FILES] Type de création: {creation_type}")
-        print(f"🔍 [DELETE_FILES] Données création: {json.dumps(creation_data, indent=2)[:500]}")
         
         # Obtenir le service Storage
         storage_service = get_storage_service()
@@ -2408,27 +2398,18 @@ async def delete_creation_files(
         elif creation_type in ["coloring", "coloriage"]:
             # Images de coloriage
             images = creation_data.get("images") or []
-            print(f"🔍 [DELETE_FILES] Images trouvées: {len(images) if isinstance(images, list) else 0}")
             if isinstance(images, list):
-                for idx, image_item in enumerate(images):
+                for image_item in images:
                     # image_item peut être un dict avec "image_url" ou directement une URL string
                     image_url = image_item.get("image_url") if isinstance(image_item, dict) else image_item
-                    print(f"🔍 [DELETE_FILES] Image {idx}: {image_url[:100] if image_url else 'None'}...")
                     if image_url:
                         storage_path = _extract_storage_path_from_url(image_url, creation_type)
                         if storage_path:
-                            print(f"🗑️ [DELETE_FILES] Suppression image coloriage: {storage_path}")
                             result = await storage_service.delete_file(storage_path, content_type=creation_type)
                             if result.get("success"):
                                 deleted_files.append(storage_path)
-                                print(f"✅ [DELETE_FILES] Image supprimée: {storage_path}")
                             else:
                                 failed_files.append({"path": storage_path, "error": result.get("error")})
-                                print(f"❌ [DELETE_FILES] Échec suppression: {storage_path} - {result.get('error')}")
-                        else:
-                            print(f"⚠️ [DELETE_FILES] Impossible d'extraire le chemin depuis: {image_url[:100]}")
-            else:
-                print(f"⚠️ [DELETE_FILES] 'images' n'est pas une liste: {type(images)}")
         
         elif creation_type in ["comic", "bd", "story"]:
             # Pages de BD
@@ -2456,8 +2437,6 @@ async def delete_creation_files(
                         deleted_files.append(storage_path)
                     else:
                         failed_files.append({"path": storage_path, "error": result.get("error")})
-        
-        print(f"✅ [DELETE_FILES] Suppression terminée: {len(deleted_files)} fichier(s) supprimé(s), {len(failed_files)} échec(s)")
         
         return {
             "success": True,
